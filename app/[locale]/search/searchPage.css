@@ -1,0 +1,522 @@
+/* app/[locale]/search/searchPage.css - Voucher Search Styles */
+
+/* Main Page Wrapper */
+.search_page {
+  width: 100%;
+  min-height: 100vh;
+  padding: 1rem 0;
+  font-family: 'Alexandria', 'Open Sans', Arial, sans-serif;
+  background: #fafafa;
+}
+
+/* Search Header */
+.search-header {
+  width: 100%;
+  margin-bottom: 1.5rem;
+}
+
+.search-header-content {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* Search Content Container */
+.search-content {
+  max-width: 1280px;
+  padding: 1.5rem;
+  margin: 0 auto;
+}
+
+/* Search Info */
+.search-info {
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.search-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #111;
+  margin: 0 0 0.5rem 0;
+  line-height: 1.2;
+}
+
+.query-highlight {
+  color: #0062ff;
+}
+
+.search-count {
+  font-size: 1rem;
+  color: #666;
+  margin: 0;
+}
+
+/* Search Tabs */
+.search-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+  border-bottom: 2px solid #e5e5e5;
+}
+
+.search-tab {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem 1.5rem;
+  border: none;
+  background: none;
+  font-size: 14px;
+  font-weight: 600;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  font-family: 'Alexandria', 'Open Sans', Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.search-tab:hover {
+  color: #111;
+  background: #f5f5f5;
+}
+
+.search-tab.active {
+  color: #0062ff;
+  border-bottom-color: #0062ff;
+}
+
+.search-tab .material-symbols-sharp {
+  font-size: 20px;
+}
+
+/* Results Container */
+.search-results-container {
+  display: flex;
+  flex-direction: column;
+  gap: 3rem;
+}
+
+/* Results Section */
+.results-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.results-section-title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #111;
+  margin: 0;
+}
+
+.results-section-title .material-symbols-sharp {
+  font-size: 28px;
+  color: #0062ff;
+}
+
+/* Stores Grid */
+.stores-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+/* Vouchers Grid */
+.vouchers-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.5rem;
+}
+
+/* Empty Search State */
+.empty-search {
+  text-align: center;
+  padding: 4rem 2rem;
+  background: white;
+  border-radius: 16px;
+  border: 1px solid #e5e5e5;
+  max-width: 600px;
+  margin: 2rem auto;
+}
+
+.empty-search h2 {
+  font-size: 1.75rem;
+  color: #111;
+  font-weight: 700;
+  margin: 1rem 0 0.5rem 0;
+}
+
+.empty-search p {
+  color: #666;
+  margin: 0 0 2rem 0;
+  font-size: 1rem;
+}
+
+.search-tips {
+  margin-top: 2rem;
+}
+
+.search-tips h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #666;
+  margin: 0 0 1rem 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.search-examples {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: center;
+}
+
+.search-example-pill {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  background: #f5f5f5;
+  border: 1.5px solid #e5e5e5;
+  border-radius: 50px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #111;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.search-example-pill:hover {
+  background: white;
+  border-color: #0062ff;
+  color: #0062ff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 98, 255, 0.15);
+}
+
+.search-example-pill .material-symbols-sharp {
+  font-size: 20px;
+}
+
+/* No Results State */
+.no-results {
+  text-align: center;
+  padding: 4rem 2rem;
+  background: white;
+  border-radius: 16px;
+  border: 1px solid #e5e5e5;
+  max-width: 600px;
+  margin: 2rem auto;
+}
+
+.no-results-icon {
+  font-size: 64px !important;
+  opacity: 0.3;
+  margin-bottom: 1rem;
+}
+
+.no-results h2 {
+  font-size: 1.5rem;
+  color: #111;
+  font-weight: 700;
+  margin: 0 0 0.5rem 0;
+}
+
+.no-results p {
+  color: #666;
+  margin: 0 0 2rem 0;
+}
+
+.no-results-suggestions {
+  background: #f5f5f5;
+  border-radius: 12px;
+  padding: 1.5rem;
+  text-align: left;
+}
+
+.no-results-suggestions h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #111;
+  margin: 0 0 1rem 0;
+}
+
+.no-results-suggestions ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.no-results-suggestions li {
+  font-size: 0.9rem;
+  color: #666;
+  padding: 0.5rem 0;
+  padding-left: 1.5rem;
+  position: relative;
+}
+
+.no-results-suggestions li::before {
+  content: "•";
+  position: absolute;
+  left: 0.5rem;
+  color: #0062ff;
+  font-weight: 700;
+}
+
+/* Loading State */
+.search-loading-state,
+.search-error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  text-align: center;
+}
+
+.spinner-large {
+  width: 48px;
+  height: 48px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #0062ff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.search-loading-state p,
+.search-error-state p {
+  color: #666;
+  margin: 0;
+}
+
+.search-error-state button {
+  margin-top: 1rem;
+  padding: 0.75rem 1.5rem;
+  background: #0062ff;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.search-error-state button:hover {
+  background: #0052cc;
+}
+
+/* RTL Support */
+[dir="rtl"] .search-tabs {
+  direction: rtl;
+}
+
+[dir="rtl"] .no-results-suggestions {
+  text-align: right;
+}
+
+[dir="rtl"] .no-results-suggestions li {
+  padding-left: 0;
+  padding-right: 1.5rem;
+}
+
+[dir="rtl"] .no-results-suggestions li::before {
+  left: auto;
+  right: 0.5rem;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .search-content {
+    padding: 0 1rem;
+  }
+
+  .stores-grid {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  }
+
+  .vouchers-grid {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .search_page {
+    padding: 1.5rem 0;
+  }
+
+  .search-title {
+    font-size: 1.5rem;
+  }
+
+  .search-tabs {
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .search-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .search-tab {
+    padding: 0.75rem 1rem;
+    font-size: 13px;
+    white-space: nowrap;
+  }
+
+  .stores-grid,
+  .vouchers-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .results-section-title {
+    font-size: 1.25rem;
+  }
+
+  .empty-search,
+  .no-results {
+    padding: 3rem 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .search-content {
+    padding: 0 0.75rem;
+  }
+  .search-title {
+    font-size: 1.25rem;
+  }
+
+  .search-count {
+    font-size: 0.9rem;
+  }
+
+  .search-tab {
+    padding: 0.5rem 0.75rem;
+    font-size: 12px;
+  }
+
+  .search-tab .material-symbols-sharp {
+    font-size: 18px;
+  }
+
+  .search-example-pill {
+    padding: 0.5rem 1rem;
+    font-size: 13px;
+  }
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+  .search_page {
+    background: #111827;
+  }
+
+  .search-title {
+    color: #f9fafb;
+  }
+
+  .search-count {
+    color: #9ca3af;
+  }
+
+  .search-tabs {
+    border-bottom-color: #374151;
+  }
+
+  .search-tab {
+    color: #9ca3af;
+  }
+
+  .search-tab:hover {
+    color: #f9fafb;
+    background: #1f2937;
+  }
+
+  .search-tab.active {
+    color: #60a5fa;
+    border-bottom-color: #60a5fa;
+  }
+
+  .empty-search,
+  .no-results {
+    background: #1f2937;
+    border-color: #374151;
+  }
+
+  .empty-search h2,
+  .no-results h2 {
+    color: #f9fafb;
+  }
+
+  .empty-search p,
+  .no-results p {
+    color: #9ca3af;
+  }
+
+  .search-example-pill {
+    background: #374151;
+    border-color: #4b5563;
+    color: #f9fafb;
+  }
+
+  .search-example-pill:hover {
+    background: #1f2937;
+    border-color: #60a5fa;
+    color: #60a5fa;
+  }
+
+  .no-results-suggestions {
+    background: #374151;
+  }
+
+  .no-results-suggestions h3 {
+    color: #f9fafb;
+  }
+
+  .no-results-suggestions li {
+    color: #9ca3af;
+  }
+}
+
+
+/* Temporary fix - add to searchPage.css */
+.search_page {
+  overflow-x: hidden;
+  width: 100%;
+}
+
+.search-content, 
+.search-results-container,
+.stores-grid,
+.vouchers-grid {
+  width: 100%;
+  overflow-x: hidden;
+}
+
+.grid-item {
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.ticket-card {
+  max-width: 100%;
+  overflow: hidden;
+}

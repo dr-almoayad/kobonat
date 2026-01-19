@@ -1,0 +1,317 @@
+/* app/[locale]/stores/[slug]/store-page.css */
+
+/* Import StoreHeader styles */
+@import '../../../../components/headers/StoreHeader.css';
+
+/* ============================================
+   PAGE LAYOUT
+   ============================================ */
+.store-page-layout {
+  width: 100%;
+  min-height: 100vh;
+  background: #f9fafb;
+  padding-top: 0; /* Space for fixed StoreHeader */
+}
+
+
+
+/* ============================================
+   SUBBAR POSITION FIX
+   ============================================ */
+
+   .subBar{
+    position: static !important;
+   }
+
+/* ============================================
+   MAIN CONTENT AREA
+   ============================================ */
+.store-main-content {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 2rem;
+}
+
+/* Breadcrumbs */
+.store-breadcrumbs {
+  margin-bottom: 1.5rem;
+  padding: 0 0.5rem;
+}
+
+/* ============================================
+   VOUCHERS SECTIONS
+   ============================================ */
+.vouchers-section {
+  padding: 1rem 0;
+  
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-family: 'Alexandria', 'Open Sans', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 0.5rem;
+  padding: 0;
+}
+
+.section-title .material-symbols-sharp {
+  font-size: 1.75rem;
+  color: #6366f1;
+}
+
+/* ============================================
+   RELATED STORES SECTION
+   ============================================ */
+.related-stores-section {
+  padding: 2rem 0;
+  border-top: 1px solid #e2e8f0;
+  margin-top: 1rem;
+}
+
+.related-stores-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.related-store-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 1.5rem;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.related-store-card:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.related-store-logo {
+  width: 60px;
+  height: 60px;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f8fafc;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.related-store-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.related-store-logo .material-symbols-sharp {
+  font-size: 2rem;
+  color: #94a3b8;
+}
+
+.related-store-card h3 {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0 0 0.5rem;
+}
+
+.voucher-count {
+  font-size: 0.8125rem;
+  color: #64748b;
+  margin: 0;
+}
+
+/* ============================================
+   EMPTY STATE
+   ============================================ */
+.no-vouchers-state {
+  text-align: center;
+  padding: 4rem 1rem;
+  background: #f8fafc;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  margin: 2rem 0;
+}
+
+.no-vouchers-state .material-symbols-sharp {
+  font-size: 3rem;
+  color: #94a3b8;
+  margin-bottom: 1rem;
+}
+
+.no-vouchers-state h3 {
+  font-size: 1.25rem;
+  color: #1e293b;
+  margin: 0 0 0.5rem;
+}
+
+.no-vouchers-state p {
+  color: #64748b;
+  margin: 0 0 1.5rem;
+}
+
+.visit-store-anyway-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: #6366f1;
+  color: white;
+  text-decoration: none;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.visit-store-anyway-btn:hover {
+  background: #4f46e5;
+  transform: translateY(-1px);
+}
+
+/* ============================================
+   ERROR CONTAINER
+   ============================================ */
+.error-container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 3rem 1rem;
+  text-align: center;
+}
+
+.error-container h1 {
+  font-size: 2rem;
+  color: #1e293b;
+  margin-bottom: 1rem;
+}
+
+.error-container p {
+  color: #64748b;
+  margin-bottom: 2rem;
+}
+
+.error-container a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: #6366f1;
+  color: white;
+  text-decoration: none;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.error-container a:hover {
+  background: #4f46e5;
+  transform: translateY(-1px);
+}
+
+/* ============================================
+   RESPONSIVE STYLES
+   ============================================ */
+
+/* Tablet */
+@media (min-width: 768px) {
+  .store-page-layout {
+    padding-top: 0;
+  }
+  
+  .store-main-content {
+    padding: 1.5rem 1rem;
+  }
+  
+  .store-breadcrumbs {
+    margin-bottom: 2rem;
+  }
+  
+  .related-stores-grid {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  }
+}
+
+/* Desktop */
+@media (min-width: 1024px) {
+  .store-page-layout {
+    padding-top: 0;
+  }
+  
+  .store-main-content {
+    padding: 1.5rem 1.5rem 2rem;
+  }
+  
+  .vouchers-section {
+    padding: 1.5rem 0;
+  }
+  
+  .section-title {
+    font-size: 1.25rem;
+    padding: 0.5rem 0;
+  }
+  
+  .related-stores-grid {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 2rem;
+  }
+}
+
+/* Mobile */
+@media (max-width: 640px) {
+
+  .store-main-content {
+    padding: 1rem 0.75rem;
+  }
+
+  .related-stores-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+  
+  .related-store-card {
+    padding: 1rem;
+  }
+  
+  .related-store-logo {
+    width: 48px;
+    height: 48px;
+  }
+  
+  .related-store-card h3 {
+    font-size: 0.875rem;
+  }
+  
+  .voucher-count {
+    font-size: 0.75rem;
+  }
+}
+
+/* ============================================
+   RTL SUPPORT
+   ============================================ */
+[dir="rtl"] .section-title {
+  flex-direction: row;
+}
+
+[dir="rtl"] .visit-store-anyway-btn {
+  flex-direction: row;
+}
+
+
+
+
+

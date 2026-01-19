@@ -1,0 +1,573 @@
+/* ============================================================================
+   STORE-SPECIFIC BADGE SYSTEM
+   For highlighting unique store features and benefits
+   ============================================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Sharp:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Alexandria:wght@300;400;500;600;700&display=swap');
+
+/* ============================================================================
+   BADGE CONTAINER - Top right corner of store card
+   ============================================================================ */
+
+.store_badges_wrapper {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.4rem;
+  z-index: 15;
+  pointer-events: none;
+}
+
+[dir="rtl"] .store_badges_wrapper {
+  right: auto;
+  left: 0;
+  align-items: flex-start;
+}
+
+/* ============================================================================
+   BEST OFFER BADGE - For highlighted store card
+   Prominent green badge with savings display
+   ============================================================================ */
+
+.store_best_offer_badge_container {
+  position: relative;
+  top: -0.5rem;
+  right: -0.4rem;
+  display: flex;
+  width: fit-content;
+  height: fit-content;
+  padding: 0.25rem 0.65rem;
+  background: linear-gradient(135deg, #099e51 0%, #087f41 100%);
+  border-top-right-radius: 8px;
+  border-bottom-left-radius: 8px;
+  z-index: 20;
+  animation: slideInRight 0.4s ease-out;
+  --p: 12px;
+  clip-path: polygon(var(--p) 0, 100% 0, 100% 100%, 0 100%);
+}
+
+[dir="rtl"] .store_best_offer_badge_container {
+  right: auto;
+  left: -0.4rem;
+  border-top-right-radius: 0;
+  border-bottom-left-radius: 0;
+  border-top-left-radius: 8px;
+  border-bottom-right-radius: 8px;
+  animation: slideInLeft 0.4s ease-out;
+  clip-path: polygon(0 0, calc(100% - var(--p)) 0, 100% 100%, 0 100%);
+}
+
+.store_best_offer_badge {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-family: 'Alexandria', 'Open Sans', Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  color: #fff;
+}
+
+.store_best_offer_badge_text {
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.store_best_offer_badge_container .material-symbols-sharp {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+/* Savings Sub-badge for Best Offer */
+.store_savings_subbadge {
+  position: absolute;
+  bottom: -1.5rem;
+  right: 0.5rem;
+  background: rgba(220, 38, 38, 0.95);
+  padding: 0.2rem 0.5rem;
+  border-radius: 12px;
+  animation: fadeInDown 0.5s ease-out 0.2s backwards;
+}
+
+[dir="rtl"] .store_savings_subbadge {
+  right: auto;
+  left: 0.5rem;
+}
+
+.store_savings_text {
+  font-size: 0.7rem;
+  font-weight: 700;
+  font-family: 'Alexandria', 'Open Sans', Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  color: #fff;
+  line-height: 1;
+}
+
+/* ============================================================================
+   FAST DELIVERY BADGE - For same/next day delivery
+   ============================================================================ */
+
+.store_fast_delivery_badge {
+  position: relative;
+  top: -0.5rem;
+  right: -0.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  width: fit-content;
+  padding: 0.2rem 0.5rem;
+  background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+  border-top-right-radius: 10px;
+  border-bottom-left-radius: 10px;
+  transform: skewX(-8deg);
+  z-index: 19;
+  animation: slideInRight 0.3s ease-out;
+}
+
+[dir="rtl"] .store_fast_delivery_badge {
+  right: auto;
+  left: -0.25rem;
+  border-top-right-radius: 0;
+  border-bottom-left-radius: 0;
+  border-top-left-radius: 10px;
+  border-bottom-right-radius: 10px;
+  animation: slideInLeft 0.3s ease-out;
+}
+
+.store_fast_delivery_badge .material-symbols-sharp {
+  font-size: 0.9rem;
+  line-height: 1;
+  color: #fff;
+  transform: skewX(8deg);
+}
+
+[dir="rtl"] .store_fast_delivery_badge .material-symbols-sharp {
+  transform: scaleX(-1) skewX(-8deg);
+}
+
+.store_fast_delivery_badge_text {
+  font-size: 0.7rem;
+  font-weight: 700;
+  font-family: 'Alexandria', 'Open Sans', Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  color: #fff;
+  line-height: 1;
+  text-transform: uppercase;
+  transform: skewX(8deg);
+}
+
+[dir="rtl"] .store_fast_delivery_badge_text {
+  transform: skewX(-8deg);
+}
+
+/* ============================================================================
+   PREMIUM SERVICE BADGE - For extended warranty/support
+   ============================================================================ */
+
+.store_premium_badge {
+  position: relative;
+  top: -0.85rem;
+  right: -0.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  width: fit-content;
+  padding: 0.2rem 0.5rem;
+  background: linear-gradient(135deg, #a855f7 0%, #9333ea 100%);
+  border-top-right-radius: 10px;
+  border-bottom-left-radius: 10px;
+  transform: skewX(-8deg);
+  z-index: 19;
+  animation: slideInRight 0.3s ease-out;
+}
+
+[dir="rtl"] .store_premium_badge {
+  right: auto;
+  left: -0.25rem;
+  border-top-right-radius: 0;
+  border-bottom-left-radius: 0;
+  border-top-left-radius: 10px;
+  border-bottom-right-radius: 10px;
+  transform: skewX(8deg);
+  animation: slideInLeft 0.3s ease-out;
+}
+
+.store_premium_badge .material-symbols-sharp {
+  font-size: 0.9rem;
+  line-height: 1;
+  color: #fff;
+  transform: skewX(8deg);
+}
+
+[dir="rtl"] .store_premium_badge .material-symbols-sharp {
+  transform: scaleX(-1) skewX(-8deg);
+}
+
+.store_premium_badge_text {
+  font-size: 0.7rem;
+  font-weight: 700;
+  font-family: 'Alexandria', 'Open Sans', Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  color: #fff;
+  line-height: 1;
+  text-transform: uppercase;
+  transform: skewX(8deg);
+}
+
+[dir="rtl"] .store_premium_badge_text {
+  transform: skewX(-8deg);
+}
+
+/* ============================================================================
+   FREE RETURNS BADGE - For generous return policies
+   ============================================================================ */
+
+.store_free_returns_badge {
+  position: relative;
+  top: -0.85rem;
+  right: -0.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  width: fit-content;
+  padding: 0.2rem 0.5rem;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  border-top-right-radius: 10px;
+  border-bottom-left-radius: 10px;
+  transform: skewX(-8deg);
+  z-index: 19;
+  animation: slideInRight 0.3s ease-out;
+}
+
+[dir="rtl"] .store_free_returns_badge {
+  right: auto;
+  left: -0.25rem;
+  border-top-right-radius: 0;
+  border-bottom-left-radius: 0;
+  border-top-left-radius: 10px;
+  border-bottom-right-radius: 10px;
+  transform: skewX(8deg);
+  animation: slideInLeft 0.3s ease-out;
+}
+
+.store_free_returns_badge .material-symbols-sharp {
+  font-size: 0.9rem;
+  line-height: 1;
+  color: #fff;
+  transform: skewX(8deg);
+}
+
+[dir="rtl"] .store_free_returns_badge .material-symbols-sharp {
+  transform: scaleX(-1) skewX(-8deg);
+}
+
+.store_free_returns_badge_text {
+  font-size: 0.7rem;
+  font-weight: 700;
+  font-family: 'Alexandria', 'Open Sans', Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  color: #fff;
+  line-height: 1;
+  text-transform: uppercase;
+  transform: skewX(8deg);
+}
+
+[dir="rtl"] .store_free_returns_badge_text {
+  transform: skewX(-8deg);
+}
+
+/* ============================================================================
+   VERIFIED SELLER BADGE - For trusted/official sellers
+   ============================================================================ */
+
+.store_verified_badge {
+  position: relative;
+  top: -0.85rem;
+  right: -0.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  width: fit-content;
+  padding: 0.2rem 0.5rem;
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  border-top-right-radius: 10px;
+  border-bottom-left-radius: 10px;
+  transform: skewX(-8deg);
+  z-index: 19;
+  animation: slideInRight 0.3s ease-out;
+}
+
+[dir="rtl"] .store_verified_badge {
+  right: auto;
+  left: -0.25rem;
+  border-top-right-radius: 0;
+  border-bottom-left-radius: 0;
+  border-top-left-radius: 10px;
+  border-bottom-right-radius: 10px;
+  transform: skewX(8deg);
+  animation: slideInLeft 0.3s ease-out;
+}
+
+.store_verified_badge .material-symbols-sharp {
+  font-size: 0.9rem;
+  line-height: 1;
+  color: #fff;
+  transform: skewX(8deg);
+}
+
+[dir="rtl"] .store_verified_badge .material-symbols-sharp {
+  transform: scaleX(-1) skewX(-8deg);
+}
+
+.store_verified_badge_text {
+  font-size: 0.7rem;
+  font-weight: 700;
+  font-family: 'Alexandria', 'Open Sans', Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  color: #fff;
+  line-height: 1;
+  text-transform: uppercase;
+  transform: skewX(8deg);
+}
+
+[dir="rtl"] .store_verified_badge_text {
+  transform: skewX(-8deg);
+}
+
+/* ============================================================================
+   LOWEST PRICE GUARANTEE BADGE
+   ============================================================================ */
+
+.store_price_guarantee_badge {
+  position: relative;
+  top: -0.85rem;
+  right: -0.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  width: fit-content;
+  padding: 0.2rem 0.5rem;
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  border-top-right-radius: 10px;
+  border-bottom-left-radius: 10px;
+  transform: skewX(-8deg);
+  z-index: 19;
+  animation: slideInRight 0.3s ease-out;
+}
+
+[dir="rtl"] .store_price_guarantee_badge {
+  right: auto;
+  left: -0.25rem;
+  border-top-right-radius: 0;
+  border-bottom-left-radius: 0;
+  border-top-left-radius: 10px;
+  border-bottom-right-radius: 10px;
+  animation: slideInLeft 0.3s ease-out;
+}
+
+.store_price_guarantee_badge .material-symbols-sharp {
+  font-size: 0.9rem;
+  line-height: 1;
+  color: #fff;
+  transform: skewX(8deg);
+}
+
+[dir="rtl"] .store_price_guarantee_badge .material-symbols-sharp {
+  transform: scaleX(-1);
+}
+
+.store_price_guarantee_badge_text {
+  font-size: 0.7rem;
+  font-weight: 700;
+  font-family: 'Alexandria', 'Open Sans', Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  color: #fff;
+  line-height: 1;
+  text-transform: uppercase;
+  transform: skewX(8deg);
+}
+
+
+/* ============================================================================
+   ANIMATIONS
+   ============================================================================ */
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: skewX(-8deg) translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: skewX(-8deg) translateX(0);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: skewX(8deg) translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: skewX(8deg) translateX(0);
+  }
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ============================================================================
+   RESPONSIVE DESIGN
+   ============================================================================ */
+
+@media (max-width: 768px) {
+  .store_badges_wrapper {
+    gap: 0.3rem;
+  }
+
+  .store_best_offer_badge_container {
+    top: -0.7rem;
+    right: -0.3rem;
+    padding: 0.2rem 0.5rem;
+  }
+
+  [dir="rtl"] .store_best_offer_badge_container {
+    right: auto;
+    left: -0.3rem;
+  }
+
+  .store_best_offer_badge_text {
+    font-size: 0.7rem;
+  }
+
+  .store_savings_subbadge {
+    bottom: -1.3rem;
+    right: 0.3rem;
+    padding: 0.15rem 0.4rem;
+  }
+
+  [dir="rtl"] .store_savings_subbadge {
+    right: auto;
+    left: 0.3rem;
+  }
+
+  .store_savings_text {
+    font-size: 0.65rem;
+  }
+
+  .store_fast_delivery_badge,
+  .store_premium_badge,
+  .store_free_returns_badge,
+  .store_verified_badge,
+  .store_price_guarantee_badge {
+    top: -0.7rem;
+    right: -0.2rem;
+    padding: 0.15rem 0.4rem;
+  }
+
+  [dir="rtl"] .store_fast_delivery_badge,
+  [dir="rtl"] .store_premium_badge,
+  [dir="rtl"] .store_free_returns_badge,
+  [dir="rtl"] .store_verified_badge,
+  [dir="rtl"] .store_price_guarantee_badge {
+    right: auto;
+    left: -0.2rem;
+  }
+
+  .store_fast_delivery_badge_text,
+  .store_premium_badge_text,
+  .store_free_returns_badge_text,
+  .store_verified_badge_text,
+  .store_price_guarantee_badge_text {
+    font-size: 0.65rem;
+  }
+
+  .store_fast_delivery_badge .material-symbols-sharp,
+  .store_premium_badge .material-symbols-sharp,
+  .store_free_returns_badge .material-symbols-sharp,
+  .store_verified_badge .material-symbols-sharp,
+  .store_price_guarantee_badge .material-symbols-sharp {
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .store_best_offer_badge_container {
+    top: -0.6rem;
+    right: -0.25rem;
+    padding: 0.15rem 0.4rem;
+  }
+
+  [dir="rtl"] .store_best_offer_badge_container {
+    right: auto;
+    left: -0.25rem;
+  }
+
+  .store_best_offer_badge_text {
+    font-size: 0.65rem;
+  }
+
+  .store_savings_subbadge {
+    bottom: -1.2rem;
+    right: 0.2rem;
+    padding: 0.1rem 0.3rem;
+  }
+
+  [dir="rtl"] .store_savings_subbadge {
+    right: auto;
+    left: 0.2rem;
+  }
+
+  .store_savings_text {
+    font-size: 0.6rem;
+  }
+
+  .store_fast_delivery_badge,
+  .store_premium_badge,
+  .store_free_returns_badge,
+  .store_verified_badge,
+  .store_price_guarantee_badge {
+    top: -0.6rem;
+    right: -0.15rem;
+    padding: 0.1rem 0.3rem;
+  }
+
+  [dir="rtl"] .store_fast_delivery_badge,
+  [dir="rtl"] .store_premium_badge,
+  [dir="rtl"] .store_free_returns_badge,
+  [dir="rtl"] .store_verified_badge,
+  [dir="rtl"] .store_price_guarantee_badge {
+    right: auto;
+    left: -0.15rem;
+  }
+
+  .store_fast_delivery_badge_text,
+  .store_premium_badge_text,
+  .store_free_returns_badge_text,
+  .store_verified_badge_text,
+  .store_price_guarantee_badge_text {
+    font-size: 0.6rem;
+  }
+
+  .store_fast_delivery_badge .material-symbols-sharp,
+  .store_premium_badge .material-symbols-sharp,
+  .store_free_returns_badge .material-symbols-sharp,
+  .store_verified_badge .material-symbols-sharp,
+  .store_price_guarantee_badge .material-symbols-sharp {
+    font-size: 0.75rem;
+  }
+}

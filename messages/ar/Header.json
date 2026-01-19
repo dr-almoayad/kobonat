@@ -1,0 +1,12 @@
+{
+  "allCategories": "كل الأقسام",
+  "loading": "جاري التحميل...",
+  "loadingCategories": "جاري تحميل الأقسام...",
+  "howItWorks": "كيف يعمل الموقع",
+  "aboutUs": "من نحن",
+  "viewCategory": "عرض القسم",
+  "showAll": "عرض الكل ({count})",
+  "noSubcategories": "لا توجد أقسام فرعية",
+  "viewAllProducts": "عرض كل المنتجات في {category}",
+  "signIn": "تسجيل الدخول"
+}

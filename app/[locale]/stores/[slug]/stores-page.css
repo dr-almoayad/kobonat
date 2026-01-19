@@ -1,0 +1,303 @@
+/* app/[locale]/stores/stores-page.css */
+
+/* ============================================================================
+   THEME VARIABLES (Matched to VoucherCard.css)
+   ============================================================================ */
+:root {
+  --page-bg: #f8fafc;
+  --card-bg: #ffffff;
+  --border-color: #e2e8f0;
+  
+  /* Text Colors */
+  --text-main: #1e293b;
+  --text-muted: #64748b;
+  --text-light: #94a3b8;
+  
+  /* Accents */
+  --accent-color: #470ae2;
+  --accent-hover: #4f46e5;
+  --accent-light: #e0e7ff;
+  
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  
+  /* Typography */
+  --font-family: 'Alexandria', 'Open Sans', sans-serif;
+}
+
+/* ============================================================================
+   PAGE LAYOUT
+   ============================================================================ */
+
+.stores_page {
+  width: 100%;
+  min-height: 100vh;
+  background: var(--page-bg);
+  font-family: var(--font-family);
+  color: var(--text-main);
+}
+
+/* ============================================================================
+   HEADER SECTION (Clean/Minimal Style)
+   ============================================================================ */
+
+.stores_page_header {
+  background: var(--card-bg);
+  margin-bottom: 2rem;
+  border-bottom: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
+}
+
+.stores_page_header_container {
+  max-width: 1280px;
+  padding: 2rem 1.5rem 1rem;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Breadcrumbs Adaptation */
+.stores_page_header .breadcrumbs {
+  margin-bottom: 0.5rem;
+}
+
+.stores_page_header .breadcrumbs li,
+.stores_page_header .breadcrumbs li a {
+  color: var(--text-muted) !important;
+  font-size: 0.875rem;
+}
+
+.stores_page_header .breadcrumbs li a:hover {
+  color: var(--accent-color) !important;
+}
+
+.stores_page_header .breadcrumbs li.active {
+  color: var(--text-main) !important;
+  font-weight: 600;
+}
+
+/* Title Area */
+.stores_page_title_section {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.stores_page_icon {
+  width: 64px;
+  height: 64px;
+  background: linear-gradient(135deg, var(--accent-color) 0%, #7c3aed 100%);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: var(--shadow-md);
+  color: #fff;
+}
+
+.stores_page_icon .material-symbols-sharp {
+  font-size: 2.5rem;
+  font-variation-settings: 'FILL' 1;
+}
+
+.stores_info {
+  flex: 1;
+}
+
+.stores_info h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin: 0 0 0.5rem 0;
+  line-height: 1.2;
+}
+
+.stores_stats {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-size: 0.9375rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.stat_item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.stat_item .material-symbols-sharp {
+  font-size: 1.125rem;
+  color: var(--text-light);
+}
+
+.stat_item strong {
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.stat_separator {
+  color: var(--border-color);
+}
+
+/* ============================================================================
+   SECTIONS & GRID
+   ============================================================================ */
+
+.featured_stores_section,
+.all_stores_section {
+  max-width: 1280px;
+  margin: 0 auto 3rem;
+  padding: 0 1.5rem;
+}
+
+.section_header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.section_header h2 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.section_header h2 .material-symbols-sharp {
+  font-size: 1.5rem;
+  color: #f59e0b; /* Amber for star */
+  font-variation-settings: 'FILL' 1;
+}
+
+.section_count {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  background: #f1f5f9;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-weight: 600;
+}
+
+/* ============================================================================
+   GRID SYSTEM (Mirrors VouchersGrid.css)
+   ============================================================================ */
+
+/* Use this class on the <div> wrapping your store cards in StoresGrid */
+.stores-grid-layout {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); /* Slightly narrower than vouchers */
+  gap: 1.5rem;
+  width: 100%;
+}
+
+/* ============================================================================
+   ERROR STATE (Consistent Styling)
+   ============================================================================ */
+
+.error-container {
+  max-width: 500px;
+  margin: 4rem auto;
+  padding: 3rem 2rem;
+  text-align: center;
+  background: var(--card-bg);
+  border-radius: 16px;
+  border: 1px dashed var(--border-color);
+  box-shadow: var(--shadow-sm);
+}
+
+.error-container h1 {
+  font-size: 1.5rem;
+  color: var(--text-main);
+  margin-bottom: 0.75rem;
+}
+
+.error-container p {
+  color: var(--text-muted);
+  margin-bottom: 1.5rem;
+}
+
+.error-container a {
+  display: inline-flex;
+  padding: 0.75rem 1.5rem;
+  background: var(--accent-color);
+  color: #fff;
+  border-radius: 10px;
+  font-weight: 600;
+  text-decoration: none;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+}
+
+.error-container a:hover {
+  background: var(--accent-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(71, 10, 226, 0.2);
+}
+
+/* ============================================================================
+   RTL SUPPORT
+   ============================================================================ */
+
+
+/* ============================================================================
+   RESPONSIVE DESIGN
+   ============================================================================ */
+
+@media (max-width: 1024px) {
+  .stores_page_header_container  {
+    padding: 1rem;
+  }
+  .featured_stores_section,
+  .all_stores_section {
+    padding: 0 1.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .stores_page_header_container  {
+    padding: 1.25rem 0.75rem;
+  }
+  
+  .stores_page_title_section {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  
+  .stores_page_icon {
+    width: 56px;
+    height: 56px;
+  }
+  
+  .stores_info h1 {
+    font-size: 1.75rem;
+  }
+  
+  .section_header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+  
+  .featured_stores_section,
+  .all_stores_section {
+    padding: 0 0.75rem;
+  }
+  
+  /* Mobile Grid */
+  .stores-grid-layout {
+    grid-template-columns: 1fr; /* Full width cards on mobile */
+    gap: 1rem;
+  }
+}

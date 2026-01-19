@@ -1,0 +1,225 @@
+/* components/CategoryFilterTabs/CategoryFilterTabs.css - MINIMALIST DESIGN */
+
+.category_filter_tabs {
+  width: 100%;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  position: relative;
+}
+
+.category_filter_tabs::-webkit-scrollbar {
+  display: none;
+}
+
+/* Subtle gradient fade for horizontal scroll indication */
+.category_filter_tabs::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 40px;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, var(--card-bg, #fff));
+  pointer-events: none;
+  z-index: 2;
+}
+
+[dir="rtl"] .category_filter_tabs::after {
+  right: auto;
+  left: 0;
+  background: linear-gradient(270deg, transparent, var(--card-bg, #fff));
+}
+
+.tabs_container {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  min-width: max-content;
+  padding: 0.5rem 0;
+}
+
+/* Minimalist Tab Design */
+.category_tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.5rem 1rem;
+  background: transparent;
+  border: 1px solid var(--border-color, #e2e8f0);
+  border-radius: 8px; /* Less rounded for minimalist look */
+  color: var(--text-muted, #64748b);
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.15s ease-out;
+  white-space: nowrap;
+  flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Hover State - Subtle */
+.category_tab:hover {
+  border-color: var(--accent-color, #470ae2);
+  color: var(--accent-color, #470ae2);
+  transform: none; /* Remove Y transform for flat design */
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+/* Active State - Understated */
+.category_tab.active {
+  background: var(--accent-color, #470ae2);
+  color: #ffffff;
+  border-color: var(--accent-color, #470ae2);
+  box-shadow: 0 2px 8px rgba(71, 10, 226, 0.12);
+  font-weight: 600;
+}
+
+/* Active State Alternative: Border-only active style */
+/* Uncomment for border-only active style
+.category_tab.active {
+  background: transparent;
+  color: var(--accent-color, #470ae2);
+  border-color: var(--accent-color, #470ae2);
+  box-shadow: none;
+  font-weight: 600;
+}
+*/
+
+/* Icon */
+.category_tab .material-symbols-sharp {
+  font-size: 1rem;
+  font-variation-settings: 'wght' 400;
+  transition: all 0.15s ease-out;
+}
+
+.category_tab.active .material-symbols-sharp {
+  font-variation-settings: 'wght' 600;
+}
+
+.tab_label {
+  font-weight: inherit;
+  letter-spacing: -0.01em;
+}
+
+/* Count Badge - Minimalist */
+.tab_count {
+  background: rgba(100, 116, 139, 0.08);
+  color: var(--text-muted, #64748b);
+  padding: 0.15rem 0.375rem;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  font-weight: 500;
+  margin-left: 0.25rem;
+  transition: all 0.15s ease-out;
+}
+
+/* Count Badge in Active State */
+.category_tab.active .tab_count {
+  background: rgba(255, 255, 255, 0.25);
+  color: #ffffff;
+}
+
+/* More Button - Minimalist */
+.more_button {
+  cursor: pointer;
+  background: transparent;
+  border: 1px dashed var(--border-color, #e2e8f0);
+  color: var(--text-muted, #64748b);
+  opacity: 0.8;
+}
+
+.more_button:hover {
+  background: rgba(100, 116, 139, 0.04);
+  border-color: var(--accent-color, #470ae2);
+  color: var(--accent-color, #470ae2);
+  opacity: 1;
+}
+
+/* RTL Support */
+[dir="rtl"] .tabs_container {
+  flex-direction: row;
+}
+
+[dir="rtl"] .tab_count {
+  margin-left: 0;
+  margin-right: 0.25rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .tabs_container {
+    gap: 0.375rem;
+  }
+  
+  .category_tab {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.8125rem;
+    border-radius: 6px;
+  }
+  
+  .category_tab .material-symbols-sharp {
+    font-size: 0.875rem;
+  }
+}
+
+/* Extra Small Screens */
+@media (max-width: 480px) {
+  .tabs_container {
+    gap: 0.25rem;
+  }
+  
+  .category_tab {
+    padding: 0.375rem 0.625rem;
+    font-size: 0.75rem;
+  }
+  
+  .category_tab .material-symbols-sharp {
+    font-size: 0.75rem;
+  }
+  
+  .tab_count {
+    padding: 0.1rem 0.25rem;
+    font-size: 0.65rem;
+  }
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+  .category_filter_tabs::after {
+    background: linear-gradient(90deg, transparent, var(--card-bg, #1e293b));
+  }
+  
+  [dir="rtl"] .category_filter_tabs::after {
+    background: linear-gradient(270deg, transparent, var(--card-bg, #1e293b));
+  }
+  
+  .category_tab {
+    background: transparent;
+    border-color: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.7);
+  }
+  
+  .category_tab:hover {
+    border-color: var(--accent-color, #6366f1);
+    color: var(--accent-color, #6366f1);
+    background: rgba(99, 102, 241, 0.05);
+  }
+  
+  .category_tab.active {
+    background: var(--accent-color, #6366f1);
+    border-color: var(--accent-color, #6366f1);
+    color: white;
+  }
+  
+  .tab_count {
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.6);
+  }
+  
+  .more_button {
+    border-color: rgba(255, 255, 255, 0.15);
+    color: rgba(255, 255, 255, 0.6);
+  }
+}

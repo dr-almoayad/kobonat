@@ -1,0 +1,320 @@
+/* =============================================================================
+components/admin/AdminNav.css - Admin Navigation Styles
+============================================================================= */
+
+/* CSS Variables */
+:root {
+  --admin-sidebar-width: 250px;
+  --admin-mobile-header-height: 60px;
+  --admin-primary: #2563eb;
+  --admin-primary-dark: #1d4ed8;
+  --admin-bg: #f8fafc;
+  --admin-border: #e2e8f0;
+  --admin-text: #1e293b;
+  --admin-text-light: #64748b;
+  --admin-success: #10b981;
+  --admin-danger: #ef4444;
+  --admin-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --admin-radius: 8px;
+  --admin-transition: all 0.2s ease;
+
+  font-family: 'Alexandria', 'Open Sans', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Desktop Sidebar */
+.admin-sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: var(--admin-sidebar-width);
+  height: 100vh;
+  background: white;
+  border-right: 1px solid var(--admin-border);
+  display: flex;
+  flex-direction: column;
+  z-index: 1000;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.05);
+}
+
+.sidebar-header {
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--admin-border);
+}
+
+.sidebar-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  text-decoration: none;
+}
+
+.sidebar-logo img {
+  flex-shrink: 0;
+}
+
+.admin-badge {
+  background: var(--admin-primary);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  letter-spacing: 0.5px;
+}
+
+/* Navigation */
+.sidebar-nav {
+  flex: 1;
+  padding: 1rem;
+  overflow-y: auto;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  color: var(--admin-text-light);
+  text-decoration: none;
+  border-radius: var(--admin-radius);
+  margin-bottom: 0.25rem;
+  transition: var(--admin-transition);
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.nav-item:hover {
+  background: #f1f5f9;
+  color: var(--admin-primary);
+}
+
+.nav-item.active {
+  background: #eff6ff;
+  color: var(--admin-primary);
+  font-weight: 600;
+}
+
+.nav-item .material-symbols-sharp {
+  font-size: 1.25rem;
+  width: 24px;
+  text-align: center;
+}
+
+/* Sidebar Footer */
+.sidebar-footer {
+  padding: 1.5rem;
+  border-top: 1px solid var(--admin-border);
+  background: #f8fafc;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.user-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #192331;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--admin-text-light);
+}
+
+.user-avatar .material-symbols-sharp {
+  font-size: 1.5rem;
+  color: #ffff;
+}
+
+.user-details {
+  flex: 1;
+  overflow: hidden;
+}
+
+.user-name {
+  font-weight: 600;
+  color: var(--admin-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.user-role {
+  font-size: 0.8rem;
+  color: var(--admin-text-light);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.logout-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: white;
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius);
+  color: var(--admin-danger);
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--admin-transition);
+  font-size: 0.95rem;
+}
+
+.logout-btn:hover {
+  background: #fef2f2;
+  border-color: var(--admin-danger);
+}
+
+.logout-btn .material-symbols-sharp {
+  font-size: 1.25rem;
+}
+
+/* Mobile Header */
+.admin-mobile-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--admin-mobile-header-height);
+  background: white;
+  border-bottom: 1px solid var(--admin-border);
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1rem;
+  z-index: 999;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.mobile-logo {
+  display: flex;
+  align-items: center;
+}
+
+.mobile-logo img {
+  max-width: 100%;
+  height: auto;
+}
+
+.mobile-menu-btn {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius);
+  color: var(--admin-text);
+  cursor: pointer;
+  transition: var(--admin-transition);
+}
+
+.mobile-menu-btn:hover {
+  background: #f1f5f9;
+}
+
+.mobile-menu-btn .material-symbols-sharp {
+  font-size: 1.5rem;
+}
+
+/* Mobile Menu */
+.mobile-menu {
+  position: fixed;
+  top: var(--admin-mobile-header-height);
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: white;
+  z-index: 998;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+.mobile-nav {
+  flex: 1;
+  padding: 1rem;
+}
+
+.mobile-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  color: var(--admin-text-light);
+  text-decoration: none;
+  border-radius: var(--admin-radius);
+  margin-bottom: 0.5rem;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.mobile-nav-item:hover,
+.mobile-nav-item.active {
+  background: #eff6ff;
+  color: var(--admin-primary);
+}
+
+.mobile-nav-item .material-symbols-sharp {
+  font-size: 1.5rem;
+  width: 28px;
+}
+
+.mobile-menu-footer {
+  padding: 1.5rem;
+  border-top: 1px solid var(--admin-border);
+  background: #f8fafc;
+}
+
+.mobile-logout-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 1rem;
+  background: white;
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius);
+  color: var(--admin-danger);
+  font-weight: 500;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.mobile-logout-btn .material-symbols-sharp {
+  font-size: 1.5rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .admin-sidebar {
+    display: none;
+  }
+  
+  .admin-mobile-header {
+    display: flex;
+  }
+}
+
+/* Material Icons Font */
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Sharp:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200');
+
+/* Ensure content doesn't hide under fixed elements */
+body.admin-page {
+  padding-left: var(--admin-sidebar-width);
+}
+
+@media (max-width: 768px) {
+  body.admin-page {
+    padding-left: 0;
+    padding-top: var(--admin-mobile-header-height);
+  }
+}

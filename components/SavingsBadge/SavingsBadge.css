@@ -1,0 +1,125 @@
+/* components/SavingsBadge/SavingsBadge.css */
+
+.savings-badge-container {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  z-index: 10;
+}
+
+.savings-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  color: white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  font-weight: 700;
+  text-align: center;
+  min-width: 80px;
+  animation: badgePulse 2s ease-in-out infinite;
+}
+
+.badge-top {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.25rem;
+  opacity: 0.95;
+}
+
+.badge-savings {
+  display: flex;
+  align-items: baseline;
+  gap: 0.25rem;
+  margin-bottom: 0.25rem;
+}
+
+.percentage {
+  font-size: 1.5rem;
+  line-height: 1;
+  font-weight: 800;
+}
+
+.off {
+  font-size: 0.7rem;
+  opacity: 0.9;
+}
+
+.badge-amount {
+  font-size: 0.7rem;
+  opacity: 0.9;
+  font-weight: 600;
+}
+
+/* Compact Badge */
+.savings-badge-compact {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
+  color: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  font-weight: 800;
+  min-width: 60px;
+}
+
+.savings-badge-compact .percentage {
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+/* Badge Animations */
+@keyframes badgePulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+  }
+}
+
+/* Badge Level Specific Styles */
+.savings-badge-unicorn {
+  animation: badgePulse 1.5s ease-in-out infinite, badgeShimmer 3s linear infinite;
+}
+
+.savings-badge-hot {
+  animation: badgePulse 2s ease-in-out infinite;
+}
+
+@keyframes badgeShimmer {
+  0% {
+    filter: brightness(1);
+  }
+  50% {
+    filter: brightness(1.2);
+  }
+  100% {
+    filter: brightness(1);
+  }
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .savings-badge {
+    min-width: 70px;
+    padding: 0.4rem 0.6rem;
+  }
+
+  .percentage {
+    font-size: 1.3rem;
+  }
+
+  .badge-top {
+    font-size: 0.6rem;
+  }
+
+  .badge-amount {
+    font-size: 0.65rem;
+  }
+}

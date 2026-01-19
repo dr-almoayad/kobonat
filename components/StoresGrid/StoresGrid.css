@@ -1,0 +1,51 @@
+/* components/StoresGrid/StoresGrid.css */
+
+.stores_grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1.5rem;
+  width: 100%;
+  padding: 1rem 0;
+}
+
+/* Empty State styling matching the clean aesthetic */
+.stores_grid_empty {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  text-align: center;
+  background: #fff;
+  border-radius: 16px;
+  border: 1px dashed #e5e7eb;
+}
+
+.stores_grid_empty .material-symbols-sharp {
+  font-size: 4rem;
+  color: #cbd5e1;
+  margin-bottom: 1rem;
+}
+
+.stores_grid_empty p {
+  font-size: 1rem;
+  color: #64748b;
+  margin: 0;
+  font-weight: 500;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 640px) {
+  .stores_grid {
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); /* Slightly smaller min-width for mobile */
+    gap: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .stores_grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); /* Slightly smaller min-width for mobile */
+    gap: 0.7rem;
+  }
+}

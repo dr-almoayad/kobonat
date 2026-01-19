@@ -1,0 +1,240 @@
+
+.vouchers-page {
+    padding: 20px;
+}
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.header-actions {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+.filter-select {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background: white;
+    font-size: 14px;
+}
+
+h1 {
+    margin: 0;
+    color: #333;
+}
+
+.btn-primary {
+    background: #0070f3;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 4px;
+    text-decoration: none;
+    font-size: 14px;
+}
+
+.table-container {
+    overflow-x: auto;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.data-table th {
+    background: #f8f9fa;
+    padding: 15px;
+    text-align: left;
+    font-weight: 600;
+    color: #555;
+    border-bottom: 2px solid #dee2e6;
+}
+
+.data-table td {
+    padding: 15px;
+    border-bottom: 1px solid #eee;
+    vertical-align: middle;
+}
+
+.data-table tr:hover {
+    background: #f8f9fa;
+}
+
+.data-table tr.expired {
+    opacity: 0.6;
+    background: #f9f9f9;
+}
+
+.voucher-title {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.title-text {
+    font-weight: 500;
+    color: #333;
+}
+
+.exclusive-badge {
+    background: #ff6b6b;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: bold;
+    display: inline-block;
+}
+
+.verified-badge {
+    background: #28a745;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    display: inline-block;
+}
+
+.store-link {
+    color: #0070f3;
+    text-decoration: none;
+}
+
+.store-link:hover {
+    text-decoration: underline;
+}
+
+.type-badge {
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+    display: inline-block;
+}
+
+.type-badge.code {
+    background: #e3f2fd;
+    color: #1976d2;
+}
+
+.type-badge.deal {
+    background: #f3e5f5;
+    color: #7b1fa2;
+}
+
+.type-badge.free_shipping {
+    background: #e8f5e9;
+    color: #388e3c;
+}
+
+.countries-list {
+    display: flex;
+    gap: 5px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.country-tag {
+    background: #e9ecef;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    color: #495057;
+}
+
+.country-more {
+    font-size: 11px;
+    color: #999;
+}
+
+.expiry-date {
+    font-size: 14px;
+}
+
+.expired-indicator {
+    color: #dc3545;
+    font-size: 12px;
+}
+
+.no-expiry {
+    color: #28a745;
+    font-size: 12px;
+}
+
+.status-badge {
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.status-badge.active {
+    background: #d4edda;
+    color: #155724;
+}
+
+.status-badge.expired {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+.btn-sm {
+    padding: 5px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+}
+
+.btn-edit {
+    background: #6c757d;
+    color: white;
+}
+
+.btn-delete {
+    background: #dc3545;
+    color: white;
+}
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    margin-top: 30px;
+}
+
+.pagination-btn {
+    padding: 8px 16px;
+    border: 1px solid #ddd;
+    background: white;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.pagination-btn.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.page-info {
+    color: #666;
+    font-size: 14px;
+}

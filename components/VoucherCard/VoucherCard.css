@@ -1,0 +1,671 @@
+/* components/VoucherCard/VoucherCard.css - HORIZONTAL LAYOUT */
+
+/* --- Variables for Clean Theme --- */
+:root {
+  --ticket-bg: #ffffff;
+  --ticket-border: #e2e8f0;
+  --ticket-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  --ticket-shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.08);
+  --ticket-shadow-active: 0 2px 4px -1px rgba(0, 0, 0, 0.1);
+  
+  --color-text-main: #0f172a;
+  --color-text-muted: #64748b;
+  --color-accent: #470ae2;
+  --color-accent-hover: #4f46e5;
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-danger: #dc2626;
+  --color-bg-page: #fff;
+}
+
+/* Base Font */
+.ticket-card,
+.ticket-card * {
+  font-family: 'Alexandria', 'Open Sans', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  box-sizing: border-box;
+}
+
+/* --- Main Card Structure - HORIZONTAL LAYOUT --- */
+.ticket-card {
+  display: flex;
+  flex-direction: row;
+  background: var(--ticket-bg);
+  border-radius: 16px;
+  border: none;
+  box-shadow: var(--ticket-shadow);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+  position: relative;
+  height: 150px;
+  min-width: 325px;
+  width: 100%;
+  max-width: 600px;
+}
+
+.ticket-card:hover {
+  box-shadow: var(--ticket-shadow-hover);
+}
+
+.ticket-card.expired {
+  opacity: 0.6;
+  filter: grayscale(1);
+  pointer-events: none;
+}
+
+.ticket-card.featured {
+  border-color: var(--color-accent);
+  box-shadow: 0 4px 20px rgba(99, 102, 241, 0.15);
+}
+
+/* --- Left Section (Discount & Store) --- */
+.ticket-left {
+  flex: 0 0 150px;
+  width: 150px;
+  height: 150px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  background: #fff;
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 1;
+}
+
+/* Store info at top left */
+.ticket-store-link {
+  width: 82px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  text-decoration: none;
+  color: var(--color-text-main);
+  z-index: 2;
+  position: relative;
+}
+
+.ticket-logo {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.store-name {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-text-main);
+  white-space: nowrap;
+  overflow: visible;
+  text-overflow: unset;
+  max-width: 120px;
+  display: block;
+}
+
+/* Discount value - Large and prominent */
+.discount-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  z-index: 2;
+  position: relative;
+}
+
+.discount-amount {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--color-text-main);
+  margin: 0;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+  text-align: center;
+}
+
+.discount-amount.generic {
+  font-size: 1.35rem;
+  color: var(--color-text-main);
+}
+
+.discount-type {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Decorative background element */
+.discount-bg {
+  position: absolute;
+  bottom: -20px;
+  right: -20px;
+  width: 80px;
+  height: 80px;
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  opacity: 0.1;
+  border-radius: 50%;
+}
+
+/* --- Vertical Divider (Perforation) --- */
+.ticket-divider-vertical {
+  position: relative;
+  width: 24px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  overflow: hidden;
+}
+
+.dashed-line-vertical {
+  width: 1px;
+  height: 80%;
+  border-left: 2px dashed #cbd5e1;
+}
+
+/* The Notches (Cutouts) - Vertical */
+.notch-vertical {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  background-color:#f9fafb;
+  border-radius: 50%;
+  border: 1px solid var(--ticket-border);
+  z-index: 2;
+  box-shadow: inset 1px 1px 3px rgba(0,0,0,0.05);
+}
+
+.notch-top {
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-bottom-color: transparent;
+  border-right-color: transparent;
+}
+
+.notch-bottom {
+  bottom: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-top-color: transparent;
+  border-left-color: transparent;
+}
+
+/* --- Right Section (Content & Actions) --- */
+.ticket-right {
+  flex: 2;
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
+  padding-left: 0;
+  min-width: 0;
+  width: 360px;
+  gap: 0.3rem;
+}
+
+/* Title & Description */
+.ticket-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 0.25rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.ticket-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text-main);
+  margin: 0;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ticket-desc {
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+  margin:  0; /* Increased bottom margin */
+  line-height: 1.2;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Action Area */
+.ticket-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: auto;
+}
+
+/* CODE DISPLAY STYLES - UPDATED */
+.code-display-container {
+  display: flex;
+  align-items: center;
+  background: #f8fafc;
+  border-radius: 10px;
+  border: 1px solid var(--ticket-border);
+  overflow: hidden;
+  transition: all 0.2s ease;
+  width: 100%;
+}
+
+.code-display-container:hover {
+  border-color: var(--color-accent);
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.1);
+}
+
+/* Full code display */
+.full-code-display {
+  flex: 1;
+  padding: 0.625rem 1rem;
+  font-family: 'Courier New', monospace;
+  font-weight: 700;
+  color: var(--color-text-main);
+  font-size: 0.875rem;
+  letter-spacing: 1px;
+  text-align: center;
+  background: #f8fafc;
+  border-right: 1px dashed #cbd5e1;
+}
+
+[dir="rtl"] .full-code-display {
+  border-right: none;
+  border-left: 1px dashed #cbd5e1;
+}
+
+/* Small copy button */
+.copy-btn-small {
+  background: var(--color-text-main);
+  color: white;
+  border: none;
+  padding: 0.3rem 0.8rem;
+  margin: 0.2rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  white-space: nowrap;
+  min-width: 80px;
+  width: auto;
+  flex-shrink: 0;
+}
+
+[dir="rtl"] .copy-btn-small {
+  border-radius: 8px;
+}
+
+.copy-btn-small:hover {
+  background: #1e293b;
+  transform: translateY(-1px);
+}
+
+.copy-btn-small:active {
+  transform: translateY(0);
+}
+
+.copy-btn-small.success {
+  background: var(--color-success);
+}
+
+.copy-btn-small.success:hover {
+  background: #0da271;
+}
+
+.copy-btn-small:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Deal button style */
+.deal-btn {
+  background: var(--color-accent);
+  color: white;
+  border: none;
+  padding: 0.4rem 1rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+  width: 100%;
+}
+
+.deal-btn:hover {
+  background: var(--color-accent-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.deal-btn:active {
+  transform: translateY(0);
+}
+
+.deal-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Footer Meta */
+.ticket-footer {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  font-size: 0.7rem;
+  margin-top: 0.3rem;
+  color: #94a3b8;
+}
+
+.meta-tag {
+  display: flex;
+  align-items: center;
+  gap: 0.15rem;
+  white-space: nowrap;
+}
+
+.meta-tag .material-symbols-sharp {
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.meta-tag.urgent {
+  color: var(--color-warning);
+  font-weight: 600;
+}
+
+.meta-tag.expired {
+  color: var(--color-danger);
+  font-weight: 600;
+}
+
+
+/* Badges */
+.ticket-badge {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  z-index: 10;
+}
+
+[dir="rtl"] .ticket-badge {
+  right: auto;
+  left: 0.75rem;
+}
+
+.ticket-badge.verified {
+  color: var(--color-accent);
+}
+
+.ticket-badge.verified .material-symbols-sharp {
+  font-size: 1.25rem;
+}
+
+.ticket-badge.featured {
+  background: linear-gradient(135deg, var(--color-accent), #8b5cf6);
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+/* --- RTL Support --- */
+[dir="rtl"] .ticket-card {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .ticket-left {
+  order: 3;
+}
+
+[dir="rtl"] .ticket-divider-vertical {
+  order: 2;
+}
+
+[dir="rtl"] .ticket-right {
+  order: 1;
+  padding-left: 1rem;
+  padding-right: 0;
+}
+
+[dir="rtl"] .ticket-store-link {
+  flex-direction: row;
+}
+
+[dir="rtl"] .ticket-actions {
+  flex-direction: row;
+}
+
+[dir="rtl"] .discount-bg {
+  right: auto;
+  left: -20px;
+}
+
+/* --- Responsive --- */
+@media (max-width: 768px) {
+  .ticket-card {
+    height: 160px;
+    min-width: 280px;
+    max-width: 500px;
+  }
+  
+  .ticket-left {
+    flex: 0 0 160px;
+    width: 160px;
+    height: 160px;
+    padding: 1rem;
+  }
+  
+  .discount-amount {
+    font-size: 1.2rem;
+  }
+  
+  .discount-amount.generic {
+    font-size: 1.2rem;
+  }
+  
+  .ticket-right {
+    flex: 2;
+    padding: 1rem;
+    width: 320px;
+  }
+  
+  .ticket-title {
+    font-size: 0.9375rem;
+    -webkit-line-clamp: 1;
+  }
+  
+  .ticket-desc {
+    font-size: 0.75rem;
+    -webkit-line-clamp: 1;
+  }
+  
+  .store-name {
+    max-width: 90px;
+    font-size: 0.75rem;
+  }
+  
+  .full-code-display {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8125rem;
+  }
+  
+  .copy-btn-small {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.7rem;
+    min-width: 70px;
+  }
+  
+  .deal-btn {
+    padding: 0.3rem 0.75rem;
+    font-size: 0.8125rem;
+  }
+  
+  .ticket-footer {
+    font-size: 0.6875rem;
+    gap: 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .ticket-card {
+    height: 140px;
+    min-width: 340px;
+    max-width: 460px;
+  }
+  
+  .ticket-left {
+    flex: 0 0 140px;
+    width: 140px;
+    height: 140px;
+    padding: 0.75rem;
+  }
+  
+  .discount-amount {
+    font-size: 1.2rem;
+  }
+  
+  .store-name {
+    font-size: 0.75rem;
+    max-width: 70px;
+  }
+  
+
+  
+  .ticket-right {
+    flex: 2;
+    padding: 0.75rem;
+    width: 280px;
+  }
+  
+  .ticket-divider-vertical {
+    width: 20px;
+  }
+  
+  .ticket-title {
+    font-size: 0.875rem;
+    -webkit-line-clamp: 2;
+  }
+  
+  .ticket-desc {
+    font-size: 0.75rem;
+    -webkit-line-clamp: 2;
+  }
+  
+  .full-code-display {
+    font-size: 0.75rem;
+    padding: 0.35rem;
+  }
+  
+  .copy-btn-small {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.65rem;
+    min-width: 65px;
+  }
+  
+  .ticket-footer {
+    flex-wrap: nowrap;
+    gap: 0.75rem;
+    font-size: 0.65rem;
+  }
+}
+
+/* --- Dark Mode --- */
+@media (prefers-color-scheme: dark) {
+  .ticket-card {
+    background: #1e293b;
+    border-color: #334155;
+  }
+  
+  .ticket-left {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  }
+  
+  .store-name {
+    color: #e2e8f0;
+  }
+  
+  
+  .discount-amount {
+    color: #f1f5f9;
+  }
+  
+  .discount-bg {
+    background: linear-gradient(135deg, #818cf8 0%, #a78bfa 100%);
+    opacity: 0.15;
+  }
+  
+  .ticket-title {
+    color: #e2e8f0;
+  }
+  
+  .ticket-desc {
+    color: #94a3b8;
+  }
+  
+  .code-display-container {
+    background: #334155;
+    border-color: #475569;
+  }
+  
+  .full-code-display {
+    color: #f1f5f9;
+    background: #334155;
+    border-color: #475569;
+  }
+  
+  .copy-btn-small {
+    background: var(--color-accent);
+  }
+  
+  .copy-btn-small:hover {
+    background: var(--color-accent-hover);
+  }
+  
+  .copy-btn-small.success {
+    background: var(--color-success);
+  }
+  
+  .deal-btn {
+    background: var(--color-accent);
+  }
+  
+  .deal-btn:hover {
+    background: var(--color-accent-hover);
+  }
+  
+  .days-counter {
+    background: rgba(30, 41, 59, 0.9);
+    border-color: rgba(71, 85, 105, 0.5);
+    color: #cbd5e1;
+  }
+}

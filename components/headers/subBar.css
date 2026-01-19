@@ -1,0 +1,700 @@
+/* components/SubBar/subBar.css - MOBILE-FIRST OPTIMIZED */
+
+/* ============================================================================
+   CSS VARIABLES
+   ============================================================================ */
+:root {
+    --bg-primary: #ffffffd5;
+    --bg-hover: #fff;
+    --subbar-text: #29272d;
+    --subbar-text-hover: #111827;
+    --subbar-border: #e5e7eb;
+    --subbar-accent: #470ae2;
+    --subbar-transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ============================================================================
+   MAIN CONTAINER - MOBILE FIRST
+   ============================================================================ */
+.subBar {
+    width: 100%;
+    background: var(--bg-primary);
+    border-bottom: 1px solid var(--subbar-border);
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    position: sticky;
+    backdrop-filter: blur(5px);
+    transition: background 0.2s ease-out;
+    top: calc(var(--header-height) - 1px) !important;
+    z-index: 900;
+}
+
+.subBar:hover{
+    background: var(--bg-hover);
+}
+
+.subBar::-webkit-scrollbar {
+    display: none;
+}
+
+.subBarContainer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    min-width: max-content;
+    max-width: 1280px;
+    padding: 0.5rem 0.5rem;
+    gap: 0.5rem;
+    margin: 0 auto;
+}
+
+/* ============================================================================
+   SECTIONS
+   ============================================================================ */
+.categoriesSection {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 0.25rem;
+    flex: 1;
+}
+
+.utilitySection {
+    display: none;
+    align-items: center;
+    gap: 0.5rem;
+    margin-left: auto;
+}
+
+/* ============================================================================
+   CATEGORY LINKS - MOBILE OPTIMIZED
+   ============================================================================ */
+.categoryLink {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    background: transparent;
+    border: none;
+    border-radius: 20px;
+    color: var(--subbar-text);
+    text-decoration: none;
+    font-family: 'Alexandria', 'Open Sans', Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    white-space: nowrap;
+    transition: var(--subbar-transition);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    position: relative;
+    overflow: hidden;
+    padding: 0.375rem 0.75rem;
+    font-size: 13px;
+    height: 34px;
+    flex-shrink: 0;
+}
+
+.categoryLink .material-symbols-sharp {
+    font-size: 16px;
+    transition: var(--subbar-transition);
+    z-index: 10;
+}
+
+.categoryLink .linkText {
+    z-index: 10;
+    font-size: 13px;
+    font-weight: 400;
+    line-height: 1.2;
+}
+
+/* Hover/Active States */
+.categoryLink::before{
+    content: '';
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    background: #f3f4f6;
+    top: 0;
+    transform: scale(0);
+    opacity: 0;
+    transition: 0.2s ease-out;
+    z-index: 1;
+    border-radius: 20px;
+}
+
+/* Hover/Active States */
+.categoryLink:hover,
+.categoryLink:focus-visible {
+    color: var(--subbar-text-hover);
+    outline: none;
+}
+
+.categoryLink:hover::before {
+    transform: scale(1);
+    opacity: 1;
+}
+
+.categoryLink:active {
+    transform: scale(0.96);
+}
+
+/* All Stores - Special Styling */
+.categoryLink.allStores {
+    background: linear-gradient(135deg, var(--subbar-accent) 0%, #4a30df 100%);
+    color: #fff;
+    font-weight: 600;
+    padding: 0.375rem 1rem;
+    font-size: 13px;
+}
+
+.categoryLink.allStores::before{
+    content: '';
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    background: linear-gradient(135deg, #5f26f1 0%, rgb(122, 110, 253) 100%);
+    top: 0;
+    transform: scale(0);
+    opacity: 0;
+    transition: 0.2s ease-out;
+    z-index: 1;
+    border-radius: 20px;
+}
+
+.categoryLink.allStores:hover::before {
+    transform: scale(1);
+    opacity: 1;
+}
+
+/* "More" Button Styling */
+.categoryLink.more-button {
+    background: #f8f9fa;
+    border: 1px solid #e5e7eb;
+    padding: 0.375rem 0.875rem;
+    font-size: 13px;
+}
+
+/* ============================================================================
+   MORE DROPDOWN
+   ============================================================================ */
+.more-categories-container {
+    position: relative;
+    flex-shrink: 0;
+}
+
+.more-dropdown {
+    position: absolute;
+    top: calc(100% + 4px);
+    right: 0;
+    background: white;
+    border: 1px solid var(--subbar-border);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    min-width: 160px;
+    max-height: 300px;
+    overflow-y: auto;
+    animation: slideDown 0.2s ease;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.more-dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    color: var(--subbar-text);
+    text-decoration: none;
+    font-size: 13px;
+    transition: background 0.2s ease;
+    border-bottom: 1px solid #f5f5f5;
+}
+
+.more-dropdown-item:last-child {
+    border-bottom: none;
+}
+
+.more-dropdown-item:hover {
+    background: #f8f9fa;
+}
+
+.more-dropdown-item .material-symbols-sharp {
+    font-size: 16px;
+    color: #666;
+}
+
+/* Add to subBar.css */
+.dropdown-count {
+  margin-left: auto;
+  font-size: 0.75rem;
+  background: #f1f5f9;
+  padding: 0.125rem 0.375rem;
+  border-radius: 8px;
+  color: #475569;
+}
+
+[dir="rtl"] .dropdown-count {
+  margin-left: 0;
+  margin-right: auto;
+}
+
+/* ============================================================================
+   RESPONSIVE
+   ============================================================================ */
+
+/* Tablet */
+@media (max-width: 1024px) {
+    .subBar {
+        position: sticky;
+        height: 48px;
+    }
+    
+    .subBarContainer {
+        padding: 0;
+        gap: 0.375rem;
+    }
+    
+    .categoriesSection {
+        gap: 0.25rem;
+    }
+    
+    .categoryLink {
+        padding: 0.375rem 0.75rem;
+        height: 32px;
+        font-size: 12px;
+        border-radius: 18px;
+    }
+    
+    .categoryLink .material-symbols-sharp {
+        font-size: 15px;
+    }
+    
+    .categoryLink .linkText {
+        font-size: 12px;
+    }
+    
+    .categoryLink.allStores {
+        padding: 0.375rem 0.875rem;
+    }
+    
+    .more-dropdown {
+        min-width: 140px;
+    }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+    .subBar {
+        height: 44px;
+    }
+    
+    .subBarContainer {
+        gap: 0.25rem;
+    }
+    
+    .categoryLink {
+        padding: 0.25rem 0.5rem;
+        height: 30px;
+        font-size: 11px;
+        border-radius: 16px;
+    }
+    
+    .categoryLink .material-symbols-sharp {
+        font-size: 14px;
+    }
+    
+    .categoryLink .linkText {
+        font-size: 11px;
+    }
+    
+    /* Hide text on very small screens, show only icons */
+    .categoryLink:not(.allStores):not(.more-button) .linkText {
+        display: none;
+    }
+    
+    .categoryLink:not(.allStores):not(.more-button) {
+        padding: 0.375rem !important;
+        width: 34px;
+        justify-content: center;
+    }
+    
+    .categoryLink.allStores .linkText,
+    .categoryLink.more-button .linkText {
+        display: inline;
+    }
+    
+    .more-dropdown-item .linkText {
+        display: inline !important;
+    }
+    
+    .more-dropdown {
+        min-width: 130px;
+        right: -10px;
+    }
+}
+
+@media (max-width: 480px) {
+    .subBar {
+        height: 40px;
+    }
+    
+    .subBarContainer {
+        gap: 0.125rem;
+    }
+    
+    .categoryLink {
+        height: 28px;
+        width: 32px;
+        padding: 0.25rem !important;
+    }
+    
+    .categoryLink.allStores {
+        padding: 0.25rem 0.75rem !important;
+        width: fit-content;
+        font-size: 11px;
+    }
+    
+    .categoryLink .material-symbols-sharp {
+        font-size: 13px;
+    }
+    
+    .more-dropdown {
+        min-width: 120px;
+        right: -15px;
+    }
+}
+
+@media (max-width: 360px) {
+    .subBar {
+        height: 38px;
+    }
+    
+    .categoryLink {
+        height: 26px;
+        width: 30px;
+    }
+    
+    .categoryLink.allStores {
+        padding: 0.25rem 0.5rem !important;
+        font-size: 10px;
+    }
+    
+    .more-dropdown {
+        min-width: 110px;
+        right: -20px;
+    }
+}
+
+/* Desktop */
+@media (min-width: 1025px) {
+    .subBar {
+        position: relative;
+    }
+
+    .subBarContainer {
+        min-width: auto;
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 0;
+    }
+
+    .categoriesSection {
+        gap: 0.5rem;
+    }
+
+    .categoryLink {
+        padding: 0.5rem 1rem;
+        font-size: 14px;
+        height: auto;
+    }
+
+    .categoryLink .material-symbols-sharp {
+        font-size: 18px;
+    }
+
+    .categoryLink .linkText {
+        font-size: 14px;
+        display: inline;
+    }
+
+    /* Remove horizontal scroll on desktop */
+    .subBar {
+        overflow-x: visible;
+    }
+    
+    .utilitySection {
+        display: flex;
+    }
+}
+
+/* ============================================================================
+   ACCESSIBILITY
+   ============================================================================ */
+
+/* Focus visible for keyboard navigation */
+.categoryLink:focus-visible,
+.utilityLink:focus-visible {
+    outline: 2px solid var(--subbar-accent);
+    outline-offset: 2px;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    .categoryLink,
+    .utilityLink {
+        transition: none;
+    }
+
+    .categoryLink:active {
+        transform: none;
+    }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+    .categoryLink,
+    .utilityLink {
+        border: 1px solid currentColor;
+    }
+
+    .categoryLink:hover,
+    .utilityLink:hover {
+        border-color: var(--subbar-text-hover);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+/* components/SubBar/subBar.css */
+:root {
+  --subbar-height: 48px;
+  --bg-primary: #ffffffd5;
+  --bg-hover: #fff;
+  --subbar-text: #29272d;
+  --subbar-text-hover: #111827;
+  --subbar-border: #e5e7eb;
+  --subbar-accent: #470ae2;
+  
+  /* Match Header Variables */
+  --content-max-width: 1280px;
+  --header-padding-x-desktop: 1.5rem;
+  --header-padding-x-tablet: 1rem;
+  --header-padding-x-mobile: 0.75rem;
+}
+
+.subBar {
+    width: 100%;
+    background: var(--bg-primary);
+    border-bottom: 1px solid var(--subbar-border);
+    position: sticky;
+    backdrop-filter: blur(5px);
+    transition: background 0.2s ease-out;
+    top: 0;
+    z-index: 900;
+    height: auto;
+    min-height: var(--subbar-height);
+    
+    /* We handle overflow in the logic now, so we don't want scrollbars */
+    overflow: visible; 
+}
+
+.subBar:hover {
+    background: var(--bg-hover);
+}
+
+.subBarContainer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    max-width: var(--content-max-width);
+    margin: 0 auto;
+    
+    /* Strict Alignment with Header */
+    padding: 0.5rem var(--header-padding-x-desktop);
+    gap: 0.5rem;
+}
+
+.categoriesSection {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: nowrap; /* Prevent wrapping, we utilize the 'More' button */
+    width: 100%;
+}
+
+/* Link Styling */
+.categoryLink {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+    background: transparent;
+    border: none;
+    border-radius: 20px;
+    color: var(--subbar-text);
+    text-decoration: none;
+    white-space: nowrap; /* Critical: keeps text on one line */
+    transition: all 0.2s ease;
+    cursor: pointer;
+    padding: 0.375rem 0.75rem;
+    font-size: 13px;
+    height: 34px;
+    flex-shrink: 0; /* Prevent links from squishing */
+    width: fit-content !important;
+}
+
+/* Ensure Text is ALWAYS visible */
+.categoryLink .linkText {
+    display: inline-block !important; /* Force show */
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.categoryLink .material-symbols-sharp {
+    font-size: 18px;
+}
+
+/* Hover States */
+.categoryLink:hover {
+    background-color: #f3f4f6;
+    color: var(--subbar-text-hover);
+}
+
+/* All Stores Button */
+.categoryLink.allStores {
+    background: linear-gradient(135deg, var(--subbar-accent) 0%, #4a30df 100%);
+    color: #fff;
+    font-weight: 600;
+    padding: 0.375rem 1rem;
+}
+
+.categoryLink.allStores:hover {
+    opacity: 0.95;
+    box-shadow: 0 2px 5px rgba(71, 10, 226, 0.2);
+}
+
+/* More Button */
+.categoryLink.more-button {
+    background: #f8f9fa;
+    border: 1px solid #e5e7eb;
+}
+
+/* Dropdown */
+.more-categories-container {
+    position: relative;
+    margin-left: auto; /* Push to right if space exists, or sit next to items */
+}
+
+.more-dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0; /* Align right edge */
+    background: white;
+    border: 1px solid var(--subbar-border);
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    min-width: 180px;
+    max-height: 60vh;
+    overflow-y: auto;
+    padding: 0.5rem;
+    animation: fadeIn 0.15s ease-out;
+}
+
+[dir="rtl"] .more-dropdown {
+    right: auto;
+    left: 0;
+}
+
+.more-dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    color: var(--subbar-text);
+    text-decoration: none;
+    font-size: 13px;
+    border-radius: 8px;
+    transition: background 0.2s ease;
+}
+
+.more-dropdown-item:hover {
+    background: #f8f9fa;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* ===========================
+   RESPONSIVE ALIGNMENT
+   =========================== */
+
+@media (max-width: 1024px) {
+    .subBar {
+        top: 68px; /* Match header height */
+    }
+    .subBarContainer {
+        padding: 0.5rem var(--header-padding-x-tablet);
+    }
+}
+
+@media (max-width: 768px) {
+    .subBar {
+        top: 60px;
+    }
+    .subBarContainer {
+        padding: 0.375rem var(--header-padding-x-mobile);
+    }
+    
+    .categoryLink {
+        font-size: 12px;
+        padding: 0.375rem 0.625rem;
+        height: 32px;
+    }
+    
+    .categoryLink .linkText {
+        font-size: 12px;
+    }
+    
+    .categoryLink .material-symbols-sharp {
+        font-size: 16px;
+    }
+}
+
+@media (max-width: 480px) {
+    .subBar {
+        top: 56px;
+    }
+    
+    /* Make buttons slightly more compact on very small screens to fit more */
+    .categoryLink {
+        gap: 4px;
+        padding: 0.25rem 0.5rem;
+        height: 30px;
+    }
+    
+    .categoryLink.allStores {
+        padding: 0.25rem 0.75rem;
+    }
+}

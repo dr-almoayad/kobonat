@@ -1,0 +1,419 @@
+// prisma/schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Locale {
+  ar 
+  en
+}
+
+// ============================================================================
+// CORE MODELS (Language-Agnostic)
+// ============================================================================
+
+model Country {
+  id        Int      @id @default(autoincrement())
+  code      String   @unique // SA, EG, AE
+  currency  String   // SAR, EGP, AED
+  flag      String?  // 🇸🇦
+  isActive  Boolean  @default(true)
+  isDefault Boolean  @default(false)
+  
+  // Relations
+  translations   CountryTranslation[]
+  stores         StoreCountry[]
+  vouchers       VoucherCountry[]
+  faqs           StoreFAQ[]
+  storePayments  StorePaymentMethod[]
+  voucherClicks  VoucherClick[]  // ← ADD THIS LINE
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@index([isActive])
+}
+
+model CountryTranslation {
+  id        Int     @id @default(autoincrement())
+  countryId Int
+  locale    Locale
+  name      String  
+  
+  country Country @relation(fields: [countryId], references: [id], onDelete: Cascade)
+  
+  @@unique([countryId, locale])
+  @@index([locale])
+}
+
+// ============================================================================
+// STORE
+// ============================================================================
+
+model Store {
+  id          Int      @id @default(autoincrement())
+  
+  // Core data (language-independent)
+  logo        String?
+  color       String?
+  websiteUrl  String
+  
+  // Affiliate
+  affiliateNetwork String?
+  trackingUrl      String?
+  
+  // Status
+  isActive    Boolean @default(true)
+  isFeatured  Boolean @default(false)
+  
+  // Relations
+  translations StoreTranslation[]
+  countries    StoreCountry[]
+  vouchers     Voucher[]
+  categories   StoreCategory[]
+  faqs         StoreFAQ[]
+  paymentMethods StorePaymentMethod[]
+  
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  
+  @@index([isActive])
+  @@index([isFeatured])
+}
+
+model StoreTranslation {
+  id          Int     @id @default(autoincrement())
+  storeId     Int
+  locale      Locale  
+  
+  // Content
+  name        String
+  slug        String  // "first-cry" or "فرست-كراي"
+  description String? @db.Text
+  
+  // SEO
+  seoTitle       String?
+  seoDescription String? @db.Text
+  
+  store Store @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  
+  @@unique([storeId, locale])
+  @@unique([locale, slug]) // SEO-critical: one slug per locale
+  @@index([locale])
+  @@index([slug])
+}
+
+// ============================================================================
+// CATEGORY
+// ============================================================================
+
+model Category {
+  id    Int     @id @default(autoincrement())
+  icon  String?
+  color String?
+  
+  translations CategoryTranslation[]
+  stores       StoreCategory[]
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model CategoryTranslation {
+  id         Int    @id @default(autoincrement())
+  categoryId Int
+  locale     Locale
+  
+  name        String
+  slug        String
+  description String? @db.Text
+  
+  // SEO
+  seoTitle       String?
+  seoDescription String? @db.Text
+  
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  
+  @@unique([categoryId, locale])
+  @@unique([locale, slug])
+  @@index([locale])
+  @@index([slug])
+}
+
+// ============================================================================
+// VOUCHER
+// ============================================================================
+
+model Voucher {
+  id       Int         @id @default(autoincrement())
+  storeId  Int
+  
+  // Core data (language-independent)
+  code     String?
+  type     VoucherType
+  discount String?
+  
+  landingUrl String?
+  
+  startDate  DateTime?
+  expiryDate DateTime?
+  
+  isExclusive Boolean @default(false)
+  isVerified  Boolean @default(false)
+  
+  popularityScore Int @default(0)
+  
+  // Relations
+  translations VoucherTranslation[]
+  countries    VoucherCountry[]
+  store        Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  clicks       VoucherClick[]
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@index([storeId])
+  @@index([expiryDate])
+  @@index([isExclusive])
+  @@index([isVerified])
+  @@index([popularityScore])
+}
+
+model VoucherTranslation {
+  id        Int    @id @default(autoincrement())
+  voucherId Int
+  locale    Locale
+  
+  title       String
+  description String? @db.Text
+  
+  voucher Voucher @relation(fields: [voucherId], references: [id], onDelete: Cascade)
+  
+  @@unique([voucherId, locale])
+  @@index([locale])
+}
+
+enum VoucherType {
+  CODE
+  DEAL
+  FREE_SHIPPING
+}
+
+// ============================================================================
+// PAYMENT METHOD
+// ============================================================================
+
+model PaymentMethod {
+  id          Int      @id @default(autoincrement())
+  slug        String   @unique // "tabby", "tamara", "visa-mastercard"
+  type        PaymentType
+  isBnpl      Boolean  @default(false) // Buy Now Pay Later flag
+  logo        String?
+  
+  // Relations
+  translations PaymentMethodTranslation[]
+  storeLinks   StorePaymentMethod[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([type])
+  @@index([isBnpl])
+}
+
+model PaymentMethodTranslation {
+  id              Int     @id @default(autoincrement())
+  paymentMethodId Int
+  locale          Locale
+  
+  name        String
+  description String? @db.Text
+  
+  paymentMethod PaymentMethod @relation(fields: [paymentMethodId], references: [id], onDelete: Cascade)
+  
+  @@unique([paymentMethodId, locale])
+  @@index([locale])
+}
+
+enum PaymentType {
+  CARD           // Credit/Debit cards
+  BNPL           // Buy Now Pay Later (Tabby, Tamara, etc)
+  COD            // Cash on Delivery
+  WALLET         // Digital wallets (Apple Pay, STC Pay)
+  BANK_TRANSFER  // Direct bank transfer
+}
+
+// ============================================================================
+// STORE PAYMENT METHOD (M2M2M)
+// ============================================================================
+
+model StorePaymentMethod {
+  id              Int      @id @default(autoincrement())
+  storeId         Int
+  countryId       Int
+  paymentMethodId Int
+  
+  isActive        Boolean  @default(true)
+  
+  // Optional metadata
+  minAmount       Float?   // Minimum order amount
+  maxAmount       Float?   // Maximum order amount
+  
+  // Relations
+  store           Store         @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  country         Country       @relation(fields: [countryId], references: [id], onDelete: Cascade)
+  paymentMethod   PaymentMethod @relation(fields: [paymentMethodId], references: [id], onDelete: Cascade)
+  
+  // Translations for notes
+  translations    StorePaymentMethodTranslation[]
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // Compound unique: one payment method per store per country
+  @@unique([storeId, countryId, paymentMethodId])
+  @@index([storeId, countryId])
+  @@index([countryId, paymentMethodId])
+}
+
+model StorePaymentMethodTranslation {
+  id                  Int     @id @default(autoincrement())
+  storePaymentMethodId Int
+  locale              Locale
+  
+  notes String? @db.Text  // "Minimum order 300 SAR"
+  
+  storePaymentMethod StorePaymentMethod @relation(fields: [storePaymentMethodId], references: [id], onDelete: Cascade)
+  
+  @@unique([storePaymentMethodId, locale])
+  @@index([locale])
+}
+
+// ============================================================================
+// STORE FAQ (Fully Translatable)
+// ============================================================================
+
+model StoreFAQ {
+  id        Int     @id @default(autoincrement())
+  storeId   Int
+  countryId Int
+  order     Int     @default(0)
+  isActive  Boolean @default(true)
+  
+  // Relations
+  translations StoreFAQTranslation[]
+  store        Store   @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  country      Country @relation(fields: [countryId], references: [id], onDelete: Cascade)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@unique([storeId, countryId, order])
+  @@index([storeId, countryId])
+  @@index([isActive])
+}
+
+model StoreFAQTranslation {
+  id    Int    @id @default(autoincrement())
+  faqId Int
+  locale Locale
+  
+  question String
+  answer   String @db.Text
+  
+  faq StoreFAQ @relation(fields: [faqId], references: [id], onDelete: Cascade)
+  
+  @@unique([faqId, locale])
+  @@index([locale])
+}
+
+// ============================================================================
+// JUNCTION TABLES
+// ============================================================================
+
+model StoreCountry {
+  storeId   Int
+  countryId Int
+  
+  store   Store   @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  country Country @relation(fields: [countryId], references: [id], onDelete: Cascade)
+  
+  @@id([storeId, countryId])
+}
+
+model VoucherCountry {
+  voucherId Int
+  countryId Int
+  
+  voucher Voucher @relation(fields: [voucherId], references: [id], onDelete: Cascade)
+  country Country @relation(fields: [countryId], references: [id], onDelete: Cascade)
+  
+  @@id([voucherId, countryId])
+}
+
+model StoreCategory {
+  storeId    Int
+  categoryId Int
+  
+  store    Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  
+  @@id([storeId, categoryId])
+}
+
+// ============================================================================
+// ANALYTICS
+// ============================================================================
+
+model VoucherClick {
+  id          Int      @id @default(autoincrement())
+  voucherId   Int
+  countryId   Int?
+  
+  ipHash      String?
+  userAgent   String?
+  referrer    String?
+  clickedAt   DateTime @default(now())
+  
+  voucher Voucher @relation(fields: [voucherId], references: [id], onDelete: Cascade)
+  country Country? @relation(fields: [countryId], references: [id], onDelete: SetNull)
+  
+  @@index([voucherId])
+  @@index([clickedAt])
+  @@index([countryId])
+}
+
+// ============================================================================
+// ADMIN USER
+// ============================================================================
+model Admin {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  name         String?
+  password     String // Hashed password
+  role         AdminRole @default(ADMIN)
+  permissions  String[]
+  isActive     Boolean   @default(true)
+  lastLoginAt  DateTime?
+  resetToken   String?
+  resetExpires DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([email])
+  @@index([role])
+  @@index([isActive])
+}
+
+enum AdminRole {
+  SUPER_ADMIN
+  ADMIN
+  EDITOR
+  VIEWER
+}

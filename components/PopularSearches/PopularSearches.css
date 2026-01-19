@@ -1,0 +1,63 @@
+/* PopularSearches.css */
+
+.popular-searches-section {
+    width: 100%;
+    padding: 1.5rem 2.5rem;
+    background-color: #fff;
+    border-radius: 12px;
+    /* Optional: add a soft shadow to the whole container */
+    /* box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05); */
+}
+
+.popular-searches-title {
+    font-size: 1.5rem; /* 24px */
+    font-weight: 700;
+    font-family: 'Alexandria','Open Sans', Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    color: #0f041c;
+    margin-top: 0;
+    margin-bottom: 20px;
+}
+
+.popular-searches-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem; /* This is the key to perfect spacing */
+}
+
+.search-tag {
+    display: inline-block;
+    padding: 5px 10px;
+    font-size: 0.9rem; /* 14.4px */
+    font-weight: 400;
+    font-family: 'Alexandria','Open Sans', Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    color: #333;
+    background-color: #fafafa; /* Softer than plain grey */
+    border: 1px solid #eee; /* Adds definition */
+    border-radius: 50px; /* Pill shape */
+    text-decoration: none;
+    transition: all 0.2s ease-in-out;
+}
+
+.search-tag:hover {
+    background-color: #f6f3fa; /* Softer than plain grey */
+    color: #000;
+}
+
+.view-more-link {
+    display: inline-block;
+    margin-top: 24px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    font-family: 'Alexandria','Open Sans', Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    color: #007bff; /* Primary link color */
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.view-more-link:hover {
+    color: #0056b3;
+    text-decoration: underline;
+}

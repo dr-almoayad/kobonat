@@ -1,0 +1,446 @@
+/* components/Affiliates/affiliatesHero.css - ALIGNED WITH HOME PAGE */
+/* ===== BASE MOBILE STYLES ===== */
+.affiliates_section {
+  width: 100%;
+  background: #fff;
+  position: relative;
+  overflow: hidden;
+  padding: 1.5rem 0 0; /* Aligned with home-section top padding */
+  margin-bottom: 0; /* Remove bottom margin, handled by home-section */
+}
+
+.affiliates_content_container {
+  width: 100%;
+  max-width: 1280px; /* Same as home-section max-width */
+  margin: 0 auto;
+  padding: 0 0.75rem; /* Same horizontal padding as home-section */
+}
+
+/* Search/Title Area */
+.search-bar-wrapper {
+  width: 100%;
+  position: relative;
+  z-index: 20;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.hero-title {
+  font-size: 1.5rem;
+  font-family: 'Alexandria', 'Open Sans', Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  font-weight: 800;
+  margin-bottom: 1rem;
+  color: #1e293b;
+  line-height: 1.3;
+  padding: 0; /* Remove padding, handled by container */
+}
+
+.hero-title span {
+  color: #470ae2;
+  position: relative;
+  display: inline-block;
+}
+
+/* Brands Scroll Container */
+.brands-wrapper {
+  width: 100%;
+  height: 400px; /* Reduced for mobile */
+  position: relative;
+  overflow: hidden;
+  margin: 0 auto;
+  padding: 0; /* Remove padding, handled by container */
+}
+
+/* Remove gradient overlays on mobile */
+.brands-wrapper::before,
+.brands-wrapper::after {
+  display: none;
+}
+
+/* Brands Grid - Start with 3 columns on mobile */
+.brands-columns {
+  display: grid;
+  gap: 0.75rem;
+  width: 100%;
+  height: 100%;
+  grid-template-columns: repeat(3, 1fr); /* Start with 3 columns on mobile */
+}
+
+/* Brand Column Animation */
+.brand-column {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  will-change: transform;
+  animation-name: scrollUp;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  animation-play-state: running;
+}
+
+/* Pause animation on touch devices when user interacts */
+@media (hover: hover) and (pointer: fine) {
+  .brands-columns:hover .brand-column {
+    animation-play-state: paused;
+  }
+}
+
+/* Brand Card - Optimized for mobile */
+.brand-card {
+  position: relative;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #f8fafc;
+  width: 100%;
+  aspect-ratio: 1/1; /* Square cards on mobile */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  transform: translateZ(0);
+  transition: all 0.3s ease;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  padding: 1rem;
+}
+
+/* Remove all pseudo-elements for mobile */
+.brand-card::after,
+.brand-card::before {
+  display: none;
+}
+
+/* Mobile hover states (only for devices that support hover) */
+@media (hover: hover) and (pointer: fine) {
+  .brand-card:hover {
+    transform: translateY(-3px);
+    background: #fff;
+    border-color: #470ae2;
+    box-shadow: 0 8px 16px rgba(71, 10, 226, 0.12);
+  }
+  
+  .brand-card:hover .affiliate_logo {
+    transform: scale(1.05);
+    filter: grayscale(0%);
+  }
+}
+
+/* Logo Styling for Mobile */
+.brand-card .affiliate_logo {
+  position: relative;
+  z-index: 3;
+  width: 70px; /* Smaller on mobile for 3 columns */
+  height: auto;
+  max-height: 50px;
+  object-fit: contain;
+  filter: grayscale(20%);
+  opacity: 1;
+  transition: all 0.3s ease;
+  border-radius: 0 !important;
+  padding: 0.5rem;
+}
+
+/* Fallback text for missing logos */
+.store-name-fallback {
+  color: #64748b;
+  font-weight: 600;
+  font-size: 0.8rem;
+  z-index: 3;
+  text-align: center;
+  padding: 0.5rem;
+  line-height: 1.2;
+}
+
+/* Background element for brand cards */
+.brand-card-bg {
+  display: none; /* Hide on mobile to reduce complexity */
+}
+
+/* ===== ANIMATIONS ===== */
+@keyframes scrollUp {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(-50%);
+  }
+}
+
+/* For devices that don't support smooth animations */
+@media (prefers-reduced-motion: reduce) {
+  .brand-column {
+    animation: none !important;
+  }
+}
+
+/* ===== RESPONSIVE BREAKPOINTS ===== */
+
+/* Small Phones (up to 360px) */
+@media (max-width: 360px) {
+  .affiliates_section {
+    padding: 1rem 0 0; /* Aligned with home-section */
+  }
+  
+  .affiliates_content_container {
+    padding: 0 0.75rem; /* Same as home-section on small screens */
+  }
+  
+  .hero-title {
+    font-size: 1.3rem;
+    margin-bottom: 0.75rem;
+  }
+  
+  .brands-wrapper {
+    height: 350px;
+  }
+  
+  .brands-columns {
+    grid-template-columns: repeat(3, 1fr); /* Still 3 columns */
+    gap: 0.5rem;
+  }
+  
+  .brand-column {
+    gap: 0.5rem;
+  }
+  
+  .brand-card {
+    border-radius: 12px;
+    padding: 0.75rem;
+  }
+  
+  .brand-card .affiliate_logo {
+    width: 60px;
+    max-height: 40px;
+  }
+}
+
+/* Tablets (min-width: 640px) */
+@media (min-width: 640px) {
+  .affiliates_section {
+    padding: 2rem 0 0; /* Aligned with home-section */
+    margin-bottom: 0;
+  }
+  
+  .affiliates_content_container {
+    padding: 0 1.5rem; /* Same as home-section */
+  }
+  
+  .hero-title {
+    font-size: 1.75rem;
+    margin-bottom: 1.25rem;
+  }
+  
+  .brands-wrapper {
+    height: 450px;
+  }
+  
+  .brands-columns {
+    grid-template-columns: repeat(4, 1fr); /* 4 columns on tablets */
+    gap: 1rem;
+  }
+  
+  .brand-column {
+    gap: 1rem;
+  }
+  
+  .brand-card {
+    border-radius: 16px;
+    padding: 1.25rem;
+  }
+  
+  .brand-card .affiliate_logo {
+    width: 90px;
+    max-height: 60px;
+  }
+  
+  /* Re-enable gradient overlays */
+  .brands-wrapper::before {
+    content: '';
+    height: 60px;
+    width: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    background: linear-gradient(to bottom, #fff 0%, transparent 100%);
+    z-index: 5;
+    pointer-events: none;
+  }
+  
+  .brands-wrapper::after {
+    content: '';
+    height: 60px;
+    width: 100%;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    background: linear-gradient(to top, #fff 0%, transparent 100%);
+    z-index: 5;
+    pointer-events: none;
+  }
+}
+
+/* Large Tablets (min-width: 768px) */
+@media (min-width: 768px) {
+  .hero-title {
+    font-size: 2rem;
+  }
+  
+  .brands-wrapper {
+    height: 500px;
+  }
+  
+  .brands-columns {
+    grid-template-columns: repeat(5, 1fr); /* 5 columns on large tablets */
+    gap: 1.25rem;
+  }
+  
+  .brand-card {
+    border: 1.5px solid #e2e8f0;
+  }
+  
+  .brand-card .affiliate_logo {
+    width: 100px;
+    max-height: 70px;
+  }
+  
+  .brand-card-bg {
+    display: block;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, 
+      rgba(71, 10, 226, 0.05) 0%,
+      rgba(99, 102, 241, 0.08) 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  
+  .brand-card:hover .brand-card-bg {
+    opacity: 1;
+  }
+}
+
+/* Desktop (min-width: 1024px) */
+@media (min-width: 1024px) {
+  .affiliates_section {
+    padding: 2.5rem 0 0; /* Aligned with home-section */
+  }
+  
+  .hero-title {
+    font-size: 2.5rem;
+    margin-bottom: 2rem;
+  }
+  
+  .brands-wrapper {
+    height: 550px;
+    max-width: 1200px;
+  }
+  
+  .brands-columns {
+    grid-template-columns: repeat(6, 1fr); /* 6 columns on desktop */
+    gap: 1.5rem;
+  }
+  
+  .brand-card {
+    padding: 1.5rem;
+  }
+  
+  .brand-card .affiliate_logo {
+    width: 100px;
+    max-height: 70px;
+  }
+}
+
+/* Large Desktop (min-width: 1280px) */
+@media (min-width: 1280px) {
+  .hero-title {
+    font-size: 3rem;
+  }
+  
+  .brands-wrapper {
+    height: 600px;
+  }
+  
+  .brands-columns {
+    gap: 1.75rem;
+  }
+  
+  .brand-card .affiliate_logo {
+    width: 110px;
+    max-height: 75px;
+  }
+}
+
+/* Extra Large Desktop (min-width: 1536px) */
+@media (min-width: 1536px) {
+  .brands-wrapper {
+    height: 650px;
+    max-width: 1400px;
+  }
+  
+  .brands-columns {
+    gap: 2rem;
+  }
+  
+  .brand-card .affiliate_logo {
+    width: 120px;
+    max-height: 80px;
+  }
+}
+
+/* ===== DARK MODE SUPPORT ===== */
+@media (prefers-color-scheme: dark) {
+  .affiliates_section {
+    background: #0f172a;
+  }
+  
+  .hero-title {
+    color: #f1f5f9;
+  }
+  
+  .hero-title span {
+    color: #8b5cf6;
+  }
+  
+  .brand-card {
+    background: #1e293b;
+    border-color: #334155;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  }
+  
+  .brand-card .affiliate_logo {
+    filter: grayscale(10%) brightness(1.1);
+  }
+  
+  @media (min-width: 640px) {
+    .brands-wrapper::before {
+      background: linear-gradient(to bottom, #0f172a 0%, transparent 100%);
+    }
+    
+    .brands-wrapper::after {
+      background: linear-gradient(to top, #0f172a 0%, transparent 100%);
+    }
+  }
+  
+  @media (hover: hover) and (pointer: fine) {
+    .brand-card:hover {
+      background: #2d3748;
+      border-color: #8b5cf6;
+      box-shadow: 0 8px 16px rgba(139, 92, 246, 0.15);
+    }
+  }
+  
+  .store-name-fallback {
+    color: #94a3b8;
+  }
+}
+
+/* ===== RTL SUPPORT ===== */
+[dir="rtl"] .hero-title {
+  text-align: center;
+}
+
+[dir="rtl"] .brand-card {
+  text-align: center;
+}

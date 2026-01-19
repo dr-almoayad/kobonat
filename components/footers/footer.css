@@ -1,0 +1,164 @@
+/* Simplified Footer Styles - Logo and Social Links Only */
+
+:root {
+  font-size: 16px;
+}
+
+/* Main Footer Section */
+.main_footer {
+  width: 100%;
+  background: #fff;
+  border-top: 1px solid #eee;
+  padding: 3rem 2.5rem;
+  color: #0f041c;
+}
+
+/* Footer Container - Centered Layout */
+.footer_container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* Company Info Block */
+.footer_block.company_info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  text-align: center;
+  width: 100%;
+}
+
+.footer_logo {
+  width: 180px;
+  height: auto;
+}
+
+/* Social Links */
+.footer_social_links {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.footer_social_link_btn {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #0f041c;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  cursor: pointer;
+  border: none;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.footer_social_link_btn:hover {
+  background: #6321d4;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(99, 33, 212, 0.3);
+}
+
+/* Footer Bottom */
+.footer_bottom {
+  background: #f7f8f8;
+  border-top: 1px solid #e7e7e7;
+  padding: 1.5rem 2.5rem;
+}
+
+.footer_bottom_container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.footer_copyright {
+  text-align: center;
+  color: #565959;
+  font-size: 0.875rem;
+  font-family: 'Alexandria', 'Open Sans', Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  max-width: 600px;
+}
+
+.footer_copyright p {
+  margin: 0 0 0.5rem 0;
+}
+
+.footer_disclaimer {
+  font-size: 0.8rem;
+  font-family: 'Alexandria', 'Open Sans', Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  color: #888;
+  line-height: 1.5;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .footer {
+    display: none;
+  }
+  
+  .main_footer {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .main_footer {
+    padding: 2rem 1.5rem;
+  }
+
+  .footer_logo {
+    width: 150px;
+  }
+
+  .footer_social_link_btn {
+    width: 44px;
+    height: 44px;
+    font-size: 1.1rem;
+  }
+
+  .footer_bottom {
+    padding: 1.25rem 1.5rem;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .main_footer {
+    background: #1f2937;
+    border-top-color: #374151;
+    color: #f3f4f6;
+  }
+
+  .footer_social_link_btn {
+    background: #374151;
+  }
+
+  .footer_social_link_btn:hover {
+    background: #7c3aed;
+  }
+
+  .footer_bottom {
+    background: #111827;
+    border-top-color: #374151;
+  }
+
+  .footer_copyright {
+    color: #d1d5db;
+  }
+
+  .footer_disclaimer {
+    color: #9ca3af;
+  }
+}
