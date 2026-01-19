@@ -2,16 +2,8 @@
 {
   "crons": [
     {
-      "path": "/api/cron/verify-vouchers",
-      "schedule": "0 0 * * *"
-    },
-    {
-      "path": "/api/cron/update-popularity",
+      "path": "/api/cron/daily",
       "schedule": "0 1 * * *"
     },
-    {
-      "path": "/api/cron/cleanup-analytics",
-      "schedule": "0 2 * * *"
-    }
   ]
 }
