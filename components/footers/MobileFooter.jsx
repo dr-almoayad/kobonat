@@ -442,13 +442,13 @@ const MobileFooter = () => {
           </button>
 
           {/* Account */}
-          <button 
+          <Link 
             className={`footer-item ${isActive('/coupons') || pathname === `/${locale}/coupons` ? 'active' : ''}`}
             href={`/${locale}/coupons`}
           >
             <span className="material-symbols-sharp">local_activity</span>
             <span className="footer-label">{t('coupons', { defaultValue: 'Coupons' })}</span>
-          </button>
+          </Link>
         </div>
       </nav>
     </>
