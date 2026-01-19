@@ -443,11 +443,11 @@ const MobileFooter = () => {
 
           {/* Account */}
           <button 
-            className={`footer-item ${showAccountMenu ? 'active' : ''}`}
-            onClick={() => setShowAccountMenu(!showAccountMenu)}
+            className={`footer-item ${isActive('/coupons') || pathname === `/${locale}/coupons` ? 'active' : ''}`}
+            href={`/${locale}/coupons`}
           >
-            <span className="material-symbols-sharp">person</span>
-            <span className="footer-label">{t('account', { defaultValue: 'Account' })}</span>
+            <span className="material-symbols-sharp">local_activity</span>
+            <span className="footer-label">{t('coupons', { defaultValue: 'Coupons' })}</span>
           </button>
         </div>
       </nav>
