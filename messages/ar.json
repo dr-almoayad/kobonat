@@ -82,7 +82,7 @@
   },
   "HomePage": {
     "topDealsTitle": "أفضل العروض",
-    "topDealsSubtitle": "أكواد موثقة توفر عليك في كل مكان!",
+    "topDealsSubtitle": "أكواد <span>خصم</span> <span>كل مكان</span>موثقة توفر عليك في!",
     "viewAll": "عرض الكل",
     "featuredStoresTitle": "المتاجر المميزة",
     "browseStores": "تصفح المتاجر",
