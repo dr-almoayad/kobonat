@@ -434,37 +434,6 @@
   }
 }
 
-/* ========================================
-   DARK MODE
-   ======================================== */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --search-text: #ffffff;
-    --search-text-secondary: #aaa;
-    --search-text-tertiary: #888;
-    --search-border: #404040;
-    --search-bg: #1a1a1a;
-    --search-bg-secondary: #2a2a2a;
-    --search-bg-hover: #333;
-  }
-
-  .search-input-container {
-    background: var(--search-bg-secondary);
-  }
-
-  .search-input-container.focused {
-    background: var(--search-bg);
-  }
-
-  .clear-btn {
-    background: var(--search-border);
-  }
-
-  .clear-btn:hover {
-    background: #555;
-  }
-}
-
 
 
 /* AnimatedSearchInput.css - Mobile Optimized */
