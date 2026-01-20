@@ -144,7 +144,6 @@ header {
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
-  min-width: 130px;
   justify-content: space-between;
   height: 36px;
 }
@@ -300,19 +299,14 @@ header {
 }
 
 /* RTL Support */
-[dir="rtl"] .locale-toggle {
-  flex-direction: row-reverse;
-}
 
 [dir="rtl"] .locale-item,
 [dir="rtl"] .region-item,
-[dir="rtl"] .lang-item {
+[dir="rtl"] .lang-item,
+[dir="rtl"] .dropdown-section-header {
   text-align: right;
 }
 
-[dir="rtl"] .dropdown-section-header {
-  flex-direction: row-reverse;
-}
 
 /* Responsive Design */
 @media (max-width: 1024px) {
