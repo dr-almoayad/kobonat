@@ -95,6 +95,7 @@ export default async function LocaleLayout({ children, params }) {
     <html 
       lang={locale} 
       dir={locale.startsWith('ar') ? 'rtl' : 'ltr'}
+      style={{ colorScheme: 'light' }}
     >
       <head>
         {/* Preconnect to external domains */}
@@ -103,6 +104,9 @@ export default async function LocaleLayout({ children, params }) {
         <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com" />
 
         <meta name="OMG-Verify-V1" content="772676bb-a843-4bca-b05f-3fcf8aca9614"/>
+
+        <meta name="color-scheme" content="light" />
+        <meta name="theme-color" content="#ffffff" />
         
         {/* Material Symbols */}
         <link 
