@@ -389,52 +389,7 @@
   }
 }
 
-/* ===== DARK MODE SUPPORT ===== */
-@media (prefers-color-scheme: dark) {
-  .affiliates_section {
-    background: #0f172a;
-  }
-  
-  .hero-title {
-    color: #f1f5f9;
-  }
-  
-  .hero-title span {
-    color: #8b5cf6;
-  }
-  
-  .brand-card {
-    background: #1e293b;
-    border-color: #334155;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-  }
-  
-  .brand-card .affiliate_logo {
-    filter: grayscale(10%) brightness(1.1);
-  }
-  
-  @media (min-width: 640px) {
-    .brands-wrapper::before {
-      background: linear-gradient(to bottom, #0f172a 0%, transparent 100%);
-    }
-    
-    .brands-wrapper::after {
-      background: linear-gradient(to top, #0f172a 0%, transparent 100%);
-    }
-  }
-  
-  @media (hover: hover) and (pointer: fine) {
-    .brand-card:hover {
-      background: #2d3748;
-      border-color: #8b5cf6;
-      box-shadow: 0 8px 16px rgba(139, 92, 246, 0.15);
-    }
-  }
-  
-  .store-name-fallback {
-    color: #94a3b8;
-  }
-}
+
 
 /* ===== RTL SUPPORT ===== */
 [dir="rtl"] .hero-title {
