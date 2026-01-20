@@ -39,6 +39,7 @@ export const metadata = {
   referrer: 'origin-when-cross-origin',
   creator: 'Coubonat',
   publisher: 'Coubonat',
+  colorScheme: 'light',
   formatDetection: {
     email: false,
     address: false,
