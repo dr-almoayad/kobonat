@@ -41,7 +41,7 @@
 .home-section {
   max-width: 1280px;
   margin: 0 auto 3rem;
-  padding: 0 1.5rem;
+  padding: 1.5rem;
 }
 
 .home-section.alt-bg {
@@ -55,8 +55,16 @@
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  padding-bottom: 1rem;
+  padding-bottom: 0.65rem !important;
   border-bottom: 1px solid var(--border-color);
+}
+
+.header-content {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 0.75rem;
 }
 
 .header-content h2 {
