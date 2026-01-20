@@ -33,12 +33,12 @@ export const metadata = {
   },
   description: 'Find the best coupons, promo codes, and deals from top stores. Save money on every purchase with verified discount codes.',
   applicationName: 'Coupons Platform',
-  authors: [{ name: 'Your Company' }],
+  authors: [{ name: 'Coubonat' }],
   generator: 'Next.js',
   keywords: ['coupons', 'promo codes', 'deals', 'discounts', 'savings'],
   referrer: 'origin-when-cross-origin',
-  creator: 'Your Company',
-  publisher: 'Your Company',
+  creator: 'Coubonat',
+  publisher: 'Coubonat',
   formatDetection: {
     email: false,
     address: false,
@@ -68,8 +68,8 @@ export const metadata = {
   
   // Icons
   icons: {
-    icon: '/favicon.ico',
-    shortcut: '/favicon-16x16.png',
+    icon: '/coubonat-favicon.webp',
+    shortcut: '/coubonat-favicon.png',
     apple: '/apple-touch-icon.png',
   },
   
@@ -100,6 +100,8 @@ export default async function LocaleLayout({ children, params }) {
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com" />
+
+        <meta name="OMG-Verify-V1" content="772676bb-a843-4bca-b05f-3fcf8aca9614"/>
         
         {/* Material Symbols */}
         <link 
