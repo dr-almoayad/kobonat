@@ -55,7 +55,7 @@
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  padding-bottom: 0.65rem !important;
+  padding-bottom: 0.5rem;
   border-bottom: 1px solid var(--border-color);
 }
 
@@ -118,12 +118,14 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
   gap: 0.75rem;
+  padding: 1rem 0;
 }
 
 .stores-grid-home {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
   gap: 1rem;
+  padding: 1rem 0;
 }
 
 /* Mini Store Card (for Homepage) */
