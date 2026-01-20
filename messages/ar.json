@@ -82,11 +82,11 @@
   },
   "HomePage": {
     "topDealsTitle": "أفضل العروض",
-    "topDealsSubtitle": "أكواد <span>خصم</span> <span>!كل مكان</span>موثقة توفر عليك في",
+    "topDealsSubtitle": "أكواد مجربة وفعالة!",
     "viewAll": "عرض الكل",
     "featuredStoresTitle": "المتاجر المميزة",
     "browseStores": "تصفح المتاجر",
-    "heroTitle": "أكواد موثقة توفر عليك في كل مكان!",
+    "heroTitle": "أكواد <span>خصم</span> <span>!كل مكان</span>موثقة توفر عليك في",
     "loading": "جاري التحميل..."
   },
   "affiliatesHero": {
