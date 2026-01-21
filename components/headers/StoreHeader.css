@@ -78,6 +78,10 @@
   font-size: 1.25rem;
 }
 
+.scrolled .store-logo-img {
+    max-height: 48px;
+}
+
 .store-header-inner .store-name {
   font-size: 1.4rem ;
   font-weight: 600;
