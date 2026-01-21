@@ -105,6 +105,8 @@ export default async function LocaleLayout({ children, params }) {
 
         <meta name="OMG-Verify-V1" content="772676bb-a843-4bca-b05f-3fcf8aca9614"/>
 
+        <meta name="verify-admitad" content="63b713a39e" />
+
         <meta name="color-scheme" content="light" />
         <meta name="theme-color" content="#ffffff" />
         
