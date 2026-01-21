@@ -178,7 +178,7 @@ header {
 .locale-dropdown {
   position: absolute;
   top: calc(100% + 6px);
-  right: 0;
+  right: 0.5rem;
   width: 260px;
   background: white;
   border-radius: var(--dropdown-radius);
@@ -191,7 +191,7 @@ header {
 
 [dir="rtl"] .locale-dropdown {
   right: auto;
-  left: 0;
+  left: 0.5rem;
 }
 
 @keyframes slideDownFade {
@@ -221,7 +221,7 @@ header {
   gap: 0.75rem;
   padding: 0 1rem 0.75rem;
   border-bottom: 1px solid var(--border-color);
-  margin: 0 1rem;
+  margin: 0;
 }
 
 .dropdown-section-header h3 {
