@@ -395,6 +395,7 @@
   .store-logo-placeholder {
     width: 88px !important;
     height: auto !important;
+    max-height: 42px
   }
 
   .scrolled .store-logo-img,
