@@ -1,4 +1,4 @@
-// components/headers/subBar.jsx - UPDATED FOR COUNTRY-SENSITIVE CATEGORIES
+// components/headers/subBar.jsx - UPDATED WITH SEO URLS LIKE CategoryFilterTabs
 'use client';
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
@@ -56,69 +56,37 @@ const SubBar = () => {
           let categoriesData = [];
           
           if (Array.isArray(data)) {
-            // Direct array response
             categoriesData = data;
           } else if (data.categories && Array.isArray(data.categories)) {
-            // Nested categories object
             categoriesData = data.categories;
           } else if (data.data && Array.isArray(data.data)) {
-            // Nested data object
             categoriesData = data.data;
           }
           
-          // Filter categories with stores
-          const categoriesWithStores = categoriesData.filter(cat => {
-            // Check for different store count property names
-            const storeCount = cat._count?.stores || cat.storeCount || cat.store_count || 0;
-            return storeCount > 0;
-          });
-          
-          console.log(`✅ Found ${categoriesWithStores.length} categories with stores`);
-          
-          // Transform to consistent format
-          const transformedCategories = categoriesWithStores.map(cat => ({
-            id: cat.id,
-            name: cat.name || '',
-            slug: cat.slug || '',
-            icon: cat.icon || 'category',
-            color: cat.color || '#470ae2',
-            storeCount: cat._count?.stores || cat.storeCount || cat.store_count || 0,
-            _count: {
-              stores: cat._count?.stores || cat.storeCount || cat.store_count || 0
-            }
-          }));
-          
-          setCategories(transformedCategories);
-        } else {
-          console.error('❌ Failed to fetch categories:', response.status);
-          // Fallback: try without country parameter
-          const fallbackResponse = await fetch(`/api/categories?locale=${language}`, { 
-            cache: 'force-cache' 
-          });
-          if (fallbackResponse.ok) {
-            const fallbackData = await fallbackResponse.json();
-            const fallbackCategories = Array.isArray(fallbackData) ? fallbackData : [];
-            const filtered = fallbackCategories.filter(cat => 
-              cat._count?.stores > 0
-            );
-            
-            const transformedFallback = filtered.map(cat => ({
+          // Filter categories with stores and transform to consistent format
+          const categoriesWithStores = categoriesData
+            .filter(cat => {
+              const storeCount = cat._count?.stores || cat.storeCount || cat.store_count || 0;
+              return storeCount > 0;
+            })
+            .map(cat => ({
               id: cat.id,
               name: cat.name || '',
               slug: cat.slug || '',
               icon: cat.icon || 'category',
               color: cat.color || '#470ae2',
-              storeCount: cat._count?.stores || 0,
-              _count: {
-                stores: cat._count?.stores || 0
-              }
+              storeCount: cat._count?.stores || cat.storeCount || cat.store_count || 0
             }));
-            
-            setCategories(transformedFallback);
-          }
+          
+          console.log(`✅ Found ${categoriesWithStores.length} categories with stores`);
+          setCategories(categoriesWithStores);
+        } else {
+          console.error('❌ Failed to fetch categories:', response.status);
+          setCategories([]);
         }
       } catch (error) {
         console.error('❌ Failed to fetch categories:', error);
+        setCategories([]);
       } finally {
         setLoading(false);
       }
@@ -175,6 +143,11 @@ const SubBar = () => {
     };
   }, [categories, visibleCount]);
 
+  // Calculate total stores count
+  const totalStoresCount = useMemo(() => {
+    return categories.reduce((sum, cat) => sum + (cat.storeCount || 0), 0);
+  }, [categories]);
+
   // Show loading skeleton
   if (loading) {
     return (
@@ -216,20 +189,19 @@ const SubBar = () => {
     <nav className='subBar' aria-label="Category Navigation">
       <div className='subBarContainer' ref={containerRef}>
         <div className='categoriesSection'>
-          {/* All Stores Link */}
+          {/* All Stores Link - SEO Friendly URL */}
           <Link 
             href={`/${locale}/stores`} 
             className='categoryLink allStores'
             title={language === 'ar' ? 'جميع المتاجر' : 'All Stores'}
+            aria-label={language === 'ar' ? 'جميع المتاجر' : 'All Stores'}
           >
             <span className="material-symbols-sharp">storefront</span>
             <span className="linkText">{t('stores')}</span>
-            {/*<span className="store-count">
-              {categories.reduce((sum, cat) => sum + (cat.storeCount || 0), 0)}
-            </span>*/}
+            <span className="tab_count">{totalStoresCount}</span>
           </Link>
 
-          {/* Visible Categories - Country Specific */}
+          {/* Visible Categories - SEO Friendly URLs */}
           {visibleCategories.map(category => (
             <Link
               key={category.id}
@@ -237,6 +209,7 @@ const SubBar = () => {
               className='categoryLink'
               onClick={() => setShowMoreDropdown(false)}
               title={category.name}
+              aria-label={category.name}
               style={{
                 '--category-color': category.color,
                 '--accent-color': category.color
@@ -283,6 +256,8 @@ const SubBar = () => {
                       className="more-dropdown-item"
                       onClick={() => setShowMoreDropdown(false)}
                       role="menuitem"
+                      title={category.name}
+                      aria-label={category.name}
                       style={{
                         '--category-color': category.color
                       }}
