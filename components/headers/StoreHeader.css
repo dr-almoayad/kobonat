@@ -395,13 +395,14 @@
   .store-logo-placeholder {
     width: 88px !important;
     height: auto !important;
-    max-height: 42px
+      max-height: 54px;
   }
 
   .scrolled .store-logo-img,
   .scrolled .store-logo-placeholder {
     width: 78px !important;
     height: auto !important;
+    max-height: 42px;
   }
 
   .store-header-inner .store-name {
