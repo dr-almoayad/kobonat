@@ -493,62 +493,6 @@ header {
   }
 }
 
-/* Dark mode support */
-@media (prefers-color-scheme: dark) {
-  .main_header {
-    background: rgba(31, 41, 55, 0.85);
-    border-bottom-color: #374151;
-  }
-
-  .locale-toggle {
-    background: #374151;
-    border-color: #4b5563;
-    color: #f3f4f6;
-  }
-
-  .locale-toggle:hover {
-    background: #4b5563;
-    border-color: var(--accent-color);
-  }
-
-  .locale-dropdown {
-    background: #1f2937;
-    border-color: #374151;
-  }
-
-  .dropdown-section-header {
-    border-bottom-color: #4b5563;
-    color: #f3f4f6;
-  }
-
-  .dropdown-section-header h3 {
-    color: #f3f4f6;
-  }
-
-  .dropdown-section-header .material-symbols-sharp {
-    color: #60a5fa;
-  }
-
-  .region-item,
-  .lang-item {
-    color: #d1d5db;
-  }
-
-  .region-item:hover,
-  .lang-item:hover {
-    background: #374151;
-  }
-
-  .region-item.active,
-  .lang-item.active {
-    background: rgba(0, 98, 255, 0.2);
-    color: #60a5fa;
-  }
-
-  .region-currency {
-    color: #9ca3af;
-  }
-}
 
 
 
