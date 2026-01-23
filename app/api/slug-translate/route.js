@@ -10,32 +10,15 @@ export async function GET(req) {
     const fromLocale = searchParams.get('from');
     const toLocale = searchParams.get('to');
     
-    console.log('🔄 Translation request:', { type, slug, fromLocale, toLocale });
-    
-    // Validate parameters
     if (!type || !slug || !fromLocale || !toLocale) {
       return NextResponse.json(
-        { 
-          success: false,
-          error: 'Missing required parameters',
-          received: { type, slug, fromLocale, toLocale }
-        },
+        { error: 'Missing required parameters' },
         { status: 400 }
       );
     }
     
-    // If same locale, return same slug
-    if (fromLocale === toLocale) {
-      return NextResponse.json({
-        success: true,
-        slug: slug,
-        message: 'Same locale, no translation needed'
-      });
-    }
-    
-    // Decode the slug (important for Arabic slugs)
+    // Decode the slug
     const decodedSlug = decodeURIComponent(slug);
-    console.log('📝 Decoded slug:', decodedSlug);
     
     if (type === 'store') {
       // Find store by current locale slug
@@ -56,14 +39,8 @@ export async function GET(req) {
       });
       
       if (!storeTranslation) {
-        console.warn('⚠️ Store not found for slug:', decodedSlug);
         return NextResponse.json(
-          { 
-            success: false,
-            error: 'Store not found',
-            slug: decodedSlug,
-            locale: fromLocale
-          },
+          { error: 'Store not found' },
           { status: 404 }
         );
       }
@@ -71,32 +48,17 @@ export async function GET(req) {
       const newTranslation = storeTranslation.store.translations[0];
       
       if (!newTranslation) {
-        console.warn('⚠️ Translation not found for locale:', toLocale);
         return NextResponse.json(
-          { 
-            success: false,
-            error: 'Translation not found',
-            storeId: storeTranslation.store.id,
-            targetLocale: toLocale
-          },
+          { error: 'Translation not found' },
           { status: 404 }
         );
       }
       
-      console.log('✅ Store translation found:', {
-        fromSlug: decodedSlug,
-        toSlug: newTranslation.slug,
-        name: newTranslation.name
-      });
-      
       return NextResponse.json({
         success: true,
-        type: 'store',
         slug: newTranslation.slug,
         name: newTranslation.name,
-        id: storeTranslation.store.id,
-        fromLocale,
-        toLocale
+        id: storeTranslation.store.id
       });
       
     } else if (type === 'category') {
@@ -118,14 +80,8 @@ export async function GET(req) {
       });
       
       if (!categoryTranslation) {
-        console.warn('⚠️ Category not found for slug:', decodedSlug);
         return NextResponse.json(
-          { 
-            success: false,
-            error: 'Category not found',
-            slug: decodedSlug,
-            locale: fromLocale
-          },
+          { error: 'Category not found' },
           { status: 404 }
         );
       }
@@ -133,59 +89,30 @@ export async function GET(req) {
       const newTranslation = categoryTranslation.category.translations[0];
       
       if (!newTranslation) {
-        console.warn('⚠️ Translation not found for locale:', toLocale);
         return NextResponse.json(
-          { 
-            success: false,
-            error: 'Translation not found',
-            categoryId: categoryTranslation.category.id,
-            targetLocale: toLocale
-          },
+          { error: 'Translation not found' },
           { status: 404 }
         );
       }
       
-      console.log('✅ Category translation found:', {
-        fromSlug: decodedSlug,
-        toSlug: newTranslation.slug,
-        name: newTranslation.name
-      });
-      
       return NextResponse.json({
         success: true,
-        type: 'category',
         slug: newTranslation.slug,
         name: newTranslation.name,
-        id: categoryTranslation.category.id,
-        fromLocale,
-        toLocale
+        id: categoryTranslation.category.id
       });
     }
     
     return NextResponse.json(
-      { 
-        success: false,
-        error: 'Invalid type. Must be "store" or "category"',
-        received: type
-      },
+      { error: 'Invalid type' },
       { status: 400 }
     );
     
   } catch (error) {
-    console.error('❌ Translate slug error:', error);
-    console.error('Error stack:', error.stack);
-    
+    console.error('Translate slug error:', error);
     return NextResponse.json(
-      { 
-        success: false,
-        error: 'Failed to translate slug',
-        message: error.message,
-        details: process.env.NODE_ENV === 'development' ? error.stack : undefined
-      },
+      { error: 'Failed to translate slug' },
       { status: 500 }
     );
   }
 }
-
-// Optional: Add caching for better performance
-export const revalidate = 3600; // Cache for 1 hour (slugs rarely change)
