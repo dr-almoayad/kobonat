@@ -1,4 +1,4 @@
-// components/headers/Header.jsx - DYNAMIC COUNTRIES FROM DATABASE
+// components/headers/Header.jsx - WITH SLUG TRANSLATION SUPPORT
 'use client'
 import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useSession, signOut } from "next-auth/react";
@@ -28,6 +28,7 @@ const Header = () => {
   const [showLocaleMenu, setShowLocaleMenu] = useState(false);
   const [countries, setCountries] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [translating, setTranslating] = useState(false);
   const localeMenuRef = useRef(null);
 
   // Get language display code
@@ -47,7 +48,6 @@ const Header = () => {
           headers: {
             'Content-Type': 'application/json',
           },
-          // Remove cache to debug
         });
         
         console.log('📡 Response status:', response.status, response.statusText);
@@ -116,16 +116,81 @@ const Header = () => {
     return allLanguages.find(l => l.code === currentLanguage);
   }, [allLanguages, currentLanguage]);
 
-  // Handle locale change
-  const handleLocaleChange = useCallback((newLocale) => {
+  // Handle locale change with slug translation support
+  const handleLocaleChange = useCallback(async (newLocale) => {
     if (currentLocale === newLocale) return;
     
+    setTranslating(true);
+    
     const pathWithoutLocale = pathname.replace(`/${currentLocale}`, '') || '/';
+    const [newLanguage] = newLocale.split('-');
+    
+    // Check if we're on a dynamic route (stores/[slug] or categories/[slug])
+    const storeMatch = pathWithoutLocale.match(/^\/stores\/([^\/]+)/);
+    const categoryMatch = pathWithoutLocale.match(/^\/categories\/([^\/]+)/);
+    
+    if (storeMatch || categoryMatch) {
+      const type = storeMatch ? 'store' : 'category';
+      const currentSlug = storeMatch ? storeMatch[1] : categoryMatch[1];
+      
+      console.log(`🔄 Translating ${type} slug from ${currentLanguage} to ${newLanguage}:`, currentSlug);
+      
+      try {
+        // Use dedicated translation endpoint
+        const response = await fetch(
+          `/api/translate-slug?type=${type}&slug=${encodeURIComponent(currentSlug)}&from=${currentLanguage}&to=${newLanguage}`,
+          {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          }
+        );
+        
+        if (response.ok) {
+          const data = await response.json();
+          
+          console.log('✅ Translation response:', data);
+          
+          if (data.success && data.slug) {
+            // Build new path with translated slug
+            const basePath = type === 'store' ? '/stores/' : '/categories/';
+            const newPathname = `/${newLocale}${basePath}${data.slug}`;
+            
+            console.log('✅ Navigating to translated path:', newPathname);
+            
+            router.push(newPathname);
+            setShowLocaleMenu(false);
+            setTranslating(false);
+            return;
+          }
+        }
+        
+        // If translation fails, redirect to homepage in new locale
+        console.warn(`⚠️ Could not translate ${type} slug, redirecting to homepage`);
+        router.push(`/${newLocale}`);
+        setShowLocaleMenu(false);
+        setTranslating(false);
+        return;
+        
+      } catch (error) {
+        console.error('❌ Error translating slug:', error);
+        // Fallback to homepage
+        router.push(`/${newLocale}`);
+        setShowLocaleMenu(false);
+        setTranslating(false);
+        return;
+      }
+    }
+    
+    // For static routes, just change the locale prefix
     const newPathname = `/${newLocale}${pathWithoutLocale}`;
+    console.log('📍 Navigating to static path:', newPathname);
     
     router.push(newPathname);
     setShowLocaleMenu(false);
-  }, [currentLocale, pathname, router]);
+    setTranslating(false);
+  }, [currentLocale, pathname, router, currentLanguage]);
 
   // Handle region/country change
   const handleRegionChange = useCallback((countryCode) => {
@@ -165,16 +230,27 @@ const Header = () => {
                 className='locale-toggle' 
                 onClick={() => setShowLocaleMenu(!showLocaleMenu)}
                 aria-label="Change language and region"
+                disabled={translating}
               >
-                <Image src={currentCountry?.flag} width={70} height={40} className="locale-flag"/>
+                {currentCountry?.flag && (
+                  <Image 
+                    src={currentCountry.flag} 
+                    width={70} 
+                    height={40} 
+                    className="locale-flag"
+                    alt={currentCountry.name}
+                  />
+                )}
                 <span className="locale-name">
                   <span style={{margin: '0 2px', opacity: 0.6, fontSize: '10px'}}>|</span>
-                  <span style={{fontSize: '11px'}}>{languageCode}</span>
+                  <span style={{fontSize: '11px'}}>
+                    {translating ? '...' : languageCode}
+                  </span>
                 </span>
               </button>
               
               {/* Locale Dropdown */}
-              {showLocaleMenu && (
+              {showLocaleMenu && !translating && (
                 <div className="locale-dropdown">
                   {/* Countries Section */}
                   <div className="dropdown-section">
@@ -205,7 +281,15 @@ const Header = () => {
                             className={`region-item ${currentRegion === country.code ? 'active' : ''}`}
                             onClick={() => handleRegionChange(country.code)}
                           >
-                            <Image src={country.flag} width={70} height={40} className="region-flag"/>
+                            {country.flag && (
+                              <Image 
+                                src={country.flag} 
+                                width={70} 
+                                height={40} 
+                                className="region-flag"
+                                alt={country.name}
+                              />
+                            )}
                             <div className="region-info">
                               <span className="region-name" style={{fontSize: '13px'}}>
                                 {country.name}
