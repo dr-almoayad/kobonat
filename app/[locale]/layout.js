@@ -107,6 +107,8 @@ export default async function LocaleLayout({ children, params }) {
 
         <meta name="verify-admitad" content="63b713a39e" />
 
+        <meta name="google-site-verification" content="KtgPw0wi6y5AlyCGNSsMBgmNCtRvkG7tD4rtkw2z3UU" />
+
         <meta name="color-scheme" content="light" />
         <meta name="theme-color" content="#ffffff" />
         
