@@ -7,7 +7,9 @@ if (process.env.NODE_ENV === "development") global.prisma = prisma;
 
 export async function GET(req, { params }) {
   try {
-    const storeSlug = params.slug;
+   const resolvedParams = await params; 
+    const storeSlug = resolvedParams.slug; 
+
     const { searchParams } = new URL(req.url);
     const countryCode = searchParams.get('country') || 'SA';
     const locale = searchParams.get('locale') || 'en';
