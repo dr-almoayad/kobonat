@@ -203,7 +203,8 @@ export async function DELETE(req, { params }) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { id } = params;
+    // FIX: Await params here
+    const { id } = await params; 
     
     // Check if store has vouchers
     const voucherCount = await prisma.voucher.count({
