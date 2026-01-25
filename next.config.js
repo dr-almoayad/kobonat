@@ -1,4 +1,4 @@
-// next.config.js - UPDATED WITH SEO OPTIMIZATIONS
+// next.config.js - FIXED: Let middleware handle locale routing
 import createNextIntlPlugin from 'next-intl/plugin';
 
 const withNextIntl = createNextIntlPlugin();
@@ -20,18 +20,14 @@ const nextConfig = {
         hostname: '**.amazonaws.com',
       },
     ],
-    formats: ['image/avif', 'image/webp'], // Modern formats for better performance
+    formats: ['image/avif', 'image/webp'],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
   },
   
-  // Compression
   compress: true,
-  
-  // Generate ETags for better caching
   generateEtags: true,
   
-  // Power headers for SEO
   async headers() {
     return [
       {
@@ -58,25 +54,10 @@ const nextConfig = {
     ];
   },
   
-  // Redirects
+  // ✅ CRITICAL FIX: Removed root redirect - middleware handles locale routing
   async redirects() {
     return [
-      {
-        source: '/',
-        destination: '/ar-SA',
-        permanent: true,
-      },
-      {
-        source: '/ar',
-        destination: '/ar-SA',
-        permanent: true,
-      },
-      {
-        source: '/en',
-        destination: '/en-SA',
-        permanent: true,
-      },
-      // Redirect old store URLs if you had a different structure
+      // Only redirect old URL patterns
       {
         source: '/store/:slug',
         destination: '/ar-SA/stores/:slug',
@@ -85,7 +66,6 @@ const nextConfig = {
     ];
   },
   
-  // Rewrites for API
   async rewrites() {
     return [
       {
@@ -95,13 +75,11 @@ const nextConfig = {
     ];
   },
   
-  // Enable experimental features for better performance
   experimental: {
     optimizeCss: true,
     optimizePackageImports: ['@mui/icons-material', 'lucide-react'],
   },
   
-  // Production source maps for debugging (disable in production if needed)
   productionBrowserSourceMaps: false,
 };
 
