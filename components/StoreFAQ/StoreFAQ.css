@@ -2,7 +2,7 @@
 
 .store-faq-section {
   width: 100%;
-  padding: 2rem 0.75rem;
+  padding: 1rem 0;
   background: #fff;
   margin-top: 2rem;
   border-radius: 5px;
@@ -239,3 +239,34 @@
   }
 }
 
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+  .store-faq-section {
+    background: #111827;
+  }
+
+  .store-faq-item {
+    background: #1f2937;
+    border-color: #374151;
+  }
+
+  .store-faq-item:hover {
+    border-color: #4b5563;
+  }
+
+  .store-faq-title {
+    color: #f3f4f6;
+  }
+
+  .store-faq-subtitle {
+    color: #9ca3af;
+  }
+
+  .store-faq-question-text {
+    color: #f3f4f6;
+  }
+
+  .store-faq-answer p {
+    color: #d1d5db;
+  }
+}
