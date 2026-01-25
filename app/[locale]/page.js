@@ -1,4 +1,4 @@
-// app/[locale]/page.js - FIXED LOCALE ISSUE
+// app/[locale]/page.js - WITH HERO CAROUSEL
 import { prisma } from "@/lib/prisma";
 import { getTranslations } from 'next-intl/server';
 import Link from "next/link";
@@ -6,9 +6,8 @@ import "./page.css";
 
 // Components
 import VoucherCard from "@/components/VoucherCard/VoucherCard";
-import ProductFeedback from "@/components/feedback/productFeedback";
 import StoreCard from "@/components/StoreCard/StoreCard";
-import AffiliatesHero from "@/components/affiliates/affiliatesHero";
+import HeroCarousel from "@/components/HeroCarousel/HeroCarousel";
 
 // SEO imports
 import { generateHomeMetadata } from "@/lib/seo/metadata";
@@ -18,9 +17,9 @@ import {
   generateStoreListSchema,
   MultipleSchemas 
 } from "@/lib/seo/structuredData";
+import AffiliatesHero from "@/components/affiliates/affiliatesHero";
 
 export const revalidate = 60;
-
 
 // Generate metadata for SEO
 export async function generateMetadata({ params }) {
@@ -44,35 +43,31 @@ export default async function Home({ params }) {
   const { locale } = await params;
   const t = await getTranslations('HomePage');
 
-  // ✅ FIX: Extract language code from full locale
   const [language, countryCode] = locale.split('-');
-  // language will be 'ar' or 'en' - which matches your Locale enum
 
   // Fetch data with proper joins for translations
-  const [affiliateStores, topVouchers, featuredStores] = await Promise.all([
-    // Affiliate stores for hero - include translations
+  const [featuredStoresWithCovers, topVouchers, featuredStores] = await Promise.all([
+    // Featured stores WITH cover images for carousel
     prisma.store.findMany({
       where: { 
         isActive: true,
-        logo: { not: null },
+        isFeatured: true,
+        coverImage: { not: null }, // Only stores with cover images
       },
       include: {
         translations: {
-          where: { locale: language }, // ✅ Use 'ar' or 'en', not 'ar-SA'
+          where: { locale: language },
           select: {
             name: true,
             slug: true,
           }
         },
-        _count: { 
-          select: { vouchers: true } 
-        }
       },
       orderBy: { isFeatured: 'desc' },
-      take: 30, 
+      take: 10, // Limit carousel slides
     }),
     
-    // Top vouchers - include store with translations
+    // Top vouchers
     prisma.voucher.findMany({
       where: {
         expiryDate: { gte: new Date() },
@@ -80,7 +75,7 @@ export default async function Home({ params }) {
       },
       include: {
         translations: {
-          where: { locale: language }, // ✅ Use language only
+          where: { locale: language },
           select: {
             title: true,
             description: true,
@@ -89,7 +84,7 @@ export default async function Home({ params }) {
         store: {
           include: {
             translations: {
-              where: { locale: language }, // ✅ Use language only
+              where: { locale: language },
               select: { 
                 name: true, 
                 slug: true 
@@ -105,7 +100,7 @@ export default async function Home({ params }) {
       take: 21
     }),
     
-    // Featured stores - include translations
+    // Featured stores
     prisma.store.findMany({
       where: { 
         isActive: true, 
@@ -113,7 +108,7 @@ export default async function Home({ params }) {
       },
       include: {
         translations: {
-          where: { locale: language }, // ✅ Use language only
+          where: { locale: language },
           select: {
             name: true,
             slug: true,
@@ -133,14 +128,13 @@ export default async function Home({ params }) {
     })
   ]);
 
-  // Transform data to flatten translations
+  // Transform data
   const transformStoreWithTranslation = (store) => {
     const translation = store.translations?.[0] || {};
     return {
       ...store,
       name: translation.name || store.slug || '',
       slug: translation.slug || '',
-      // Remove translations from final object to keep it clean
       translations: undefined
     };
   };
@@ -163,7 +157,7 @@ export default async function Home({ params }) {
     };
   };
 
-  const transformedAffiliateStores = affiliateStores.map(transformStoreWithTranslation);
+  const transformedCarouselStores = featuredStoresWithCovers.map(transformStoreWithTranslation);
   const transformedFeaturedStores = featuredStores.map(transformStoreWithTranslation);
   const transformedTopVouchers = topVouchers.map(transformVoucherWithTranslation);
 
@@ -180,11 +174,26 @@ export default async function Home({ params }) {
       <MultipleSchemas schemas={schemas} />
       
       <main className="homepage-wrapper">
-        {/* Hero Section */}
-        <div className="hero-section">
-          <AffiliatesHero stores={transformedAffiliateStores} />
-        </div>
+        
+        {/* Hero Carousel Section */}
+        {transformedCarouselStores.length > 0 && (
+          <div className="hero-section">
+            <HeroCarousel 
+              images={transformedCarouselStores.map(store => ({
+                id: store.id,
+                image: store.coverImage,
+                name: store.name,
+                logo: store.logo,
+              }))}
+              locale={locale}
+              height="400px"
+              autoplayDelay={4000}
+            />
+          </div>
+        )}
 
+        <AffiliatesHero/>
+        
         {/* Top Vouchers Section */}
         <section className="home-section">
           <div className="section-header">
@@ -206,7 +215,7 @@ export default async function Home({ params }) {
             ))}
           </div>
           <Link href={`/${locale}/stores`} className="btn-view-all">
-            {t('viewAll', { defaultMessage: 'View All' })}
+            {t('viewAll', { defaultValue: 'View All' })}
             <span className="material-symbols-sharp">arrow_forward</span>
           </Link>
         </section>
@@ -217,10 +226,9 @@ export default async function Home({ params }) {
             <div className="header-content">
               <h2>
                 <span className="material-symbols-sharp">storefront</span>
-                {t('featuredStoresTitle', { defaultMessage: 'Featured Stores' })}
+                {t('featuredStoresTitle', { defaultValue: 'Featured Stores' })}
               </h2>
             </div>
-            
           </div>
 
           <div className="stores-grid-home">
@@ -233,12 +241,10 @@ export default async function Home({ params }) {
           </div>
 
           <Link href={`/${locale}/stores`} className="btn-view-all">
-            {t('browseStores', { defaultMessage: 'Browse Stores' })}
+            {t('browseStores', { defaultValue: 'Browse Stores' })}
             <span className="material-symbols-sharp">arrow_forward</span>
           </Link>
         </section>
-
-        {/*<ProductFeedback />*/}
       </main>
     </>
   );
