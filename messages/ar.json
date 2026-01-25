@@ -82,11 +82,11 @@
   },
   "HomePage": {
     "topDealsTitle": "أفضل العروض",
-    "topDealsSubtitle": "أكواد مجربة وفعالة!",
+    "topDealsSubtitle": "أكواد موثقة توفر عليك في كل مكان!",
     "viewAll": "عرض الكل",
     "featuredStoresTitle": "المتاجر المميزة",
     "browseStores": "تصفح المتاجر",
-    "heroTitle": "أكواد خصم موثقة توفر عليك في كل مكان!",
+    "heroTitle": "اكتشف أفضل الكوبونات والعروض من متاجرك المفضلة",
     "loading": "جاري التحميل..."
   },
   "affiliatesHero": {
@@ -878,5 +878,29 @@
       "expires": "ينتهي في",
       "minimum": "الحد الأدنى"
     }
+  },
+  "StoreProductCard": {
+    "shopNow": "تسوق الآن",
+    "addedToCart": "تمت الإضافة للسلة",
+    "redirecting": "جاري التوجيه..."
+  },
+  "OtherPromos": {
+    "title": "عروض أكثر لأقصى توفير!",
+    "types": {
+      "BANK_OFFER": "عروض بنكية",
+      "CARD_OFFER": "عروض بطاقات",
+      "PAYMENT_OFFER": "عروض دفع",
+      "SEASONAL": "عروض موسمية",
+      "BUNDLE": "عروض مجموعة",
+      "OTHER": "عروض أخرى"
+    },
+    "validUntil": "صالح حتى {date}",
+    "learnMore": "اعرف المزيد",
+    "termsAndConditions": "الشروط والأحكام",
+    "goToStore":"الذهاب للمتجر"
+  },
+  "FeaturedProducts": {
+    "title": "منتجات مميزة",
+    "subtitle": "تصفح أفضل المنتجات المختارة لك"
   }
 }
