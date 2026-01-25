@@ -1,4 +1,4 @@
-// app/[locale]/stores/[slug]/page.jsx - FIXED UNIFIED ROUTE
+// app/[locale]/stores/[slug]/page.jsx - UNIFIED ROUTE WITH HERO CAROUSEL
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import { getTranslations } from 'next-intl/server';
@@ -8,11 +8,14 @@ import StoreHeader from "@/components/headers/StoreHeader";
 import VouchersGrid from "@/components/VouchersGrid/VouchersGrid";
 import StoreFAQ from "@/components/StoreFAQ/StoreFAQ";
 import StoreCard from "@/components/StoreCard/StoreCard";
+import HeroCarousel from "@/components/HeroCarousel/HeroCarousel";
 import { FAQSchema } from "@/lib/seo/faqSchema";
 import { getCategoryData, getCategorySEO, getCountryCategories } from "@/lib/storeCategories";
 import { getStoresData, getStoreData } from "@/lib/stores";
 import "./store-page.css";
 import "./stores-page.css";
+import FeaturedProductsCarousel from "@/components/FeaturedProductsCarousel/FeaturedProductsCarousel";
+import OtherPromosSection from "@/components/OtherPromosSection/OtherPromosSection";
 
 export const revalidate = 300;
 
@@ -24,19 +27,15 @@ export async function generateMetadata({ params }) {
     const { slug, locale } = await params;
     const [language, countryCode] = locale.split('-');
 
-    console.log('🔍 Metadata generation:', { slug, locale, language, countryCode });
-
     // Try as category first
     const category = await getCategoryData(slug, language, countryCode);
     if (category) {
-      console.log('✅ Found as category:', category.translations[0]?.name);
       return getCategorySEO(category, locale, countryCode);
     }
 
     // Try as store
     const store = await getStoreData(slug, language, countryCode);
     if (store) {
-      console.log('✅ Found as store:', store.translations[0]?.name);
       const storeName = store.translations[0]?.name || store.slug;
       const isArabic = locale.startsWith('ar');
       
@@ -51,10 +50,9 @@ export async function generateMetadata({ params }) {
       };
     }
 
-    console.log('❌ Not found as category or store');
     return { title: "Not Found" };
   } catch (error) {
-    console.error('❌ Metadata generation error:', error);
+    console.error('Metadata generation error:', error);
     return { title: "Error" };
   }
 }
@@ -67,8 +65,6 @@ export default async function UnifiedStorePage({ params }) {
     const { slug, locale } = await params;
     const [language, countryCode] = locale.split('-');
     
-    console.log('📄 Page render:', { slug, locale, language, countryCode });
-    
     const t = await getTranslations('StoresPage');
     const tStore = await getTranslations('StorePage');
 
@@ -78,14 +74,24 @@ export default async function UnifiedStorePage({ params }) {
     const categoryData = await getCategoryData(slug, language, countryCode);
 
     if (categoryData) {
-      console.log('✅ Rendering as CATEGORY page');
-      
       // Fetch stores in this category
       const stores = await getStoresData({ 
         language, 
         countryCode, 
         categoryId: categoryData.id 
       });
+
+      // Get featured stores with covers for carousel
+      const featuredStoresWithCovers = stores.filter(s => 
+        s.isFeatured && s.coverImage
+      ).slice(0, 6);
+
+      const carouselStores = featuredStoresWithCovers.map(store => ({
+        id: store.id,
+        image: store.coverImage,
+        name: store.name,
+        logo: store.logo,
+      }));
 
       const featuredStores = stores.filter(s => s.isFeatured);
       const regularStores = stores.filter(s => !s.isFeatured);
@@ -98,6 +104,18 @@ export default async function UnifiedStorePage({ params }) {
 
       return (
         <div className="stores_page">
+          {/* Hero Carousel for Category - Featured stores in this category */}
+          {carouselStores.length > 0 && (
+            <div className="category-hero-section">
+              <HeroCarousel 
+                images={carouselStores}
+                locale={locale}
+                height="320px"
+                autoplayDelay={3500}
+              />
+            </div>
+          )}
+
           {/* Category Header */}
           <div className="stores_page_header">
             <div className="stores_page_header_container">
@@ -128,12 +146,12 @@ export default async function UnifiedStorePage({ params }) {
                 </div>
               </div>
 
-              {/* Category Filter Tabs */}
+              {/* Category Filter Tabs 
               <CategoryFilterTabs 
                 categories={allCategories}
                 currentCategory={slug}
                 locale={locale}
-              />
+              />*/}
             </div>
           </div>
 
@@ -179,8 +197,6 @@ export default async function UnifiedStorePage({ params }) {
     const store = await getStoreData(slug, language, countryCode);
 
     if (store) {
-      console.log('✅ Rendering as STORE page');
-      
       // Get country
       const country = await prisma.country.findUnique({
         where: { code: countryCode, isActive: true },
@@ -192,7 +208,6 @@ export default async function UnifiedStorePage({ params }) {
       });
 
       if (!country) {
-        console.log('❌ Country not found');
         return notFound();
       }
 
@@ -203,6 +218,7 @@ export default async function UnifiedStorePage({ params }) {
         name: storeTranslation?.name || slug,
         slug: storeTranslation?.slug || slug,
         description: storeTranslation?.description || null,
+        coverImage: store.coverImage, // Include cover image
         categories: store.categories.map(sc => ({
           id: sc.category.id,
           name: sc.category.translations[0]?.name || '',
@@ -271,8 +287,6 @@ export default async function UnifiedStorePage({ params }) {
 
       const bnplMethods = allPaymentMethods.filter(pm => pm.isBnpl);
       const otherPaymentMethods = allPaymentMethods.filter(pm => !pm.isBnpl);
-
-      // Get most tracked voucher
       const mostTrackedVoucher = transformedVouchers[0] || null;
 
       // Fetch FAQs
@@ -320,6 +334,32 @@ export default async function UnifiedStorePage({ params }) {
         slug: s.translations[0]?.slug || ''
       }));
 
+      // 2. FETCH FEATURED PRODUCTS [cite: 22, 24, 25]
+      // We fetch products associated with this store that are marked isFeatured
+      const storeProducts = await prisma.storeProduct.findMany({
+        where: {
+          storeId: store.id,
+          isFeatured: true
+        },
+        include: {
+          translations: {
+            where: { locale: language }
+          }
+        },
+        orderBy: { order: 'asc' },
+        take: 12 // Limit to keep page light
+      });
+
+      // Transform products for the carousel [cite: 23, 25]
+      const transformedProducts = storeProducts.map(p => ({
+        id: p.id,
+        image: p.image,
+        title: p.translations[0]?.title || '', // Fallback for title
+        price: p.price,
+        originalPrice: p.originalPrice,
+        productUrl: p.productUrl
+      }));
+
       // Separate vouchers by type
       const codeVouchers = transformedVouchers.filter(v => v.type === 'CODE');
       const dealVouchers = transformedVouchers.filter(v => v.type === 'DEAL');
@@ -331,6 +371,25 @@ export default async function UnifiedStorePage({ params }) {
         <>
           <FAQSchema faqs={faqs} locale={locale} />
           <div className="store-page-layout">
+            {/* Hero Carousel - Single store cover */}
+            {transformedStore.coverImage && (
+              <div className="store-hero-section">
+                <HeroCarousel 
+                  images={[{
+                    id: transformedStore.id,
+                    image: transformedStore.coverImage,
+                    name: transformedStore.name,
+                    logo: transformedStore.logo,
+                  }]}
+                  locale={locale}
+                  height="350px"
+                  showDots={false}
+                  showOverlay={false}
+                  showContent={false}
+                />
+              </div>
+            )}
+
             <StoreHeader 
               store={transformedStore}
               mostTrackedVoucher={mostTrackedVoucher}
@@ -372,6 +431,20 @@ export default async function UnifiedStorePage({ params }) {
                       <VouchersGrid vouchers={shippingVouchers} hideStoreBranding={true} />
                     </section>
                   )}
+
+                  {/* 3. INTEGRATE FEATURED PRODUCTS CAROUSEL HERE */}
+                  {/* Placed after vouchers but before FAQs for high visibility */}
+                  {transformedProducts.length > 0 && (
+                    <FeaturedProductsCarousel
+                      storeSlug={transformedStore.slug}
+                      storeName={transformedStore.name}
+                      storeLogo={transformedStore.logo}
+                      products={transformedProducts} // <--- CHANGE THIS from 'initialProducts'
+                    />
+                  )}
+
+                  {/* ADD OTHER PROMOS SECTION HERE */}
+                  <OtherPromosSection storeSlug={transformedStore.slug} />
 
                   {faqs.length > 0 && (
                     <StoreFAQ 
@@ -426,12 +499,10 @@ export default async function UnifiedStorePage({ params }) {
     // ========================================
     // 3. NOT FOUND
     // ========================================
-    console.log('❌ Slug not found as category or store');
     notFound();
     
   } catch (error) {
-    console.error('❌ Page render error:', error);
-    console.error('Error stack:', error.stack);
-    throw error; // Re-throw to show Next.js error page
+    console.error('Page render error:', error);
+    throw error;
   }
 }
