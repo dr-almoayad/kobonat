@@ -176,6 +176,12 @@ export default function CategoriesPage() {
                 defaultValue={editing?.color || '#0070f3'}
                 helpText="Brand color for the category"
               />
+              <FormField 
+                label="Image URL" 
+                name="image" 
+                defaultValue={editing?.image} 
+                placeholder="e.g. /images/fashion-banner.jpg"
+              />
             </FormRow>
           </FormSection>
 
@@ -320,7 +326,32 @@ export default function CategoriesPage() {
                         borderRadius: 10,
                         background: category.color ? `${category.color}15` : '#f0f0f0'
                       }}>
-                        <span className="material-symbols-sharp">{category.icon}</span>
+                        {category.image ? (
+                          <img 
+                            src={category.image} 
+                            alt={category.name}
+                            style={{
+                              width: '100%',
+                              height: '100%',
+                              objectFit: 'cover'
+                            }}
+                            onError={(e) => {
+                              e.target.style.display = 'none';
+                              // Show icon if image fails
+                              const icon = e.target.parentElement.querySelector('.material-symbols-sharp');
+                              if (icon) icon.style.display = 'block';
+                            }}
+                          />
+                        ) : null}
+                        <span 
+                          className="material-symbols-sharp" 
+                          style={{ 
+                            display: category.image ? 'none' : 'block',
+                            fontSize: 24 
+                          }}
+                        >
+                          {category.icon}
+                        </span>
                       </div>
                       <div>
                         <h3 className={styles.cardTitle}>{enTrans.name || 'Unnamed'}</h3>
