@@ -31,8 +31,11 @@ const OtherPromosSection = ({ storeSlug }) => {
       }
     };
 
-    fetchPromos();
-  }, [storeSlug, language, countryCode]);
+    if (!locale || !locale.includes('-')) return;
+
+  const fetchPromos = async () => { /* ... */ };
+  fetchPromos();
+}, [storeSlug, language, countryCode, locale]);
 
   if (loading) {
     return (
