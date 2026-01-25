@@ -419,6 +419,9 @@ export async function getAllCategories(locale = 'en') {
     include: {
       translations: {
         where: { locale }
+      },
+      _count: {
+        select: { stores: true }
       }
     },
     orderBy: { createdAt: 'desc' }
@@ -434,5 +437,21 @@ export async function getAllStores(locale = 'en') {
       }
     },
     orderBy: { createdAt: 'desc' }
+  });
+}
+
+export async function getStoreProducts(storeId, locale = 'en') {
+  return prisma.storeProduct.findMany({
+    where: { storeId: parseInt(storeId) },
+    include: {
+      translations: true, // Fetch all translations for the admin edit form
+      _count: {
+        select: { clicks: true }
+      }
+    },
+    orderBy: [
+      { order: 'asc' },
+      { createdAt: 'desc' }
+    ]
   });
 }
