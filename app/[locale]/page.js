@@ -1,42 +1,70 @@
-// app/[locale]/page.js - WITH HERO CAROUSEL
+// app/[locale]/page.js - FIXED SEO METADATA
 import { prisma } from "@/lib/prisma";
 import { getTranslations } from 'next-intl/server';
 import Link from "next/link";
 import "./page.css";
 
-// Components
 import VoucherCard from "@/components/VoucherCard/VoucherCard";
 import StoreCard from "@/components/StoreCard/StoreCard";
 import HeroCarousel from "@/components/HeroCarousel/HeroCarousel";
+import AffiliatesHero from "@/components/affiliates/affiliatesHero";
 
-// SEO imports
-import { generateHomeMetadata } from "@/lib/seo/metadata";
 import { 
   generateOrganizationSchema,
   generateWebsiteSchema,
   generateStoreListSchema,
   MultipleSchemas 
 } from "@/lib/seo/structuredData";
-import AffiliatesHero from "@/components/affiliates/affiliatesHero";
 
 export const revalidate = 60;
 
-// Generate metadata for SEO
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://coubonat.vercel.app';
+
+// ✅ FIXED: Generate metadata with proper canonical
 export async function generateMetadata({ params }) {
   const { locale } = await params;
-  const countryCode = locale.split('-')[1] || 'SA';
+  const [language, countryCode] = locale.split('-');
+  const isArabic = language === 'ar';
   
-  try {
-    const country = await prisma.country.findUnique({
-      where: { code: countryCode }
-    });
+  return {
+    title: isArabic 
+      ? `كوبونات وعروض ${countryCode} - وفر المال`
+      : `${countryCode} Coupons & Deals - Save Money`,
+    description: isArabic
+      ? `أفضل الكوبونات والعروض في ${countryCode}. وفر المال مع أكواد خصم حصرية ومحدثة يومياً.`
+      : `Best coupons and deals in ${countryCode}. Save money with exclusive promo codes updated daily.`,
     
-    if (!country) return {};
+    // ✅ CRITICAL: Include locale in canonical
+    alternates: {
+      canonical: `${BASE_URL}/${locale}`,
+      languages: {
+        'ar-SA': `${BASE_URL}/ar-SA`,
+        'en-SA': `${BASE_URL}/en-SA`,
+        'ar-AE': `${BASE_URL}/ar-AE`,
+        'en-AE': `${BASE_URL}/en-AE`,
+        'ar-EG': `${BASE_URL}/ar-EG`,
+        'en-EG': `${BASE_URL}/en-EG`,
+        'ar-QA': `${BASE_URL}/ar-QA`,
+        'en-QA': `${BASE_URL}/en-QA`,
+        'ar-KW': `${BASE_URL}/ar-KW`,
+        'en-KW': `${BASE_URL}/en-KW`,
+        'ar-OM': `${BASE_URL}/ar-OM`,
+        'en-OM': `${BASE_URL}/en-OM`,
+        'x-default': `${BASE_URL}/ar-SA`,
+      }
+    },
     
-    return generateHomeMetadata(locale, country);
-  } catch (error) {
-    return {};
-  }
+    openGraph: {
+      url: `${BASE_URL}/${locale}`,
+      locale: locale,
+      type: 'website',
+    },
+    
+    robots: {
+      index: true,
+      follow: true,
+    },
+  };
 }
 
 export default async function Home({ params }) {
@@ -45,14 +73,12 @@ export default async function Home({ params }) {
 
   const [language, countryCode] = locale.split('-');
 
-  // Fetch data with proper joins for translations
   const [featuredStoresWithCovers, topVouchers, featuredStores] = await Promise.all([
-    // Featured stores WITH cover images for carousel
     prisma.store.findMany({
       where: { 
         isActive: true,
         isFeatured: true,
-        coverImage: { not: null }, // Only stores with cover images
+        coverImage: { not: null },
       },
       include: {
         translations: {
@@ -64,10 +90,9 @@ export default async function Home({ params }) {
         },
       },
       orderBy: { isFeatured: 'desc' },
-      take: 10, // Limit carousel slides
+      take: 10,
     }),
     
-    // Top vouchers
     prisma.voucher.findMany({
       where: {
         expiryDate: { gte: new Date() },
@@ -100,7 +125,6 @@ export default async function Home({ params }) {
       take: 21
     }),
     
-    // Featured stores
     prisma.store.findMany({
       where: { 
         isActive: true, 
@@ -128,7 +152,6 @@ export default async function Home({ params }) {
     })
   ]);
 
-  // Transform data
   const transformStoreWithTranslation = (store) => {
     const translation = store.translations?.[0] || {};
     return {
@@ -161,7 +184,6 @@ export default async function Home({ params }) {
   const transformedFeaturedStores = featuredStores.map(transformStoreWithTranslation);
   const transformedTopVouchers = topVouchers.map(transformVoucherWithTranslation);
 
-  // Generate structured data
   const schemas = [
     generateOrganizationSchema(locale),
     generateWebsiteSchema(locale),
@@ -170,12 +192,9 @@ export default async function Home({ params }) {
 
   return (
     <>
-      {/* Structured Data */}
       <MultipleSchemas schemas={schemas} />
       
       <main className="homepage-wrapper">
-        
-        {/* Hero Carousel Section */}
         {transformedCarouselStores.length > 0 && (
           <div className="hero-section">
             <HeroCarousel 
@@ -194,7 +213,6 @@ export default async function Home({ params }) {
 
         <AffiliatesHero/>
         
-        {/* Top Vouchers Section */}
         <section className="home-section">
           <div className="section-header">
             <div className="header-content">
@@ -220,7 +238,6 @@ export default async function Home({ params }) {
           </Link>
         </section>
 
-        {/* Featured Stores Section */}
         <section className="home-section alt-bg">
           <div className="section-header">
             <div className="header-content">
