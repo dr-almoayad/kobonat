@@ -855,5 +855,28 @@
       "expires": "Expires",
       "minimum": "Minimum"
     }
+  },
+   "StoreProductCard": {
+    "shopNow": "Shop Now",
+    "addedToCart": "Added to cart",
+    "redirecting": "Redirecting..."
+  },
+  "OtherPromos": {
+    "title": "More Promotions for Maximum Savings!",
+    "types": {
+      "BANK_OFFER": "Bank Offer",
+      "CARD_OFFER": "Card Offer",
+      "PAYMENT_OFFER": "Payment Offer",
+      "SEASONAL": "Seasonal",
+      "BUNDLE": "Bundle",
+      "OTHER": "Other"
+    },
+    "validUntil": "Valid until {date}",
+    "learnMore": "Learn More",
+    "termsAndConditions": "Terms and Conditions"
+  },
+  "FeaturedProducts": {
+    "title": "Featured Products",
+    "subtitle": "Check out our top picks for you"
   }
 }
