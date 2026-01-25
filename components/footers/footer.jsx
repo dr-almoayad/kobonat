@@ -10,6 +10,9 @@ import { useTranslations, useLocale } from 'next-intl';
 const Footer = () => {
   const t = useTranslations('Footer');
   const locale = useLocale();
+  const supportedLocales = ['en-SA', 'ar-SA']; // Define your list
+  
+  if (!supportedLocales.includes(locale)) return null;;
   const [language] = locale.split('-');
   
   const logoSrc = coubonatLogo;
