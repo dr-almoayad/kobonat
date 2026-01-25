@@ -1,16 +1,14 @@
-// app/[locale]/stores/page.jsx - ALL STORES PAGE
+// app/[locale]/stores/page.jsx - WITH HERO CAROUSEL
 import { getTranslations } from 'next-intl/server';
+import { prisma } from "@/lib/prisma";
 import StoresGrid from "@/components/StoresGrid/StoresGrid";
-import CategoryFilterTabs from "@/components/CategoryFilterTabs/CategoryFilterTabs";
+import HeroCarousel from "@/components/HeroCarousel/HeroCarousel";
 import { getCountryCategories } from "@/lib/storeCategories";
 import { getStoresData } from "@/lib/stores";
 import "./stores-page.css";
 
 export const revalidate = 60;
 
-/**
- * STATIC METADATA for All Stores page
- */
 export async function generateMetadata({ params }) {
   const { locale } = await params;
   const [language, countryCode] = locale.split('-');
@@ -33,6 +31,36 @@ export default async function AllStoresPage({ params }) {
   const { locale } = await params;
   const [language, countryCode] = locale.split('-');
   const t = await getTranslations('StoresPage');
+
+  // Fetch featured stores with cover images for carousel
+  const featuredStoresWithCovers = await prisma.store.findMany({
+    where: { 
+      isActive: true,
+      isFeatured: true,
+      coverImage: { not: null },
+    },
+    include: {
+      translations: {
+        where: { locale: language },
+        select: {
+          name: true,
+          slug: true,
+        }
+      },
+    },
+    take: 8,
+  });
+
+  // Transform carousel stores
+  const carouselStores = featuredStoresWithCovers.map(store => {
+    const translation = store.translations?.[0] || {};
+    return {
+      id: store.id,
+      image: store.coverImage,
+      name: translation.name || store.slug || '',
+      logo: store.logo,
+    };
+  });
 
   // Fetch all stores for this country
   const stores = await getStoresData({ 
@@ -73,6 +101,18 @@ export default async function AllStoresPage({ params }) {
 
   return (
     <div className="stores_page">
+      {/* Hero Carousel */}
+      {carouselStores.length > 0 && (
+        <div className="stores-hero-section">
+          <HeroCarousel 
+            images={carouselStores}
+            locale={locale}
+            height="350px"
+            autoplayDelay={3500}
+          />
+        </div>
+      )}
+
       {/* Header */}
       <div className="stores_page_header">
         <div className="stores_page_header_container">
@@ -98,12 +138,12 @@ export default async function AllStoresPage({ params }) {
             </div>
           </div>
 
-          {/* Category Filter Tabs */}
+          {/* Category Filter Tabs 
           <CategoryFilterTabs 
             categories={categories}
             currentCategory={null}
             locale={locale}
-          />
+          />*/}
         </div>
       </div>
 
