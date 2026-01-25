@@ -1,4 +1,4 @@
-// prisma/schema.prisma
+// prisma/schema.prisma - UPDATED FOR VOUCHERS PLATFORM
 generator client {
   provider = "prisma-client-js"
 }
@@ -14,7 +14,7 @@ enum Locale {
 }
 
 // ============================================================================
-// CORE MODELS (Language-Agnostic)
+// CORE MODELS
 // ============================================================================
 
 model Country {
@@ -25,13 +25,13 @@ model Country {
   isActive  Boolean  @default(true)
   isDefault Boolean  @default(false)
   
-  // Relations
   translations   CountryTranslation[]
   stores         StoreCountry[]
   vouchers       VoucherCountry[]
   faqs           StoreFAQ[]
   storePayments  StorePaymentMethod[]
-  voucherClicks  VoucherClick[]  // ← ADD THIS LINE
+  voucherClicks  VoucherClick[]
+  otherPromos    OtherPromo[]  // ← NEW
   
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -52,18 +52,20 @@ model CountryTranslation {
 }
 
 // ============================================================================
-// STORE
+// STORE - ENHANCED WITH COVER IMAGE
 // ============================================================================
 
 model Store {
   id          Int      @id @default(autoincrement())
   
-  // Core data (language-independent)
-  logo        String?
-  color       String?
-  websiteUrl  String
+  // Images
+  logo              String?
+  backgroundImage   String?   
+  coverImage        String?  // ✅ Already exists - hero banner for store page
+  color             String?  // Brand color for UI theming
   
-  // Affiliate
+  // URLs
+  websiteUrl  String
   affiliateNetwork String?
   trackingUrl      String?
   
@@ -72,12 +74,14 @@ model Store {
   isFeatured  Boolean @default(false)
   
   // Relations
-  translations StoreTranslation[]
-  countries    StoreCountry[]
-  vouchers     Voucher[]
-  categories   StoreCategory[]
-  faqs         StoreFAQ[]
+  translations   StoreTranslation[]
+  countries      StoreCountry[]
+  vouchers       Voucher[]
+  categories     StoreCategory[]
+  faqs           StoreFAQ[]
   paymentMethods StorePaymentMethod[]
+  otherPromos    OtherPromo[]  // Bank offers, card promos
+  products       StoreProduct[] // ← NEW: Featured products
   
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
@@ -91,9 +95,8 @@ model StoreTranslation {
   storeId     Int
   locale      Locale  
   
-  // Content
   name        String
-  slug        String  // "first-cry" or "فرست-كراي"
+  slug        String
   description String? @db.Text
   
   // SEO
@@ -103,19 +106,20 @@ model StoreTranslation {
   store Store @relation(fields: [storeId], references: [id], onDelete: Cascade)
   
   @@unique([storeId, locale])
-  @@unique([locale, slug]) // SEO-critical: one slug per locale
+  @@unique([locale, slug])
   @@index([locale])
   @@index([slug])
 }
 
 // ============================================================================
-// CATEGORY
+// CATEGORY - ENHANCED WITH IMAGE
 // ============================================================================
 
 model Category {
   id    Int     @id @default(autoincrement())
-  icon  String?
-  color String?
+  icon  String? // Material icon name (e.g., "checkroom", "devices")
+  image String? // ✅ Already exists - category banner/thumbnail
+  color String? // Category accent color
   
   translations CategoryTranslation[]
   stores       StoreCategory[]
@@ -133,7 +137,6 @@ model CategoryTranslation {
   slug        String
   description String? @db.Text
   
-  // SEO
   seoTitle       String?
   seoDescription String? @db.Text
   
@@ -146,26 +149,33 @@ model CategoryTranslation {
 }
 
 // ============================================================================
-// VOUCHER
+// VOUCHER - COUPONS & DEALS
 // ============================================================================
 
 model Voucher {
   id       Int         @id @default(autoincrement())
   storeId  Int
   
-  // Core data (language-independent)
-  code     String?
+  // Voucher Details
+  code     String?     // Coupon code (e.g., "SAVE20")
   type     VoucherType
-  discount String?
+  discount String?     // "20%", "50 SAR off", "Buy 1 Get 1"
   
-  landingUrl String?
+  // Image for featured deals
+  image    String?     // Hero image for visual deals
   
+  // Links
+  landingUrl String?   // Direct product/deal URL
+  
+  // Validity
   startDate  DateTime?
   expiryDate DateTime?
   
+  // Badges
   isExclusive Boolean @default(false)
   isVerified  Boolean @default(false)
   
+  // Analytics
   popularityScore Int @default(0)
   
   // Relations
@@ -189,8 +199,8 @@ model VoucherTranslation {
   voucherId Int
   locale    Locale
   
-  title       String
-  description String? @db.Text
+  title       String        // "20% Off Everything"
+  description String? @db.Text // "Valid on all items. Min spend 200 SAR"
   
   voucher Voucher @relation(fields: [voucherId], references: [id], onDelete: Cascade)
   
@@ -199,23 +209,146 @@ model VoucherTranslation {
 }
 
 enum VoucherType {
-  CODE
-  DEAL
-  FREE_SHIPPING
+  CODE           // Requires coupon code
+  DEAL           // Auto-applied deal
+  FREE_SHIPPING  // Free shipping offer
 }
 
 // ============================================================================
-// PAYMENT METHOD
+// STORE PRODUCTS - FEATURED ITEMS
+// ============================================================================
+
+model StoreProduct {
+  id          Int     @id @default(autoincrement())
+  storeId     Int
+  
+  // Product Details
+  image       String  // Product image (required)
+  price       Float   // Current price
+  originalPrice Float? // Original price (for discount calculation)
+  
+  // Links
+  productUrl  String  // Direct link to product on store website
+  
+  // Display
+  isFeatured  Boolean @default(true)  // Show on store page
+  order       Int     @default(0)     // Display order
+  
+  // Analytics
+  clickCount  Int     @default(0)
+  
+  // Relations
+  translations StoreProductTranslation[]
+  store        Store   @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  clicks       StoreProductClick[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([storeId])
+  @@index([isFeatured])
+  @@index([order])
+}
+
+model StoreProductTranslation {
+  id        Int    @id @default(autoincrement())
+  productId Int
+  locale    Locale
+  
+  title       String        // "iPhone 15 Pro Max 256GB"
+  description String? @db.Text // Optional product description
+  
+  product StoreProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  @@unique([productId, locale])
+  @@index([locale])
+}
+
+model StoreProductClick {
+  id          Int      @id @default(autoincrement())
+  productId   Int
+  
+  ipHash      String?
+  userAgent   String?
+  referrer    String?
+  clickedAt   DateTime @default(now())
+  
+  product StoreProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  @@index([productId])
+  @@index([clickedAt])
+}
+
+// ============================================================================
+// OTHER PROMOS - NEW MODEL FOR BANK/CARD OFFERS
+// ============================================================================
+
+model OtherPromo {
+  id        Int     @id @default(autoincrement())
+  storeId   Int
+  countryId Int
+  
+  // Promo Details
+  image     String?    // Banner image
+  type      PromoType
+  
+  // Links
+  url       String?    // External link to T&Cs or signup
+  
+  // Validity
+  startDate  DateTime?
+  expiryDate DateTime?
+  
+  isActive   Boolean @default(true)
+  order      Int     @default(0) // Display order
+  
+  // Relations
+  translations OtherPromoTranslation[]
+  store        Store   @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  country      Country @relation(fields: [countryId], references: [id], onDelete: Cascade)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@index([storeId, countryId])
+  @@index([isActive])
+}
+
+model OtherPromoTranslation {
+  id      Int    @id @default(autoincrement())
+  promoId Int
+  locale  Locale
+  
+  title       String        // "10% Cashback with Visa"
+  description String? @db.Text // "Get 10% cashback when you pay with Visa cards"
+  terms       String? @db.Text // Full terms & conditions
+  
+  promo OtherPromo @relation(fields: [promoId], references: [id], onDelete: Cascade)
+  
+  @@unique([promoId, locale])
+  @@index([locale])
+}
+
+enum PromoType {
+  BANK_OFFER      // "15% off with SABB"
+  CARD_OFFER      // "Extra 10% with Visa"
+  PAYMENT_OFFER   // "5% cashback via STC Pay"
+  SEASONAL        // "Ramadan Special"
+  BUNDLE          // "Buy 2 Get 1 Free"
+  OTHER
+}
+
+// ============================================================================
+// PAYMENT METHODS
 // ============================================================================
 
 model PaymentMethod {
   id          Int      @id @default(autoincrement())
-  slug        String   @unique // "tabby", "tamara", "visa-mastercard"
+  slug        String   @unique
   type        PaymentType
-  isBnpl      Boolean  @default(false) // Buy Now Pay Later flag
+  isBnpl      Boolean  @default(false)
   logo        String?
   
-  // Relations
   translations PaymentMethodTranslation[]
   storeLinks   StorePaymentMethod[]
   
@@ -241,16 +374,12 @@ model PaymentMethodTranslation {
 }
 
 enum PaymentType {
-  CARD           // Credit/Debit cards
-  BNPL           // Buy Now Pay Later (Tabby, Tamara, etc)
-  COD            // Cash on Delivery
-  WALLET         // Digital wallets (Apple Pay, STC Pay)
-  BANK_TRANSFER  // Direct bank transfer
+  CARD
+  BNPL
+  COD
+  WALLET
+  BANK_TRANSFER
 }
-
-// ============================================================================
-// STORE PAYMENT METHOD (M2M2M)
-// ============================================================================
 
 model StorePaymentMethod {
   id              Int      @id @default(autoincrement())
@@ -259,26 +388,20 @@ model StorePaymentMethod {
   paymentMethodId Int
   
   isActive        Boolean  @default(true)
+  minAmount       Float?
+  maxAmount       Float?
   
-  // Optional metadata
-  minAmount       Float?   // Minimum order amount
-  maxAmount       Float?   // Maximum order amount
-  
-  // Relations
   store           Store         @relation(fields: [storeId], references: [id], onDelete: Cascade)
   country         Country       @relation(fields: [countryId], references: [id], onDelete: Cascade)
   paymentMethod   PaymentMethod @relation(fields: [paymentMethodId], references: [id], onDelete: Cascade)
   
-  // Translations for notes
   translations    StorePaymentMethodTranslation[]
   
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   
-  // Compound unique: one payment method per store per country
   @@unique([storeId, countryId, paymentMethodId])
   @@index([storeId, countryId])
-  @@index([countryId, paymentMethodId])
 }
 
 model StorePaymentMethodTranslation {
@@ -286,7 +409,7 @@ model StorePaymentMethodTranslation {
   storePaymentMethodId Int
   locale              Locale
   
-  notes String? @db.Text  // "Minimum order 300 SAR"
+  notes String? @db.Text
   
   storePaymentMethod StorePaymentMethod @relation(fields: [storePaymentMethodId], references: [id], onDelete: Cascade)
   
@@ -295,7 +418,7 @@ model StorePaymentMethodTranslation {
 }
 
 // ============================================================================
-// STORE FAQ (Fully Translatable)
+// STORE FAQ
 // ============================================================================
 
 model StoreFAQ {
@@ -305,7 +428,6 @@ model StoreFAQ {
   order     Int     @default(0)
   isActive  Boolean @default(true)
   
-  // Relations
   translations StoreFAQTranslation[]
   store        Store   @relation(fields: [storeId], references: [id], onDelete: Cascade)
   country      Country @relation(fields: [countryId], references: [id], onDelete: Cascade)
@@ -389,13 +511,14 @@ model VoucherClick {
 }
 
 // ============================================================================
-// ADMIN USER
+// ADMIN
 // ============================================================================
+
 model Admin {
   id           String    @id @default(cuid())
   email        String    @unique
   name         String?
-  password     String // Hashed password
+  password     String
   role         AdminRole @default(ADMIN)
   permissions  String[]
   isActive     Boolean   @default(true)
