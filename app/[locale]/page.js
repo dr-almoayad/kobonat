@@ -69,24 +69,31 @@ export async function generateMetadata({ params }) {
 
 export default async function Home({ params }) {
   const { locale } = await params;
-  const t = await getTranslations('HomePage');
 
+  // FAIL-SAFE: If the locale is not in your allowed list, trigger 404 immediately.
+  // This prevents Prisma from receiving "favicon.ico" as a locale.
+  if (!allLocaleCodes.includes(locale)) {
+    notFound();
+  }
+
+  const t = await getTranslations('HomePage');
   const [language, countryCode] = locale.split('-');
 
+  // Fetch data with proper joins for translations
   const [featuredStoresWithCovers, topVouchers, featuredStores] = await Promise.all([
+    // Featured stores WITH cover images
     prisma.store.findMany({
       where: { 
         isActive: true,
         isFeatured: true,
         coverImage: { not: null },
+        // Ensure store is available in this country
+        countries: { some: { country: { code: countryCode || 'SA' } } }
       },
       include: {
         translations: {
           where: { locale: language },
-          select: {
-            name: true,
-            slug: true,
-          }
+          select: { name: true, slug: true }
         },
       },
       orderBy: { isFeatured: 'desc' },
