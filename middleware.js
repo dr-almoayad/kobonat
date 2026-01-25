@@ -12,23 +12,31 @@ const intlMiddleware = createMiddleware({
 export async function middleware(request) {
   const { pathname } = request.nextUrl;
 
-  // 1. Define admin paths
+  // 1. MANUAL CHECK: Ignore static files and internal Next.js paths
+  if (
+    pathname.startsWith('/_next') || 
+    pathname.startsWith('/api') && !pathname.startsWith('/api/admin') ||
+    pathname.includes('.') || // Catches .ico, .png, .txt, etc.
+    pathname === '/favicon.ico'
+  ) {
+    return NextResponse.next();
+  }
+
+  // 2. Define admin paths
   const isAdminRoute = pathname.startsWith('/admin');
   const isAdminApi = pathname.startsWith('/api/admin');
 
-  // 2. BYPASS i18n for admin routes
+  // 3. BYPASS i18n for admin routes
   if (isAdminRoute || isAdminApi) {
     const token = await getToken({ 
       req: request, 
       secret: process.env.NEXTAUTH_SECRET 
     });
 
-    // Allow access to login page without token
     if (pathname === '/admin/login') {
       return NextResponse.next();
     }
 
-    // Redirect to login if no token
     if (!token || !token.isAdmin) {
       if (isAdminApi) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
       return NextResponse.redirect(new URL('/admin/login', request.url));
@@ -37,10 +45,11 @@ export async function middleware(request) {
     return NextResponse.next();
   }
 
-  // 3. APPLY i18n for everything else
+  // 4. APPLY i18n for everything else
   return intlMiddleware(request);
 }
 
 export const config = {
-  matcher: ['/((?!api|_next|.*\\..*).*)', '/admin/:path*', '/api/admin/:path*']
+  // Enhanced matcher to exclude more static patterns
+  matcher: ['/((?!api|_next/static|_next/image|favicon.ico|.*\\..*).*)', '/admin/:path*', '/api/admin/:path*']
 };
