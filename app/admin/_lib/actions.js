@@ -12,6 +12,8 @@ export async function createStore(formData) {
     const store = await prisma.store.create({
       data: {
         logo: formData.get('logo'),
+        coverImage: formData.get('coverImage'),      // NEW
+        backgroundImage: formData.get('backgroundImage'), // NEW
         color: formData.get('color') || '#2563eb',
         websiteUrl: formData.get('websiteUrl'),
         affiliateNetwork: formData.get('affiliateNetwork'),
@@ -74,12 +76,14 @@ export async function updateStore(id, formData) {
     // Build update data object with fallbacks to current values
     const updateData = {
       logo: formData.get('logo') || currentStore.logo,
+      coverImage: formData.get('coverImage') || currentStore.coverImage,    // NEW
+      backgroundImage: formData.get('backgroundImage') || currentStore.backgroundImage, // NEW
       color: formData.get('color') || currentStore.color,
       websiteUrl: formData.get('websiteUrl') || currentStore.websiteUrl,
       affiliateNetwork: formData.get('affiliateNetwork') || currentStore.affiliateNetwork,
       trackingUrl: formData.get('trackingUrl') || currentStore.trackingUrl,
       isActive: formData.has('isActive') ? formData.get('isActive') === 'on' : currentStore.isActive,
-      isFeatured: formData.has('isFeatured') ? formData.get('isFeatured') === 'on' : currentStore.isFeatured
+      isFeatured: formData.has('isFeatured') ? formData.get('isFeatured') === 'on' : currentStore.isFeatured,
     };
 
     // Validate required fields
@@ -212,6 +216,123 @@ export async function updateStoreCategories(id, formData) {
   }
 }
 
+
+// ============================================================================
+// STORE PRODUCTS
+// ============================================================================
+
+export async function createStoreProduct(formData) {
+  try {
+    const storeId = parseInt(formData.get('storeId'));
+    const price = parseFloat(formData.get('price'));
+    const originalPrice = formData.get('originalPrice') ? parseFloat(formData.get('originalPrice')) : null;
+
+    const isFeatured = formData.get('isFeatured') === true; // Convert "on" to true, else false
+
+    const product = await prisma.storeProduct.create({
+      data: {
+        storeId,
+        image: formData.get('image'),
+        price,
+        originalPrice,
+        productUrl: formData.get('productUrl'),
+        isFeatured: isFeatured, // <--- Add this line
+        order: parseInt(formData.get('order') || '0'),
+        translations: {
+          create: [
+            {
+              locale: 'en',
+              title: formData.get('title_en'),
+              description: formData.get('description_en')
+            },
+            {
+              locale: 'ar',
+              title: formData.get('title_ar'),
+              description: formData.get('description_ar')
+            }
+          ]
+        }
+      }
+    });
+
+    revalidatePath(`/admin/stores/${storeId}`);
+    return { success: true, id: product.id };
+  } catch (error) {
+    console.error('Create store product error:', error);
+    return { error: error.message };
+  }
+}
+
+export async function updateStoreProduct(id, formData) {
+  try {
+    const price = parseFloat(formData.get('price'));
+    const originalPrice = formData.get('originalPrice') ? parseFloat(formData.get('originalPrice')) : null;
+
+    const isFeatured = formData.get('isFeatured') === true;
+    const updatedProduct = await prisma.storeProduct.update({
+      where: { id: parseInt(id) },
+      data: {
+        image: formData.get('image'),
+        isFeatured: isFeatured,
+        price,
+        originalPrice,
+        productUrl: formData.get('productUrl'),
+        isFeatured: formData.get('isFeatured') === 'on',
+        order: parseInt(formData.get('order') || '0')
+      }
+    });
+
+    // Update translations
+    for (const locale of ['en', 'ar']) {
+      await prisma.storeProductTranslation.upsert({
+        where: {
+          productId_locale: {
+            productId: parseInt(id),
+            locale
+          }
+        },
+        create: {
+          productId: parseInt(id),
+          locale,
+          title: formData.get(`title_${locale}`),
+          description: formData.get(`description_${locale}`)
+        },
+        update: {
+          title: formData.get(`title_${locale}`),
+          description: formData.get(`description_${locale}`)
+        }
+      });
+    }
+
+    revalidatePath(`/admin/stores/${updatedProduct.storeId}`);
+    return { success: true };
+  } catch (error) {
+    console.error('Update store product error:', error);
+    return { error: error.message };
+  }
+}
+
+export async function deleteStoreProduct(id) {
+  try {
+    const product = await prisma.storeProduct.findUnique({
+      where: { id: parseInt(id) },
+      select: { storeId: true }
+    });
+
+    await prisma.storeProduct.delete({
+      where: { id: parseInt(id) }
+    });
+
+    if (product) {
+      revalidatePath(`/admin/stores/${product.storeId}`);
+    }
+    return { success: true };
+  } catch (error) {
+    return { error: error.message };
+  }
+}
+
+
 // ============================================================================
 // VOUCHERS
 // ============================================================================
@@ -328,6 +449,7 @@ export async function upsertCategory(id, formData) {
 
     const data = {
       icon: formData.get('icon'),
+      image: formData.get('image'), // NEW
       color: formData.get('color'),
     };
 
@@ -572,6 +694,127 @@ export async function deletePaymentMethod(id) {
     });
 
     revalidatePath('/admin/payment-methods');
+    return { success: true };
+  } catch (error) {
+    return { error: error.message };
+  }
+}
+
+
+// ============================================================================
+// OTHER PROMOS
+// ============================================================================
+
+export async function createOtherPromo(formData) {
+  try {
+    const storeId = parseInt(formData.get('storeId'));
+    const countryId = parseInt(formData.get('countryId'));
+    const startDate = formData.get('startDate') ? new Date(formData.get('startDate')) : null;
+    const expiryDate = formData.get('expiryDate') ? new Date(formData.get('expiryDate')) : null;
+
+    const promo = await prisma.otherPromo.create({
+      data: {
+        storeId,
+        countryId,
+        image: formData.get('image'),
+        type: formData.get('type'),
+        url: formData.get('url'),
+        startDate,
+        expiryDate,
+        isActive: formData.get('isActive') === 'on',
+        order: parseInt(formData.get('order') || '0'),
+        translations: {
+          create: [
+            {
+              locale: 'en',
+              title: formData.get('title_en'),
+              description: formData.get('description_en'),
+              terms: formData.get('terms_en')
+            },
+            {
+              locale: 'ar',
+              title: formData.get('title_ar'),
+              description: formData.get('description_ar'),
+              terms: formData.get('terms_ar')
+            }
+          ]
+        }
+      }
+    });
+
+    revalidatePath(`/admin/stores/${storeId}`);
+    return { success: true, id: promo.id };
+  } catch (error) {
+    console.error('Create other promo error:', error);
+    return { error: error.message };
+  }
+}
+
+export async function updateOtherPromo(id, formData) {
+  try {
+    const startDate = formData.get('startDate') ? new Date(formData.get('startDate')) : null;
+    const expiryDate = formData.get('expiryDate') ? new Date(formData.get('expiryDate')) : null;
+
+    const promo = await prisma.otherPromo.update({
+      where: { id: parseInt(id) },
+      data: {
+        countryId: parseInt(formData.get('countryId')),
+        image: formData.get('image'),
+        type: formData.get('type'),
+        url: formData.get('url'),
+        startDate,
+        expiryDate,
+        isActive: formData.get('isActive') === 'on',
+        order: parseInt(formData.get('order') || '0')
+      }
+    });
+
+    // Update translations
+    for (const locale of ['en', 'ar']) {
+      await prisma.otherPromoTranslation.upsert({
+        where: {
+          promoId_locale: {
+            promoId: parseInt(id),
+            locale
+          }
+        },
+        create: {
+          promoId: parseInt(id),
+          locale,
+          title: formData.get(`title_${locale}`),
+          description: formData.get(`description_${locale}`),
+          terms: formData.get(`terms_${locale}`)
+        },
+        update: {
+          title: formData.get(`title_${locale}`),
+          description: formData.get(`description_${locale}`),
+          terms: formData.get(`terms_${locale}`)
+        }
+      });
+    }
+
+    revalidatePath(`/admin/stores/${promo.storeId}`);
+    return { success: true };
+  } catch (error) {
+    console.error('Update other promo error:', error);
+    return { error: error.message };
+  }
+}
+
+export async function deleteOtherPromo(id) {
+  try {
+    const promo = await prisma.otherPromo.findUnique({
+      where: { id: parseInt(id) },
+      select: { storeId: true }
+    });
+
+    await prisma.otherPromo.delete({
+      where: { id: parseInt(id) }
+    });
+
+    if (promo) {
+      revalidatePath(`/admin/stores/${promo.storeId}`);
+    }
     return { success: true };
   } catch (error) {
     return { error: error.message };
