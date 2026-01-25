@@ -41,7 +41,7 @@
 .home-section {
   max-width: 1280px;
   margin: 0 auto 3rem;
-  padding: 1.5rem;
+  padding: 0 1.5rem;
 }
 
 .home-section.alt-bg {
@@ -55,16 +55,8 @@
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  padding-bottom: 0.5rem;
+  padding-bottom: 1rem;
   border-bottom: 1px solid var(--border-color);
-}
-
-.header-content {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-start;
-  align-items: center;
-  gap: 0.75rem;
 }
 
 .header-content h2 {
@@ -118,14 +110,12 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
   gap: 0.75rem;
-  padding: 1rem 0;
 }
 
 .stores-grid-home {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
   gap: 1rem;
-  padding: 1rem 0;
 }
 
 /* Mini Store Card (for Homepage) */
