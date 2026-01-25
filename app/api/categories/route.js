@@ -1,4 +1,4 @@
-// app/api/categories/route.js - UPDATED TO SUPPORT COUNTRY FILTERING
+// app/api/categories/route.js - FIXED: Always include image field regardless of locale
 import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 
@@ -12,11 +12,10 @@ export async function GET(req) {
     const countryCode = searchParams.get('country') || 'SA';
     
     console.log('📍 Categories API Request:', { locale, countryCode });
-
-    // Fetch categories with translations and store count for specific country
+    
+    // Fetch categories from database
     const categories = await prisma.category.findMany({
       where: {
-        // Only categories that have active stores in the specified country
         stores: {
           some: {
             store: {
@@ -33,9 +32,19 @@ export async function GET(req) {
           }
         }
       },
-      include: {
+      // ✅ SELECT THE IMAGE FIELD FROM DATABASE
+      select: {
+        id: true,
+        icon: true,
+        image: true,  // ✅ CRITICAL: Must be in select
+        color: true,
         translations: {
-          where: { locale }
+          where: { locale },
+          select: {
+            name: true,
+            slug: true,
+            description: true
+          }
         },
         stores: {
           where: {
@@ -43,48 +52,51 @@ export async function GET(req) {
               isActive: true,
               countries: {
                 some: {
-                  country: {
-                    code: countryCode
-                  }
+                  country: { code: countryCode }
                 }
               }
             }
+          },
+          select: {
+            storeId: true  // Just need count
           }
         }
       },
       orderBy: { id: 'asc' }
     });
 
-    console.log('=== CATEGORIES API DEBUG ===');
-    console.log('Total categories in DB for country:', categories.length);
-    if (categories.length > 0) {
-      console.log('First category sample:', {
-        id: categories[0].id,
-        name: categories[0].translations[0]?.name,
-        storeCount: categories[0].stores.length,
-        icon: categories[0].icon,
-        color: categories[0].color
-      });
-    }
-    console.log('=== END DEBUG ===');
+    // Debug: Check what database returned
+    console.log('📦 Categories from DB:', categories.map(c => ({
+      id: c.id,
+      hasImage: 'image' in c,
+      imageValue: c.image,
+      translationsCount: c.translations.length
+    })));
 
     // Format response with translation data
     const formattedCategories = categories
-      .filter(category => category.translations.length > 0) // Only with translations
+      .filter(category => category.translations.length > 0) 
       .map(category => ({
         id: category.id,
         name: category.translations[0]?.name || '',
         slug: category.translations[0]?.slug || '',
         description: category.translations[0]?.description || null,
         icon: category.icon || 'category',
+        image: category.image,  // ✅ This will be null or string - both are valid
         color: category.color || '#470ae2',
         _count: {
           stores: category.stores.length
         }
       }))
-      .filter(cat => cat.name && cat.slug && cat._count.stores > 0); // Filter valid entries
+      .filter(cat => cat.name && cat.slug && cat._count.stores > 0);
 
-    console.log(`✅ Returning ${formattedCategories.length} valid categories for ${countryCode}`);
+    // Debug: Check formatted output
+    console.log('📤 Formatted categories:', formattedCategories.map(c => ({
+      id: c.id,
+      name: c.name,
+      hasImageField: 'image' in c,
+      imageValue: c.image
+    })));
 
     return NextResponse.json(formattedCategories);
 
@@ -115,6 +127,7 @@ export async function POST(req) {
       description_en,
       description_ar,
       icon,
+      image,
       color 
     } = body;
 
@@ -144,6 +157,7 @@ export async function POST(req) {
     const category = await prisma.category.create({
       data: {
         icon: icon || null,
+        image: image || null,
         color: color || null,
         translations: {
           create: [
