@@ -121,7 +121,7 @@ export async function PUT(req, { params }) {
       translations,
       countryIds,
       categoryIds
-    } = body;
+    } = data;
 
     // Update store
     const store = await prisma.store.update({
