@@ -1,34 +1,19 @@
 /* app/[locale]/stores/stores-page.css */
 
-/* ============================================================================
-   THEME VARIABLES (Matched to VoucherCard.css)
-   ============================================================================ */
 :root {
   --page-bg: #f8fafc;
   --card-bg: #ffffff;
   --border-color: #e2e8f0;
-  
-  /* Text Colors */
   --text-main: #1e293b;
   --text-muted: #64748b;
   --text-light: #94a3b8;
-  
-  /* Accents */
   --accent-color: #470ae2;
   --accent-hover: #4f46e5;
   --accent-light: #e0e7ff;
-  
-  /* Shadows */
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-  
-  /* Typography */
   --font-family: 'Alexandria', 'Open Sans', sans-serif;
 }
-
-/* ============================================================================
-   PAGE LAYOUT
-   ============================================================================ */
 
 .stores_page {
   width: 100%;
@@ -38,9 +23,12 @@
   color: var(--text-main);
 }
 
-/* ============================================================================
-   HEADER SECTION (Clean/Minimal Style)
-   ============================================================================ */
+/* Hero Section for Category Pages */
+.category-hero-section {
+  background: #fff;
+  margin-bottom: 0;
+  overflow: hidden;
+}
 
 .stores_page_header {
   background: var(--card-bg);
@@ -58,7 +46,6 @@
   gap: 1.5rem;
 }
 
-/* Breadcrumbs Adaptation */
 .stores_page_header .breadcrumbs {
   margin-bottom: 0.5rem;
 }
@@ -78,7 +65,6 @@
   font-weight: 600;
 }
 
-/* Title Area */
 .stores_page_title_section {
   display: flex;
   align-items: center;
@@ -115,6 +101,13 @@
   line-height: 1.2;
 }
 
+.category_description {
+  color: var(--text-muted);
+  font-size: 0.9375rem;
+  margin: 0 0 0.75rem 0;
+  line-height: 1.5;
+}
+
 .stores_stats {
   display: flex;
   align-items: center;
@@ -144,10 +137,6 @@
   color: var(--border-color);
 }
 
-/* ============================================================================
-   SECTIONS & GRID
-   ============================================================================ */
-
 .featured_stores_section,
 .all_stores_section {
   max-width: 1280px;
@@ -176,7 +165,7 @@
 
 .section_header h2 .material-symbols-sharp {
   font-size: 1.5rem;
-  color: #f59e0b; /* Amber for star */
+  color: #f59e0b;
   font-variation-settings: 'FILL' 1;
 }
 
@@ -189,21 +178,12 @@
   font-weight: 600;
 }
 
-/* ============================================================================
-   GRID SYSTEM (Mirrors VouchersGrid.css)
-   ============================================================================ */
-
-/* Use this class on the <div> wrapping your store cards in StoresGrid */
 .stores-grid-layout {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); /* Slightly narrower than vouchers */
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 1.5rem;
   width: 100%;
 }
-
-/* ============================================================================
-   ERROR STATE (Consistent Styling)
-   ============================================================================ */
 
 .error-container {
   max-width: 500px;
@@ -245,17 +225,8 @@
   box-shadow: 0 4px 12px rgba(71, 10, 226, 0.2);
 }
 
-/* ============================================================================
-   RTL SUPPORT
-   ============================================================================ */
-
-
-/* ============================================================================
-   RESPONSIVE DESIGN
-   ============================================================================ */
-
 @media (max-width: 1024px) {
-  .stores_page_header_container  {
+  .stores_page_header_container {
     padding: 1rem;
   }
   .featured_stores_section,
@@ -265,12 +236,11 @@
 }
 
 @media (max-width: 768px) {
-  .stores_page_header_container  {
+  .stores_page_header_container {
     padding: 1.25rem 0.75rem;
   }
   
   .stores_page_title_section {
-    flex-direction: column;
     align-items: flex-start;
     gap: 1rem;
   }
@@ -295,9 +265,8 @@
     padding: 0 0.75rem;
   }
   
-  /* Mobile Grid */
   .stores-grid-layout {
-    grid-template-columns: 1fr; /* Full width cards on mobile */
+    grid-template-columns: 1fr;
     gap: 1rem;
   }
 }
