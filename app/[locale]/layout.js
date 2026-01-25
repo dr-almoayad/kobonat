@@ -1,5 +1,4 @@
-// app/[locale]/layout.js - UPDATED WITH DYNAMIC HERO HEADER
-
+// app/[locale]/layout.js - FIXED SEO WITH PROPER CANONICAL URLS
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
@@ -16,7 +15,6 @@ import CategoryCarouselSubHeader from "@/components/headers/CategoryCarouselSubh
 import { prisma } from "@/lib/prisma";
 import { StoreProvider } from '@/contexts/StoreContext';
 
-
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -29,16 +27,102 @@ const geistMono = Geist_Mono({
   display: 'swap',
 });
 
-// Metadata configuration
-export const metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'https://yourdomain.com'),
-  title: {
-    default: 'Coupons & Deals - Save Money on Every Purchase',
-    template: '%s | Coupons Platform'
-  },
-  description: 'Find the best coupons, promo codes, and deals from top stores.',
-  // ... rest of your metadata
-};
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://coubonat.vercel.app';
+
+// ✅ FIXED: Metadata with proper canonical URLs
+export async function generateMetadata({ params }) {
+  const { locale } = await params;
+  const [language, region] = locale.split('-');
+  const isArabic = language === 'ar';
+  
+  return {
+    metadataBase: new URL(BASE_URL),
+    title: {
+      default: isArabic 
+        ? 'كوبونات وعروض - وفر المال في كل عملية شراء'
+        : 'Coupons & Deals - Save Money on Every Purchase',
+      template: isArabic 
+        ? '%s | كوبونات'
+        : '%s | Coupons Platform'
+    },
+    description: isArabic
+      ? 'اعثر على أفضل الكوبونات وأكواد الخصم من أفضل المتاجر. وفر المال في كل عملية شراء مع أكواد خصم موثقة.'
+      : 'Find the best coupons, promo codes, and deals from top stores. Save money on every purchase with verified discount codes.',
+    applicationName: isArabic ? 'كوبونات' : 'Coupons Platform',
+    authors: [{ name: 'Coubonat' }],
+    generator: 'Next.js',
+    keywords: isArabic 
+      ? ['كوبونات', 'أكواد خصم', 'عروض', 'خصومات', 'توفير', region]
+      : ['coupons', 'promo codes', 'deals', 'discounts', 'savings', region],
+    referrer: 'origin-when-cross-origin',
+    creator: 'Coubonat',
+    publisher: 'Coubonat',
+    formatDetection: {
+      email: false,
+      address: false,
+      telephone: false,
+    },
+    
+    // ✅ CRITICAL FIX: Proper alternates with locale in canonical
+    alternates: {
+      canonical: `${BASE_URL}/${locale}`, // Include locale!
+      languages: {
+        'ar-SA': `${BASE_URL}/ar-SA`,
+        'en-SA': `${BASE_URL}/en-SA`,
+        'ar-AE': `${BASE_URL}/ar-AE`,
+        'en-AE': `${BASE_URL}/en-AE`,
+        'ar-EG': `${BASE_URL}/ar-EG`,
+        'en-EG': `${BASE_URL}/en-EG`,
+        'ar-QA': `${BASE_URL}/ar-QA`,
+        'en-QA': `${BASE_URL}/en-QA`,
+        'ar-KW': `${BASE_URL}/ar-KW`,
+        'en-KW': `${BASE_URL}/en-KW`,
+        'ar-OM': `${BASE_URL}/ar-OM`,
+        'en-OM': `${BASE_URL}/en-OM`,
+        'x-default': `${BASE_URL}/ar-SA`,
+      }
+    },
+    
+    openGraph: {
+      type: 'website',
+      locale: locale,
+      url: `${BASE_URL}/${locale}`,
+      siteName: isArabic ? 'كوبونات' : 'Coupons Platform',
+      title: isArabic 
+        ? 'كوبونات وعروض - وفر المال'
+        : 'Coupons & Deals - Save Money',
+      description: isArabic
+        ? 'أفضل الكوبونات والعروض من المتاجر الرائدة'
+        : 'Best coupons and deals from leading stores',
+    },
+    
+    twitter: {
+      card: 'summary_large_image',
+      site: '@coubonat',
+      creator: '@coubonat',
+    },
+    
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: {
+        index: true,
+        follow: true,
+        'max-video-preview': -1,
+        'max-image-preview': 'large',
+        'max-snippet': -1,
+      },
+    },
+    
+    icons: {
+      icon: '/favicon.ico',
+      shortcut: '/favicon-16x16.png',
+      apple: '/apple-touch-icon.png',
+    },
+    
+    manifest: '/site.webmanifest',
+  };
+}
 
 export const viewport = {
   width: 'device-width',
@@ -54,14 +138,14 @@ export default async function LocaleLayout({ children, params }) {
   
   const [language, countryCode] = locale.split('-');
 
-  // ✅ FETCH FEATURED STORES FOR HERO CAROUSEL
+  // Fetch featured stores for hero carousel
   let featuredStores = [];
   try {
     const stores = await prisma.store.findMany({
       where: {
         isActive: true,
         isFeatured: true,
-        coverImage: { not: null }, // Only stores with cover images
+        coverImage: { not: null },
         countries: {
           some: {
             country: { 
@@ -76,11 +160,10 @@ export default async function LocaleLayout({ children, params }) {
           where: { locale: language }
         }
       },
-      take: 8, // Limit to 8 featured stores
+      take: 8,
       orderBy: { createdAt: 'desc' }
     });
 
-    // Transform for component
     featuredStores = stores.map(store => ({
       id: store.id,
       name: store.translations[0]?.name || store.slug || '',
@@ -94,7 +177,7 @@ export default async function LocaleLayout({ children, params }) {
   return (
     <html 
       lang={locale} 
-      dir={locale.startsWith('ar') ? 'rtl' : 'ltr'}
+      dir={language === 'ar' ? 'rtl' : 'ltr'}
     >
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -117,13 +200,13 @@ export default async function LocaleLayout({ children, params }) {
             __html: JSON.stringify({
               "@context": "https://schema.org",
               "@type": "WebSite",
-              "name": "Coupons Platform",
-              "url": process.env.NEXT_PUBLIC_BASE_URL,
+              "name": language === 'ar' ? 'كوبونات' : "Coupons Platform",
+              "url": BASE_URL,
               "potentialAction": {
                 "@type": "SearchAction",
                 "target": {
                   "@type": "EntryPoint",
-                  "urlTemplate": `${process.env.NEXT_PUBLIC_BASE_URL}/${locale}/search?q={search_term_string}`
+                  "urlTemplate": `${BASE_URL}/${locale}/search?q={search_term_string}`
                 },
                 "query-input": "required name=search_term_string"
               }
@@ -134,8 +217,7 @@ export default async function LocaleLayout({ children, params }) {
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         <NextIntlClientProvider messages={messages} locale={locale}>
           <SessionProviderWrapper>
-            {/* ✅ PASS FEATURED STORES TO HEADER */}
-             <StoreProvider>
+            <StoreProvider>
               <Header featuredStores={featuredStores} />
               <CategoryCarouselSubHeader />
               {children}
