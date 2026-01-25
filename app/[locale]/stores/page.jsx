@@ -1,4 +1,4 @@
-// app/[locale]/stores/page.jsx - WITH HERO CAROUSEL
+// app/[locale]/stores/page.jsx - FIXED SEO
 import { getTranslations } from 'next-intl/server';
 import { prisma } from "@/lib/prisma";
 import StoresGrid from "@/components/StoresGrid/StoresGrid";
@@ -9,6 +9,9 @@ import "./stores-page.css";
 
 export const revalidate = 60;
 
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://coubonat.vercel.app';
+
+// ✅ FIXED: Proper canonical URL with locale
 export async function generateMetadata({ params }) {
   const { locale } = await params;
   const [language, countryCode] = locale.split('-');
@@ -21,9 +24,36 @@ export async function generateMetadata({ params }) {
     description: isArabic
       ? `تصفح جميع المتاجر المتاحة في ${countryCode}. احصل على أفضل الكوبونات والعروض من متاجرك المفضلة.`
       : `Browse all available stores in ${countryCode}. Get the best coupons and deals from your favorite stores.`,
+    
+    // ✅ CRITICAL: Include locale in canonical
     alternates: {
-      canonical: `/${locale}/stores`
-    }
+      canonical: `${BASE_URL}/${locale}/stores`,
+      languages: {
+        'ar-SA': `${BASE_URL}/ar-SA/stores`,
+        'en-SA': `${BASE_URL}/en-SA/stores`,
+        'ar-AE': `${BASE_URL}/ar-AE/stores`,
+        'en-AE': `${BASE_URL}/en-AE/stores`,
+        'ar-EG': `${BASE_URL}/ar-EG/stores`,
+        'en-EG': `${BASE_URL}/en-EG/stores`,
+        'ar-QA': `${BASE_URL}/ar-QA/stores`,
+        'en-QA': `${BASE_URL}/en-QA/stores`,
+        'ar-KW': `${BASE_URL}/ar-KW/stores`,
+        'en-KW': `${BASE_URL}/en-KW/stores`,
+        'ar-OM': `${BASE_URL}/ar-OM/stores`,
+        'en-OM': `${BASE_URL}/en-OM/stores`,
+        'x-default': `${BASE_URL}/ar-SA/stores`,
+      }
+    },
+    
+    openGraph: {
+      url: `${BASE_URL}/${locale}/stores`,
+      locale: locale,
+    },
+    
+    robots: {
+      index: true,
+      follow: true,
+    },
   };
 }
 
@@ -32,7 +62,6 @@ export default async function AllStoresPage({ params }) {
   const [language, countryCode] = locale.split('-');
   const t = await getTranslations('StoresPage');
 
-  // Fetch featured stores with cover images for carousel
   const featuredStoresWithCovers = await prisma.store.findMany({
     where: { 
       isActive: true,
@@ -51,7 +80,6 @@ export default async function AllStoresPage({ params }) {
     take: 8,
   });
 
-  // Transform carousel stores
   const carouselStores = featuredStoresWithCovers.map(store => {
     const translation = store.translations?.[0] || {};
     return {
@@ -62,21 +90,16 @@ export default async function AllStoresPage({ params }) {
     };
   });
 
-  // Fetch all stores for this country
   const stores = await getStoresData({ 
     language, 
     countryCode 
   });
 
-  // Fetch all categories for filter tabs
   const categories = await getCountryCategories(language, countryCode);
-
-  // Calculate totals
   const totalVouchers = stores.reduce((sum, s) => sum + s.activeVouchersCount, 0);
   const featuredStores = stores.filter(s => s.isFeatured);
   const regularStores = stores.filter(s => !s.isFeatured);
 
-  // Empty state
   if (stores.length === 0) {
     return (
       <div className="stores_page">
@@ -101,7 +124,6 @@ export default async function AllStoresPage({ params }) {
 
   return (
     <div className="stores_page">
-      {/* Hero Carousel */}
       {carouselStores.length > 0 && (
         <div className="stores-hero-section">
           <HeroCarousel 
@@ -113,7 +135,6 @@ export default async function AllStoresPage({ params }) {
         </div>
       )}
 
-      {/* Header */}
       <div className="stores_page_header">
         <div className="stores_page_header_container">
           <div className="stores_page_title_section">
@@ -137,17 +158,9 @@ export default async function AllStoresPage({ params }) {
               </p>
             </div>
           </div>
-
-          {/* Category Filter Tabs 
-          <CategoryFilterTabs 
-            categories={categories}
-            currentCategory={null}
-            locale={locale}
-          />*/}
         </div>
       </div>
 
-      {/* Featured Stores Section */}
       {featuredStores.length > 0 && (
         <section className="featured_stores_section">
           <div className="section_header">
@@ -163,7 +176,6 @@ export default async function AllStoresPage({ params }) {
         </section>
       )}
 
-      {/* All Stores Section */}
       <section className="all_stores_section">
         <div className="section_header">
           <h2>
