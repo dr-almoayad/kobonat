@@ -11,7 +11,7 @@ import SessionProviderWrapper from "@/components/SessionProviderComp";
 import "@emran-alhaddad/saudi-riyal-font/index.css";
 import MobileFooter from "@/components/footers/MobileFooter";
 import SubBar from "@/components/headers/subBar";
-import CategoryCarouselSubHeader from "@/components/headers/CategoryCarouselSubheader";
+import CategoryCarouselSubHeader from "@/components/headers/CategoryCarouselSubHeader";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
