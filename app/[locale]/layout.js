@@ -1,4 +1,4 @@
-// app/[locale]/layout.js - FIXED SEO WITH PROPER CANONICAL URLS
+// app/[locale]/layout.js - FIXED CANONICAL URLS FOR SEO
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
@@ -12,8 +12,6 @@ import "@emran-alhaddad/saudi-riyal-font/index.css";
 import MobileFooter from "@/components/footers/MobileFooter";
 import SubBar from "@/components/headers/subBar";
 import CategoryCarouselSubHeader from "@/components/headers/CategoryCarouselSubheader";
-import { prisma } from "@/lib/prisma";
-import { StoreProvider } from '@/contexts/StoreContext';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -29,7 +27,7 @@ const geistMono = Geist_Mono({
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://coubonat.vercel.app';
 
-// ✅ FIXED: Metadata with proper canonical URLs
+// Default metadata (will be overridden by page-specific metadata)
 export async function generateMetadata({ params }) {
   const { locale } = await params;
   const [language, region] = locale.split('-');
@@ -65,7 +63,7 @@ export async function generateMetadata({ params }) {
     
     // ✅ CRITICAL FIX: Proper alternates with locale in canonical
     alternates: {
-      canonical: `${BASE_URL}/${locale}`, // Include locale!
+      canonical: `${BASE_URL}/${locale}`, // Include locale in canonical!
       languages: {
         'ar-SA': `${BASE_URL}/ar-SA`,
         'en-SA': `${BASE_URL}/en-SA`,
@@ -79,10 +77,11 @@ export async function generateMetadata({ params }) {
         'en-KW': `${BASE_URL}/en-KW`,
         'ar-OM': `${BASE_URL}/ar-OM`,
         'en-OM': `${BASE_URL}/en-OM`,
-        'x-default': `${BASE_URL}/ar-SA`,
+        'x-default': `${BASE_URL}/ar-SA`, // Default to Arabic Saudi Arabia
       }
     },
     
+    // Open Graph
     openGraph: {
       type: 'website',
       locale: locale,
@@ -96,12 +95,14 @@ export async function generateMetadata({ params }) {
         : 'Best coupons and deals from leading stores',
     },
     
+    // Twitter
     twitter: {
       card: 'summary_large_image',
       site: '@coubonat',
       creator: '@coubonat',
     },
     
+    // Robots - Allow all locales
     robots: {
       index: true,
       follow: true,
@@ -114,16 +115,19 @@ export async function generateMetadata({ params }) {
       },
     },
     
+    // Icons
     icons: {
       icon: '/favicon.ico',
       shortcut: '/favicon-16x16.png',
       apple: '/apple-touch-icon.png',
     },
     
+    // Manifest
     manifest: '/site.webmanifest',
   };
 }
 
+// Viewport configuration
 export const viewport = {
   width: 'device-width',
   initialScale: 1,
@@ -135,44 +139,7 @@ export default async function LocaleLayout({ children, params }) {
   const { locale } = await params;
   setRequestLocale(locale);
   const messages = await getMessages();
-  
-  const [language, countryCode] = locale.split('-');
-
-  // Fetch featured stores for hero carousel
-  let featuredStores = [];
-  try {
-    const stores = await prisma.store.findMany({
-      where: {
-        isActive: true,
-        isFeatured: true,
-        coverImage: { not: null },
-        countries: {
-          some: {
-            country: { 
-              code: countryCode,
-              isActive: true 
-            }
-          }
-        }
-      },
-      include: {
-        translations: {
-          where: { locale: language }
-        }
-      },
-      take: 8,
-      orderBy: { createdAt: 'desc' }
-    });
-
-    featuredStores = stores.map(store => ({
-      id: store.id,
-      name: store.translations[0]?.name || store.slug || '',
-      logo: store.logo,
-      coverImage: store.coverImage
-    }));
-  } catch (error) {
-    console.error('Error fetching featured stores for hero:', error);
-  }
+  const [language] = locale.split('-');
 
   return (
     <html 
@@ -180,20 +147,24 @@ export default async function LocaleLayout({ children, params }) {
       dir={language === 'ar' ? 'rtl' : 'ltr'}
     >
       <head>
+        {/* Preconnect to external domains */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com" />
         
+        {/* Material Symbols */}
         <link 
           href="https://fonts.googleapis.com/css2?family=Material+Symbols+Sharp:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" 
           rel="stylesheet" 
         />
         
+        {/* Google Fonts */}
         <link 
           href="https://fonts.googleapis.com/css2?family=Alexandria:wght@100..900&family=Open+Sans:wght@300..800&display=swap" 
           rel="stylesheet"
         />
         
+        {/* Schema.org for organization */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -217,11 +188,9 @@ export default async function LocaleLayout({ children, params }) {
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         <NextIntlClientProvider messages={messages} locale={locale}>
           <SessionProviderWrapper>
-            <StoreProvider>
-              <Header featuredStores={featuredStores} />
-              <CategoryCarouselSubHeader />
-              {children}
-            </StoreProvider>
+            <Header />
+            <CategoryCarouselSubHeader/>
+            {children}
             <Footer />
             <MobileFooter />
           </SessionProviderWrapper>
