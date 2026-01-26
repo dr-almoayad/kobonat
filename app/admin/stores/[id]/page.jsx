@@ -111,53 +111,66 @@ export default function StoreEditPage({ params }) {
   };
 
   // Apply categories changes
-  const handleApplyCategories = async () => {
-    startTransition(async () => {
-      try {
-        const result = await updateStoreCategories(store.id, selectedCategories);
-        if (result.success) {
-          // Update local store state to reflect changes
-          setStore(prev => ({
-            ...prev,
-            categories: selectedCategories.map(catId => ({
-              categoryId: catId,
-              storeId: store.id
-            }))
-          }));
-          alert('Categories updated successfully!');
-        } else {
-          alert('Failed to update categories: ' + (result.error || 'Unknown error'));
-        }
-      } catch (err) {
-        console.error('Error updating categories:', err);
-        alert('Error updating categories: ' + err.message);
+  // Apply categories changes
+const handleApplyCategories = async () => {
+  startTransition(async () => {
+    try {
+      // Create FormData object as expected by the server action
+      const formData = new FormData();
+      selectedCategories.forEach(categoryId => {
+        formData.append('categoryIds', categoryId.toString());
+      });
+      
+      const result = await updateStoreCategories(store.id, formData);
+      if (result.success) {
+        // Update local store state to reflect changes
+        setStore(prev => ({
+          ...prev,
+          categories: selectedCategories.map(catId => ({
+            categoryId: catId,
+            storeId: store.id
+          }))
+        }));
+        alert('Categories updated successfully!');
+      } else {
+        alert('Failed to update categories: ' + (result.error || 'Unknown error'));
       }
-    });
-  };
+    } catch (err) {
+      console.error('Error updating categories:', err);
+      alert('Error updating categories: ' + err.message);
+    }
+  });
+};
 
-  // Apply countries changes
-  const handleApplyCountries = async () => {
-    startTransition(async () => {
-      try {
-        const result = await updateStoreCountries(store.id, selectedCountries);
-        if (result.success) {
-          setStore(prev => ({
-            ...prev,
-            countries: selectedCountries.map(countryId => ({
-              countryId: countryId,
-              storeId: store.id
-            }))
-          }));
-          alert('Countries updated successfully!');
-        } else {
-          alert('Failed to update countries: ' + (result.error || 'Unknown error'));
-        }
-      } catch (err) {
-        console.error('Error updating countries:', err);
-        alert('Error updating countries: ' + err.message);
+// Apply countries changes
+const handleApplyCountries = async () => {
+  startTransition(async () => {
+    try {
+      // Create FormData object as expected by the server action
+      const formData = new FormData();
+      selectedCountries.forEach(countryId => {
+        formData.append('countryIds', countryId.toString());
+      });
+      
+      const result = await updateStoreCountries(store.id, formData);
+      if (result.success) {
+        setStore(prev => ({
+          ...prev,
+          countries: selectedCountries.map(countryId => ({
+            countryId: countryId,
+            storeId: store.id
+          }))
+        }));
+        alert('Countries updated successfully!');
+      } else {
+        alert('Failed to update countries: ' + (result.error || 'Unknown error'));
       }
-    });
-  };
+    } catch (err) {
+      console.error('Error updating countries:', err);
+      alert('Error updating countries: ' + err.message);
+    }
+  });
+};
 
   if (loading) return <div className={styles.loading}>Loading Store Data...</div>;
   if (error || !store) return <div className={styles.errorCard}><h3>Error</h3><p>{error}</p></div>;
