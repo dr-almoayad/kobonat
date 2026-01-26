@@ -35,6 +35,10 @@ export default function StoreEditPage({ params }) {
   const [error, setError] = useState('');
   const [isPending, startTransition] = useTransition();
 
+  // Temporary states for batched updates
+  const [selectedCountries, setSelectedCountries] = useState([]);
+  const [selectedCategories, setSelectedCategories] = useState([]);
+
   useEffect(() => {
     async function fetchData() {
       try {
@@ -50,9 +54,6 @@ export default function StoreEditPage({ params }) {
           fetch(`/api/admin/stores/${id}/other-promos?locale=en`)
         ]);
 
-
-
-        // Validate responses before parsing to avoid JSON error
         if (!storeRes.ok) throw new Error(`Store fetch failed: ${storeRes.status}`);
         
         const storeData = await storeRes.json();
@@ -60,7 +61,6 @@ export default function StoreEditPage({ params }) {
         const categoriesData = await categoriesRes.json();
         const pmData = await pmRes.json();
         
-        // Products might return 404 if route isn't created yet, handle gracefully
         let productsData = { products: [] };
         if (productsRes.ok) {
           productsData = await productsRes.json();
@@ -77,6 +77,10 @@ export default function StoreEditPage({ params }) {
         setAllPaymentMethods(pmData.paymentMethods || []);
         setProducts(productsData.products || []);
 
+        // Initialize selected states with current store data
+        setSelectedCountries(storeData.countries?.map(c => c.countryId) || []);
+        setSelectedCategories(storeData.categories?.map(c => c.categoryId) || []);
+
       } catch (err) {
         console.error('Fetch error:', err);
         setError(err.message);
@@ -88,11 +92,84 @@ export default function StoreEditPage({ params }) {
     if (id) fetchData();
   }, [id]);
 
+  // Handler for category checkbox changes
+  const handleCategoryChange = (categoryId, isChecked) => {
+    setSelectedCategories(prev => 
+      isChecked 
+        ? [...prev, categoryId]
+        : prev.filter(id => id !== categoryId)
+    );
+  };
+
+  // Handler for country checkbox changes
+  const handleCountryChange = (countryId, isChecked) => {
+    setSelectedCountries(prev => 
+      isChecked 
+        ? [...prev, countryId]
+        : prev.filter(id => id !== countryId)
+    );
+  };
+
+  // Apply categories changes
+  const handleApplyCategories = async () => {
+    startTransition(async () => {
+      try {
+        const result = await updateStoreCategories(store.id, selectedCategories);
+        if (result.success) {
+          // Update local store state to reflect changes
+          setStore(prev => ({
+            ...prev,
+            categories: selectedCategories.map(catId => ({
+              categoryId: catId,
+              storeId: store.id
+            }))
+          }));
+          alert('Categories updated successfully!');
+        } else {
+          alert('Failed to update categories: ' + (result.error || 'Unknown error'));
+        }
+      } catch (err) {
+        console.error('Error updating categories:', err);
+        alert('Error updating categories: ' + err.message);
+      }
+    });
+  };
+
+  // Apply countries changes
+  const handleApplyCountries = async () => {
+    startTransition(async () => {
+      try {
+        const result = await updateStoreCountries(store.id, selectedCountries);
+        if (result.success) {
+          setStore(prev => ({
+            ...prev,
+            countries: selectedCountries.map(countryId => ({
+              countryId: countryId,
+              storeId: store.id
+            }))
+          }));
+          alert('Countries updated successfully!');
+        } else {
+          alert('Failed to update countries: ' + (result.error || 'Unknown error'));
+        }
+      } catch (err) {
+        console.error('Error updating countries:', err);
+        alert('Error updating countries: ' + err.message);
+      }
+    });
+  };
+
   if (loading) return <div className={styles.loading}>Loading Store Data...</div>;
   if (error || !store) return <div className={styles.errorCard}><h3>Error</h3><p>{error}</p></div>;
 
   const enTranslation = store.translations?.find(t => t.locale === 'en') || {};
   const arTranslation = store.translations?.find(t => t.locale === 'ar') || {};
+
+  // Check if there are unsaved changes
+  const categoriesChanged = JSON.stringify(selectedCategories.sort()) !== 
+    JSON.stringify(store.categories?.map(c => c.categoryId).sort() || []);
+  const countriesChanged = JSON.stringify(selectedCountries.sort()) !== 
+    JSON.stringify(store.countries?.map(c => c.countryId).sort() || []);
 
   return (
     <div className={styles.page}>
@@ -119,6 +196,9 @@ export default function StoreEditPage({ params }) {
             className={`${styles.tab} ${tab === t.id ? styles.tabActive : ''}`}
           >
             {t.label}
+            {/* Show indicator for unsaved changes */}
+            {t.id === 'categories' && categoriesChanged && ' *'}
+            {t.id === 'countries' && countriesChanged && ' *'}
           </button>
         ))}
       </div>
@@ -195,24 +275,40 @@ export default function StoreEditPage({ params }) {
       {/* COUNTRIES */}
       {tab === 'countries' && (
         <div className={styles.section}>
-          <h3>Target Countries</h3>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+            <h3>Target Countries</h3>
+            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+              {countriesChanged && (
+                <span style={{ color: '#f59e0b', fontSize: '0.875rem' }}>
+                  ⚠️ You have unsaved changes
+                </span>
+              )}
+              <button 
+                onClick={handleApplyCountries}
+                className={styles.btnPrimary}
+                disabled={isPending || !countriesChanged}
+                style={{ opacity: !countriesChanged ? 0.5 : 1 }}
+              >
+                {isPending ? 'Applying...' : 'Apply Changes'}
+              </button>
+            </div>
+          </div>
+          
           <div className={styles.checkboxGrid}>
             {allCountries.map(country => (
               <label key={country.id} className={styles.checkboxLabel}>
                 <input 
                   type="checkbox" 
-                  defaultChecked={store.countries?.some(c => c.countryId === country.id)}
-                  onChange={async (e) => {
-                    const currentIds = store.countries.map(c => c.countryId);
-                    const newIds = e.target.checked 
-                      ? [...currentIds, country.id] 
-                      : currentIds.filter(id => id !== country.id);
-                    await updateStoreCountries(store.id, newIds);
-                  }}
+                  checked={selectedCountries.includes(country.id)}
+                  onChange={(e) => handleCountryChange(country.id, e.target.checked)}
                 />
                 {country.flag} {country.translations[0]?.name}
               </label>
             ))}
+          </div>
+          
+          <div style={{ marginTop: '1rem', fontSize: '0.875rem', color: '#666' }}>
+            Selected: {selectedCountries.length} / {allCountries.length} countries
           </div>
         </div>
       )}
@@ -220,24 +316,40 @@ export default function StoreEditPage({ params }) {
       {/* CATEGORIES */}
       {tab === 'categories' && (
         <div className={styles.section}>
-          <h3>Store Categories</h3>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+            <h3>Store Categories</h3>
+            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+              {categoriesChanged && (
+                <span style={{ color: '#f59e0b', fontSize: '0.875rem' }}>
+                  ⚠️ You have unsaved changes
+                </span>
+              )}
+              <button 
+                onClick={handleApplyCategories}
+                className={styles.btnPrimary}
+                disabled={isPending || !categoriesChanged}
+                style={{ opacity: !categoriesChanged ? 0.5 : 1 }}
+              >
+                {isPending ? 'Applying...' : 'Apply Changes'}
+              </button>
+            </div>
+          </div>
+          
           <div className={styles.checkboxGrid}>
             {allCategories.map(cat => (
               <label key={cat.id} className={styles.checkboxLabel}>
                 <input 
                   type="checkbox" 
-                  defaultChecked={store.categories?.some(c => c.categoryId === cat.id)}
-                  onChange={async (e) => {
-                    const currentIds = store.categories.map(c => c.categoryId);
-                    const newIds = e.target.checked 
-                      ? [...currentIds, cat.id] 
-                      : currentIds.filter(id => id !== cat.id);
-                    await updateStoreCategories(store.id, newIds);
-                  }}
+                  checked={selectedCategories.includes(cat.id)}
+                  onChange={(e) => handleCategoryChange(cat.id, e.target.checked)}
                 />
                 {cat.translations[0]?.name}
               </label>
             ))}
+          </div>
+          
+          <div style={{ marginTop: '1rem', fontSize: '0.875rem', color: '#666' }}>
+            Selected: {selectedCategories.length} / {allCategories.length} categories
           </div>
         </div>
       )}
@@ -246,7 +358,6 @@ export default function StoreEditPage({ params }) {
       {tab === 'products' && (
         <ProductsSection storeId={store.id} products={products} />
       )}
-
 
       {/* OTHER PROMOS */}
       {tab === 'other-promos' && (
@@ -393,4 +504,4 @@ export default function StoreEditPage({ params }) {
       )}
     </div>
   );
-}
+           }
