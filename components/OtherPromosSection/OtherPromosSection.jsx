@@ -14,9 +14,6 @@ const OtherPromosSection = ({ storeSlug }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // 1. Move the guard INSIDE the useEffect
-    if (!locale || !locale.includes('-')) return;
-
     const fetchPromos = async () => {
       try {
         const res = await fetch(
@@ -35,7 +32,7 @@ const OtherPromosSection = ({ storeSlug }) => {
     };
 
     fetchPromos();
-  }, [storeSlug, language, countryCode, locale]);
+  }, [storeSlug, language, countryCode]);
 
   if (loading) {
     return (
@@ -62,6 +59,7 @@ const OtherPromosSection = ({ storeSlug }) => {
       <div className="promos-grid">
         {promos.map((promo) => (
           <div key={promo.id} className={`promo-card ${promo.type.toLowerCase()}`}>
+            {/* Promo Image */}
             {promo.image && (
               <div className="promo-image">
                 <Image
@@ -73,9 +71,21 @@ const OtherPromosSection = ({ storeSlug }) => {
                 />
               </div>
             )}
+
+            {/* Type Badge 
+            <div className="promo-type">
+              {getPromoIcon(promo.type)}
+              <span>{t(`types.${promo.type.toLowerCase()}`)}</span>
+            </div>*/}
+
+            {/* Content */}
             <div className="promo-content">
               <h3 className="promo-title">{promo.title}</h3>
-              {promo.description && <p className="promo-description">{promo.description}</p>}
+              {promo.description && (
+                <p className="promo-description">{promo.description}</p>
+              )}
+
+              {/* Expiry */}
               {promo.expiryDate && (
                 <p className="promo-expiry">
                   <span className="material-symbols-sharp">schedule</span>
@@ -84,18 +94,51 @@ const OtherPromosSection = ({ storeSlug }) => {
                   })}
                 </p>
               )}
+
+              {/* CTA */}
               {promo.url && (
-                <a href={promo.url} target="_blank" rel="noopener noreferrer" className="promo-link">
+                <a 
+                  href={promo.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="promo-link"
+                >
                   {t('goToStore')}
                   <span className="material-symbols-sharp">arrow_outward</span>
                 </a>
               )}
             </div>
+
+            {/* T&Cs Accordion */}
+            {promo.terms && (
+              <details className="promo-terms">
+                <summary>{t('termsAndConditions')}</summary>
+                <p>{promo.terms}</p>
+              </details>
+            )}
           </div>
         ))}
       </div>
     </section>
   );
 };
+
+// Helper: Get icon for promo type
+function getPromoIcon(type) {
+  const icons = {
+    BANK_OFFER: 'account_balance',
+    CARD_OFFER: 'credit_card',
+    PAYMENT_OFFER: 'payments',
+    SEASONAL: 'celebration',
+    BUNDLE: 'redeem',
+    OTHER: 'local_offer'
+  };
+  
+  return (
+    <span className="material-symbols-sharp">
+      {icons[type] || icons.OTHER}
+    </span>
+  );
+}
 
 export default OtherPromosSection;
