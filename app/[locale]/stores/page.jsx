@@ -5,27 +5,31 @@ import StoresGrid from "@/components/StoresGrid/StoresGrid";
 import HeroCarousel from "@/components/HeroCarousel/HeroCarousel";
 import { getCountryCategories } from "@/lib/storeCategories";
 import { getStoresData } from "@/lib/stores";
+import { isValidLocale } from "@/i18n/locales"; // Import your validator
+import { notFound } from "next/navigation";
 import "./stores-page.css";
 
 export const revalidate = 60;
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://coubonat.vercel.app';
 
-// ✅ FIXED: Proper canonical URL with locale
 export async function generateMetadata({ params }) {
   const { locale } = await params;
-  const [language, countryCode] = locale.split('-');
-  const isArabic = language === 'ar';
+  
+  // Guard for Metadata
+  const [lang, region] = locale.split('-');
+  if (!isValidLocale(lang, region)) return {};
+
+  const isArabic = lang === 'ar';
   
   return {
     title: isArabic 
-      ? `جميع المتاجر - كوبونات وعروض ${countryCode}`
-      : `All Stores - Coupons & Deals ${countryCode}`,
+      ? `جميع المتاجر - كوبونات وعروض ${region}`
+      : `All Stores - Coupons & Deals ${region}`,
     description: isArabic
-      ? `تصفح جميع المتاجر المتاحة في ${countryCode}. احصل على أفضل الكوبونات والعروض من متاجرك المفضلة.`
-      : `Browse all available stores in ${countryCode}. Get the best coupons and deals from your favorite stores.`,
+      ? `تصفح جميع المتاجر المتاحة في ${region}. احصل على أفضل الكوبونات والعروض من متاجرك المفضلة.`
+      : `Browse all available stores in ${region}. Get the best coupons and deals from your favorite stores.`,
     
-    // ✅ CRITICAL: Include locale in canonical
     alternates: {
       canonical: `${BASE_URL}/${locale}/stores`,
       languages: {
@@ -33,26 +37,12 @@ export async function generateMetadata({ params }) {
         'en-SA': `${BASE_URL}/en-SA/stores`,
         'ar-AE': `${BASE_URL}/ar-AE/stores`,
         'en-AE': `${BASE_URL}/en-AE/stores`,
-        'ar-EG': `${BASE_URL}/ar-EG/stores`,
-        'en-EG': `${BASE_URL}/en-EG/stores`,
-        'ar-QA': `${BASE_URL}/ar-QA/stores`,
-        'en-QA': `${BASE_URL}/en-QA/stores`,
-        'ar-KW': `${BASE_URL}/ar-KW/stores`,
-        'en-KW': `${BASE_URL}/en-KW/stores`,
-        'ar-OM': `${BASE_URL}/ar-OM/stores`,
-        'en-OM': `${BASE_URL}/en-OM/stores`,
         'x-default': `${BASE_URL}/ar-SA/stores`,
       }
     },
-    
     openGraph: {
       url: `${BASE_URL}/${locale}/stores`,
       locale: locale,
-    },
-    
-    robots: {
-      index: true,
-      follow: true,
     },
   };
 }
@@ -60,13 +50,22 @@ export async function generateMetadata({ params }) {
 export default async function AllStoresPage({ params }) {
   const { locale } = await params;
   const [language, countryCode] = locale.split('-');
+
+  // 1. CRITICAL: Locale Guard (Prevents Prisma/build crashes)
+  if (!isValidLocale(language, countryCode)) {
+    notFound();
+  }
+
   const t = await getTranslations('StoresPage');
 
+  // 2. FIXED: Added country filter to the Prisma query
   const featuredStoresWithCovers = await prisma.store.findMany({
     where: { 
       isActive: true,
       isFeatured: true,
       coverImage: { not: null },
+      // Filter by the current country segment
+      countries: { some: { country: { code: countryCode } } } 
     },
     include: {
       translations: {
@@ -90,6 +89,7 @@ export default async function AllStoresPage({ params }) {
     };
   });
 
+  // These helpers should already handle filtering based on the args you pass
   const stores = await getStoresData({ 
     language, 
     countryCode 
