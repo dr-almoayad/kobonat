@@ -3,7 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { getTranslations } from 'next-intl/server';
 import Link from "next/link";
 import "./page.css";
-
+import { notFound } from "next/navigation"; // <--- Add this
+import { allLocaleCodes } from "@/i18n/locales"; // <--- Add
 import VoucherCard from "@/components/VoucherCard/VoucherCard";
 import StoreCard from "@/components/StoreCard/StoreCard";
 import HeroCarousel from "@/components/HeroCarousel/HeroCarousel";
