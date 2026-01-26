@@ -1,4 +1,4 @@
-// components/footers/MobileFooter.jsx - UPDATED WITH COUPONS TAB
+// components/footers/MobileFooter.jsx - FIXED CACHE ISSUE
 'use client';
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
@@ -29,14 +29,15 @@ const MobileFooter = () => {
   const categoriesMenuRef = useRef(null);
   const storesMenuRef = useRef(null);
 
-  // Fetch categories for grid
+  // ✅ FIX: Fetch categories for grid with NO CACHE
   useEffect(() => {
     let isMounted = true;
 
     const fetchCategories = async () => {
       try {
+        // ✅ CRITICAL FIX: Changed from 'force-cache' to 'no-store'
         const response = await fetch(`/api/categories?locale=${language}&country=${region}`, {
-          cache: 'force-cache',
+          cache: 'no-store', // This ensures fresh data every time
           headers: { 'Content-Type': 'application/json' }
         });
 
@@ -69,6 +70,36 @@ const MobileFooter = () => {
     fetchCategories();
     return () => { isMounted = false; };
   }, [language, region]);
+
+  // ✅ ALTERNATIVE: Refresh categories when menu opens
+  const handleCategoriesClick = async () => {
+    setShowCategoriesMenu(!showCategoriesMenu);
+    
+    // Optionally refresh categories when menu opens
+    if (!showCategoriesMenu && categories.length > 0) {
+      try {
+        const response = await fetch(`/api/categories?locale=${language}&country=${region}`, {
+          cache: 'no-store',
+          headers: { 'Content-Type': 'application/json' }
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          const validCategories = Array.isArray(data) 
+            ? data.filter(cat => cat._count?.stores > 0)
+            : (data.categories || []).filter(cat => cat._count?.stores > 0);
+          
+          const sortedCategories = validCategories
+            .sort((a, b) => (b._count?.stores || 0) - (a._count?.stores || 0))
+            .slice(0, 12);
+          
+          setCategories(sortedCategories);
+        }
+      } catch (error) {
+        console.error('Failed to refresh categories:', error);
+      }
+    }
+  };
 
   // Fetch coupons when menu opens
   const fetchCoupons = async () => {
@@ -395,10 +426,10 @@ const MobileFooter = () => {
             <span className="footer-label">{t('stores', { defaultValue: 'Stores' })}</span>
           </button>
           
-          {/* Categories */}
+          {/* Categories - UPDATED to use new handler */}
           <button 
             className={`footer-item ${showCategoriesMenu ? 'active' : ''}`}
-            onClick={() => setShowCategoriesMenu(!showCategoriesMenu)}
+            onClick={handleCategoriesClick}
           >
             <span className="material-symbols-sharp">category</span>
             <span className="footer-label">{t('categories', { defaultValue: 'Categories' })}</span>
