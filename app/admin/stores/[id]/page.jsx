@@ -8,7 +8,8 @@ import {
   updateStoreCategories,
   upsertFAQ,
   deleteFAQ,
-  createOtherPromo
+  createOtherPromo,
+  deleteOtherPromo  // ADD THIS IMPORT
 } from '../../_lib/actions';
 import { FormField, FormRow, FormSection } from '../../_components/FormField';
 import { DataTable } from '../../_components/DataTable';
@@ -372,98 +373,111 @@ const handleApplyCountries = async () => {
         <ProductsSection storeId={store.id} products={products} />
       )}
 
-      {/* OTHER PROMOS */}
-      {tab === 'other-promos' && (
-        <div className={styles.section}>
-          <form action={(formData) => startTransition(async () => {
-            const result = await createOtherPromo(formData);
-            if (result.success) router.refresh();
-          })} className={styles.form}>
-            <FormSection title="Add Other Promo">
-              <input type="hidden" name="storeId" value={store.id} />
-              <FormRow>
-                <FormField 
-                  label="Country" 
-                  name="countryId" 
-                  type="select" 
-                  options={allCountries.map(c => ({ 
-                    label: c.translations[0]?.name, 
-                    value: c.id 
-                  }))} 
-                  required 
-                />
-                <FormField 
-                  label="Type" 
-                  name="type" 
-                  type="select" 
-                  options={[
-                    { label: 'Bank Offer', value: 'BANK_OFFER' },
-                    { label: 'Card Offer', value: 'CARD_OFFER' },
-                    { label: 'Payment Offer', value: 'PAYMENT_OFFER' },
-                    { label: 'Seasonal', value: 'SEASONAL' },
-                    { label: 'Bundle', value: 'BUNDLE' },
-                    { label: 'Other', value: 'OTHER' }
-                  ]} 
-                  required 
-                />
-              </FormRow>
-              <FormRow>
-                <FormField label="Image URL" name="image" />
-                <FormField label="External URL" name="url" type="url" />
-              </FormRow>
-              <FormRow>
-                <FormField label="Start Date" name="startDate" type="date" />
-                <FormField label="Expiry Date" name="expiryDate" type="date" />
-              </FormRow>
-              <FormRow>
-                <FormField label="Order" name="order" type="number" defaultValue="0" />
-                <FormField label="Active" name="isActive" type="checkbox" defaultValue={true} />
-              </FormRow>
-              <FormRow>
-                <FormField label="Title (EN)" name="title_en" required />
-                <FormField label="Title (AR)" name="title_ar" required dir="rtl" />
-              </FormRow>
-              <FormRow>
-                <FormField label="Description (EN)" name="description_en" type="textarea" />
-                <FormField label="Description (AR)" name="description_ar" type="textarea" dir="rtl" />
-              </FormRow>
-              <FormRow>
-                <FormField label="Terms (EN)" name="terms_en" type="textarea" />
-                <FormField label="Terms (AR)" name="terms_ar" type="textarea" dir="rtl" />
-              </FormRow>
-              <button type="submit" className={styles.btnPrimary} disabled={isPending}>
-                Add Other Promo
-              </button>
-            </FormSection>
-          </form>
-
-          <DataTable
-            data={otherPromos || []}
-            columns={[
-              { 
-                key: 'translations', 
-                label: 'Title', 
-                render: (t) => t?.[0]?.title || '—' 
-              },
-              { key: 'type', label: 'Type' },
-              { 
-                key: 'expiryDate', 
-                label: 'Expires', 
-                render: (date) => date ? new Date(date).toLocaleDateString() : 'No expiry' 
-              },
-              { 
-                key: 'isActive', 
-                label: 'Status', 
-                render: (val) => val ? 'Active' : 'Inactive' 
-              }
-            ]}
-            onDelete={async (promoId) => {
-              await deleteOtherPromo(promoId);
-              router.refresh();
-            }}
+{/* OTHER PROMOS */}
+{tab === 'other-promos' && (
+  <div className={styles.section}>
+    <form action={(formData) => startTransition(async () => {
+      const result = await createOtherPromo(formData);
+      if (result.success) router.refresh();
+    })} className={styles.form}>
+      <FormSection title="Add Other Promo">
+        <input type="hidden" name="storeId" value={store.id} />
+        <FormRow>
+          <FormField 
+            label="Country" 
+            name="countryId" 
+            type="select" 
+            options={allCountries.map(c => ({ 
+              label: c.translations[0]?.name, 
+              value: c.id 
+            }))} 
+            required 
           />
-        </div>
-      )}
+          <FormField 
+            label="Type" 
+            name="type" 
+            type="select" 
+            options={[
+              { label: 'Bank Offer', value: 'BANK_OFFER' },
+              { label: 'Card Offer', value: 'CARD_OFFER' },
+              { label: 'Payment Offer', value: 'PAYMENT_OFFER' },
+              { label: 'Seasonal', value: 'SEASONAL' },
+              { label: 'Bundle', value: 'BUNDLE' },
+              { label: 'Other', value: 'OTHER' }
+            ]} 
+            required 
+          />
+        </FormRow>
+        <FormRow>
+          <FormField label="Image URL" name="image" />
+          <FormField label="External URL" name="url" type="url" />
+        </FormRow>
+        <FormRow>
+          <FormField label="Start Date" name="startDate" type="date" />
+          <FormField label="Expiry Date" name="expiryDate" type="date" />
+        </FormRow>
+        <FormRow>
+          <FormField label="Order" name="order" type="number" defaultValue="0" />
+          <FormField label="Active" name="isActive" type="checkbox" defaultValue={true} />
+        </FormRow>
+        <FormRow>
+          <FormField label="Title (EN)" name="title_en" required />
+          <FormField label="Title (AR)" name="title_ar" required dir="rtl" />
+        </FormRow>
+        <FormRow>
+          <FormField label="Description (EN)" name="description_en" type="textarea" />
+          <FormField label="Description (AR)" name="description_ar" type="textarea" dir="rtl" />
+        </FormRow>
+        <FormRow>
+          <FormField label="Terms (EN)" name="terms_en" type="textarea" />
+          <FormField label="Terms (AR)" name="terms_ar" type="textarea" dir="rtl" />
+        </FormRow>
+        <button type="submit" className={styles.btnPrimary} disabled={isPending}>
+          Add Other Promo
+        </button>
+      </FormSection>
+    </form>
+
+    <DataTable
+      data={otherPromos || []}
+      columns={[
+        { 
+          key: 'translations', 
+          label: 'Title', 
+          render: (t) => t?.[0]?.title || '—' 
+        },
+        { key: 'type', label: 'Type' },
+        { 
+          key: 'expiryDate', 
+          label: 'Expires', 
+          render: (date) => date ? new Date(date).toLocaleDateString() : 'No expiry' 
+        },
+        { 
+          key: 'isActive', 
+          label: 'Status', 
+          render: (val) => val ? 'Active' : 'Inactive' 
+        }
+      ]}
+      onDelete={async (promoId) => {
+        if (!confirm('Are you sure you want to delete this promo?')) return;
+        
+        try {
+          const result = await deleteOtherPromo(promoId);
+          if (result.success) {
+            // Remove the deleted promo from local state
+            setOtherPromos(prev => prev.filter(promo => promo.id !== promoId));
+            alert('Promo deleted successfully!');
+          } else {
+            alert('Failed to delete promo: ' + (result.error || 'Unknown error'));
+          }
+        } catch (error) {
+          console.error('Error deleting promo:', error);
+          alert('Error deleting promo: ' + error.message);
+        }
+      }}
+    />
+  </div>
+)}
 
       {/* PAYMENT METHODS */}
       {tab === 'payment-methods' && (
