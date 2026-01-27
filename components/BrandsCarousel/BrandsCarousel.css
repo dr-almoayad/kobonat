@@ -2,69 +2,15 @@
 
 .brands-carousel-section {
   width: 100%;
-  padding: 60px 0;
-  background: #ffffff;
+  padding: 40px 0;
+  background: transparent;
+  overflow: hidden;
 }
 
 .brands-carousel-container {
   max-width: 1400px;
   margin: 0 auto;
   padding: 0 20px;
-}
-
-/* Header */
-.brands-carousel-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 32px;
-  gap: 20px;
-}
-
-.brands-carousel-title {
-  font-size: 28px;
-  font-weight: 700;
-  color: #1a1a1a;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin: 0;
-}
-
-.brands-carousel-title .material-symbols-sharp {
-  font-size: 32px;
-  color: #470ae2;
-}
-
-/* Controls */
-.brands-carousel-controls {
-  display: flex;
-  gap: 10px;
-}
-
-.brands-carousel-btn {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  border: 2px solid #e5e7eb;
-  background: #ffffff;
-  color: #374151;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.brands-carousel-btn:hover {
-  background: #470ae2;
-  border-color: #470ae2;
-  color: #ffffff;
-  transform: scale(1.05);
-}
-
-.brands-carousel-btn .material-symbols-sharp {
-  font-size: 24px;
 }
 
 /* Embla */
@@ -74,248 +20,150 @@
 
 .brands-carousel-embla-container {
   display: flex;
-  gap: 20px;
+  gap: 40px;
+  transition: transform 0.3s ease;
 }
 
 .brands-carousel-embla-slide {
   flex: 0 0 auto;
   min-width: 0;
-  width: 200px;
+  width: 150px;
 }
 
-/* Brand Card */
-.brand-card {
-  display: block;
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  padding: 20px;
-  text-decoration: none;
-  transition: all 0.3s ease;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-}
-
-.brand-card:hover {
-  border-color: #470ae2;
-  box-shadow: 0 4px 12px rgba(71, 10, 226, 0.1);
-  transform: translateY(-4px);
-}
-
-.brand-card-logo-wrapper {
-  width: 100px;
-  height: 100px;
+/* Brand Logo Link */
+.brand-logo-link {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 16px;
-  background: #f9fafb;
-  border-radius: 8px;
-  padding: 12px;
+  width: 100%;
+  height: 80px;
+  text-decoration: none;
+  opacity: 0.7;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  cursor: pointer;
 }
 
-.brand-card-logo {
+.brand-logo-link:hover {
+  opacity: 1;
+  transform: scale(1.05);
+}
+
+.brand-logo {
   width: 100%;
   height: 100%;
   object-fit: contain;
+  filter: grayscale(0%);
+  transition: filter 0.3s ease;
 }
 
-.brand-card-logo-placeholder {
+.brand-logo-link:hover .brand-logo {
+  filter: grayscale(0%);
+}
+
+.brand-logo-placeholder {
   width: 100%;
   height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #9ca3af;
+  color: #d1d5db;
+  opacity: 0.5;
 }
 
-.brand-card-logo-placeholder .material-symbols-sharp {
+.brand-logo-placeholder .material-symbols-sharp {
   font-size: 48px;
 }
 
-.brand-card-info {
-  width: 100%;
-}
-
-.brand-card-name {
-  font-size: 16px;
-  font-weight: 600;
-  color: #1a1a1a;
-  margin: 0 0 8px 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.brand-card-vouchers {
-  display: inline-block;
-  font-size: 13px;
-  color: #470ae2;
-  background: #ede9fe;
-  padding: 4px 12px;
-  border-radius: 12px;
-  font-weight: 500;
-}
-
 /* RTL Support */
-[dir="rtl"] .brands-carousel-header {
-  flex-direction: row-reverse;
-}
-
-[dir="rtl"] .brands-carousel-title {
-  flex-direction: row-reverse;
-}
-
-[dir="rtl"] .brands-carousel-controls {
-  flex-direction: row-reverse;
+[dir="rtl"] .brands-carousel-embla-container {
+  direction: ltr;
 }
 
 /* Responsive */
 @media (max-width: 1024px) {
   .brands-carousel-embla-slide {
-    width: 180px;
+    width: 130px;
   }
 
-  .brands-carousel-title {
-    font-size: 24px;
-  }
-
-  .brands-carousel-title .material-symbols-sharp {
-    font-size: 28px;
+  .brand-logo-link {
+    height: 70px;
   }
 }
 
 @media (max-width: 768px) {
   .brands-carousel-section {
-    padding: 40px 0;
+    padding: 30px 0;
   }
 
-  .brands-carousel-header {
-    margin-bottom: 24px;
-  }
-
-  .brands-carousel-title {
-    font-size: 20px;
-  }
-
-  .brands-carousel-title .material-symbols-sharp {
-    font-size: 24px;
+  .brands-carousel-embla-container {
+    gap: 30px;
   }
 
   .brands-carousel-embla-slide {
-    width: 160px;
+    width: 110px;
   }
 
-  .brands-carousel-btn {
-    width: 36px;
-    height: 36px;
+  .brand-logo-link {
+    height: 60px;
   }
 
-  .brands-carousel-btn .material-symbols-sharp {
-    font-size: 20px;
-  }
-
-  .brand-card {
-    padding: 16px;
-  }
-
-  .brand-card-logo-wrapper {
-    width: 80px;
-    height: 80px;
-    margin-bottom: 12px;
-  }
-
-  .brand-card-name {
-    font-size: 14px;
-  }
-
-  .brand-card-vouchers {
-    font-size: 12px;
-    padding: 3px 10px;
+  .brand-logo-placeholder .material-symbols-sharp {
+    font-size: 36px;
   }
 }
 
 @media (max-width: 480px) {
+  .brands-carousel-section {
+    padding: 20px 0;
+  }
+
   .brands-carousel-container {
     padding: 0 16px;
   }
 
+  .brands-carousel-embla-container {
+    gap: 24px;
+  }
+
   .brands-carousel-embla-slide {
-    width: 140px;
+    width: 90px;
   }
 
-  .brands-carousel-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 16px;
+  .brand-logo-link {
+    height: 50px;
   }
 
-  .brand-card {
-    padding: 12px;
-  }
-
-  .brand-card-logo-wrapper {
-    width: 70px;
-    height: 70px;
+  .brand-logo-placeholder .material-symbols-sharp {
+    font-size: 32px;
   }
 }
 
-/* Animation */
+/* Smooth Animation */
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(10px);
   }
   to {
-    opacity: 1;
-    transform: translateY(0);
+    opacity: 0.7;
   }
 }
 
-.brand-card {
-  animation: fadeIn 0.3s ease;
+.brand-logo-link {
+  animation: fadeIn 0.5s ease;
+}
+
+/* Hover pause effect */
+.brands-carousel-embla:hover .brands-carousel-embla-container {
+  animation-play-state: paused;
 }
 
 /* Dark mode support (optional) */
 @media (prefers-color-scheme: dark) {
-  .brands-carousel-section {
-    background: #111827;
+  .brand-logo {
+    filter: brightness(0.9);
   }
 
-  .brand-card {
-    background: #1f2937;
-    border-color: #374151;
-  }
-
-  .brand-card:hover {
-    border-color: #470ae2;
-    box-shadow: 0 4px 12px rgba(71, 10, 226, 0.3);
-  }
-
-  .brand-card-name {
-    color: #f9fafb;
-  }
-
-  .brand-card-logo-wrapper {
-    background: #111827;
-  }
-
-  .brands-carousel-title {
-    color: #f9fafb;
-  }
-
-  .brands-carousel-btn {
-    background: #1f2937;
-    border-color: #374151;
-    color: #9ca3af;
-  }
-
-  .brands-carousel-btn:hover {
-    background: #470ae2;
-    border-color: #470ae2;
-    color: #ffffff;
+  .brand-logo-link:hover .brand-logo {
+    filter: brightness(1);
   }
 }
