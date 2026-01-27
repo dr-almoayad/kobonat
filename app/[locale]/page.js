@@ -266,6 +266,7 @@ export default async function Home({ params }) {
               locale={locale}
               height="400px"
               autoplayDelay={4000}
+              showOverlay={false}
             />
           </div>
         )}
