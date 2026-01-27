@@ -78,14 +78,14 @@ const StoreCard = ({ store }) => {
 
       {/* --- BOTTOM SECTION: STATS & ACTION --- */}
       <div className="ticket-body">
-        <div className="stats-row">
+        {/*<div className="stats-row">
           <div className="stat-box">
             <span className="stat-value">{voucherCount}</span>
             <span className="stat-label">
               {currentLanguage === 'ar' ? 'كوبون' : 'Coupons'}
             </span>
           </div>
-        </div>
+        </div>*/}
         
         <div className="action-area">
             <span className="action-text">
