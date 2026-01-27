@@ -1,14 +1,14 @@
-// app/[locale]/page.js - FIXED SEO METADATA
+// app/[locale]/page.js - UPDATED with BrandsCarousel
 import { prisma } from "@/lib/prisma";
 import { getTranslations } from 'next-intl/server';
 import Link from "next/link";
 import "./page.css";
-import { notFound } from "next/navigation"; // <--- Add this
-import { allLocaleCodes } from "@/i18n/locales"; // <--- Add
+import { notFound } from "next/navigation";
+import { allLocaleCodes } from "@/i18n/locales";
 import VoucherCard from "@/components/VoucherCard/VoucherCard";
 import StoreCard from "@/components/StoreCard/StoreCard";
 import HeroCarousel from "@/components/HeroCarousel/HeroCarousel";
-import AffiliatesHero from "@/components/affiliates/affiliatesHero";
+import BrandsCarousel from "@/components/BrandsCarousel/BrandsCarousel";
 
 import { 
   generateOrganizationSchema,
@@ -81,7 +81,7 @@ export default async function Home({ params }) {
   const [language, countryCode] = locale.split('-');
 
   // Fetch data with proper joins for translations
-  const [featuredStoresWithCovers, topVouchers, featuredStores] = await Promise.all([
+  const [featuredStoresWithCovers, topVouchers, featuredStores, allActiveBrands] = await Promise.all([
     // Featured stores WITH cover images
     prisma.store.findMany({
       where: { 
@@ -157,6 +157,48 @@ export default async function Home({ params }) {
         }
       },
       take: 16
+    }),
+
+    // NEW: Fetch brands for the carousel
+    prisma.store.findMany({
+      where: { 
+        isActive: true,
+        countries: {
+          some: {
+            country: { code: countryCode || 'SA' }
+          }
+        }
+      },
+      include: {
+        translations: {
+          where: { locale: language },
+          select: {
+            name: true,
+            slug: true,
+          }
+        },
+        _count: {
+          select: {
+            vouchers: {
+              where: {
+                expiryDate: { gte: new Date() },
+                countries: {
+                  some: {
+                    country: {
+                      code: countryCode || 'SA'
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      orderBy: [
+        { isFeatured: 'desc' },
+        { id: 'asc' }
+      ],
+      take: 20
     })
   ]);
 
@@ -192,6 +234,15 @@ export default async function Home({ params }) {
   const transformedFeaturedStores = featuredStores.map(transformStoreWithTranslation);
   const transformedTopVouchers = topVouchers.map(transformVoucherWithTranslation);
 
+  // Transform brands for carousel
+  const transformedBrands = allActiveBrands.map(brand => ({
+    id: brand.id,
+    name: brand.translations?.[0]?.name || '',
+    slug: brand.translations?.[0]?.slug || '',
+    logo: brand.logo,
+    activeVouchersCount: brand._count?.vouchers || 0
+  }));
+
   const schemas = [
     generateOrganizationSchema(locale),
     generateWebsiteSchema(locale),
@@ -219,7 +270,10 @@ export default async function Home({ params }) {
           </div>
         )}
 
-        <AffiliatesHero/>
+        {/* REPLACED: AffiliatesHero with BrandsCarousel */}
+        {transformedBrands.length > 0 && (
+          <BrandsCarousel brands={transformedBrands} />
+        )}
         
         <section className="home-section">
           <div className="section-header">
