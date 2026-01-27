@@ -23,6 +23,7 @@
   overflow: hidden;
   position: relative;
   text-decoration: none;
+  font-family: 'Alexandria', 'Open Sans', sans-serif;
   height: 100%;
   min-height: 240px; /* Adjust as needed */
 }
