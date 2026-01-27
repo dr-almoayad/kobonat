@@ -31,7 +31,6 @@
 /* --- Hero Section --- */
 .hero-section {
   background: #fff;
-  border-bottom: 1px solid var(--border-color);
   padding-bottom: 0;
   margin-bottom: 0;
   overflow: hidden;
