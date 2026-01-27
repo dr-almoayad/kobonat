@@ -1,4 +1,4 @@
-// app/[locale]/layout.js - FIXED CANONICAL URLS FOR SEO
+// app/[locale]/layout.js - FIXED CANONICAL URLS FOR SEO + GOOGLE ANALYTICS
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
@@ -12,6 +12,7 @@ import "@emran-alhaddad/saudi-riyal-font/index.css";
 import MobileFooter from "@/components/footers/MobileFooter";
 import SubBar from "@/components/headers/subBar";
 import CategoryCarouselSubHeader from "@/components/headers/CategoryCarouselSubHeader";
+import Script from 'next/script';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -26,6 +27,7 @@ const geistMono = Geist_Mono({
 });
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://coubonat.vercel.app';
+const GA_MEASUREMENT_ID = 'G-EFNHSXWE0M';
 
 // Default metadata (will be overridden by page-specific metadata)
 export async function generateMetadata({ params }) {
@@ -163,15 +165,6 @@ export default async function LocaleLayout({ children, params }) {
           href="https://fonts.googleapis.com/css2?family=Alexandria:wght@100..900&family=Open+Sans:wght@300..800&display=swap" 
           rel="stylesheet"
         />
-
-            <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-EFNHSXWE0M"/>
-<script
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', 'G-EFNHSXWE0M');
-/>
         
         {/* Schema.org for organization */}
         <script
@@ -195,6 +188,20 @@ export default async function LocaleLayout({ children, params }) {
         />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
+        {/* Google Analytics - Using Next.js Script component */}
+        <Script
+          src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', '${GA_MEASUREMENT_ID}');
+          `}
+        </Script>
+
         <NextIntlClientProvider messages={messages} locale={locale}>
           <SessionProviderWrapper>
             <Header />
