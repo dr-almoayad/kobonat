@@ -146,6 +146,7 @@
   align-items: center;
   gap: 0.5rem;
   font-size: 0.875rem;
+  font-family: 'Alexandria', 'Open Sans', sans-serif;
   color: var(--text-light, #94a3b8);
   margin-top: auto;
 }
@@ -167,6 +168,7 @@
   text-decoration: none;
   font-weight: 600;
   font-size: 0.9375rem;
+  font-family: 'Alexandria', 'Open Sans', sans-serif;
   transition: all 0.2s ease;
   margin-top: 1rem;
 }
@@ -191,6 +193,7 @@
   cursor: pointer;
   font-size: 0.875rem;
   font-weight: 600;
+  font-family: 'Alexandria', 'Open Sans', sans-serif;
   color: var(--text-muted, #64748b);
   list-style: none;
   display: flex;
@@ -210,6 +213,7 @@
 
 .promo-terms p {
   font-size: 0.8125rem;
+  font-family: 'Alexandria', 'Open Sans', sans-serif;
   color: var(--text-light, #94a3b8);
   line-height: 1.6;
   margin-top: 0.75rem;
