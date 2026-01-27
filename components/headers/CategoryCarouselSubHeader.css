@@ -12,6 +12,8 @@
 
 .category-carousel {
     width: 100%;
+    max-width: 1280px;
+    margin: auto;
     overflow-x: auto;
     overflow-y: hidden;
     scrollbar-width: none;
