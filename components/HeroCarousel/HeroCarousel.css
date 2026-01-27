@@ -53,17 +53,12 @@
 }
 
 .hero-slide__overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(
-    to bottom,
-    rgba(0, 0, 0, 0.2) 0%,
-    rgba(0, 0, 0, 0.5) 100%
-  );
-  pointer-events: none;
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    bottom: 0;
+    background: linear-gradient(0deg,rgba(248, 250, 252, 1) 5%, rgba(87, 199, 133, 0) 50%);
+    pointer-events: none;
 }
 
 .hero-slide__content {
@@ -105,7 +100,7 @@
 /* Dots Navigation */
 .hero-carousel__dots {
   position: absolute;
-  bottom: 1rem;
+  bottom: 2rem;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
