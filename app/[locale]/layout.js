@@ -163,6 +163,16 @@ export default async function LocaleLayout({ children, params }) {
           href="https://fonts.googleapis.com/css2?family=Alexandria:wght@100..900&family=Open+Sans:wght@300..800&display=swap" 
           rel="stylesheet"
         />
+
+            <!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-EFNHSXWE0M"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-EFNHSXWE0M');
+</script>
         
         {/* Schema.org for organization */}
         <script
