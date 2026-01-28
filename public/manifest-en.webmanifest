@@ -1,0 +1,39 @@
+{
+  "name": "Cobonat - Saudi Promo Codes & Deals (updated)",
+  "short_name": "Cobonat",
+  "description": "Your #1 source for verified Saudi discount codes 🇸🇦. Save money on fashion, electronics, and groceries with verified and active coupons for top local and global stores.",
+  "start_url": "/en-SA?utm_source=homescreen",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#470ae2",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Latest Deals 🔥",
+      "short_name": "Deals",
+      "description": "Check out the newest verified coupons",
+      "url": "/en-SA/coupons?sort=newest&utm_source=shortcut",
+    },
+    {
+      "name": "Browse Stores",
+      "short_name": "Stores",
+      "description": "Find coupons for your favorite brands",
+      "url": "/en-SA/stores?utm_source=shortcut",
+    }
+  ],
+  "lang": "en-SA",
+  "dir": "ltr"
+}
