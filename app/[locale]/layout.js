@@ -1,4 +1,4 @@
-// app/[locale]/layout.js - FIXED CANONICAL URLS FOR SEO + GOOGLE ANALYTICS
+// app/[locale]/layout.js - FIXED CANONICAL URLS FOR SEO + GOOGLE ANALYTICS + LOCALE-SPECIFIC MANIFESTS
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
@@ -39,24 +39,24 @@ export async function generateMetadata({ params }) {
     metadataBase: new URL(BASE_URL),
     title: {
       default: isArabic 
-        ? 'كوبونات وعروض - وفر المال في كل عملية شراء'
-        : 'Coupons & Deals - Save Money on Every Purchase',
+        ? "Cobonat | كوبونات - أكواد خصم السعودية (محدث باستمرار) - وفر أكثر على مشترياتك ومقاضيك!"
+        : 'Cobonat - Save More on Every Purchase',
       template: isArabic 
         ? '%s | كوبونات'
         : '%s | Coupons Platform'
     },
     description: isArabic
-      ? 'اعثر على أفضل الكوبونات وأكواد الخصم من أفضل المتاجر. وفر المال في كل عملية شراء مع أكواد خصم موثقة.'
-      : 'Find the best coupons, promo codes, and deals from top stores. Save money on every purchase with verified discount codes.',
-    applicationName: isArabic ? 'كوبونات' : 'Coupons Platform',
-    authors: [{ name: 'Coubonat' }],
+      ? "منصتك الأولى لأكواد الخصم والعروض في السعودية 🇸🇦. وفر فلوسك مع كوبونات فعالة وموثقة لأشهر المتاجر العالمية والمحلية. مقاضيك، لبسك، وسفرياتك صارت أوفر!"
+      : "Your #1 source for verified discount codes in Saudi 🇸🇦. Save more on fashion, electronics, and groceries with verified and active coupons for top local and global stores.",
+    applicationName: isArabic ? 'كوبونات' : 'Cobonat',
+    authors: [{ name: 'Cobonat' }],
     generator: 'Next.js',
-    keywords: isArabic 
-      ? ['كوبونات', 'أكواد خصم', 'عروض', 'خصومات', 'توفير', region]
-      : ['coupons', 'promo codes', 'deals', 'discounts', 'savings', region],
+   const keywords = isArabic 
+    ? ['كوبونات', 'أكواد خصم', 'عروض', 'خصومات', 'توفير', 'السعودية', 'كود خصم تويتر', 'شحن مجاني', 'كوبونات المشاهير', 'خصم أول طلب', 'أكواد مجربة']
+    : ['Coupons', 'Promo Codes', 'Saudi Deals', 'Discount Codes', 'Free Shipping', 'First Order Code', 'Verified Coupons', 'KSA Offers'];
     referrer: 'origin-when-cross-origin',
-    creator: 'Coubonat',
-    publisher: 'Coubonat',
+    creator: 'Cobonat',
+    publisher: 'Cobonat',
     formatDetection: {
       email: false,
       address: false,
@@ -65,21 +65,11 @@ export async function generateMetadata({ params }) {
     
     // ✅ CRITICAL FIX: Proper alternates with locale in canonical
     alternates: {
-      canonical: `${BASE_URL}/${locale}`, // Include locale in canonical!
+      canonical: `${BASE_URL}/${locale}`,
       languages: {
         'ar-SA': `${BASE_URL}/ar-SA`,
         'en-SA': `${BASE_URL}/en-SA`,
-        'ar-AE': `${BASE_URL}/ar-AE`,
-        'en-AE': `${BASE_URL}/en-AE`,
-        'ar-EG': `${BASE_URL}/ar-EG`,
-        'en-EG': `${BASE_URL}/en-EG`,
-        'ar-QA': `${BASE_URL}/ar-QA`,
-        'en-QA': `${BASE_URL}/en-QA`,
-        'ar-KW': `${BASE_URL}/ar-KW`,
-        'en-KW': `${BASE_URL}/en-KW`,
-        'ar-OM': `${BASE_URL}/ar-OM`,
-        'en-OM': `${BASE_URL}/en-OM`,
-        'x-default': `${BASE_URL}/ar-SA`, // Default to Arabic Saudi Arabia
+        'x-default': `${BASE_URL}/ar-SA`,
       }
     },
     
@@ -88,20 +78,20 @@ export async function generateMetadata({ params }) {
       type: 'website',
       locale: locale,
       url: `${BASE_URL}/${locale}`,
-      siteName: isArabic ? 'كوبونات' : 'Coupons Platform',
+      siteName: isArabic ? 'كوبونات' : 'Cobonat',
       title: isArabic 
-        ? 'كوبونات وعروض - وفر المال'
-        : 'Coupons & Deals - Save Money',
+        ? "Cobonat | كوبونات - وفر أكثر على مشترياتك ومقاضيك!"
+        : 'Cobonat - Save More on Every Purchase',
       description: isArabic
-        ? 'أفضل الكوبونات والعروض من المتاجر الرائدة'
-        : 'Best coupons and deals from leading stores',
+        ? "منصتك الأولى لأكواد الخصم والعروض في السعودية 🇸🇦. وفر فلوسك مع كوبونات فعالة وموثقة لأشهر المتاجر العالمية والمحلية. مقاضيك، لبسك، وسفرياتك صارت أوفر!"
+        : "Your #1 source for verified discount codes in Saudi 🇸🇦. Save more on fashion, electronics, and groceries with verified and active coupons for top local and global stores.",
     },
     
     // Twitter
     twitter: {
       card: 'summary_large_image',
-      site: '@coubonat',
-      creator: '@coubonat',
+      site: '@cobonat',
+      creator: '@cobonat',
     },
     
     // Robots - Allow all locales
@@ -124,8 +114,8 @@ export async function generateMetadata({ params }) {
       apple: '/apple-touch-icon.png',
     },
     
-    // Manifest
-    manifest: '/site.webmanifest',
+    // ✅ UPDATED: Locale-specific manifest
+    manifest: isArabic ? '/manifest-ar.webmanifest' : '/manifest-en.webmanifest',
   };
 }
 
@@ -142,11 +132,12 @@ export default async function LocaleLayout({ children, params }) {
   setRequestLocale(locale);
   const messages = await getMessages();
   const [language] = locale.split('-');
+  const isArabic = language === 'ar';
 
   return (
     <html 
       lang={locale} 
-      dir={language === 'ar' ? 'rtl' : 'ltr'}
+      dir={isArabic ? 'rtl' : 'ltr'}
     >
       <head>
         {/* Preconnect to external domains */}
@@ -154,6 +145,13 @@ export default async function LocaleLayout({ children, params }) {
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com" />
 
+        {/* ✅ ADDED: Explicit manifest link for better browser support */}
+        <link 
+          rel="manifest" 
+          href={isArabic ? '/manifest-ar.webmanifest' : '/manifest-en.webmanifest'} 
+        />
+
+        {/* Google Analytics */}
         <Script
           src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
           strategy="afterInteractive"
@@ -186,7 +184,7 @@ export default async function LocaleLayout({ children, params }) {
             __html: JSON.stringify({
               "@context": "https://schema.org",
               "@type": "WebSite",
-              "name": language === 'ar' ? 'كوبونات' : "Coupons Platform",
+              "name": isArabic ? 'كوبونات' : "Coupons Platform",
               "url": BASE_URL,
               "potentialAction": {
                 "@type": "SearchAction",
@@ -201,8 +199,6 @@ export default async function LocaleLayout({ children, params }) {
         />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        {/* Google Analytics - Using Next.js Script component */}
-
         <NextIntlClientProvider messages={messages} locale={locale}>
           <SessionProviderWrapper>
             <Header />
