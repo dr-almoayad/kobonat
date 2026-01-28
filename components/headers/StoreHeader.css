@@ -64,7 +64,7 @@
 .scrolled .store-header-content {
     position: static;
     background: transparent;
-    padding: 0.5rem 0;
+    padding: 0;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -460,13 +460,11 @@
     .store-header-enhanced {
         top: 56px;
     }
-    
-    
-    .store-header-content {
+    .store-header-inner {
         padding: 1.25rem 1rem;
     }
     
-    .scrolled .store-header-content {
+    .scrolled .store-header-inner{
         padding: 0.5rem 0.75rem;
     }
     
@@ -528,24 +526,18 @@
         height: 120px;
     }
     
-    .store-header-content {
-        padding: 1rem 0.75rem;
-    }
-    
-    .scrolled .store-header-content {
-        padding: 0.5rem 0.75rem;
-    }
-    
     .store-header-inner {
         gap: 0.5rem;
         flex-direction: column;
         align-items: flex-start;
+        padding: 1rem 0.75rem;
     }
     
     .scrolled .store-header-inner {
         flex-direction: row;
         justify-content: space-between;
         align-items: center;
+         padding: 0.5rem 0.75rem;
     }
     
     .scrolled .store-info-section {
