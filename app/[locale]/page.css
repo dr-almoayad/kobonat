@@ -51,7 +51,7 @@
 }
 
 /* Header */
-.homepage-wrapper .section-header {
+.section-header {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
