@@ -3,14 +3,14 @@
 .brands-carousel-section {
   width: 100%;
   padding: 40px 0;
-  background: transparent;
+  background: #fff;
   overflow: hidden;
 }
 
 .brands-carousel-container {
-  max-width: 1400px;
+  max-width: 1280px;
   margin: 0 auto;
-  padding: 0 20px;
+  padding: 0 1.5rem;
 }
 
 /* Embla */
