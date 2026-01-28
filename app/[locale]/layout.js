@@ -12,8 +12,8 @@ import CategoryCarouselSubHeader from "@/components/headers/CategoryCarouselSubH
 import Script from 'next/script';
 
 // 1. Optimized Font Loading (Removes need for manual <link> in <head>)
-const alexandria = Alexandria({ subsets: ["arabic"], weight: ["100", "300", "400", "600", "700", "900"], variable: "--font-alexandria", display: 'swap' });
-const openSans = Open_Sans({ subsets: ["latin"], weight: ["100", "300", "400", "600", "800"], variable: "--font-open-sans", display: 'swap' });
+const alexandria = Alexandria({ subsets: ["arabic"], variable: "--font-alexandria", display: 'swap' });
+const openSans = Open_Sans({ subsets: ["latin"], variable: "--font-open-sans", display: 'swap' });
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"], display: 'swap' });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"], display: 'swap' });
 
