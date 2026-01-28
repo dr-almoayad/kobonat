@@ -22,7 +22,8 @@ const AffiliatesHero = ({ stores = [] }) => {
     else if (width >= 768) cols = 4;
     
     setNumColumns(cols);
-    setColumnDurations(Array.from({ length: cols }, () => Math.random() * (80 - 50) + 50));
+    // Slightly slower, more elegant animation
+    setColumnDurations(Array.from({ length: cols }, () => Math.random() * (100 - 60) + 60));
   }, []);
 
   useEffect(() => {
@@ -32,23 +33,21 @@ const AffiliatesHero = ({ stores = [] }) => {
     return () => window.removeEventListener('resize', updateColumns);
   }, [updateColumns]);
 
-  // Infinite Scroll Logic: Split and Duplicate
+  // Infinite Scroll Logic
   const activeColumns = useMemo(() => {
     if (!stores.length) return [];
     const cols = Array.from({ length: numColumns }, () => []);
     stores.forEach((store, i) => cols[i % numColumns].push(store));
-    // Duplicate each column to ensure seamless looping
+    // Triple for seamless looping
     return cols.map(col => [...col, ...col, ...col]);
   }, [stores, numColumns]);
 
   if (!isClient || !stores.length) return <div className="hero-skeleton" />;
 
   return (
-    <section className="affiliates-hero-section">
-      <div className="hero-overlay-gradient" />
-      
-      <div className="hero-content-wrapper">
-        <div className="hero-text-area">
+    <section className="affiliates-hero">
+      <div className="hero-content">
+        <div className="hero-text">
           <h1 className="hero-title">
             {t('heroTitle', { defaultValue: 'Save More on Your Favorite Brands' })}
           </h1>
@@ -57,54 +56,52 @@ const AffiliatesHero = ({ stores = [] }) => {
           </p>
         </div>
 
-        <div className="brands-infinite-container">
-          <div className="brands-grid" style={{ '--cols': numColumns }}>
-            {activeColumns.map((col, colIdx) => (
+        <div className="brands-scroll-container">
+          <div className="gradient-overlay top-overlay" />
+          <div className="gradient-overlay bottom-overlay" />
+          
+          <div className="brands-columns-grid" style={{ '--columns': numColumns }}>
+            {activeColumns.map((column, columnIndex) => (
               <div
-                key={colIdx}
-                className="brand-column-track"
+                key={columnIndex}
+                className="brand-column"
                 style={{
-                  animationDuration: `${columnDurations[colIdx]}s`,
-                  animationDirection: colIdx % 2 === 0 ? 'normal' : 'reverse'
+                  '--animation-duration': `${columnDurations[columnIndex]}s`,
+                  '--animation-direction': columnIndex % 2 === 0 ? 'normal' : 'reverse'
                 }}
               >
-                {col.map((store, i) => (
+                {column.map((store, index) => (
                   <Link
-                    key={`${store.id}-${colIdx}-${i}`}
+                    key={`${store.id}-${columnIndex}-${index}`}
                     href={`/${locale}/stores/${store.slug}`}
-                    className="premium-brand-card"
-                    style={{ '--brand-color': store.color || '#470ae2' }}
+                    className="brand-card"
+                    style={{
+                      '--store-color': store.color || '#470ae2',
+                      backgroundImage: store.backgroundImage 
+                        ? `linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.4)), url(${store.backgroundImage})`
+                        : `linear-gradient(135deg, ${store.color || '#470ae2'} 0%, #6366f1 100%)`
+                    }}
                   >
-                    {/* Background Image Layer */}
-                    {store.backgroundImage && (
-                      <div className="card-bg-image">
-                        <Image 
-                          src={store.backgroundImage} 
-                          alt="" 
-                          fill 
-                          sizes="200px"
-                          className="object-cover"
-                        />
-                        <div className="card-image-overlay" />
-                      </div>
-                    )}
-                    
-                    {/* Content Layer */}
-                    <div className="brand-card-inner">
+                    {/* Store Logo */}
+                    <div className="brand-logo-wrapper">
                       {store.logo ? (
-                        <div className="logo-glass-wrapper">
+                        <div className="logo-container">
                           <Image
                             src={store.logo}
                             alt={store.name}
-                            width={100}
-                            height={100}
-                            className="brand-main-logo"
+                            width={80}
+                            height={80}
+                            className="brand-logo"
+                            loading="lazy"
                           />
                         </div>
                       ) : (
-                        <span className="brand-fallback-text">{store.name}</span>
+                        <span className="brand-name">{store.name}</span>
                       )}
                     </div>
+
+                    {/* Subtle glow effect */}
+                    <div className="card-glow" />
                   </Link>
                 ))}
               </div>
