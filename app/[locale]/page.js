@@ -274,7 +274,7 @@ export default async function Home({ params }) {
 
         {/* REPLACED: AffiliatesHero with BrandsCarousel */}
         {transformedBrands.length > 0 && (
-          <AffiliatesHero stores={transformedBrands} />
+          <BrandsCarousel brands={transformedBrands} />
         )}
         
         <section className="home-section">
