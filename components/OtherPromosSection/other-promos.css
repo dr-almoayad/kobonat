@@ -2,8 +2,8 @@
 
 .other-promos-section {
   max-width: 1280px;
-  margin: 3rem auto;
-  padding: 0 1.5rem;
+  margin: 1rem auto;
+  padding: 1rem 0;
 }
 
 .other-promos-section .section-title {
@@ -261,7 +261,7 @@
 @media (max-width: 768px) {
   .other-promos-section {
     padding: 0;
-    margin: 2rem auto;
+    margin: 1rem auto;
   }
 
   .promos-grid {
