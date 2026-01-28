@@ -57,14 +57,14 @@
 
 .store-header-content {
     background: linear-gradient(to top, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0.95) 50%, transparent 100%);
-    padding: 1.5rem;
+    padding: 0;
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .scrolled .store-header-content {
     position: static;
     background: transparent;
-    padding: 0.5rem 1.5rem;
+    padding: 0.5rem 0;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -74,6 +74,7 @@
     width: 100%;
     max-width: 1280px;
     margin: 0 auto;
+    padding: 1.45rem;
     display: flex;
     align-items: flex-end;
     justify-content: space-between;
@@ -84,7 +85,7 @@
 .scrolled .store-header-inner {
     align-items: center;
     gap: 1rem;
-    padding: 0.25rem 0;
+    padding: 0.3rem 1.45rem;
 }
 
 /* Store Info */
