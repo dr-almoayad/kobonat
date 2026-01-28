@@ -53,7 +53,7 @@ export async function generateMetadata({ params }) {
     generator: 'Next.js',
    const keywords = isArabic 
     ? ['كوبونات', 'أكواد خصم', 'عروض', 'خصومات', 'توفير', 'السعودية', 'كود خصم تويتر', 'شحن مجاني', 'كوبونات المشاهير', 'خصم أول طلب', 'أكواد مجربة']
-    : ['Coupons', 'Promo Codes', 'Saudi Deals', 'Discount Codes', 'Free Shipping', 'First Order Code', 'Verified Coupons', 'KSA Offers'];
+    : ['Coupons', 'Promo Codes', 'Saudi Deals', 'Discount Codes', 'Free Shipping', 'First Order Code', 'Verified Coupons', 'KSA Offers'],
     referrer: 'origin-when-cross-origin',
     creator: 'Cobonat',
     publisher: 'Cobonat',
