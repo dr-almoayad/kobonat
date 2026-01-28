@@ -76,7 +76,6 @@ const AffiliatesHero = ({ stores = [] }) => {
                     href={`/${locale}/stores/${store.slug}`}
                     className="brand-card"
                     style={{
-                      '--store-color': store.color || '#470ae2',
                       backgroundImage: store.backgroundImage 
                         ? `linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.4)), url(${store.backgroundImage})`
                         : `linear-gradient(135deg, ${store.color || '#470ae2'} 0%, #6366f1 100%)`
