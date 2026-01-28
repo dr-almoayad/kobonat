@@ -17,7 +17,7 @@
   display: flex;
   flex-direction: column;
   background: var(--ticket-bg);
-  border: 1px solid #f0eefb;
+  border: 1px solid #eee;
   border-radius: 16px;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
@@ -151,9 +151,9 @@
   position: absolute;
   width: 20px;
   height: 20px;
-  background-color: #f0eefb; /* Matches page BG */
+  background-color: #eee; /* Matches page BG */
   border-radius: 50%;
-  border: 1px solid #f0eefb;
+  border: 1px solid #eee;
   top: 1px;
   z-index: 2;
   box-shadow: inset 1px 1px 2px rgba(0,0,0,0.05);
