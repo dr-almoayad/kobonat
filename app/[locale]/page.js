@@ -9,6 +9,7 @@ import VoucherCard from "@/components/VoucherCard/VoucherCard";
 import StoreCard from "@/components/StoreCard/StoreCard";
 import HeroCarousel from "@/components/HeroCarousel/HeroCarousel";
 import BrandsCarousel from "@/components/BrandsCarousel/BrandsCarousel";
+import AffiliatesHero from "@/components/Affiliates/affiliatesHero";
 
 import { 
   generateOrganizationSchema,
@@ -273,7 +274,8 @@ export default async function Home({ params }) {
 
         {/* REPLACED: AffiliatesHero with BrandsCarousel */}
         {transformedBrands.length > 0 && (
-          <BrandsCarousel brands={transformedBrands} />
+          {/*<BrandsCarousel brands={transformedBrands} />*/}
+          <AffiliatesHero  stores={transformedBrands} />
         )}
         
         <section className="home-section">
