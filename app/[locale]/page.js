@@ -9,7 +9,7 @@ import VoucherCard from "@/components/VoucherCard/VoucherCard";
 import StoreCard from "@/components/StoreCard/StoreCard";
 import HeroCarousel from "@/components/HeroCarousel/HeroCarousel";
 import BrandsCarousel from "@/components/BrandsCarousel/BrandsCarousel";
-import AffiliatesHero from "@/components/Affiliates/affiliatesHero";
+import AffiliatesHero from "@/components/affiliates/affiliatesHero";
 
 import { 
   generateOrganizationSchema,
