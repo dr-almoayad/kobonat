@@ -32,8 +32,8 @@
   flex-direction: row;
   background: var(--ticket-bg);
   border-radius: 16px;
-  border: none;
-  box-shadow: var(--ticket-shadow);
+  border: 1px solid #eee;
+  /*box-shadow: var(--ticket-shadow);*/
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
   position: relative;
