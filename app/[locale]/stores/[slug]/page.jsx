@@ -419,8 +419,6 @@ export default async function UnifiedStorePage({ params }) {
             />
 
             <main className="store-main-content">
-              {transformedVouchers.length > 0 ? (
-                <>
                   {codeVouchers.length > 0 && (
                     <section className="vouchers-section">
                       <h2 className="section-title">
@@ -487,25 +485,6 @@ export default async function UnifiedStorePage({ params }) {
                       </div>
                     </section>
                   )}
-                </>
-              ) : (
-                <div className="no-vouchers-state">
-                  <span className="material-symbols-sharp">sentiment_dissatisfied</span>
-                  <h3>{tStore('noActiveVouchers')}</h3>
-                  <p>{tStore('checkBackSoon')}</p>
-                  {transformedStore.websiteUrl && (
-                    <a 
-                      href={transformedStore.websiteUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="visit-store-anyway-btn"
-                    >
-                      <span className="material-symbols-sharp">open_in_new</span>
-                      {tStore('visitStoreAnyway')}
-                    </a>
-                  )}
-                </div>
-              )}
             </main>
           </div>
         </>
