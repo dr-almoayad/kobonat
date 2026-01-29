@@ -174,7 +174,7 @@ const VoucherCard = ({ voucher, featured = false }) => {
           </h2>
         </div>
         
-        <div className="discount-bg"></div>
+        {/* <div className="discount-bg"></div>*/}
         
         {/* Badges */}
         {featured && (
@@ -185,12 +185,12 @@ const VoucherCard = ({ voucher, featured = false }) => {
         )}
       </div>
 
-      {/* DIVIDER */}
+      {/* DIVIDER 
       <div className="ticket-divider-vertical">
         <div className="notch-vertical notch-top"></div>
         <div className="dashed-line-vertical"></div>
         <div className="notch-vertical notch-bottom"></div>
-      </div>
+      </div>*/}
 
       {/* RIGHT SECTION */}
       <div className="ticket-right">
