@@ -113,7 +113,7 @@
   width: 100%;
 }
 
-.store-name {
+.store-ticket-card .store-name {
   font-size: 1.125rem;
   font-weight: 700;
   color: var(--color-text-main);
