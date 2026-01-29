@@ -69,12 +69,12 @@ const StoreCard = ({ store }) => {
         </div>
       </div>
 
-      {/* --- DIVIDER: PERFORATION --- */}
+      {/* --- DIVIDER: PERFORATION --- 
       <div className="ticket-divider">
         <div className="notch notch-left"></div>
         <div className="dashed-line"></div>
         <div className="notch notch-right"></div>
-      </div>
+      </div>*/}
 
       {/* --- BOTTOM SECTION: STATS & ACTION --- */}
       <div className="ticket-body">
