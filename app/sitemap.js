@@ -1,7 +1,7 @@
 // app/sitemap.js - Generate sitemap for all locales
 import { prisma } from '@/lib/prisma';
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://coubonat.vercel.app';
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://cobonat.me';
 
 const LOCALES = [
   'ar-SA', 'en-SA',
