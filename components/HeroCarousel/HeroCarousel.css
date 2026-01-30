@@ -13,6 +13,7 @@
   position: relative;
   width: 100%;
   max-width: 1280px;
+  border-radius: 58px;
   margin: 0 auto;
   height: var(--carousel-height, 60vh); /* Fallback to viewport height */
   background-color: #0a0a0a; /* Prevent white flashes */
