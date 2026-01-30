@@ -92,7 +92,7 @@ export default async function LocaleLayout({ children, params }) {
       <head>
         {/* Preconnects for speed */}
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        
+        <meta name="verify-admitad" content="95d170f413" />
         {/* Google Analytics */}
         <Script src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`} strategy="afterInteractive" />
         <Script id="google-analytics" strategy="afterInteractive">
