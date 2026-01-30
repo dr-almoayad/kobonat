@@ -12,7 +12,9 @@
 .hero-carousel-wrapper {
   position: relative;
   width: 100%;
-  height: var(--carousel-height, 80vh); /* Fallback to viewport height */
+  max-width: 1280px;
+  margin: 0 auto;
+  height: var(--carousel-height, 60vh); /* Fallback to viewport height */
   background-color: #0a0a0a; /* Prevent white flashes */
   overflow: hidden;
   /* Define aspect ratio for modern browsers to prevent layout shift */
@@ -66,6 +68,7 @@
 
 .hero-slide__image {
   object-fit: cover;
+  object-position: top;
   pointer-events: none;
 }
 
