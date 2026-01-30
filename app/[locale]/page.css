@@ -30,7 +30,12 @@
 
 /* --- Hero Section --- */
 .hero-section {
-  background: #fff;
+  background: linear-gradient(
+    180deg,
+    #fafafa 0%,
+    #ffffff 50%,
+    #fafafa 100%
+  );
   padding-bottom: 0;
   margin-bottom: 0;
   overflow: hidden;
