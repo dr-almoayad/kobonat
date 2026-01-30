@@ -700,6 +700,6 @@
 @media (max-width: 480px) {
     .hero-carousel-wrapper {
         height: 400px; /* Slightly shorter on mobile */
-        padding: 0 0.75rem;
+        padding: 0;
     }
 }
