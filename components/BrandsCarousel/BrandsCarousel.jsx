@@ -214,14 +214,14 @@ const BrandsCarousel = ({ brands = [], title, subtitle, showControls = false }) 
             </div>
           </div>
 
-          {/* Progress Bar */}
+          {/* Progress Bar 
           <div className="brands-carousel-progress-container">
             <div 
               className="brands-carousel-progress-bar"
               style={{ width: `${scrollProgress}%` }}
               aria-hidden="true"
             />
-          </div>
+          </div>*/}
 
           {/* Dots Navigation */}
           {brands.length <= 10 && (
