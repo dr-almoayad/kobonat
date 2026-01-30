@@ -8,7 +8,7 @@
 .brands-carousel-section {
   position: relative;
   width: 100%;
-  padding: 2rem 0 2.5rem;
+  padding: 2rem 0;
   background: linear-gradient(
     180deg,
     #fafafa 0%,
@@ -596,12 +596,9 @@
    TABLET - 640px+
    ============================================ */
 @media (min-width: 640px) {
-  .brands-carousel-section {
-    padding: 2.5rem 0 3rem;
-  }
 
   .brands-carousel-wrapper {
-    padding: 0 1.5rem;
+    padding: 0 1rem;
   }
 
   .brands-carousel-header {
@@ -665,12 +662,9 @@
    TABLET LARGE - 768px+
    ============================================ */
 @media (min-width: 768px) {
-  .brands-carousel-section {
-    padding: 3rem 0 3.5rem;
-  }
 
   .brands-carousel-wrapper {
-    padding: 0 2rem;
+    padding: 0 1rem;
   }
 
   .brands-carousel-header {
@@ -775,12 +769,9 @@
    DESKTOP - 1024px+
    ============================================ */
 @media (min-width: 1024px) {
-  .brands-carousel-section {
-    padding: 4rem 0 4.5rem;
-  }
 
   .brands-carousel-wrapper {
-    padding: 0 2.5rem;
+    padding: 0 1.5rem;
   }
 
   .brands-carousel-header {
