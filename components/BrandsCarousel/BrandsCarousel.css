@@ -769,7 +769,6 @@
    DESKTOP - 1024px+
    ============================================ */
 @media (min-width: 1024px) {
-
   .brands-carousel-wrapper {
     padding: 0 1.5rem;
   }
@@ -847,96 +846,6 @@
 }
 
 /* ============================================
-   DESKTOP LARGE - 1280px+
-   ============================================ */
-@media (min-width: 1280px) {
-  .brands-carousel-section {
-    padding: 5rem 0 5.5rem;
-  }
-
-  .brands-carousel-wrapper {
-    padding: 0 3rem;
-  }
-
-  .brands-carousel-header {
-    margin-bottom: 3.5rem;
-  }
-
-  .brands-carousel-title {
-    font-size: 3rem;
-  }
-
-  .brands-carousel-gradient {
-    width: 8rem;
-  }
-
-  .brands-carousel-embla-container {
-    gap: 3rem;
-  }
-
-  .brands-carousel-embla-slide {
-    width: 12.5rem; /* 200px */
-  }
-
-  .brand-logo-link {
-    height: 6rem; /* 96px */
-  }
-
-  .brand-logo-wrapper {
-    padding: 0.75rem;
-  }
-
-  .brand-logo-placeholder .material-symbols-sharp {
-    font-size: 3.5rem;
-  }
-
-  .brands-carousel-progress-container {
-    margin-top: 2.5rem;
-  }
-}
-
-/* ============================================
-   DESKTOP XL - 1536px+
-   ============================================ */
-@media (min-width: 1536px) {
-  .brands-carousel-section {
-    padding: 6rem 0 6.5rem;
-  }
-
-  .brands-carousel-header {
-    margin-bottom: 4rem;
-  }
-
-  .brands-carousel-title {
-    font-size: 3.5rem;
-  }
-
-  .brands-carousel-embla-container {
-    gap: 3.5rem;
-  }
-
-  .brands-carousel-embla-slide {
-    width: 14rem; /* 224px */
-  }
-
-  .brand-logo-link {
-    height: 7rem; /* 112px */
-  }
-
-  .brand-logo-wrapper {
-    padding: 1rem;
-  }
-
-  .brand-logo-placeholder .material-symbols-sharp {
-    font-size: 4rem;
-  }
-
-  .brands-carousel-progress-container {
-    margin-top: 3rem;
-  }
-}
-
-/* ============================================
    PRINT STYLES
    ============================================ */
 @media print {
@@ -986,25 +895,6 @@
   }
 }
 
-/* High contrast mode */
-@media (prefers-contrast: high) {
-  .brands-carousel-section {
-    background: #ffffff;
-  }
-
-  .brand-logo {
-    opacity: 1;
-    filter: none;
-  }
-
-  .brands-carousel-nav {
-    border: 2px solid currentColor;
-  }
-
-  .brands-carousel-dot {
-    border: 1px solid currentColor;
-  }
-}
 
 /* Focus visible styles */
 .brand-logo-link:focus-visible,
