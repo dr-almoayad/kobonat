@@ -319,3 +319,381 @@
         transform: none;
     }
 }
+
+
+/* components/HeroCarousel/HeroCarousel.css */
+
+:root {
+  /* --- Layout & Alignment (Synced with Header) --- */
+  --carousel-max-width: 1280px;
+  --pad-desktop: 1.5rem;   /* Matches Header Desktop */
+  --pad-tablet: 1rem;      /* Matches Header Tablet */
+  --pad-mobile: 0.75rem;   /* Matches Header Mobile */
+  
+  /* --- Z-Indices --- */
+  --hero-z-image: 1;
+  --hero-z-overlay: 2;
+  --hero-z-content: 3;
+  --hero-z-controls: 10;
+  
+  /* --- Transitions --- */
+  --hero-transition-ease: cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.hero-carousel-wrapper {
+  position: relative;
+  width: 100%;
+  height: var(--carousel-height, 600px);
+  background-color: #f5f5f5; /* Light grey placeholder */
+  overflow: hidden;
+  contain: paint layout; 
+}
+
+/* --- Embla Core --- */
+.hero-carousel {
+  height: 100%;
+  width: 100%;
+}
+
+.hero-carousel__container {
+  display: flex;
+  height: 100%;
+  touch-action: pan-y pinch-zoom;
+}
+
+.hero-carousel__slide {
+  flex: 0 0 100%;
+  min-width: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-slide {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+/* --- Parallax & Image --- */
+.hero-slide__parallax {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  z-index: var(--hero-z-image);
+}
+
+.hero-slide__image-wrapper {
+  position: absolute;
+  top: 0;
+  left: -15%;
+  width: 130%;
+  height: 100%;
+  will-change: transform;
+}
+
+.hero-slide__image {
+  object-fit: cover;
+  pointer-events: none;
+}
+
+/* --- Overlay --- */
+.hero-slide__overlay {
+  position: absolute;
+  inset: 0;
+  z-index: var(--hero-z-overlay);
+  /* Gradient favors text legibility at the bottom */
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.1) 0%,
+    rgba(0, 0, 0, 0.05) 50%,
+    rgba(0, 0, 0, 0.5) 80%,
+    rgba(0, 0, 0, 0.8) 100%
+  );
+  pointer-events: none;
+}
+
+/* --- Content Alignment (Crucial for Header Match) --- */
+.hero-slide__content {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: var(--hero-z-content);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end; /* Text at bottom */
+  align-items: center;       /* Centers the inner container horizontally */
+  pointer-events: none;      /* Let clicks pass through empty areas */
+}
+
+/* The inner container that mimics the Header's .header_container */
+.content-inner {
+  width: 100%;
+  max-width: var(--carousel-max-width);
+  /* Apply exact padding to match header alignment */
+  padding-left: var(--pad-mobile);
+  padding-right: var(--pad-mobile);
+  padding-bottom: 3.5rem; /* Space for dots */
+  pointer-events: auto;   /* Re-enable clicks for text/buttons */
+  
+  /* Text styling */
+  text-align: left; 
+}
+
+[dir="rtl"] .content-inner {
+  text-align: right;
+}
+
+/* --- Typography & Animations --- */
+.hero-slide__tag {
+  display: inline-block;
+  padding: 0.35rem 0.85rem;
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 50px;
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: all 0.6s var(--hero-transition-ease);
+}
+
+.hero-slide__title {
+  color: white;
+  /* Fluid typography: scales between 1.75rem (mobile) and 4rem (desktop) */
+  font-size: clamp(1.75rem, 5vw, 4rem); 
+  font-weight: 800;
+  line-height: 1.1;
+  margin: 0 0 1rem;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: all 0.6s var(--hero-transition-ease) 0.1s;
+  text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+}
+
+.hero-slide__description {
+  color: rgba(255, 255, 255, 0.95);
+  font-size: clamp(0.95rem, 2vw, 1.15rem);
+  line-height: 1.6;
+  max-width: 600px;
+  margin: 0 0 1.5rem;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: all 0.6s var(--hero-transition-ease) 0.2s;
+}
+
+.hero-slide__cta {
+  background-color: #fff;
+  color: #0f041c; /* Matches header text-primary */
+  border: none;
+  padding: 0.875rem 2rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  border-radius: 8px;
+  cursor: pointer;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: all 0.6s var(--hero-transition-ease) 0.3s;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+.hero-slide__cta:hover {
+  background-color: #f8f9fa;
+  transform: translateY(18px) scale(1.02);
+}
+
+/* Active State Animations */
+.hero-slide__content.is-active .hero-slide__tag,
+.hero-slide__content.is-active .hero-slide__title,
+.hero-slide__content.is-active .hero-slide__description,
+.hero-slide__content.is-active .hero-slide__cta {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* --- Controls (Arrows & Dots) --- */
+.hero-carousel__controls {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 100%; /* Cover full height to position arrows vertically */
+  z-index: var(--hero-z-controls);
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+/* Inner wrapper for controls to match Header width */
+.controls-inner {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  height: 100%;
+  max-width: var(--carousel-max-width);
+  padding-left: var(--pad-mobile);
+  padding-right: var(--pad-mobile);
+}
+
+/* Dots at the bottom */
+.hero-carousel__dots {
+  position: absolute;
+  bottom: 2rem;
+  left: 0;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
+  pointer-events: auto;
+  z-index: 12;
+}
+
+.dot-btn {
+  background: transparent;
+  border: none;
+  padding: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+.dot-visual {
+  width: 32px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 2px;
+  overflow: hidden;
+  position: relative;
+  transition: width 0.3s ease, background 0.3s ease;
+}
+
+.dot-btn.is-active .dot-visual {
+  width: 48px;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.dot-progress {
+  position: absolute;
+  top: 0;
+  left: 0; /* Changed from RTL logic, handled by dir prop */
+  height: 100%;
+  width: 0%;
+  background-color: #fff;
+}
+
+[dir="rtl"] .dot-progress {
+  left: auto;
+  right: 0;
+}
+
+.dot-btn.is-active .dot-progress {
+  animation-name: progress;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+
+@keyframes progress {
+  from { width: 0%; }
+  to { width: 100%; }
+}
+
+/* Navigation Arrows */
+.nav-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  pointer-events: auto;
+  opacity: 0; /* Hidden on mobile */
+  z-index: 15;
+}
+
+.nav-btn:hover {
+  background: white;
+  color: var(--text-primary);
+  border-color: white;
+}
+
+/* Position arrows relative to the constrained width */
+.nav-btn--prev { left: var(--pad-mobile); }
+.nav-btn--next { right: var(--pad-mobile); }
+
+[dir="rtl"] .nav-btn--prev { left: auto; right: var(--pad-mobile); transform: translateY(-50%) rotate(180deg); }
+[dir="rtl"] .nav-btn--next { right: auto; left: var(--pad-mobile); transform: translateY(-50%) rotate(180deg); }
+
+/* --- Responsive Breakpoints (Synced with Header) --- */
+
+/* Tablet (matches Header 1024px logic) */
+@media (min-width: 768px) {
+  .content-inner, 
+  .controls-inner {
+    padding-left: var(--pad-tablet);
+    padding-right: var(--pad-tablet);
+  }
+  
+  .hero-slide__content {
+    justify-content: center; /* Center content vertically on larger screens */
+  }
+
+  .content-inner {
+     padding-bottom: 0; /* Reset bottom padding as we center vertically */
+  }
+
+  .nav-btn {
+    opacity: 1; /* Show arrows */
+  }
+  
+  .nav-btn--prev { left: var(--pad-tablet); }
+  .nav-btn--next { right: var(--pad-tablet); }
+  [dir="rtl"] .nav-btn--prev { right: var(--pad-tablet); }
+  [dir="rtl"] .nav-btn--next { left: var(--pad-tablet); }
+}
+
+/* Desktop (matches Header 1280px logic) */
+@media (min-width: 1024px) {
+  .content-inner, 
+  .controls-inner {
+    padding-left: var(--pad-desktop);
+    padding-right: var(--pad-desktop);
+  }
+  
+  .nav-btn {
+    width: 52px;
+    height: 52px;
+  }
+  
+  /* Pull arrows slightly outside the text alignment for a cleaner look if desired, 
+     or keep them aligned. Here we keep them aligned with padding. */
+  .nav-btn--prev { left: var(--pad-desktop); }
+  .nav-btn--next { right: var(--pad-desktop); }
+  [dir="rtl"] .nav-btn--prev { right: var(--pad-desktop); }
+  [dir="rtl"] .nav-btn--next { left: var(--pad-desktop); }
+}
+
+@media (max-width: 480px) {
+    .hero-carousel-wrapper {
+        height: 500px; /* Slightly shorter on mobile */
+    }
+}
