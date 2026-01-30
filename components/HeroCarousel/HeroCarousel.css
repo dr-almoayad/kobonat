@@ -15,7 +15,8 @@
   max-width: 1280px;
   border-radius: 58px;
   margin: 0 auto;
-  height: var(--carousel-height, 60vh); /* Fallback to viewport height */
+  padding: 0 1rem;
+  height: 500px; /* Fallback to viewport height */
   background-color: #0a0a0a; /* Prevent white flashes */
   overflow: hidden;
   /* Define aspect ratio for modern browsers to prevent layout shift */
@@ -347,7 +348,7 @@
 .hero-carousel-wrapper {
   position: relative;
   width: 100%;
-  height: var(--carousel-height, 600px);
+  height: 500px;
   background-color: #f5f5f5; /* Light grey placeholder */
   overflow: hidden;
   contain: paint layout; 
@@ -698,6 +699,7 @@
 
 @media (max-width: 480px) {
     .hero-carousel-wrapper {
-        height: 500px; /* Slightly shorter on mobile */
+        height: 400px; /* Slightly shorter on mobile */
+        padding: 0 0.75rem;
     }
 }
