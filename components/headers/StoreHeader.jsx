@@ -20,19 +20,16 @@ const StoreHeader = ({
   const [isLoading, setIsLoading] = useState(true);
 
   const descriptionRef = useRef(null);
-  const resizeTimeoutRef = useRef(null);
   
   const isArabic = locale?.startsWith('ar');
   const dir = isArabic ? 'rtl' : 'ltr';
 
-  // Safe Checks & Defaults
   const storeName = store?.name || 'Store';
   const storeLogo = store?.logo;
   const storeCover = store?.coverImage;
   const storeDescription = store?.description;
   const categories = store?.categories || [];
   const websiteUrl = store?.websiteUrl;
-
   const topVoucherTitle = mostTrackedVoucher?.title || null;
   const voucherCode = mostTrackedVoucher?.code;
 
@@ -40,39 +37,33 @@ const StoreHeader = ({
     setIsLoading(false);
   }, []);
 
-  // CLEAN SCROLL HANDLER - No stuttering
+  // Simple scroll handler
   useEffect(() => {
     let ticking = false;
     
-    const updateScrollState = () => {
-      const scrollY = window.scrollY;
-      
-      // Simple hysteresis: collapse at 180px, expand at 120px
-      if (scrollY > 180) {
-        setIsScrolled(true);
-      } else if (scrollY < 120) {
-        setIsScrolled(false);
-      }
-      // Between 120-180px: maintain current state (dead zone)
-      
-      ticking = false;
-    };
-    
     const handleScroll = () => {
       if (!ticking) {
-        window.requestAnimationFrame(updateScrollState);
+        window.requestAnimationFrame(() => {
+          const scrollY = window.scrollY;
+          
+          if (scrollY > 180) {
+            setIsScrolled(true);
+          } else if (scrollY < 120) {
+            setIsScrolled(false);
+          }
+          
+          ticking = false;
+        });
         ticking = true;
       }
     };
     
-    // Set initial state
-    updateScrollState();
-    
+    handleScroll();
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Overflow detection for Read More button
+  // Overflow detection
   useLayoutEffect(() => {
     const checkOverflow = () => {
       const element = descriptionRef.current;
@@ -83,21 +74,8 @@ const StoreHeader = ({
     };
 
     checkOverflow();
-    
-    const handleResize = () => {
-      if (resizeTimeoutRef.current) {
-        clearTimeout(resizeTimeoutRef.current);
-      }
-      resizeTimeoutRef.current = setTimeout(checkOverflow, 150);
-    };
-    
-    window.addEventListener('resize', handleResize);
-    return () => {
-      window.removeEventListener('resize', handleResize);
-      if (resizeTimeoutRef.current) {
-        clearTimeout(resizeTimeoutRef.current);
-      }
-    };
+    window.addEventListener('resize', checkOverflow);
+    return () => window.removeEventListener('resize', checkOverflow);
   }, [storeDescription, isLoading]);
 
   const toggleDescription = () => {
@@ -152,11 +130,9 @@ const StoreHeader = ({
   }
 
   return (
-    <header 
-      className={`sh-container ${isScrolled ? 'sh-scrolled' : ''}`} 
-      dir={dir}
-    >
-      {/* BACKGROUND BANNER */}
+    <header className={`sh-container ${isScrolled ? 'sh-scrolled' : ''}`} dir={dir}>
+      
+      {/* Banner */}
       <div className="sh-banner-wrapper">
         {storeCover ? (
           <Image
@@ -174,11 +150,11 @@ const StoreHeader = ({
         <div className="sh-banner-overlay" />
       </div>
 
-      {/* MAIN CONTENT */}
+      {/* Content */}
       <div className="sh-content-wrapper">
         <div className="sh-main-grid">
           
-          {/* LEFT: Logo + Name */}
+          {/* Logo + Name */}
           <div className="sh-identity-col">
             <div className="sh-logo-wrapper">
               {storeLogo ? (
@@ -211,7 +187,7 @@ const StoreHeader = ({
             </div>
           </div>
 
-          {/* MIDDLE: Description & Categories */}
+          {/* Details (hidden when scrolled) */}
           <div className="sh-details-container">
             {storeDescription && (
               <div className="sh-description-wrapper">
@@ -227,11 +203,6 @@ const StoreHeader = ({
                     onClick={toggleDescription}
                     className="sh-read-more-btn"
                     type="button"
-                    aria-expanded={isDescriptionExpanded}
-                    aria-label={isDescriptionExpanded 
-                      ? (isArabic ? 'عرض أقل' : 'Show less')
-                      : (isArabic ? 'عرض المزيد' : 'Read more')
-                    }
                   >
                     {isDescriptionExpanded 
                       ? (isArabic ? 'عرض أقل' : 'Read less')
@@ -251,11 +222,7 @@ const StoreHeader = ({
                     className="sh-cat-pill"
                     style={{ '--hover-color': cat.color || '#6366f1' }}
                   >
-                    {cat.icon && (
-                      <span className="material-symbols-sharp" aria-hidden="true">
-                        {cat.icon}
-                      </span>
-                    )}
+                    {cat.icon && <span className="material-symbols-sharp">{cat.icon}</span>}
                     {cat.name}
                   </Link>
                 ))}
@@ -265,19 +232,9 @@ const StoreHeader = ({
             {(paymentMethods.length > 0 || bnplMethods.length > 0) && (
               <div className="sh-payments-row">
                 {bnplMethods.map(pm => (
-                  <div 
-                    key={pm.id} 
-                    className="sh-pay-icon bnpl" 
-                    title={pm.name}
-                  >
+                  <div key={pm.id} className="sh-pay-icon bnpl" title={pm.name}>
                     {pm.logo ? (
-                      <Image 
-                        src={pm.logo} 
-                        alt={pm.name} 
-                        width={72} 
-                        height={36}
-                        quality={90}
-                      />
+                      <Image src={pm.logo} alt={pm.name} width={72} height={36} quality={90} />
                     ) : (
                       <span>{pm.name}</span>
                     )}
@@ -285,19 +242,9 @@ const StoreHeader = ({
                 ))}
                 
                 {paymentMethods.slice(0, 5).map(pm => (
-                  <div 
-                    key={pm.id} 
-                    className="sh-pay-icon" 
-                    title={pm.name}
-                  >
+                  <div key={pm.id} className="sh-pay-icon" title={pm.name}>
                     {pm.logo ? (
-                      <Image 
-                        src={pm.logo} 
-                        alt={pm.name} 
-                        width={56} 
-                        height={36}
-                        quality={90}
-                      />
+                      <Image src={pm.logo} alt={pm.name} width={56} height={36} quality={90} />
                     ) : (
                       <span className="material-symbols-sharp">credit_card</span>
                     )}
@@ -307,19 +254,15 @@ const StoreHeader = ({
             )}
           </div>
 
-          {/* RIGHT: CTA Button (visible when scrolled) */}
+          {/* CTA (shown when scrolled) */}
           <div className="sh-actions-col">
             {topVoucherTitle && (
               <button 
                 className={`sh-cta-btn ${isCopied ? 'copied' : ''}`}
                 onClick={handleCopyAndTrack}
                 type="button"
-                aria-label={isCopied 
-                  ? (isArabic ? 'تم النسخ!' : 'Copied!') 
-                  : (isArabic ? 'الذهاب للمتجر' : 'Go to Store')
-                }
               >
-                <span className="material-symbols-sharp" aria-hidden="true">
+                <span className="material-symbols-sharp">
                   {isCopied ? 'check_circle' : 'arrow_forward'}
                 </span>
                 <span className="sh-cta-label">
@@ -328,7 +271,7 @@ const StoreHeader = ({
                     : (isArabic ? 'الذهاب للمتجر' : 'Go to Store')
                   }
                 </span>
-                {!isCopied && <div className="sh-cta-ripple" aria-hidden="true" />}
+                {!isCopied && <div className="sh-cta-ripple" />}
               </button>
             )}
           </div>
