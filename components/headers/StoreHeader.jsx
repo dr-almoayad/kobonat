@@ -38,19 +38,43 @@ const StoreHeader = ({
     setIsLoading(false);
   }, []);
 
-  // Optimized Scroll Handler
+  // Optimized Scroll Handler with Hysteresis (prevents stuttering)
   useEffect(() => {
     let ticking = false;
+    let lastScrollY = 0;
+    
+    const SCROLL_THRESHOLD_DOWN = 140; // Threshold when scrolling down
+    const SCROLL_THRESHOLD_UP = 100;   // Threshold when scrolling up (hysteresis)
+    
     const handleScroll = () => {
       if (!ticking) {
         window.requestAnimationFrame(() => {
-          // Trigger scroll state at 120px for smoother transition
-          setIsScrolled(window.scrollY > 140);
+          const currentScrollY = window.scrollY;
+          const isScrollingDown = currentScrollY > lastScrollY;
+          
+          // Use different thresholds based on scroll direction
+          if (isScrollingDown) {
+            // Scrolling down - use higher threshold to collapse
+            if (currentScrollY > SCROLL_THRESHOLD_DOWN) {
+              setIsScrolled(true);
+            }
+          } else {
+            // Scrolling up - use lower threshold to expand
+            if (currentScrollY < SCROLL_THRESHOLD_UP) {
+              setIsScrolled(false);
+            }
+          }
+          
+          lastScrollY = currentScrollY;
           ticking = false;
         });
         ticking = true;
       }
     };
+    
+    // Set initial state
+    handleScroll();
+    
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
