@@ -6,9 +6,9 @@
 
 :root {
   --hc-max-width: 1280px;
-  --hc-radius: 24px;          /* wrapper rounding */
-  --hc-radius-md: 28px;
-  --hc-radius-lg: 32px;
+  --hc-radius: 0;          /* wrapper rounding */
+  --hc-radius-md: 0;
+  --hc-radius-lg: 0;
   --hc-accent: #e8412a;       /* discount badge — warm, punchy red */
   --hc-accent-light: #ff5a45;
   --hc-glass: rgba(12, 14, 22, 0.52);
@@ -131,10 +131,10 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  background: var(--hc-glass);
-  backdrop-filter: blur(18px);
+  background: none;
+  backdrop-filter: none;
   -webkit-backdrop-filter: blur(18px);
-  border: 1px solid var(--hc-glass-light);
+  border: none;
   border-radius: 16px;
   padding: 0.65rem 0.85rem;
 }
@@ -244,6 +244,7 @@
 
 /* ── Dots (progress bars) ── */
 .hc-dots {
+   display: none;
   position: absolute;
   bottom: 0.75rem;
   left: 0;
@@ -349,7 +350,7 @@
   }
 
   .hc-logo-pill {
-    width: 60px;
+    width: 100px;
     height: 60px;
     border-radius: 14px;
   }
@@ -399,11 +400,10 @@
     padding: 0.85rem 1.25rem;
     gap: 1.25rem;
     border-radius: 20px;
-    max-width: 480px;             /* don't stretch full width on big screens */
   }
 
   .hc-logo-pill {
-    width: 68px;
+    width: 124px;
     height: 68px;
     border-radius: 16px;
   }
