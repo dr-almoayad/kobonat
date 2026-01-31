@@ -149,7 +149,7 @@ export default async function UnifiedStorePage({ params }) {
 
       return (
         <div className="stores_page">
-          {carouselStores.length > 0 && (
+          {/*{carouselStores.length > 0 && (
             <div className="category-hero-section">
               <HeroCarousel 
                 images={carouselStores}
@@ -158,7 +158,7 @@ export default async function UnifiedStorePage({ params }) {
                 autoplayDelay={3500}
               />
             </div>
-          )}
+          )}*/}
 
           <div className="stores_page_header">
             <div className="stores_page_header_container">
