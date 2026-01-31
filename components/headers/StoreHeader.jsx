@@ -1,301 +1,553 @@
+// components/headers/StoreHeader.jsx - ENHANCED WITH CATEGORIES & PAYMENT
+
 'use client';
-import { useState, useEffect, useRef, useLayoutEffect } from 'react';
+
+import { useState, useEffect, useRef } from 'react';
+
 import Image from 'next/image';
+
 import Link from 'next/link';
+
 import './StoreHeader.css';
 
+
+
 const StoreHeader = ({ 
+
   store, 
+
   mostTrackedVoucher, 
+
   paymentMethods = [],
+
   bnplMethods = [],
+
   locale,
+
   country 
+
 }) => {
-  const [isCopied, setIsCopied] = useState(false);
-  const [isScrolled, setIsScrolled] = useState(false);
-  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
-  const [isDescriptionOverflowing, setIsDescriptionOverflowing] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+
+  const [copied, setCopied] = useState(false);
+
+  const [scrolled, setScrolled] = useState(false);
+
+  const [descriptionExpanded, setDescriptionExpanded] = useState(false);
+
+  const [shouldShowReadMore, setShouldShowReadMore] = useState(false);
 
   const descriptionRef = useRef(null);
+
   
+
   const isArabic = locale?.startsWith('ar');
-  const dir = isArabic ? 'rtl' : 'ltr';
 
-  // Safe Checks & Defaults
   const storeName = store?.name || 'Store';
+
   const storeLogo = store?.logo;
+
   const storeCover = store?.coverImage;
+
   const storeDescription = store?.description;
+
   const categories = store?.categories || [];
-  const websiteUrl = store?.websiteUrl;
 
-  const topVoucherTitle = mostTrackedVoucher?.title || null;
-  const voucherCode = mostTrackedVoucher?.code;
+  
+
+  const topVoucherTitle = mostTrackedVoucher 
+
+    ? (isArabic ? mostTrackedVoucher.title : mostTrackedVoucher.title)
+
+    : null;
+
+
+
+  // Check if description needs "Read More" button
 
   useEffect(() => {
-    setIsLoading(false);
-  }, []);
 
-  // Optimized Scroll Handler
-  useEffect(() => {
-    let ticking = false;
-    const handleScroll = () => {
-      if (!ticking) {
-        window.requestAnimationFrame(() => {
-          // Trigger scroll state earlier (100px) for smoother transition
-          setIsScrolled(window.scrollY > 100);
-          ticking = false;
-        });
-        ticking = true;
-      }
-    };
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+    if (descriptionRef.current && storeDescription) {
 
-  // Fix: Robust Overflow Detection for Read More button
-  useLayoutEffect(() => {
-    const checkOverflow = () => {
-      const element = descriptionRef.current;
-      if (element && storeDescription) {
-        // Compare scrollHeight (full content) vs clientHeight (visible area)
-        // We add a small buffer (1px) to avoid rounding errors
-        const isOverflowing = element.scrollHeight > element.clientHeight + 1;
-        setIsDescriptionOverflowing(isOverflowing);
-      }
-    };
+      const lineHeight = parseFloat(getComputedStyle(descriptionRef.current).lineHeight);
 
-    // Run initially
-    checkOverflow();
+      const maxHeight = lineHeight * 2; // 2 lines max
 
-    // Re-run on window resize
-    window.addEventListener('resize', checkOverflow);
-    return () => window.removeEventListener('resize', checkOverflow);
-  }, [storeDescription, isLoading]);
+      const actualHeight = descriptionRef.current.scrollHeight;
 
-  const toggleDescription = () => {
-    setIsDescriptionExpanded(!isDescriptionExpanded);
-  };
+      
 
-  const handleCopyAndTrack = async () => {
-    if (!voucherCode) {
-      if (websiteUrl) window.open(websiteUrl, '_blank');
-      return;
+      setShouldShowReadMore(actualHeight > maxHeight);
+
     }
+
+  }, [storeDescription]);
+
+
+
+  // Smooth scroll detection with debounce
+
+  useEffect(() => {
+
+    let lastScrollY = window.scrollY;
+
+    let ticking = false;
+
+    
+
+    const updateScrolled = () => {
+
+      const currentScrollY = window.scrollY;
+
+      
+
+      if (currentScrollY > 350) {
+
+        setScrolled(true);
+
+      } else if (currentScrollY < 150) {
+
+        setScrolled(false);
+
+      }
+
+      
+
+      lastScrollY = currentScrollY;
+
+      ticking = false;
+
+    };
+
+    
+
+    const handleScroll = () => {
+
+      if (!ticking) {
+
+        window.requestAnimationFrame(updateScrolled);
+
+        ticking = true;
+
+      }
+
+    };
+
+    
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+
+    
+
+    return () => window.removeEventListener('scroll', handleScroll);
+
+  }, []);
+
+
+
+  const handleTopVoucherClick = async () => {
+
+    if (!mostTrackedVoucher?.code) {
+
+      if (store?.websiteUrl) {
+
+        window.open(store.websiteUrl, '_blank');
+
+      }
+
+      return;
+
+    }
+
+
 
     try {
-      await navigator.clipboard.writeText(voucherCode);
-      setIsCopied(true);
-      if (navigator.vibrate) navigator.vibrate(50);
 
-      if (mostTrackedVoucher?.id) {
-        fetch('/api/vouchers/track', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            voucherId: mostTrackedVoucher.id,
-            countryCode: country?.code 
-          })
-        }).catch(err => console.error('Tracking Error', err));
-      }
+      await navigator.clipboard.writeText(mostTrackedVoucher.code);
+
+      setCopied(true);
+
+      
+
+      await fetch('/api/vouchers/track', {
+
+        method: 'POST',
+
+        headers: { 'Content-Type': 'application/json' },
+
+        body: JSON.stringify({ 
+
+          voucherId: mostTrackedVoucher.id,
+
+          countryCode: country?.code
+
+        })
+
+      });
+
+      
 
       setTimeout(() => {
-        if (websiteUrl) window.open(websiteUrl, '_blank');
-      }, 800);
-      setTimeout(() => setIsCopied(false), 3000);
+
+        if (store?.websiteUrl) {
+
+          window.open(store.websiteUrl, '_blank');
+
+        }
+
+      }, 600);
+
+      
+
+      setTimeout(() => setCopied(false), 2500);
+
     } catch (err) {
-      if (websiteUrl) window.open(websiteUrl, '_blank');
+
+      console.error('Failed to copy:', err);
+
+      if (store?.websiteUrl) {
+
+        window.open(store.websiteUrl, '_blank');
+
+      }
+
     }
+
   };
 
-  const handleShare = async () => {
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: storeName,
-          text: `Check out ${storeName} offers!`,
-          url: window.location.href,
-        });
-      } catch (err) { }
-    } else {
-      navigator.clipboard.writeText(window.location.href);
-      alert(isArabic ? 'تم نسخ الرابط' : 'Link copied');
-    }
-  };
 
-  if (!store && !isLoading) return null;
 
-  if (isLoading) {
-    return <div className="sh-skeleton-container" />;
-  }
+  if (!store) return null;
+
+
 
   return (
-    <header 
-      className={`sh-container ${isScrolled ? 'sh-scrolled' : ''}`} 
-      dir={dir}
-    >
-      {/* --- BACKGROUND BANNER --- */}
-      <div className="sh-banner-wrapper">
-        {storeCover ? (
-          <Image
-            src={storeCover}
-            alt="Cover"
-            fill
-            className="sh-banner-img"
-            priority
-            quality={75}
-          />
-        ) : (
-          <div className="sh-banner-placeholder" />
-        )}
-        <div className="sh-banner-overlay" />
-      </div>
 
-      {/* --- MAIN CONTENT --- */}
-      <div className="sh-content-wrapper">
-        <div className="sh-main-grid">
-          
-          {/* 1. LEFT: Identity (Logo + Name) */}
-          <div className="sh-identity-col">
-            <div className="sh-logo-wrapper">
+    <header className={`store-header-enhanced ${scrolled ? 'scrolled' : ''}`}>
+
+      {/* Store Banner 
+
+      {storeCover && (
+
+        <div 
+
+          className="store-header-banner"
+
+          style={{ '--store-cover': `url(${storeCover})` }}
+
+        />
+
+      )}*/}
+
+      
+
+      <div className="store-header-content">
+
+        <div className="store-header-inner">
+
+          {/* Store Info */}
+
+          <div className="store-info-section">
+
+            {/* Logo */}
+
+            <div className="store-logo-section">
+
               {storeLogo ? (
-                <Image 
-                  src={storeLogo} 
-                  alt={storeName} 
-                  width={100} 
-                  height={100} 
-                  className="sh-logo-img"
-                  priority
-                />
+
+                <>
+
+                  <Image 
+
+                    src={storeLogo} 
+
+                    alt={storeName}
+
+                    width={scrolled ? 80 : 120}
+
+                    height={scrolled ? 40 : 80}
+
+                    className="store-logo-img"
+
+                    priority
+
+                  />
+
+                  <h1 className="store-name">{storeName}</h1>
+
+                </>
+
               ) : (
-                <div className="sh-logo-fallback">{storeName.charAt(0)}</div>
+
+                <div className="store-logo-placeholder">
+
+                  {storeName.charAt(0).toUpperCase()}
+
+                </div>
+
               )}
-            </div>
-            
-            <div className="sh-identity-text">
-              <h1 className="sh-store-name">{storeName}</h1>
-              {/* Meta info hides on scroll */}
-              <div className="sh-meta-row">
-                <span className="sh-meta-item">
-                  <span className="material-symbols-sharp">local_offer</span>
-                  {Math.floor(Math.random() * 10) + 5} {isArabic ? 'عروض' : 'Offers'}
-                </span>
-                {country?.name && (
-                  <span className="sh-meta-item">
-                    <span className="material-symbols-sharp">public</span>
-                    {country.name}
-                  </span>
-                )}
-              </div>
-            </div>
-          </div>
 
-          {/* 2. MIDDLE: Description & Categories (Hides completely on scroll) */}
-          <div className="sh-details-container">
-            {/* Description */}
-            {storeDescription && (
-              <div className="sh-description-wrapper">
+            </div>
+
+
+
+            {/* Description with Read More */}
+
+            {!scrolled && storeDescription && (
+
+              <div className="store-description-container">
+
                 <p 
+
                   ref={descriptionRef}
-                  className={`sh-description ${isDescriptionExpanded ? 'expanded' : ''}`}
+
+                  className={`store-description ${descriptionExpanded ? 'expanded' : ''}`}
+
                 >
+
                   {storeDescription}
+
                 </p>
-                {/* Button Logic Fixed: Only show if overflowing OR if already expanded */}
-                {(isDescriptionOverflowing || isDescriptionExpanded) && (
+
+                {shouldShowReadMore && !descriptionExpanded && (
+
                   <button 
-                    onClick={toggleDescription}
-                    className="sh-read-more-btn"
+
+                    className="read-more-btn"
+
+                    onClick={() => setDescriptionExpanded(true)}
+
                     type="button"
+
                   >
-                    {isDescriptionExpanded 
-                      ? (isArabic ? 'عرض أقل' : 'Read less')
-                      : (isArabic ? 'عرض المزيد' : 'Read more')
-                    }
+
+                    {isArabic ? 'قراءة المزيد' : 'Read More'}
+
                   </button>
+
                 )}
+
               </div>
+
             )}
 
-            {/* Categories */}
-            {categories.length > 0 && (
-              <div className="sh-categories-scroll">
-                {categories.map((cat) => (
-                  <Link 
-                    key={cat.id} 
-                    href={`/${locale}/stores/${cat.slug}`}
-                    className="sh-cat-pill"
-                    style={{ '--hover-color': cat.color || '#6366f1' }}
+
+
+            {/* Categories - Links to category pages */}
+
+            {!scrolled && categories.length > 0 && (
+
+              <div className="store-categories">
+
+                {categories.slice(0, 4).map((category) => (
+
+                  <Link
+
+                    key={category.id}
+
+                    href={`/${locale}/stores/${category.slug}`}
+
+                    className="category-pill"
+
+                    style={{ 
+
+                      '--category-color': category.color || '#470ae2'
+
+                    }}
+
                   >
-                    {cat.icon && <span className="material-symbols-sharp">{cat.icon}</span>}
-                    {cat.name}
+
+                    <span className="material-symbols-sharp">{category.icon || 'category'}</span>
+
+                    {category.name}
+
                   </Link>
+
                 ))}
+
               </div>
+
             )}
 
-            {/* Payments */}
-            {(paymentMethods.length > 0 || bnplMethods.length > 0) && (
-              <div className="sh-payments-row">
-                {bnplMethods.map(pm => (
-                  <div key={pm.id} className="sh-pay-icon bnpl" title={pm.name}>
-                   {pm.logo ? <Image src={pm.logo} alt={pm.name} width={40} height={24} /> : <span>{pm.name}</span>}
-                  </div>
-                ))}
-                {paymentMethods.slice(0, 4).map(pm => (
-                  <div key={pm.id} className="sh-pay-icon" title={pm.name}>
-                    {pm.logo ? <Image src={pm.logo} alt={pm.name} width={30} height={20} /> : <span className="material-symbols-sharp">credit_card</span>}
-                  </div>
-                ))}
+
+
+            {/* Payment Methods - Country Sensitive */}
+
+            {!scrolled && (paymentMethods.length > 0 || bnplMethods.length > 0) && (
+
+              <div className="payment-section">
+
+                <div className="payment-methods-grid">
+
+                  {/* Other Payment Methods */}
+
+                  {paymentMethods.slice(0, 6).map((pm) => (
+
+                    <div key={pm.id} className="payment-icon" title={pm.name}>
+
+                      {pm.logo ? (
+
+                        <Image 
+
+                          src={pm.logo} 
+
+                          alt={pm.name}
+
+                          width={100}
+
+                          height={100}
+
+                        />
+
+                      ) : (
+
+                        <span className="material-symbols-sharp">
+
+                          {pm.type === 'CARD' ? 'credit_card' : 
+
+                            pm.type === 'WALLET' ? 'account_balance_wallet' : 
+
+                            'payments'}
+
+                        </span>
+
+                      )}
+
+                    </div>
+
+                  ))}
+
+                  {/* BNPL Section */}
+
+                  {bnplMethods.map((pm) => (
+
+                    <div key={pm.id} className="payment-icon" title={pm.name}>
+
+                      {pm.logo ? (
+
+                        <Image 
+
+                          src={pm.logo} 
+
+                          alt={pm.name}
+
+                          width={100}
+
+                          height={100}
+
+                        />
+
+                      ) : (
+
+                        <span>{pm.name}</span>
+
+                      )}
+
+                    </div>
+
+                  ))}
+
+                </div>
+
               </div>
+
             )}
+
+
+
+            {/* Scrolled State Indicators 
+
+            <div className="scrolled-indicators">
+
+              {categories.length > 0 && (
+
+                <span className="mini-indicator">
+
+                  <span className="material-symbols-sharp">category</span>
+
+                  {categories[0].name}
+
+                  {categories.length > 1 && ` +${categories.length - 1}`}
+
+                </span>
+
+              )}
+
+              {bnplMethods.length > 0 && (
+
+                <span className="mini-indicator bnpl">
+
+                  <span className="material-symbols-sharp">credit_score</span>
+
+                  {isArabic ? 'تقسيط' : 'BNPL'}
+
+                </span>
+
+              )}
+
+              {paymentMethods.length > 0 && (
+
+                <span className="mini-indicator">
+
+                  <span className="material-symbols-sharp">payment</span>
+
+                  {paymentMethods.length}+
+
+                </span>
+
+              )}
+
+            </div>*/}
+
           </div>
 
-          {/* 3. RIGHT: Action Buttons (Always visible) */}
-          <div className="sh-actions-col">
+
+
+          {/* Action Button */}
+
+          {store.websiteUrl && topVoucherTitle && (
+
             <button 
-              className="sh-share-btn"
-              onClick={handleShare}
-              aria-label="Share"
+
+              className={`store-header-cta ${copied ? 'copied' : ''} ${scrolled ? 'compact' : ''}`}
+
+              onClick={handleTopVoucherClick}
+
               type="button"
+
+              aria-label={copied ? (isArabic ? 'تم النسخ' : 'Copied') : topVoucherTitle}
+
             >
-              <span className="material-symbols-sharp">ios_share</span>
+
+              <span className="material-symbols-sharp">
+
+                {copied ? 'check_circle' : 'arrow_outward'}
+
+              </span>
+
+              {!scrolled && (
+
+                <span className='cta-title'>
+
+                  {copied ? (isArabic ? 'تم النسخ!' : 'Copied!') : 'احصل على أفضل عرض'}
+
+                </span>
+
+              )}
+
             </button>
 
-            {topVoucherTitle && (
-              <button 
-                className={`sh-cta-btn ${isCopied ? 'copied' : ''}`}
-                onClick={handleCopyAndTrack}
-                type="button"
-              >
-                <div className="sh-cta-content">
-                  <span className="material-symbols-sharp">
-                    {isCopied ? 'check' : 'content_cut'}
-                  </span>
-                  <div className="sh-cta-text-group">
-                    <span className="sh-cta-label">
-                      {isCopied 
-                        ? (isArabic ? 'تم النسخ' : 'Copied!') 
-                        : (isArabic ? 'نسخ الكود' : 'Get Code')
-                      }
-                    </span>
-                    {/* Subtitle hides on scroll to make button compact */}
-                    <span className={`sh-cta-sub ${isScrolled ? 'hidden' : ''}`}>
-                      {isArabic ? 'أفضل عرض' : 'Best Offer'}
-                    </span>
-                  </div>
-                </div>
-                {!isCopied && <div className="sh-cta-ripple"></div>}
-              </button>
-            )}
-          </div>
+          )}
 
         </div>
+
       </div>
+
     </header>
+
   );
+
 };
+
+
 
 export default StoreHeader;
