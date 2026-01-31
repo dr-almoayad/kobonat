@@ -37,30 +37,36 @@ const StoreHeader = ({
   useEffect(() => {
     setIsLoading(false);
   }, []);
-    useEffect(() => {
-    let lastScrollY = window.scrollY;
-    let ticking = false;
 
-    const updateScrolled = () => {
-      const currentScrollY = window.scrollY;
-      if (currentScrollY > 350) {
-        setScrolled(true);
-      } else if (currentScrollY < 150) {
-        setScrolled(false);
-      }
-
-      lastScrollY = currentScrollY;
-      ticking = false;
-    };
-    const handleScroll = () => {
-      if (!ticking) {
-        window.requestAnimationFrame(updateScrolled);
-        ticking = true;
-      }
-    };
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  // Smooth scroll detection with debounce
+  useEffect(() => {
+    let lastScrollY = window.scrollY;
+    let ticking = false;
+    
+    const updateScrolled = () => {
+      const currentScrollY = window.scrollY;
+      
+      if (currentScrollY > 350) {
+        setIsScrolled(true);
+      } else if (currentScrollY < 150) {
+        setIsScrolled(false);
+      }
+      
+      lastScrollY = currentScrollY;
+      ticking = false;
+    };
+    
+    const handleScroll = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(updateScrolled);
+        ticking = true;
+      }
+    };
+    
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   // Robust Overflow Detection for Read More button
   useLayoutEffect(() => {
