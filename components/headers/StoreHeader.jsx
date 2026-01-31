@@ -47,9 +47,9 @@ const StoreHeader = ({
           const scrollY = window.scrollY;
           
           // Simple threshold: collapse at 180px, expand at 120px
-          if (scrollY > 280) {
+          if (scrollY > 380) {
             setIsScrolled(true);
-          } else if (scrollY < 140) {
+          } else if (scrollY < 190) {
             setIsScrolled(false);
           }
           
