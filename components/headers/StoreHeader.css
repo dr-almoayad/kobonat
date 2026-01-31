@@ -1,551 +1,1167 @@
-/* --- CSS VARIABLES & TOKENS --- */
-:root {
-  --sh-bg-color: #ffffff;
-  --sh-text-primary: #0f172a;
-  --sh-text-secondary: #64748b;
-  --sh-accent: #4f46e5;
-  --sh-accent-hover: #4338ca;
-  --sh-success: #10b981;
-  --sh-border: #e2e8f0;
-  --sh-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-  --sh-glass: rgba(255, 255, 255, 0.95);
-  --sh-banner-height: 200px;
-  --sh-header-z: 100;
-  
-  /* Font Definition */
-  --sh-font: 'Alexandria', 'Open Sans', Arial, sans-serif;
+.store-header-enhanced {
+
+    position: sticky;
+
+    top: calc(var(--header-height, 68px) - 1px);
+
+    left: 0;
+
+    right: 0;
+
+    z-index: 100;
+
+    background: linear-gradient(135deg, #f9fafb 0%, #fff 100%);
+
+    border-bottom: 1px solid #e5e7eb;
+
+    border-top-left-radius: 32px;
+
+    border-top-right-radius: 32px;
+
+    margin-top: -36px;
+
+    height: fit-content;
+
+    transition: height 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+
+                background 0.4s ease,
+
+                box-shadow 0.4s ease;
+
+    overflow: hidden;
+
+    display: flex;
+
+    flex-direction: column;
+
 }
 
-/* --- BASE CONTAINER --- */
-.sh-container {
-  position: sticky;
-  top: 0;
-  z-index: var(--sh-header-z);
-  width: 100%;
-  background: transparent;
-  font-family: var(--sh-font);
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  /* Key for performance: we don't animate height, we animate background */
-  transition: background-color 0.4s ease, box-shadow 0.4s ease;
+
+
+.store-header-enhanced.scrolled {
+
+    height: fit-content;
+
+    background: rgba(255, 255, 255, 0.98);
+
+    backdrop-filter: blur(8px);
+
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+
 }
 
-/* Glass effect active only when scrolled */
-.sh-container.sh-scrolled {
-  background: var(--sh-glass);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  box-shadow: 0 1px 0 rgba(0,0,0,0.08);
+
+
+/* Fixed container to prevent layout jumps */
+
+.store-header-container {
+
+    width: 100%;
+
+    height: 100%;
+
+    position: relative;
+
 }
 
-/* --- BANNER SECTION --- */
-.sh-banner-wrapper {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: var(--sh-banner-height);
-  z-index: -1;
-  overflow: hidden;
-  border-bottom-left-radius: 24px;
-  border-bottom-right-radius: 24px;
-  /* Optimize Transition: Use transform instead of height */
-  transform-origin: top center;
-  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.5s ease;
-  will-change: transform, opacity;
+
+
+.store-header-banner {
+
+    position: absolute;
+
+    top: 0;
+
+    left: 0;
+
+    right: 0;
+
+    height: 180px;
+
+    background-image: var(--store-cover);
+
+    background-size: cover;
+
+    background-position: center;
+
+    background-repeat: no-repeat;
+
+    transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+
+                transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+
+    transform: translateY(0);
+
+    opacity: 1;
+
+    z-index: 1;
+
 }
 
-.sh-banner-img {
-  object-fit: cover;
+
+
+.store-header-enhanced.scrolled .store-header-banner {
+
+    opacity: 0;
+
+    transform: translateY(-20px);
+
+    pointer-events: none;
+
 }
 
-.sh-banner-placeholder {
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-}
 
-.sh-banner-overlay {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(255,255,255,0.95) 90%, #fff 100%);
-}
 
-/* When scrolled, slide banner up and fade out */
-.sh-scrolled .sh-banner-wrapper {
-  transform: translateY(-80px) scaleY(0.8);
-  opacity: 0;
-  pointer-events: none;
-}
+.store-header-content {
 
-/* --- CONTENT LAYOUT --- */
-.sh-content-wrapper {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 1rem;
-  /* Push content down to expose banner initially */
-  padding-top: calc(var(--sh-banner-height) - 65px);
-  /* Use transform for smooth shifting if needed, avoiding padding animation */
-  transition: padding-top 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-}
+    background: linear-gradient(to top, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0.95) 50%, transparent 100%);
 
-.sh-scrolled .sh-content-wrapper {
-  /* We reduce padding slightly, but rely on transforms for elements for smoothness */
-  padding-top: 0.5rem;
-  padding-bottom: 0.5rem;
-}
-
-.sh-main-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-/* --- IDENTITY (Left Col) --- */
-.sh-identity-col {
-  display: flex;
-  align-items: flex-end;
-  gap: 1rem;
-  /* Ensure positioning context for transforms */
-  position: relative;
-}
-
-.sh-logo-wrapper {
-  width: 80px;
-  height: 80px;
-  flex-shrink: 0;
-  border-radius: 16px;
-  background: #fff;
-  box-shadow: var(--sh-shadow-lg);
-  padding: 4px;
-  /* Performance: Use transform for resizing logo */
-  transform-origin: left bottom;
-  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
-              box-shadow 0.4s ease, 
-              border-radius 0.4s ease;
-  will-change: transform;
-}
-
-[dir="rtl"] .sh-logo-wrapper {
-  transform-origin: right bottom;
-}
-
-.sh-logo-img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  border-radius: 12px;
-}
-
-.sh-logo-fallback {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--sh-accent);
-  color: white;
-  font-size: 1.75rem;
-  font-weight: 700;
-  border-radius: 12px;
-}
-
-/* Scrolled Logo State - using Scale for stutter-free resize */
-.sh-scrolled .sh-logo-wrapper {
-  transform: scale(0.6); 
-  box-shadow: none;
-  background: transparent;
-}
-
-.sh-identity-text {
-  flex: 1;
-  padding-bottom: 6px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-
-.sh-store-name {
-  margin: 0;
-  font-size: 1.4rem;
-  font-weight: 700;
-  color: var(--sh-text-primary);
-  line-height: 1.2;
-  transition: transform 0.4s ease;
-  transform-origin: left center;
-}
-
-[dir="rtl"] .sh-store-name {
-  transform-origin: right center;
-}
-
-.sh-scrolled .sh-store-name {
-  transform: scale(0.9) translateY(2px);
-}
-
-.sh-meta-row {
-  display: flex;
-  gap: 12px;
-  margin-top: 6px;
-  transition: opacity 0.3s ease, height 0.3s ease;
-  overflow: hidden;
-  height: auto;
-}
-
-/* Hide meta info on scroll smoothly */
-.sh-scrolled .sh-meta-row {
-  opacity: 0;
-  height: 0;
-  margin: 0;
-}
-
-.sh-meta-item {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 0.75rem;
-  color: var(--sh-text-secondary);
-  font-weight: 600;
-}
-
-.sh-meta-item .material-symbols-sharp {
-  font-size: 15px;
-}
-
-/* --- DETAILS (Middle Col) --- */
-.sh-details-container {
-  width: 100%;
-  /* Use max-height transition for container collapse if needed, or simple opacity */
-  transition: all 0.4s ease;
-}
-
-.sh-details-inner {
-  transition: opacity 0.3s ease, transform 0.3s ease;
-  transform-origin: top center;
-}
-
-.sh-details-inner.fade-out {
-  opacity: 0;
-  transform: translateY(-10px);
-  pointer-events: none;
-  height: 0;
-  overflow: hidden;
-  margin: 0;
-}
-
-/* Description */
-.sh-description-wrapper {
-  position: relative;
-  margin-bottom: 1rem;
-}
-
-.sh-description {
-  margin: 0;
-  font-size: 0.95rem;
-  line-height: 1.6;
-  color: var(--sh-text-secondary);
-  display: -webkit-box;
-  -webkit-line-clamp: 2; /* Default collapsed state */
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  transition: all 0.3s ease; /* Does not animate line-clamp well, but handled by React state class below */
-}
-
-.sh-description.expanded {
-  -webkit-line-clamp: unset;
-  display: block; /* Fallback */
-}
-
-.sh-read-more-btn {
-  background: none;
-  border: none;
-  padding: 0;
-  color: var(--sh-accent);
-  font-size: 0.85rem;
-  font-weight: 600;
-  font-family: var(--sh-font);
-  margin-top: 4px;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-}
-
-.sh-read-more-btn:hover {
-  text-decoration: underline;
-}
-
-/* Category Pills */
-.sh-categories-scroll {
-  display: flex;
-  gap: 0.5rem;
-  overflow-x: auto;
-  padding-bottom: 0.25rem;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-.sh-categories-scroll::-webkit-scrollbar { display: none; }
-
-.sh-cat-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 14px;
-  background: #f8fafc;
-  border-radius: 99px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: var(--sh-text-secondary);
-  text-decoration: none;
-  white-space: nowrap;
-  transition: all 0.2s;
-  border: 1px solid transparent;
-}
-
-.sh-cat-pill:hover {
-  background: white;
-  color: var(--hover-color);
-  border-color: var(--hover-color);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-}
-
-/* Payments */
-.sh-payments-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 1rem;
-  flex-wrap: wrap;
-}
-
-.sh-pay-icon {
-  width: 42px;
-  height: 26px;
-  border: 1px solid var(--sh-border);
-  border-radius: 6px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #fff;
-}
-.sh-pay-icon img {
-  object-fit: contain;
-  max-width: 85%;
-  max-height: 85%;
-}
-
-/* --- ACTIONS (Right Col) --- */
-.sh-actions-col {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  /* Smooth movement when layout changes */
-  transition: transform 0.3s ease;
-}
-
-.sh-share-btn {
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  border: 1px solid var(--sh-border);
-  background: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--sh-text-secondary);
-  cursor: pointer;
-  transition: all 0.2s;
-}
-.sh-share-btn:hover {
-  background: #f8fafc;
-  color: var(--sh-text-primary);
-  border-color: #cbd5e1;
-}
-
-.sh-cta-btn {
-  flex: 1;
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  background: var(--sh-accent);
-  color: white;
-  border: none;
-  border-radius: 14px;
-  padding: 0 1.25rem;
-  height: 48px;
-  cursor: pointer;
-  overflow: hidden;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  min-width: 140px;
-  font-family: var(--sh-font);
-}
-
-.sh-cta-btn:hover {
-  background: var(--sh-accent-hover);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.35);
-}
-
-.sh-cta-btn.copied {
-  background: var(--sh-success);
-  pointer-events: none;
-}
-
-/* Text inside button */
-.sh-cta-text-group {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  line-height: 1.1;
-  transition: all 0.3s ease;
-}
-
-.sh-cta-label {
-  font-weight: 700;
-  font-size: 0.95rem;
-}
-
-.sh-cta-sub {
-  font-size: 0.7rem;
-  opacity: 0.9;
-  font-weight: 500;
-  /* Animate height/opacity on scroll */
-  transition: all 0.3s ease;
-  max-height: 20px;
-}
-
-.sh-cta-sub.fade-out {
-  opacity: 0;
-  max-height: 0;
-  margin: 0;
-}
-
-.sh-scrolled .sh-cta-btn {
-  height: 40px; /* Slightly smaller on scroll */
-  border-radius: 10px;
-}
-
-/* Ripple Animation */
-.sh-cta-ripple {
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 50%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.25), transparent);
-  transform: skewX(-20deg);
-  animation: ripple 3s infinite;
-}
-
-@keyframes ripple {
-  0% { left: -100%; }
-  20% { left: 200%; }
-  100% { left: 200%; }
-}
-
-/* --- RESPONSIVE / DESKTOP --- */
-@media (min-width: 768px) {
-  .sh-main-grid {
-    flex-direction: row;
-    align-items: flex-start;
-    flex-wrap: wrap;
-  }
-
-  .sh-identity-col {
-    width: auto;
-    align-items: flex-end;
-  }
-
-  .sh-logo-wrapper {
-    width: 110px;
-    height: 110px;
-  }
-  
-  /* Desktop text scaling */
-  .sh-store-name {
-    font-size: 2rem;
-    margin-bottom: 0.25rem;
-  }
-
-  /* Scrolled Desktop: Alignments */
-  .sh-scrolled .sh-main-grid {
-    align-items: center;
-    gap: 1.5rem;
-  }
-  
-  .sh-scrolled .sh-identity-col {
-    align-items: center;
-  }
-  
-  .sh-details-container {
-    flex: 1;
-    padding-left: 1.5rem;
-    padding-top: 4rem; /* Aligns with bottom of big logo */
-  }
-
-  [dir="rtl"] .sh-details-container {
-    padding-left: 0;
-    padding-right: 1.5rem;
-  }
-
-  .sh-scrolled .sh-details-container {
     padding: 0;
-    /* On desktop scroll, we might want to hide details completely or keep minimal */
-    display: none; 
-  }
 
-  .sh-categories-scroll {
-    overflow: visible;
-    flex-wrap: wrap;
-  }
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 
-  .sh-actions-col {
-    padding-top: 4rem;
+}
+
+
+
+.scrolled .store-header-content {
+
+    position: static;
+
+    background: transparent;
+
+    padding: 0;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+}
+
+
+
+.store-header-inner {
+
+    width: 100%;
+
+    max-width: 1280px;
+
+    margin: 0 auto;
+
+    padding: 1.45rem;
+
+    display: flex;
+
+    align-items: flex-end;
+
+    justify-content: space-between;
+
+    gap: 1.5rem;
+
+    transition: all 0.4s ease;
+
+}
+
+
+
+.scrolled .store-header-inner {
+
+    align-items: center;
+
+    gap: 1rem;
+
+    padding: 0.3rem 1.45rem;
+
+}
+
+
+
+/* Store Info */
+
+.store-info-section {
+
+    flex: 1;
+
+    min-width: 0;
+
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: flex-start;
+
+    gap: 0.75rem;
+
+}
+
+
+
+.scrolled .store-info-section {
+
+    flex-direction: row;
+
+    align-items: center;
+
+    gap: 1rem;
+
+}
+
+
+
+/* Logo */
+
+.store-logo-section {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 0.75rem;
+
     flex-shrink: 0;
-  }
 
-  .sh-scrolled .sh-actions-col {
-    padding-top: 0;
-    margin-left: auto;
-  }
-  
-  [dir="rtl"] .sh-scrolled .sh-actions-col {
-    margin-left: 0;
-    margin-right: auto;
-  }
 }
 
-/* --- SKELETON --- */
-.sh-skeleton-container {
-  width: 100%;
-  background: white;
-  border-bottom: 1px solid #eee;
-  padding-bottom: 20px;
-  font-family: var(--sh-font);
+
+
+.store-logo-img {
+
+    object-fit: contain;
+
+    border-radius: 0;
+
+    background: none;
+
+    padding: 0;
+
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+
+    transform-origin: left bottom;
+
 }
-.sh-skeleton-banner {
-  height: 200px;
-  background: #e2e8f0;
+
+
+
+[dir="rtl"] .store-logo-img {
+
+    transform-origin: right bottom;
+
 }
-.sh-skeleton-content {
-  max-width: 1280px;
-  margin: -40px auto 0;
-  padding: 0 1rem;
-  display: flex;
-  gap: 20px;
+
+
+
+.scrolled .store-logo-img {
+
+    transform-origin: left center;
+
 }
-.sh-skeleton-logo {
-  width: 100px;
-  height: 100px;
-  border-radius: 16px;
-  background: #cbd5e1;
-  border: 4px solid white;
+
+
+
+[dir="rtl"] .scrolled .store-logo-img {
+
+    transform-origin: right center;
+
 }
-.sh-skeleton-lines {
-  flex: 1;
-  padding-top: 50px;
-  height: 60px;
-  background: #f1f5f9;
-  border-radius: 8px;
+
+
+
+.store-logo-placeholder {
+
+    width: 80px;
+
+    height: 80px;
+
+    border-radius: 8px;
+
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+
+    color: white;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    font-size: 2rem;
+
+    font-weight: 700;
+
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+
 }
+
+
+
+.scrolled .store-logo-placeholder {
+
+    width: 40px;
+
+    height: 40px;
+
+    font-size: 1.25rem;
+
+}
+
+
+
+.store-header-inner .store-name {
+
+    font-size: 1.4rem;
+
+    font-weight: 600;
+
+    font-family: 'Alexandria', 'Open Sans', sans-serif;
+
+    -webkit-font-smoothing: antialiased;
+
+    color: #1e293b;
+
+    margin: 0;
+
+    line-height: 1.2;
+
+    transition: font-size 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+
+}
+
+
+
+.scrolled .store-name {
+
+    font-size: 1.125rem;
+
+}
+
+
+
+/* Description with Read More */
+
+.store-description-container {
+
+    position: relative;
+
+    max-width: 700px;
+
+}
+
+
+
+.store-description {
+
+    font-size: 0.9rem;
+
+    font-family: 'Alexandria', 'Open Sans', sans-serif;
+
+    -webkit-font-smoothing: antialiased;
+
+    text-align: start;
+
+    color: #64748b;
+
+    margin: 0;
+
+    line-height: 1.4;
+
+    display: -webkit-box;
+
+    -webkit-line-clamp: 2;
+
+    -webkit-box-orient: vertical;
+
+    overflow: hidden;
+
+    transition: all 0.3s ease;
+
+    max-height: 2.8em;
+
+}
+
+
+
+.store-description.expanded {
+
+    -webkit-line-clamp: unset;
+
+    max-height: none;
+
+    overflow: visible;
+
+}
+
+
+
+.read-more-btn {
+
+    background: none;
+
+    border: none;
+
+    color: #4f46e5;
+
+    font-size: 0.8rem;
+
+    font-weight: 500;
+
+    font-family: 'Alexandria', 'Open Sans', sans-serif;
+
+    cursor: pointer;
+
+    padding: 0.25rem 0.5rem;
+
+    margin-left: 0.5rem;
+
+    border-radius: 4px;
+
+    transition: all 0.2s ease;
+
+    position: absolute;
+
+    right: 0;
+
+    bottom: 0;
+
+    background: white;
+
+}
+
+
+
+[dir="rtl"] .read-more-btn {
+
+    right: auto;
+
+    left: 0;
+
+}
+
+
+
+.read-more-btn:hover {
+
+    background-color: rgba(79, 70, 229, 0.1);
+
+}
+
+
+
+.scrolled .store-description,
+
+.scrolled .store-description-container,
+
+.scrolled .read-more-btn {
+
+    display: none;
+
+}
+
+
+
+@keyframes fadeIn {
+
+    from { opacity: 0; }
+
+    to { opacity: 1; }
+
+}
+
+
+
+/* Categories */
+
+.store-categories {
+
+    display: flex;
+
+    flex-wrap: wrap;
+
+    gap: 0.35rem;
+
+    animation: fadeIn 0.3s ease;
+
+}
+
+
+
+.category-pill {
+
+    display: inline-flex;
+
+    align-items: center;
+
+    gap: 0.25rem;
+
+    padding: 0.25rem 0.65rem;
+
+    background: rgba(83, 83, 96, 0.1);
+
+    color: #424243;
+
+    border-radius: 20px;
+
+    font-size: 0.825rem;
+
+    font-family: 'Alexandria', 'Open Sans', sans-serif;
+
+    -webkit-font-smoothing: antialiased;
+
+    font-weight: 500;
+
+    white-space: nowrap;
+
+}
+
+
+
+.category-pill .material-symbols-sharp {
+
+    font-size: 14px;
+
+}
+
+
+
+.scrolled .store-categories {
+
+    display: none;
+
+}
+
+
+
+/* Payment Section */
+
+.payment-section {
+
+    width: 100%;
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 0.5rem;
+
+    padding-top: 0.5rem;
+
+    border-top: 1px solid #e5e7eb;
+
+    animation: fadeIn 0.3s ease;
+
+}
+
+
+
+.payment-title {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 0.5rem;
+
+    font-size: 0.875rem;
+
+    font-weight: 600;
+
+    color: #475569;
+
+    margin: 0;
+
+    text-transform: uppercase;
+
+    letter-spacing: 0.5px;
+
+}
+
+
+
+.payment-title .material-symbols-sharp {
+
+    font-size: 16px;
+
+}
+
+
+
+.payment-methods-grid {
+
+    display: flex;
+
+    gap: 0.7rem;
+
+}
+
+
+
+.bnpl-group {
+
+    display: flex;
+
+    gap: 0.5rem;
+
+}
+
+
+
+.bnpl-badge {
+
+    display: inline-flex;
+
+    align-items: center;
+
+    gap: 0.5rem;
+
+    padding: 0;
+
+    background: none;
+
+    color: #059669;
+
+    border-radius: 8px;
+
+    font-size: 0.8rem;
+
+    font-family: 'Alexandria', 'Open Sans', sans-serif;
+
+    -webkit-font-smoothing: antialiased;
+
+    font-weight: 500;
+
+    width: fit-content;
+
+}
+
+
+
+.bnpl-badge .material-symbols-sharp {
+
+    font-size: 18px;
+
+}
+
+
+
+.payment-icons {
+
+    display: flex;
+
+    flex-wrap: wrap;
+
+    gap: 0.7rem;
+
+}
+
+
+
+.payment-icon {
+
+    max-width: 70px;
+
+    max-height: 40px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    border-radius: 6px;
+
+    background: none;
+
+    border: none;
+
+    overflow: hidden;
+
+    transition: all 0.2s ease;
+
+}
+
+
+
+.payment-icon img {
+
+    width: 100%;
+
+    max-width: 100%;
+
+    height: 100%;
+
+    object-fit: contain;
+
+}
+
+
+
+.payment-icon .material-symbols-sharp {
+
+    font-size: 20px;
+
+    color: #64748b;
+
+}
+
+
+
+.payment-icon span:not(.material-symbols-sharp) {
+
+    font-size: 0.625rem;
+
+    font-weight: 600;
+
+    color: #64748b;
+
+    text-align: center;
+
+    padding: 0.25rem;
+
+    line-height: 1.2;
+
+}
+
+
+
+.scrolled .payment-section {
+
+    display: none;
+
+}
+
+
+
+/* Scrolled Indicators */
+
+.scrolled-indicators {
+
+    display: none;
+
+    gap: 0.5rem;
+
+    animation: fadeIn 0.3s ease;
+
+}
+
+
+
+.scrolled .scrolled-indicators {
+
+    display: flex;
+
+    flex: 1;
+
+    justify-content: flex-end;
+
+}
+
+
+
+.mini-indicator {
+
+    display: inline-flex;
+
+    align-items: center;
+
+    gap: 0.25rem;
+
+    padding: 0.25rem 0.5rem;
+
+    background: #f1f5f9;
+
+    border: 1px solid #e2e8f0;
+
+    color: #475569;
+
+    border-radius: 12px;
+
+    font-size: 0.75rem;
+
+    font-weight: 600;
+
+}
+
+
+
+.mini-indicator.bnpl {
+
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.1) 100%);
+
+    border-color: #10b981;
+
+    color: #059669;
+
+}
+
+
+
+.mini-indicator .material-symbols-sharp {
+
+    font-size: 14px;
+
+}
+
+
+
+/* CTA Button */
+
+.store-header-cta {
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 0.25rem;
+
+    padding: 0.5rem 1rem;
+
+    background: #4f46e5;
+
+    border: none;
+
+    color: white;
+
+    border-radius: 8px;
+
+    font-size: 0.85rem;
+
+    font-weight: 600;
+
+    font-family: 'Alexandria', 'Open Sans', sans-serif;
+
+    -webkit-font-smoothing: antialiased;
+
+    cursor: pointer;
+
+    transition: all 0.2s ease;
+
+    flex-shrink: 0;
+
+    white-space: nowrap;
+
+    max-width: 220px;
+
+}
+
+
+
+.store-header-cta:hover {
+
+    background: #4338ca;
+
+}
+
+
+
+.store-header-cta:active {
+
+    transform: translateY(0);
+
+}
+
+
+
+.store-header-cta.copied {
+
+    background: #10b981;
+
+}
+
+
+
+.store-header-cta.copied:hover {
+
+    background: #059669;
+
+}
+
+
+
+.store-header-cta.compact {
+
+    padding: 0.5rem;
+
+    max-width: 48px;
+
+}
+
+
+
+.store-header-cta .material-symbols-sharp {
+
+    font-size: 20px;
+
+    flex-shrink: 0;
+
+}
+
+
+
+.cta-title {
+
+    overflow: hidden;
+
+    text-overflow: ellipsis;
+
+    white-space: nowrap;
+
+}
+
+
+
+/* Mobile Responsiveness */
+
+@media (max-width: 768px) {
+
+    .store-header-enhanced {
+
+        top: 56px;
+
+    }
+
+    .store-header-inner {
+
+        padding: 1.25rem 1rem;
+
+    }
+
+    
+
+    .scrolled .store-header-inner{
+
+        padding: 0.5rem 0.75rem;
+
+    }
+
+    
+
+    .store-name {
+
+        font-size: 1.25rem;
+
+    }
+
+    
+
+    .scrolled .store-name {
+
+        font-size: 1rem;
+
+    }
+
+    
+
+    .store-description {
+
+        font-size: 0.8125rem;
+
+        -webkit-line-clamp: 2;
+
+    }
+
+    
+
+    .category-pill {
+
+        font-size: 0.6875rem;
+
+        padding: 0.25rem 0.5rem;
+
+    }
+
+    
+
+    .payment-section {
+
+        padding-top: 0.5rem;
+
+    }
+
+    
+
+    .payment-title {
+
+        font-size: 0.75rem;
+
+    }
+
+    
+
+    .bnpl-badge {
+
+        font-size: 0.75rem;
+
+        padding: 0.375rem 0.75rem;
+
+    }
+
+    
+
+    .payment-icon {
+
+        width: 36px;
+
+        height: 36px;
+
+    }
+
+    
+
+    .store-header-cta {
+
+        padding: 0.5rem 0.75rem;
+
+        font-size: 0.75rem;
+
+        max-width: 160px;
+
+    }
+
+    
+
+    .store-header-cta .material-symbols-sharp {
+
+        font-size: 18px;
+
+    }
+
+    
+
+    .read-more-btn {
+
+        font-size: 0.75rem;
+
+        padding: 0.2rem 0.4rem;
+
+    }
+
+}
+
+
+
+@media (max-width: 480px) {
+
+    
+
+    .store-header-banner {
+
+        height: 120px;
+
+    }
+
+    
+
+    .store-header-inner {
+
+        gap: 0.5rem;
+
+        flex-direction: column;
+
+        align-items: flex-start;
+
+        padding: 1rem 0.75rem;
+
+    }
+
+    
+
+    .scrolled .store-header-inner {
+
+        flex-direction: row;
+
+        justify-content: space-between;
+
+        align-items: center;
+
+         padding: 0.5rem 0.75rem;
+
+    }
+
+    
+
+    .scrolled .store-info-section {
+
+        flex-direction: row;
+
+        align-items: center;
+
+        gap: 0.5rem;
+
+    }
+
+    
+
+    .store-logo-img,
+
+    .store-logo-placeholder {
+
+        width: 100px !important;
+
+        height: auto !important;
+
+    }
+
+    
+
+    .scrolled .store-logo-img,
+
+    .scrolled .store-logo-placeholder {
+
+        width: 90px !important;
+
+        height: auto !important;
+
+    }
+
+    
+
+    .store-header-inner .store-name {
+
+        font-size: 0.9rem;
+
+    }
+
+    
+
+    .store-header-cta {
+
+        padding: 0.3rem 0.5rem;
+
+        max-width: fit-content;
+
+        margin-top: 0.5rem;
+
+    }
+
+    
+
+    .scrolled .store-header-cta {
+
+        padding: 0.5rem;
+
+        margin-top: 0;
+
+    }
+
+    
+
+    .cta-title {
+
+        display: flex;
+
+        font-size: 0.7rem;
+
+    }
+
+    
+
+    .scrolled .scrolled-indicators {
+
+        display: none;
+
+    }
+
+} 
