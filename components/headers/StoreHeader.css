@@ -1,4 +1,4 @@
-/* STORE HEADER - WORKS WITH CATEGORY CAROUSEL */
+/* STORE HEADER */
 
 :root {
   --sh-text-primary: #0f172a;
@@ -8,27 +8,28 @@
   --sh-success: #10b981;
   --sh-glass: rgba(255, 255, 255, 0.98);
   --sh-banner-height: 240px;
-  --sh-header-z: 90; /* Lower than category carousel (100) */
   --sh-font: 'Alexandria', 'Open Sans', Arial, sans-serif;
 }
 
-/* CONTAINER - accounts for category carousel above */
+/* CONTAINER
+   KEY FIX: Always sticky. Never switch between relative/sticky.
+   Switching position values is what causes the snap-back jump.
+*/
 .sh-container {
-  position: relative; /* Changed from sticky to avoid conflict */
-  z-index: var(--sh-header-z);
+  position: sticky;
+  top: var(--header-height, 0px);
+  z-index: 90;
   width: 100%;
   background: transparent;
   font-family: var(--sh-font);
-  margin-top: 0; /* No margin by default */
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
 }
 
-/* When scrolled, become sticky and move under category carousel */
 .sh-container.sh-scrolled {
-  position: sticky;
-  top: var(--header-height);
   background: var(--sh-glass);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.08);
 }
 
 /* BANNER */
@@ -42,7 +43,6 @@
   overflow: hidden;
   border-bottom-left-radius: 32px;
   border-bottom-right-radius: 32px;
-  border: none;
   transition: transform 0.3s ease, opacity 0.3s ease;
 }
 
@@ -65,7 +65,7 @@
 .sh-banner-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.05) 0%, rgba(255, 255, 255, 0.95) 85%, #fff 100%);
+  background: linear-gradient(to bottom, rgba(0,0,0,0.05) 0%, rgba(255,255,255,0.95) 85%, #fff 100%);
 }
 
 /* CONTENT */
@@ -74,7 +74,7 @@
   margin: 0 auto;
   padding: 1rem;
   padding-top: calc(var(--sh-banner-height) - 80px);
-  transition: padding 0.3s ease;
+  transition: padding-top 0.3s ease, padding-bottom 0.3s ease;
 }
 
 .sh-scrolled .sh-content-wrapper {
@@ -86,13 +86,12 @@
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  transition: gap 0.3s ease;
 }
 
 .sh-scrolled .sh-main-grid {
-  gap: 1rem;
   flex-direction: row;
-  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
 }
 
 /* IDENTITY */
@@ -100,29 +99,25 @@
   display: flex;
   align-items: center;
   gap: 1rem;
-  transition: align-items 0.3s ease;
-}
-
-.sh-scrolled .sh-identity-col {
-  align-items: center;
 }
 
 .sh-logo-wrapper {
   width: 80px;
-  height: auto;
-  max-height: 62px;
+  height: 80px;
   flex-shrink: 0;
-  transition: transform 0.3s ease;
+  transition: transform 0.3s ease, width 0.3s ease, height 0.3s ease;
 }
 
 .sh-scrolled .sh-logo-wrapper {
-  transform: scale(0.8);
+  width: 48px;
+  height: 48px;
 }
 
 .sh-logo-img {
   width: 100%;
   height: 100%;
   object-fit: contain;
+  border-radius: 10px;
 }
 
 .sh-logo-fallback {
@@ -136,45 +131,45 @@
   font-size: 2rem;
   font-weight: 700;
   border-radius: 12px;
+  transition: font-size 0.3s ease;
+}
+
+.sh-scrolled .sh-logo-fallback {
+  font-size: 1.25rem;
 }
 
 .sh-identity-text {
   flex: 1;
   min-width: 0;
-  padding-bottom: 6px;
-  transition: padding 0.3s ease;
-}
-
-.sh-scrolled .sh-identity-text {
-  padding-bottom: 0;
 }
 
 .sh-store-name {
   margin: 0;
-  font-size: 1.35rem;
+  font-size: 1.75rem;
   font-weight: 700;
   color: var(--sh-text-primary);
   line-height: 1.2;
   transition: font-size 0.3s ease;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .sh-scrolled .sh-store-name {
   font-size: 1.125rem;
 }
 
+/* Meta row - hidden when scrolled */
 .sh-meta-row {
   display: flex;
   gap: 12px;
   margin-top: 6px;
+  opacity: 1;
   transition: opacity 0.2s ease;
 }
 
 .sh-scrolled .sh-meta-row {
   display: none;
-  opacity: 0;
-  height: 0;
-  margin: 0;
-  overflow: hidden;
 }
 
 .sh-meta-item {
@@ -190,18 +185,13 @@
   font-size: 16px;
 }
 
-/* DETAILS */
+/* DETAILS - hidden when scrolled */
 .sh-details-container {
   width: 100%;
-  transition: opacity 0.3s ease;
 }
 
 .sh-scrolled .sh-details-container {
   display: none;
-  opacity: 0;
-  height: 0;
-  overflow: hidden;
-  pointer-events: none;
 }
 
 .sh-description-wrapper {
@@ -251,9 +241,7 @@
   scrollbar-width: none;
 }
 
-.sh-categories-scroll::-webkit-scrollbar {
-  display: none;
-}
+.sh-categories-scroll::-webkit-scrollbar { display: none; }
 
 .sh-cat-pill {
   display: inline-flex;
@@ -275,12 +263,10 @@
   background: white;
   color: var(--hover-color, var(--sh-accent));
   border-color: var(--hover-color, var(--sh-accent));
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
 }
 
-.sh-cat-pill .material-symbols-sharp {
-  font-size: 16px;
-}
+.sh-cat-pill .material-symbols-sharp { font-size: 16px; }
 
 .sh-payments-row {
   display: flex;
@@ -298,37 +284,25 @@
   justify-content: center;
 }
 
-.sh-pay-icon img {
-  object-fit: contain;
-  width: 100%;
-  height: 100%;
-}
+.sh-pay-icon img { object-fit: contain; width: 100%; height: 100%; }
+.sh-pay-icon.bnpl { width: 72px; }
+.sh-pay-icon .material-symbols-sharp { font-size: 28px; color: var(--sh-text-secondary); }
 
-.sh-pay-icon.bnpl {
-  width: 72px;
-}
-
-.sh-pay-icon .material-symbols-sharp {
-  font-size: 28px;
-  color: var(--sh-text-secondary);
-}
-
-/* ACTIONS */
+/* ACTIONS - hidden until scrolled */
 .sh-actions-col {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  opacity: 0;
-  height: 0;
-  overflow: hidden;
-  pointer-events: none;
-  transition: opacity 0.3s ease;
+  display: none;
 }
 
 .sh-scrolled .sh-actions-col {
-  opacity: 1;
-  height: auto;
-  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-left: auto;
+}
+
+[dir="rtl"] .sh-scrolled .sh-actions-col {
+  margin-left: 0;
+  margin-right: auto;
 }
 
 .sh-cta-btn {
@@ -341,27 +315,23 @@
   color: white;
   border: none;
   border-radius: 12px;
-  padding: 0.4rem 1rem;
+  padding: 0.5rem 1.25rem;
+  height: 40px;
   cursor: pointer;
   overflow: hidden;
   font-family: var(--sh-font);
   min-width: 120px;
-  transition: all 0.2s ease;
+  transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .sh-cta-btn:hover {
   background: var(--sh-accent-hover);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+  box-shadow: 0 4px 12px rgba(79,70,229,0.3);
 }
 
-.sh-cta-btn.copied {
-  background: var(--sh-success);
-}
-
-.sh-cta-btn .material-symbols-sharp {
-  font-size: 20px;
-}
+.sh-cta-btn.copied { background: var(--sh-success); }
+.sh-cta-btn .material-symbols-sharp { font-size: 20px; }
 
 .sh-cta-label {
   font-weight: 700;
@@ -374,14 +344,14 @@
   left: -100%;
   width: 50%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.25), transparent);
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent);
   transform: skewX(-20deg);
   animation: ripple 3s infinite;
 }
 
 @keyframes ripple {
-  0% { left: -100%; }
-  20% { left: 200%; }
+  0%   { left: -100%; }
+  20%  { left: 200%; }
   100% { left: 200%; }
 }
 
@@ -418,7 +388,6 @@
 
 .sh-skeleton-lines {
   flex: 1;
-  padding-top: 30px;
   height: 80px;
   background: linear-gradient(90deg, #f1f5f9 0%, #e2e8f0 50%, #f1f5f9 100%);
   background-size: 200% 100%;
@@ -427,18 +396,16 @@
 }
 
 @keyframes shimmer {
-  0% { background-position: 200% 0; }
+  0%   { background-position: 200% 0; }
   100% { background-position: -200% 0; }
 }
 
 /* TABLET */
 @media (min-width: 768px) {
-  :root {
-    --sh-banner-height: 360px;
-  }
+  :root { --sh-banner-height: 360px; }
 
   .sh-content-wrapper {
-    padding: 1rem;
+    padding: 1.5rem;
     padding-top: calc(var(--sh-banner-height) - 100px);
   }
 
@@ -450,75 +417,28 @@
   .sh-main-grid {
     flex-direction: row;
     align-items: flex-start;
-    gap: 1rem;
+    gap: 1.5rem;
   }
 
-  .sh-logo-wrapper {
-    width: 100px;
-  }
+  .sh-logo-wrapper { width: 100px; height: 100px; }
+  .sh-scrolled .sh-logo-wrapper { width: 56px; height: 56px; }
 
-  .sh-store-name {
-    font-size: 1.5rem;
-  }
+  .sh-store-name { font-size: 2.25rem; }
+  .sh-scrolled .sh-store-name { font-size: 1.25rem; }
 
-  .sh-scrolled .sh-store-name {
-    font-size: 1.25rem;
-  }
+  .sh-details-container { flex: 1; padding-top: 2rem; }
+  .sh-actions-col { padding-top: 2rem; }
+  .sh-scrolled .sh-actions-col { padding-top: 0; }
 
-  .sh-meta-item {
-    font-size: 0.875rem;
-  }
-
-  .sh-description {
-    font-size: 1rem;
-  }
-
-  .sh-cat-pill {
-    font-size: 0.875rem;
-    padding: 9px 18px;
-  }
-
-  .sh-details-container {
-    flex: 1;
-    padding-top: 2rem;
-  }
-
-  .sh-scrolled .sh-main-grid {
-    align-items: center;
-  }
-
-  .sh-actions-col {
-    padding-top: 2rem;
-  }
-
-  .sh-scrolled .sh-actions-col {
-    padding-top: 0;
-    margin-left: auto;
-  }
-
-  [dir="rtl"] .sh-scrolled .sh-actions-col {
-    margin-left: 0;
-    margin-right: auto;
-  }
-
-  .sh-pay-icon {
-    width: 64px;
-    height: 40px;
-  }
-
-  .sh-pay-icon.bnpl {
-    width: 80px;
-  }
-
-  .sh-skeleton-banner {
-    height: 360px;
-  }
+  .sh-pay-icon { width: 64px; height: 40px; }
+  .sh-pay-icon.bnpl { width: 80px; }
+  .sh-skeleton-banner { height: 360px; }
 }
 
 /* DESKTOP */
 @media (min-width: 1024px) {
   .sh-content-wrapper {
-    padding: 1.5rem;
+    padding: 2rem;
     padding-top: calc(var(--sh-banner-height) - 110px);
   }
 
@@ -527,40 +447,21 @@
     padding-bottom: 1.25rem;
   }
 
-  .sh-logo-wrapper {
-    width: 110px;
-  }
+  .sh-logo-wrapper { width: 110px; height: 110px; }
+  .sh-scrolled .sh-logo-wrapper { width: 64px; height: 64px; }
 
-  .sh-scrolled .sh-logo-wrapper {
-    transform: scale(0.6);
-  }
+  .sh-store-name { font-size: 2.75rem; }
+  .sh-scrolled .sh-store-name { font-size: 1.375rem; }
 
-  .sh-store-name {
-    font-size: 1.5rem;
-  }
-
-  .sh-scrolled .sh-store-name {
-    font-size: 1.375rem;
-  }
-
-  .sh-description {
-    font-size: 1.0625rem;
-  }
-
-  .sh-cat-pill {
-    font-size: 0.9375rem;
-    padding: 10px 20px;
-  }
-
-  .sh-cta-btn {
-    min-width: 140px;
-  }
-
-  .sh-cta-label {
-    font-size: 1rem;
-  }
+  .sh-cta-btn { min-width: 140px; height: 44px; }
+  .sh-cta-label { font-size: 1rem; }
 }
 
+/* DESKTOP XL */
+@media (min-width: 1280px) {
+  .sh-store-name { font-size: 3rem; }
+  .sh-scrolled .sh-store-name { font-size: 1.5rem; }
+}
 
 /* ACCESSIBILITY */
 @media (prefers-reduced-motion: reduce) {
