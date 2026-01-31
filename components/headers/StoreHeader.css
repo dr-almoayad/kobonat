@@ -25,11 +25,10 @@
 /* When scrolled, become sticky and move under category carousel */
 .sh-container.sh-scrolled {
   position: sticky;
-  top: 0; /* Will be under category carousel due to lower z-index */
+  top: var(--header-height);
   background: var(--sh-glass);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.08);
 }
 
 /* BANNER */
@@ -43,11 +42,12 @@
   overflow: hidden;
   border-bottom-left-radius: 32px;
   border-bottom-right-radius: 32px;
+  border: none;
   transition: transform 0.3s ease, opacity 0.3s ease;
 }
 
 .sh-scrolled .sh-banner-wrapper {
-  transform: translateY(-80px);
+  transform: translateY(-100%);
   opacity: 0;
   pointer-events: none;
 }
@@ -96,7 +96,7 @@
 /* IDENTITY */
 .sh-identity-col {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   gap: 1rem;
   transition: align-items 0.3s ease;
 }
@@ -150,7 +150,7 @@
 
 .sh-store-name {
   margin: 0;
-  font-size: 1.75rem;
+  font-size: 1.35rem;
   font-weight: 700;
   color: var(--sh-text-primary);
   line-height: 1.2;
