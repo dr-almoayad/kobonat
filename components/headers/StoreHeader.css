@@ -16,6 +16,7 @@
   width: 100%;
   background: transparent;
   font-family: var(--sh-font);
+  z-index: 0;
 }
 
 /* ─── BANNER ────────────────────────────────────────── */
