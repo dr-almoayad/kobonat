@@ -16,7 +16,7 @@
   border-radius: 58px;
   margin: 0 auto;
   padding: 0;
-  height: 500px; /* Fallback to viewport height */
+  height: 400px; /* Fallback to viewport height */
   background-color: #0a0a0a; /* Prevent white flashes */
   overflow: hidden;
   /* Define aspect ratio for modern browsers to prevent layout shift */
@@ -699,7 +699,7 @@
 
 @media (max-width: 480px) {
     .hero-carousel-wrapper {
-        height: 400px; /* Slightly shorter on mobile */
+        height: 244px; /* Slightly shorter on mobile */
         padding: 0;
     }
 }
