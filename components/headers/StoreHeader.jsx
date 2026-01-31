@@ -38,21 +38,23 @@ const StoreHeader = ({
     setIsLoading(false);
   }, []);
 
-  // Smooth scroll detection with debounce
+  // Smooth scroll detection with proper thresholds
   useEffect(() => {
-    let lastScrollY = window.scrollY;
     let ticking = false;
     
     const updateScrolled = () => {
       const currentScrollY = window.scrollY;
       
-      if (currentScrollY > 350) {
+      // Collapse when scrolled past banner (with buffer)
+      if (currentScrollY > 200) {
         setIsScrolled(true);
-      } else if (currentScrollY < 150) {
+      } 
+      // Expand when scrolled back near top
+      else if (currentScrollY < 100) {
         setIsScrolled(false);
       }
+      // Dead zone between 100-200px maintains current state
       
-      lastScrollY = currentScrollY;
       ticking = false;
     };
     
@@ -62,6 +64,9 @@ const StoreHeader = ({
         ticking = true;
       }
     };
+    
+    // Set initial state
+    updateScrolled();
     
     window.addEventListener('scroll', handleScroll, { passive: true });
     
