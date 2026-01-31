@@ -48,7 +48,7 @@ const StoreHeader = ({
           
           if (scrollY > 180) {
             setIsScrolled(true);
-          } else if (scrollY < 120) {
+          } else if (scrollY =< 180) {
             setIsScrolled(false);
           }
           
