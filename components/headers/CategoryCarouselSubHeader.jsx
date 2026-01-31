@@ -1,26 +1,19 @@
 "use client"
 import React, { useState, useEffect, useRef } from 'react';
 import { useLocale } from 'next-intl';
-import { usePathname } from 'next/navigation'; // Added
 import Link from 'next/link';
 import Image from 'next/image';
 import './CategoryCarouselSubHeader.css';
 
 const CategoryCarouselSubHeader = () => {
     const locale = useLocale();
-    const pathname = usePathname(); // Get current path
     
-    // 1. Move State Declarations to the TOP
     const [categories, setCategories] = useState([]);
     const [loading, setLoading] = useState(true);
     const [isVisible, setIsVisible] = useState(true);
-    const [lastScrollY, setLastScrollY] = useState(0);
     
     const carouselRef = useRef(null);
-
-    // 2. Logic to check if we are on a Store Detail page
-    // This prevents the carousel from appearing on store pages where it conflicts with StoreHeader
-    // const isStoreDetailPage = pathname.includes('/stores/') && pathname.split('/').filter(Boolean).length >= 3;
+    const lastScrollYRef = useRef(0);
 
     useEffect(() => {
         const fetchCategories = async () => {
@@ -41,33 +34,37 @@ const CategoryCarouselSubHeader = () => {
         fetchCategories();
     }, [locale]);
 
-    // Scroll effect logic
+    // FIXED: Smooth scroll logic with requestAnimationFrame
     useEffect(() => {
+        let ticking = false;
+        
         const handleScroll = () => {
-            const currentScrollY = window.scrollY;
-            if (currentScrollY > lastScrollY && currentScrollY > 100) {
-                setIsVisible(false);
-            } else {
-                setIsVisible(true);
+            if (!ticking) {
+                window.requestAnimationFrame(() => {
+                    const currentScrollY = window.scrollY;
+                    
+                    // Hide when scrolling down past 100px, show when near top
+                    if (currentScrollY > lastScrollYRef.current && currentScrollY > 100) {
+                        setIsVisible(false);
+                    } else if (currentScrollY < lastScrollYRef.current || currentScrollY < 50) {
+                        setIsVisible(true);
+                    }
+                    
+                    lastScrollYRef.current = currentScrollY;
+                    ticking = false;
+                });
+                ticking = true;
             }
-            setLastScrollY(currentScrollY);
         };
 
         window.addEventListener('scroll', handleScroll, { passive: true });
         return () => window.removeEventListener('scroll', handleScroll);
-    }, [lastScrollY]);
+    }, []);
 
-    // 3. Early return AFTER hooks are defined
-    if ( loading || categories.length === 0) return null;
+    if (loading || categories.length === 0) return null;
 
     return (
-        <div 
-            className="category-carousel-wrapper"
-            style={{
-                transform: isVisible ? 'translateY(0)' : 'translateY(-100%)',
-                opacity: isVisible ? 1 : 0
-            }}
-        >
+        <div className={`category-carousel-wrapper ${isVisible ? 'visible' : 'hidden'}`}>
             <div className="category-carousel" ref={carouselRef}>
                 <div className="category-carousel-track">
                     {categories.map((category) => (
