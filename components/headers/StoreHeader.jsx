@@ -45,7 +45,7 @@ const StoreHeader = ({
       if (!ticking) {
         window.requestAnimationFrame(() => {
           // Trigger scroll state earlier (100px) for smoother transition
-          setIsScrolled(window.scrollY > 100);
+          setIsScrolled(window.scrollY > 130);
           ticking = false;
         });
         ticking = true;
