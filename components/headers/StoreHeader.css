@@ -8,36 +8,35 @@
   --sh-success: #10b981;
   --sh-border: #e2e8f0;
   --sh-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-  --sh-glass: rgba(255, 255, 255, 0.95);
-  --sh-banner-height: 240px; /* Mobile banner height */
+  --sh-glass: rgba(255, 255, 255, 0.98);
+  --sh-banner-height: 240px;
   --sh-header-z: 100;
-  
-  /* Font Definition */
   --sh-font: 'Alexandria', 'Open Sans', Arial, sans-serif;
 }
 
-/* --- BASE CONTAINER --- */
+/* --- BASE CONTAINER - FIXED TRANSITIONS --- */
 .sh-container {
   position: sticky;
-  top: var(--header-height);
+  top: 0;
   z-index: var(--sh-header-z);
   width: 100%;
   background: transparent;
   font-family: var(--sh-font);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  transition: background-color 0.4s ease, box-shadow 0.4s ease;
+  transition: background-color 0.35s ease, padding 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: background-color, padding;
+  min-height: 120px; /* Prevent layout shift */
 }
 
-/* Glass effect active only when scrolled */
 .sh-container.sh-scrolled {
   background: var(--sh-glass);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  box-shadow: 0 1px 0 rgba(0,0,0,0.08);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  box-shadow: 0 1px 0 rgba(0,0,0,0.05);
 }
 
-/* --- BANNER SECTION --- */
+/* --- BANNER SECTION - FIXED TRANSITIONS --- */
 .sh-banner-wrapper {
   position: absolute;
   top: 0;
@@ -46,15 +45,15 @@
   height: var(--sh-banner-height);
   z-index: -1;
   overflow: hidden;
-  border-bottom-left-radius: 32px;
-  border-bottom-right-radius: 32px;
   transform-origin: top center;
-  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.5s ease;
+  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), 
+              opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1);
   will-change: transform, opacity;
 }
 
 .sh-banner-img {
   object-fit: cover;
+  transform: translateZ(0); /* Hardware acceleration */
 }
 
 .sh-banner-placeholder {
@@ -66,70 +65,95 @@
 .sh-banner-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(255,255,255,0.95) 90%, #fff 100%);
+  background: linear-gradient(to bottom, 
+    rgba(0,0,0,0.05) 0%, 
+    rgba(255,255,255,0.95) 85%, 
+    #fff 100%
+  );
+  transition: opacity 0.4s ease;
 }
 
 /* When scrolled, slide banner up and fade out */
 .sh-scrolled .sh-banner-wrapper {
-  transform: translateY(-100px) scaleY(0.7);
+  transform: translateY(-100px) scaleY(0.8);
   opacity: 0;
   pointer-events: none;
 }
 
-/* --- CONTENT LAYOUT --- */
+/* --- CONTENT LAYOUT - FIXED TRANSITIONS --- */
 .sh-content-wrapper {
   max-width: 1280px;
   margin: 0 auto;
   padding: 1rem;
   padding-top: calc(var(--sh-banner-height) - 80px);
   transition: padding-top 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: padding-top;
 }
 
 .sh-scrolled .sh-content-wrapper {
-  padding-top: 0;
-  padding-bottom: 0.25rem;
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
 }
 
 .sh-main-grid {
   display: flex;
   flex-direction: column;
   gap: 0;
+  transition: gap 0.3s ease;
 }
 
-/* --- IDENTITY (Left Col) --- */
+/* Scrolled state: row layout */
+.sh-scrolled .sh-main-grid {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+/* --- IDENTITY (Left Col) - FIXED TRANSITIONS --- */
 .sh-identity-col {
   display: flex;
   align-items: center;
   gap: 1rem;
   padding-top: 3.5rem;
   position: relative;
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: padding-top, transform;
 }
 
 .sh-scrolled .sh-identity-col {
   padding-top: 0;
+  flex: 1;
+  min-width: 0; /* Prevent overflow */
 }
 
+/* Logo - Always visible, just scales */
 .sh-logo-wrapper {
-  width: 56px;
-  height: 56px;
+  width: 80px;
+  height: 80px;
   flex-shrink: 0;
-  border-radius: 12px;
-  padding: 0;
-  transform-origin: left bottom;
-  transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  opacity: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform-origin: left center;
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: width, height, transform;
 }
 
 [dir="rtl"] .sh-logo-wrapper {
-  transform-origin: right bottom;
+  transform-origin: right center;
 }
 
+.sh-scrolled .sh-logo-wrapper {
+  width: 56px;
+  height: 56px;
+}
 
 .sh-logo-img {
   width: 100%;
   height: 100%;
   object-fit: contain;
-  border-radius: 0;
+  transform: translateZ(0); /* Hardware acceleration */
 }
 
 .sh-logo-fallback {
@@ -140,78 +164,83 @@
   justify-content: center;
   background: var(--sh-accent);
   color: white;
-  font-size: 1.5rem;
+  font-size: 2rem;
   font-weight: 700;
-  border-radius: 12px;
+  border-radius: 16px;
 }
 
 .sh-identity-text {
   flex: 1;
+  min-width: 0; /* Prevent text overflow */
   padding-bottom: 0;
   display: flex;
   flex-direction: column;
   justify-content: center;
+  overflow: hidden;
 }
 
-/* Typography - Mobile First */
+/* Typography - Smooth scaling */
 .sh-store-name {
-  margin: 0 0.3rem;
-  font-size: 1.35rem; /* 28px - Mobile */
+  margin: 0;
+  font-size: 1.75rem;
   font-weight: 700;
   color: var(--sh-text-primary);
   line-height: 1.2;
-  transition: font-size 0.3s ease, transform 0.3s ease;
-  transform-origin: left center;
-}
-
-[dir="rtl"] .sh-store-name {
-  transform-origin: right center;
+  transition: font-size 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: font-size;
+  transform: translateZ(0);
 }
 
 .sh-scrolled .sh-store-name {
-  font-size: 1.125rem; /* 18px - Scrolled mobile */
+  font-size: 1.25rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .sh-meta-row {
   display: flex;
   gap: 12px;
   margin-top: 6px;
-  transition: opacity 0.3s ease, max-height 0.3s ease, margin-top 0.3s ease;
+  transition: all 0.3s ease;
   overflow: hidden;
-  max-height: 50px;
+  max-height: 24px;
+  opacity: 1;
 }
 
-/* Hide meta info on scroll smoothly */
+/* Hide meta info on scroll */
 .sh-scrolled .sh-meta-row {
-  opacity: 0;
   max-height: 0;
+  opacity: 0;
   margin-top: 0;
+  overflow: hidden;
 }
 
 .sh-meta-item {
   display: flex;
   align-items: center;
   gap: 4px;
-  font-size: 0.8125rem; /* 13px */
+  font-size: 0.875rem;
   color: var(--sh-text-secondary);
   font-weight: 600;
+  white-space: nowrap;
 }
 
-.sh-meta-item .material-symbols-sharp {
-  font-size: 16px;
-}
-
-/* --- DETAILS (Middle Col) --- */
+/* --- DETAILS (Middle Col) - FIXED TRANSITIONS --- */
 .sh-details-container {
   width: 100%;
-  transition: opacity 0.3s ease, max-height 0.3s ease;
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
-  max-height: 1000px; /* Large enough for content */
+  max-height: 500px;
+  opacity: 1;
+  transform: translateY(0);
+  will-change: max-height, opacity, transform;
 }
 
 .sh-scrolled .sh-details-container {
-  opacity: 0;
   max-height: 0;
+  opacity: 0;
+  transform: translateY(-10px);
   pointer-events: none;
 }
 
@@ -223,7 +252,7 @@
 
 .sh-description {
   margin: 0;
-  font-size: 0.9375rem; /* 15px - Mobile */
+  font-size: 0.9375rem;
   line-height: 1.6;
   color: var(--sh-text-secondary);
   display: -webkit-box;
@@ -238,12 +267,13 @@
   display: block;
 }
 
+/* Read More Button */
 .sh-read-more-btn {
   background: none;
   border: none;
   padding: 0;
   color: var(--sh-accent);
-  font-size: 0.875rem; /* 14px */
+  font-size: 0.875rem;
   font-weight: 600;
   font-family: var(--sh-font);
   margin-top: 6px;
@@ -258,7 +288,7 @@
   text-decoration: underline;
 }
 
-/* Category Pills */
+/* Categories */
 .sh-categories-scroll {
   display: flex;
   gap: 0.5rem;
@@ -267,8 +297,12 @@
   margin-bottom: 1rem;
   scrollbar-width: none;
   -ms-overflow-style: none;
+  transition: opacity 0.3s ease;
 }
-.sh-categories-scroll::-webkit-scrollbar { display: none; }
+
+.sh-categories-scroll::-webkit-scrollbar { 
+  display: none; 
+}
 
 .sh-cat-pill {
   display: inline-flex;
@@ -277,7 +311,7 @@
   padding: 8px 16px;
   background: #f8fafc;
   border-radius: 99px;
-  font-size: 0.8125rem; /* 13px */
+  font-size: 0.8125rem;
   font-weight: 600;
   color: var(--sh-text-secondary);
   text-decoration: none;
@@ -286,95 +320,27 @@
   border: 1px solid transparent;
 }
 
-.sh-cat-pill:hover {
-  background: white;
-  color: var(--hover-color);
-  border-color: var(--hover-color);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-}
-
-.sh-cat-pill .material-symbols-sharp {
-  font-size: 16px;
-}
-
-/* Payment Methods - Bigger, no background/border */
-.sh-payments-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-top: 0.5rem;
-  flex-wrap: wrap;
-}
-
-.sh-pay-icon {
-  width: 48px; /* Increased from 42px */
-  height: 33px; /* Increased from 26px */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  /* Removed border and background */
-}
-
-.sh-pay-icon img {
-  object-fit: contain;
-  width: 100%;
-  height: 100%;
-}
-
-.sh-pay-icon .material-symbols-sharp {
-  font-size: 28px;
-  color: var(--sh-text-secondary);
-}
-
-/* BNPL methods styling */
-.sh-pay-icon.bnpl {
-  width: 63px; /* Slightly wider for BNPL logos */
-}
-
-/* --- ACTIONS (Right Col) --- */
+/* --- ACTIONS (Right Col) - FIXED TRANSITIONS --- */
 .sh-actions-col {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  transition: transform 0.3s ease, opacity 0.3s ease;
-}
-
-/* Hide actions when NOT scrolled */
-.sh-actions-col {
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  opacity: 0;
   transform: translateY(10px);
+  pointer-events: none;
+  will-change: opacity, transform;
 }
 
-/* Show actions when scrolled */
 .sh-scrolled .sh-actions-col {
+  opacity: 1;
   transform: translateY(0);
+  pointer-events: all;
+  flex-shrink: 0;
 }
 
-.sh-share-btn {
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  border: 1px solid var(--sh-border);
-  background: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--sh-text-secondary);
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.sh-share-btn:hover {
-  background: #f8fafc;
-  color: var(--sh-text-primary);
-  border-color: #cbd5e1;
-}
-
-.sh-share-btn .material-symbols-sharp {
-  font-size: 20px;
-}
-
+/* CTA Button */
 .sh-cta-btn {
-  flex: 1;
   position: relative;
   display: flex;
   align-items: center;
@@ -391,444 +357,90 @@
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   min-width: 140px;
   font-family: var(--sh-font);
+  will-change: transform;
 }
 
-.sh-cta-btn:hover {
-  background: var(--sh-accent-hover);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.35);
+.sh-scrolled .sh-cta-btn {
+  height: 40px;
+  min-width: 120px;
+  padding: 0 1.25rem;
 }
 
-.sh-cta-btn:active {
-  transform: translateY(0);
-}
-
-.sh-cta-btn.copied {
-  background: var(--sh-success);
-  pointer-events: none;
-}
-
-/* Text inside button */
-.sh-cta-content {
+/* Payment Methods - Hide on scroll */
+.sh-payments-row {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 12px;
+  margin-top: 0.5rem;
+  flex-wrap: wrap;
+  transition: opacity 0.3s ease;
 }
 
-.sh-cta-text-group {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  line-height: 1.1;
-}
-
-.sh-cta-label {
-  font-weight: 700;
-  font-size: 0.9375rem; /* 15px */
-}
-
-.sh-cta-sub {
-  font-size: 0.6875rem; /* 11px */
-  opacity: 0.9;
-  font-weight: 500;
-  transition: all 0.3s ease;
-  max-height: 20px;
-}
-
-.sh-cta-sub.fade-out {
-  opacity: 0;
-  max-height: 0;
-  margin: 0;
-}
-
-/* Ripple Animation */
-.sh-cta-ripple {
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 50%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.25), transparent);
-  transform: skewX(-20deg);
-  animation: ripple 3s infinite;
-}
-
-@keyframes ripple {
-  0% { left: -100%; }
-  20% { left: 200%; }
-  100% { left: 200%; }
-}
-
-/* --- RESPONSIVE / TABLET (768px+) --- */
+/* --- RESPONSIVE BREAKPOINTS --- */
 @media (min-width: 768px) {
   :root {
-    --sh-banner-height: 360px; /* Desktop banner height */
+    --sh-banner-height: 320px;
   }
-
+  
   .sh-content-wrapper {
     padding: 1.5rem;
     padding-top: calc(var(--sh-banner-height) - 100px);
   }
-
+  
   .sh-scrolled .sh-content-wrapper {
     padding-top: 1rem;
     padding-bottom: 1rem;
   }
-
-  .sh-main-grid {
-    flex-direction: row;
-    align-items: flex-start;
-    flex-wrap: wrap;
-  }
-
-  .sh-identity-col {
-    width: auto;
-    align-items: flex-end;
-  }
-
-  /* Logo sizing for tablet+ */
-  .sh-logo-wrapper {
-    width: 64px;
-    height: 64px;
-  }
-
-  /* Typography - Tablet */
+  
   .sh-store-name {
-    font-size: 2.25rem; /* 36px - Tablet expanded */
+    font-size: 2.25rem;
   }
-
+  
   .sh-scrolled .sh-store-name {
-    font-size: 1.25rem; /* 20px - Tablet scrolled */
-  }
-
-  .sh-meta-item {
-    font-size: 0.875rem; /* 14px */
-  }
-
-  .sh-description {
-    font-size: 1rem; /* 16px */
-  }
-
-  .sh-cat-pill {
-    font-size: 0.875rem; /* 14px */
-    padding: 9px 18px;
-  }
-
-  /* Scrolled state adjustments */
-  .sh-scrolled .sh-main-grid {
-    align-items: center;
-    gap: 1.5rem;
-  }
-
-  .sh-scrolled .sh-identity-col {
-    align-items: center;
-  }
-
-  .sh-details-container {
-    flex: 1;
-    padding-left: 1.5rem;
-    padding-top: 3rem;
-  }
-
-  [dir="rtl"] .sh-details-container {
-    padding-left: 0;
-    padding-right: 1.5rem;
-  }
-
-  .sh-categories-scroll {
-    overflow: visible;
-    flex-wrap: wrap;
-  }
-
-  .sh-actions-col {
-    padding-top: 3rem;
-    flex-shrink: 0;
-  }
-
-  .sh-scrolled .sh-actions-col {
-    padding-top: 0;
-    margin-left: auto;
-  }
-
-  [dir="rtl"] .sh-scrolled .sh-actions-col {
-    margin-left: 0;
-    margin-right: auto;
-  }
-
-  /* Payment icons slightly bigger on desktop */
-  .sh-pay-icon {
-    width: 64px;
-    height: 40px;
-  }
-
-  .sh-pay-icon.bnpl {
-    width: 80px;
+    font-size: 1.5rem;
   }
 }
 
-/* --- DESKTOP LARGE (1024px+) --- */
 @media (min-width: 1024px) {
-  .sh-content-wrapper {
-    padding: 2rem;
-    padding-top: calc(var(--sh-banner-height) - 110px);
+  .sh-container {
+    top: var(--header-height, 0);
   }
-
-  .sh-scrolled .sh-content-wrapper {
-    padding-top: 1.25rem;
-    padding-bottom: 1.25rem;
-  }
-
-  /* Logo sizing for desktop */
-  .sh-logo-wrapper {
-    width: 72px;
-    height: 72px;
-  }
-
-  /* Typography - Desktop */
-  .sh-store-name {
-    font-size: 2.75rem; /* 44px - Desktop expanded */
-  }
-
-  .sh-scrolled .sh-store-name {
-    font-size: 1.375rem; /* 22px - Desktop scrolled */
-  }
-
-  .sh-description {
-    font-size: 1.0625rem; /* 17px */
-  }
-
-  .sh-read-more-btn {
-    font-size: 0.9375rem; /* 15px */
-  }
-
-  .sh-cat-pill {
-    font-size: 0.9375rem; /* 15px */
-    padding: 10px 20px;
-  }
-
-  .sh-cta-btn {
+  
+  .sh-scrolled .sh-logo-wrapper {
+    width: 48px;
     height: 48px;
-    padding: 0 2rem;
-    min-width: 160px;
   }
-
-  .sh-cta-label {
-    font-size: 1rem; /* 16px */
-  }
-
-  .sh-details-container {
-    padding-top: 3.5rem;
-  }
-
-  .sh-actions-col {
-    padding-top: 3.5rem;
+  
+  .sh-scrolled .sh-cta-btn {
+    height: 36px;
+    min-width: 110px;
+    padding: 0 1rem;
   }
 }
 
-/* --- DESKTOP XL (1280px+) --- */
-@media (min-width: 1280px) {
-  /* Typography - XL Desktop */
-  .sh-store-name {
-    font-size: 3rem; /* 48px - XL expanded */
-  }
-
-  .sh-scrolled .sh-store-name {
-    font-size: 1.5rem; /* 24px - XL scrolled */
-  }
-
-  /* Logo sizing for XL desktop */
-  .sh-logo-wrapper {
-    width: 80px;
-    height: 80px;
-  }
-
-  .sh-description {
-    font-size: 1.125rem; /* 18px */
-  }
-
-  .sh-cta-btn {
-    height: 52px;
-    padding: 0 2.5rem;
-    min-width: 180px;
-  }
-
-  .sh-cta-label {
-    font-size: 1.0625rem; /* 17px */
-  }
-}
-
-/* --- SKELETON --- */
-.sh-skeleton-container {
-  width: 100%;
-  background: white;
-  border-bottom: 1px solid #eee;
-  padding-bottom: 20px;
-  font-family: var(--sh-font);
-}
-
-.sh-skeleton-banner {
-  height: 240px;
-  background: linear-gradient(90deg, #e2e8f0 0%, #f1f5f9 50%, #e2e8f0 100%);
-  background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
-}
-
-@media (min-width: 768px) {
-  .sh-skeleton-banner {
-    height: 360px;
-  }
-}
-
-.sh-skeleton-content {
-  max-width: 1280px;
-  margin: -60px auto 0;
-  padding: 0 1rem;
-  display: flex;
-  gap: 20px;
-}
-
-.sh-skeleton-logo {
-  width: 80px;
-  height: 80px;
-  border-radius: 16px;
-  background: #cbd5e1;
-  animation: shimmer 1.5s infinite;
-}
-
-.sh-skeleton-lines {
-  flex: 1;
-  padding-top: 30px;
-  height: 80px;
-  background: linear-gradient(90deg, #f1f5f9 0%, #e2e8f0 50%, #f1f5f9 100%);
-  background-size: 200% 100%;
-  border-radius: 8px;
-  animation: shimmer 1.5s infinite;
-}
-
-@keyframes shimmer {
-  0% {
-    background-position: 200% 0;
-  }
-  100% {
-    background-position: -200% 0;
-  }
-}
-
-/* --- ACCESSIBILITY --- */
+/* --- PERFORMANCE OPTIMIZATIONS --- */
 @media (prefers-reduced-motion: reduce) {
   .sh-container,
   .sh-banner-wrapper,
+  .sh-content-wrapper,
+  .sh-identity-col,
   .sh-logo-wrapper,
   .sh-store-name,
   .sh-meta-row,
   .sh-details-container,
   .sh-actions-col,
-  .sh-cta-btn,
-  .sh-cta-ripple {
+  .sh-cta-btn {
     transition: none !important;
     animation: none !important;
   }
 }
 
-/* Focus visible styles */
-.sh-read-more-btn:focus-visible,
-.sh-cat-pill:focus-visible,
-.sh-share-btn:focus-visible,
-.sh-cta-btn:focus-visible {
-  outline: 3px solid var(--sh-accent);
-  outline-offset: 3px;
-  border-radius: 8px;
-}
-
-/* --- Fix the Stuttering & Layout --- */
-.sh-container {
-  /* Use a fixed height or min-height in scrolled state to prevent layout jumping */
-  transition: background-color 0.3s ease, padding 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* --- LOGO: Always visible, just scales --- */
-.sh-logo-wrapper {
-  width: 80px;
-  height: 80px;
-  display: flex; /* Ensure it's never hidden */
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  z-index: 10;
-}
-
-/* Shrink Logo on scroll instead of hiding */
-.sh-scrolled .sh-logo-wrapper {
-  width: 70px;
-  height: 40px;
-  border-radius: 8px;
-  box-shadow: none;
-  transform: translateY(0);
-}
-
-/* --- TEXT COLLAPSE FIX --- */
-.sh-scrolled .sh-description-wrapper,
-.sh-scrolled .sh-categories-scroll,
-.sh-scrolled .sh-payments-row,
-.sh-scrolled .sh-meta-row {
-  display: block; /* Instant hide to prevent stuttering height changes */
-  transform: scale(0) !important;
-}
-
-/* --- READ MORE BUTTON FIX --- */
-.sh-description-wrapper {
-  display: flex;
-  flex-direction: column;
-}
-
-.sh-description {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.sh-description.expanded {
-  -webkit-line-clamp: unset;
-}
-
-.sh-read-more-btn {
-  /* Force visibility if the state is overflowing */
-  display: inline-block !important; 
-  visibility: visible !important;
-  opacity: 1 !important;
-}
-
-/* --- CTA BUTTON: SHRUNKEN STATE --- */
+/* Hardware acceleration for smoother animations */
+.sh-banner-wrapper,
+.sh-logo-img,
+.sh-store-name,
 .sh-cta-btn {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.sh-scrolled .sh-cta-btn {
-  height: 32px;
-  min-width: auto;
-  padding: 0 12px;
-}
-
-/* Hide "Best Offer" subtitle ONLY on very small mobile scrolls to save space */
-.sh-scrolled .sh-cta-sub {
-  display: none;
-}
-
-/* Ensure Logo and CTA align on one line when scrolled */
-.sh-scrolled .sh-main-grid {
-  flex-direction: row !important;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-}
-
-.sh-scrolled .sh-identity-col {
-  padding-top: 0;
-  flex: 1;
-}
-
-.sh-scrolled .sh-actions-col {
-  padding-top: 0;
-  transform: none;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000px;
 }
