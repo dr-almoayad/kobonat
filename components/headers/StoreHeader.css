@@ -19,7 +19,7 @@
 /* --- BASE CONTAINER --- */
 .sh-container {
   position: sticky;
-  top: 0;
+  top: var(--header-height);
   z-index: var(--sh-header-z);
   width: 100%;
   background: transparent;
@@ -104,7 +104,6 @@
   position: relative;
 }
 
-/* LOGO - Hidden in expanded state, visible only when scrolled */
 .sh-logo-wrapper {
   width: 56px;
   height: 56px;
@@ -113,21 +112,13 @@
   padding: 0;
   transform-origin: left bottom;
   transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  opacity: 0;
-  transform: scale(0.8) translateY(10px);
-  pointer-events: none;
+  opacity: 1;
 }
 
 [dir="rtl"] .sh-logo-wrapper {
   transform-origin: right bottom;
 }
 
-/* Show logo when scrolled */
-.sh-scrolled .sh-logo-wrapper {
-  opacity: 1;
-  transform: scale(1) translateY(0);
-  pointer-events: auto;
-}
 
 .sh-logo-img {
   width: 100%;
