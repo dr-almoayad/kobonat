@@ -101,7 +101,12 @@
   display: flex;
   align-items: center;
   gap: 1rem;
+  padding-top: 3.5rem;
   position: relative;
+}
+
+.sh-scrolled .sh-identity-col {
+  padding-top: 0;
 }
 
 .sh-logo-wrapper {
