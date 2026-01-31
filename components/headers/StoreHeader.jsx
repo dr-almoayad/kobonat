@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useLayoutEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import './StoreHeader.css';
@@ -38,41 +38,42 @@ const StoreHeader = ({
     setIsLoading(false);
   }, []);
 
-  // Optimized Scroll Handler using requestAnimationFrame
+  // Optimized Scroll Handler
   useEffect(() => {
     let ticking = false;
-    
     const handleScroll = () => {
       if (!ticking) {
         window.requestAnimationFrame(() => {
-          const currentScrollY = window.scrollY;
-          // Threshold: 120px is a good balance for the 200px banner
-          const shouldBeScrolled = currentScrollY > 120;
-          
-          setIsScrolled((prev) => {
-             // Only update state if it actually changes to prevent re-renders
-             if (prev !== shouldBeScrolled) return shouldBeScrolled;
-             return prev;
-          });
-          
+          // Trigger scroll state earlier (100px) for smoother transition
+          setIsScrolled(window.scrollY > 100);
           ticking = false;
         });
         ticking = true;
       }
     };
-
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Check overflow logic for Read More
-  useEffect(() => {
-    if (descriptionRef.current && storeDescription) {
+  // Fix: Robust Overflow Detection for Read More button
+  useLayoutEffect(() => {
+    const checkOverflow = () => {
       const element = descriptionRef.current;
-      // Check if scrollHeight is significantly larger than clientHeight (2 lines approx 3em)
-      setIsDescriptionOverflowing(element.scrollHeight > element.clientHeight + 2);
-    }
-  }, [storeDescription]);
+      if (element && storeDescription) {
+        // Compare scrollHeight (full content) vs clientHeight (visible area)
+        // We add a small buffer (1px) to avoid rounding errors
+        const isOverflowing = element.scrollHeight > element.clientHeight + 1;
+        setIsDescriptionOverflowing(isOverflowing);
+      }
+    };
+
+    // Run initially
+    checkOverflow();
+
+    // Re-run on window resize
+    window.addEventListener('resize', checkOverflow);
+    return () => window.removeEventListener('resize', checkOverflow);
+  }, [storeDescription, isLoading]);
 
   const toggleDescription = () => {
     setIsDescriptionExpanded(!isDescriptionExpanded);
@@ -87,7 +88,6 @@ const StoreHeader = ({
     try {
       await navigator.clipboard.writeText(voucherCode);
       setIsCopied(true);
-      
       if (navigator.vibrate) navigator.vibrate(50);
 
       if (mostTrackedVoucher?.id) {
@@ -104,25 +104,20 @@ const StoreHeader = ({
       setTimeout(() => {
         if (websiteUrl) window.open(websiteUrl, '_blank');
       }, 800);
-
       setTimeout(() => setIsCopied(false), 3000);
-
     } catch (err) {
-      console.error('Copy failed', err);
       if (websiteUrl) window.open(websiteUrl, '_blank');
     }
   };
 
   const handleShare = async () => {
-    const shareData = {
-      title: `${storeName}`,
-      text: `Check out these offers for ${storeName}!`,
-      url: window.location.href,
-    };
-
     if (navigator.share) {
       try {
-        await navigator.share(shareData);
+        await navigator.share({
+          title: storeName,
+          text: `Check out ${storeName} offers!`,
+          url: window.location.href,
+        });
       } catch (err) { }
     } else {
       navigator.clipboard.writeText(window.location.href);
@@ -133,15 +128,7 @@ const StoreHeader = ({
   if (!store && !isLoading) return null;
 
   if (isLoading) {
-    return (
-      <div className="sh-skeleton-container">
-        <div className="sh-skeleton-banner"></div>
-        <div className="sh-skeleton-content">
-          <div className="sh-skeleton-logo"></div>
-          <div className="sh-skeleton-lines"></div>
-        </div>
-      </div>
-    );
+    return <div className="sh-skeleton-container" />;
   }
 
   return (
@@ -170,7 +157,7 @@ const StoreHeader = ({
       <div className="sh-content-wrapper">
         <div className="sh-main-grid">
           
-          {/* 1. Left: Logo & Identity */}
+          {/* 1. LEFT: Identity (Logo + Name) */}
           <div className="sh-identity-col">
             <div className="sh-logo-wrapper">
               {storeLogo ? (
@@ -188,10 +175,8 @@ const StoreHeader = ({
             </div>
             
             <div className="sh-identity-text">
-              <h1 className="sh-store-name">
-                {storeName}
-              </h1>
-              
+              <h1 className="sh-store-name">{storeName}</h1>
+              {/* Meta info hides on scroll */}
               <div className="sh-meta-row">
                 <span className="sh-meta-item">
                   <span className="material-symbols-sharp">local_offer</span>
@@ -207,75 +192,73 @@ const StoreHeader = ({
             </div>
           </div>
 
-          {/* 2. Middle: Description & Categories */}
+          {/* 2. MIDDLE: Description & Categories (Hides completely on scroll) */}
           <div className="sh-details-container">
-            <div className={`sh-details-inner ${isScrolled ? 'fade-out' : ''}`}>
-              
-              {/* Description */}
-              {storeDescription && (
-                <div className="sh-description-wrapper">
-                  <p 
-                    ref={descriptionRef}
-                    className={`sh-description ${isDescriptionExpanded ? 'expanded' : ''}`}
+            {/* Description */}
+            {storeDescription && (
+              <div className="sh-description-wrapper">
+                <p 
+                  ref={descriptionRef}
+                  className={`sh-description ${isDescriptionExpanded ? 'expanded' : ''}`}
+                >
+                  {storeDescription}
+                </p>
+                {/* Button Logic Fixed: Only show if overflowing OR if already expanded */}
+                {(isDescriptionOverflowing || isDescriptionExpanded) && (
+                  <button 
+                    onClick={toggleDescription}
+                    className="sh-read-more-btn"
+                    type="button"
                   >
-                    {storeDescription}
-                  </p>
-                  {isDescriptionOverflowing && (
-                    <button 
-                      onClick={toggleDescription}
-                      className="sh-read-more-btn"
-                      type="button"
-                    >
-                      {isDescriptionExpanded 
-                        ? (isArabic ? 'عرض أقل' : 'Read less')
-                        : (isArabic ? 'عرض المزيد' : 'Read more')
-                      }
-                    </button>
-                  )}
-                </div>
-              )}
+                    {isDescriptionExpanded 
+                      ? (isArabic ? 'عرض أقل' : 'Read less')
+                      : (isArabic ? 'عرض المزيد' : 'Read more')
+                    }
+                  </button>
+                )}
+              </div>
+            )}
 
-              {/* Categories */}
-              {categories.length > 0 && (
-                <div className="sh-categories-scroll">
-                  {categories.map((cat) => (
-                    <Link 
-                      key={cat.id} 
-                      href={`/${locale}/stores/${cat.slug}`}
-                      className="sh-cat-pill"
-                      style={{ '--hover-color': cat.color || '#6366f1' }}
-                    >
-                      {cat.icon && <span className="material-symbols-sharp">{cat.icon}</span>}
-                      {cat.name}
-                    </Link>
-                  ))}
-                </div>
-              )}
+            {/* Categories */}
+            {categories.length > 0 && (
+              <div className="sh-categories-scroll">
+                {categories.map((cat) => (
+                  <Link 
+                    key={cat.id} 
+                    href={`/${locale}/stores/${cat.slug}`}
+                    className="sh-cat-pill"
+                    style={{ '--hover-color': cat.color || '#6366f1' }}
+                  >
+                    {cat.icon && <span className="material-symbols-sharp">{cat.icon}</span>}
+                    {cat.name}
+                  </Link>
+                ))}
+              </div>
+            )}
 
-              {/* Payments */}
-              {(paymentMethods.length > 0 || bnplMethods.length > 0) && (
-                <div className="sh-payments-row">
-                  {bnplMethods.map(pm => (
-                    <div key={pm.id} className="sh-pay-icon bnpl" title={pm.name}>
-                     {pm.logo ? <Image src={pm.logo} alt={pm.name} width={40} height={24} /> : <span>{pm.name}</span>}
-                    </div>
-                  ))}
-                  {paymentMethods.slice(0, 4).map(pm => (
-                    <div key={pm.id} className="sh-pay-icon" title={pm.name}>
-                      {pm.logo ? <Image src={pm.logo} alt={pm.name} width={30} height={20} /> : <span className="material-symbols-sharp">credit_card</span>}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+            {/* Payments */}
+            {(paymentMethods.length > 0 || bnplMethods.length > 0) && (
+              <div className="sh-payments-row">
+                {bnplMethods.map(pm => (
+                  <div key={pm.id} className="sh-pay-icon bnpl" title={pm.name}>
+                   {pm.logo ? <Image src={pm.logo} alt={pm.name} width={40} height={24} /> : <span>{pm.name}</span>}
+                  </div>
+                ))}
+                {paymentMethods.slice(0, 4).map(pm => (
+                  <div key={pm.id} className="sh-pay-icon" title={pm.name}>
+                    {pm.logo ? <Image src={pm.logo} alt={pm.name} width={30} height={20} /> : <span className="material-symbols-sharp">credit_card</span>}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
-          {/* 3. Right: Action Buttons */}
+          {/* 3. RIGHT: Action Buttons (Always visible) */}
           <div className="sh-actions-col">
             <button 
               className="sh-share-btn"
               onClick={handleShare}
-              aria-label="Share Store"
+              aria-label="Share"
               type="button"
             >
               <span className="material-symbols-sharp">ios_share</span>
@@ -298,7 +281,8 @@ const StoreHeader = ({
                         : (isArabic ? 'نسخ الكود' : 'Get Code')
                       }
                     </span>
-                    <span className={`sh-cta-sub ${isScrolled ? 'fade-out' : ''}`}>
+                    {/* Subtitle hides on scroll to make button compact */}
+                    <span className={`sh-cta-sub ${isScrolled ? 'hidden' : ''}`}>
                       {isArabic ? 'أفضل عرض' : 'Best Offer'}
                     </span>
                   </div>
