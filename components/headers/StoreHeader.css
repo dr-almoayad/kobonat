@@ -110,7 +110,7 @@
 
 .sh-store-name {
   margin: 0;
-  font-size: 1.75rem;
+  font-size: 1.35rem;
   font-weight: 700;
   color: var(--sh-text-primary);
   line-height: 1.2;
@@ -319,7 +319,7 @@
   }
 
   .sh-store-name {
-    font-size: 2.25rem;
+    font-size: 1.6rem;
   }
 
   .sh-details-container {
@@ -345,7 +345,7 @@
   }
 
   .sh-store-name {
-    font-size: 2.75rem;
+    font-size: 1.75rem;
   }
 }
 
