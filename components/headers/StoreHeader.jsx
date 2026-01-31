@@ -38,20 +38,40 @@ const StoreHeader = ({
     setIsLoading(false);
   }, []);
 
+ // Smooth scroll detection with proper thresholds
   useEffect(() => {
-  const handleScroll = () => {
-    // A single threshold (e.g., 80px) is much smoother than a range
-    const threshold = 80;
-    if (window.scrollY > threshold) {
-      setIsScrolled(true);
-    } else {
-      setIsScrolled(false);
-    }
-  };
-
-  window.addEventListener('scroll', handleScroll, { passive: true });
-  return () => window.removeEventListener('scroll', handleScroll);
-}, []);
+    let ticking = false;
+    
+    const updateScrolled = () => {
+      const currentScrollY = window.scrollY;
+      
+      // Collapse when scrolled past banner (with buffer)
+      if (currentScrollY > 100) {
+        setIsScrolled(true);
+      } 
+      // Expand when scrolled back near top
+      else if (currentScrollY < 110) {
+        setIsScrolled(false);
+      }
+      // Dead zone between 100-200px maintains current state
+      
+      ticking = false;
+    };
+    
+    const handleScroll = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(updateScrolled);
+        ticking = true;
+      }
+    };
+    
+    // Set initial state
+    updateScrolled();
+    
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   // Robust Overflow Detection for Read More button
   useLayoutEffect(() => {
