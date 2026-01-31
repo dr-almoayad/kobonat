@@ -1,4 +1,4 @@
-/* STORE HEADER - CLEAN & SMOOTH */
+/* STORE HEADER - WORKS WITH CATEGORY CAROUSEL */
 
 :root {
   --sh-text-primary: #0f172a;
@@ -8,22 +8,24 @@
   --sh-success: #10b981;
   --sh-glass: rgba(255, 255, 255, 0.98);
   --sh-banner-height: 240px;
-  --sh-header-z: 100;
+  --sh-header-z: 90; /* Lower than category carousel (100) */
   --sh-font: 'Alexandria', 'Open Sans', Arial, sans-serif;
 }
 
-/* CONTAINER */
+/* CONTAINER - accounts for category carousel above */
 .sh-container {
-  position: sticky;
-  top: 0;
+  position: relative; /* Changed from sticky to avoid conflict */
   z-index: var(--sh-header-z);
   width: 100%;
   background: transparent;
   font-family: var(--sh-font);
-  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  margin-top: 0; /* No margin by default */
 }
 
+/* When scrolled, become sticky and move under category carousel */
 .sh-container.sh-scrolled {
+  position: sticky;
+  top: 0; /* Will be under category carousel due to lower z-index */
   background: var(--sh-glass);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
@@ -41,12 +43,13 @@
   overflow: hidden;
   border-bottom-left-radius: 32px;
   border-bottom-right-radius: 32px;
-  transition: transform 0.4s ease, opacity 0.4s ease;
+  transition: transform 0.3s ease, opacity 0.3s ease;
 }
 
 .sh-scrolled .sh-banner-wrapper {
   transform: translateY(-80px);
   opacity: 0;
+  pointer-events: none;
 }
 
 .sh-banner-img {
@@ -83,6 +86,11 @@
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  transition: gap 0.3s ease;
+}
+
+.sh-scrolled .sh-main-grid {
+  gap: 0;
 }
 
 /* IDENTITY */
@@ -180,7 +188,7 @@
   font-size: 16px;
 }
 
-/* DETAILS - Simple hide/show */
+/* DETAILS */
 .sh-details-container {
   width: 100%;
   transition: opacity 0.3s ease;
@@ -302,7 +310,7 @@
   color: var(--sh-text-secondary);
 }
 
-/* ACTIONS - Simple show/hide */
+/* ACTIONS */
 .sh-actions-col {
   display: flex;
   align-items: center;
@@ -593,7 +601,6 @@
 @media (prefers-reduced-motion: reduce) {
   * {
     animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
 }
