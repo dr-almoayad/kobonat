@@ -302,8 +302,8 @@
 }
 
 .sh-pay-icon {
-  width: 56px; /* Increased from 42px */
-  height: 36px; /* Increased from 26px */
+  width: 48px; /* Increased from 42px */
+  height: 33px; /* Increased from 26px */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -323,7 +323,7 @@
 
 /* BNPL methods styling */
 .sh-pay-icon.bnpl {
-  width: 72px; /* Slightly wider for BNPL logos */
+  width: 63px; /* Slightly wider for BNPL logos */
 }
 
 /* --- ACTIONS (Right Col) --- */
@@ -336,16 +336,12 @@
 
 /* Hide actions when NOT scrolled */
 .sh-actions-col {
-  opacity: 0;
   transform: translateY(10px);
-  pointer-events: none;
 }
 
 /* Show actions when scrolled */
 .sh-scrolled .sh-actions-col {
-  opacity: 1;
   transform: translateY(0);
-  pointer-events: auto;
 }
 
 .sh-share-btn {
