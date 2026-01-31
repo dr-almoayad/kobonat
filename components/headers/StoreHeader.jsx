@@ -178,10 +178,10 @@ const StoreHeader = ({
               <h1 className="sh-store-name">{storeName}</h1>
               {/* Meta info hides on scroll */}
               <div className="sh-meta-row">
-                <span className="sh-meta-item">
+                {/*<span className="sh-meta-item">
                   <span className="material-symbols-sharp">local_offer</span>
                   {Math.floor(Math.random() * 10) + 5} {isArabic ? 'عروض' : 'Offers'}
-                </span>
+                </span>*/}
                 {country?.name && (
                   <span className="sh-meta-item">
                     <span className="material-symbols-sharp">public</span>
@@ -255,14 +255,14 @@ const StoreHeader = ({
 
           {/* 3. RIGHT: Action Buttons (Always visible) */}
           <div className="sh-actions-col">
-            <button 
+            {/*<button 
               className="sh-share-btn"
               onClick={handleShare}
               aria-label="Share"
               type="button"
             >
               <span className="material-symbols-sharp">ios_share</span>
-            </button>
+            </button>*/}
 
             {topVoucherTitle && (
               <button 
@@ -272,18 +272,11 @@ const StoreHeader = ({
               >
                 <div className="sh-cta-content">
                   <span className="material-symbols-sharp">
-                    {isCopied ? 'check' : 'content_cut'}
+                    {isCopied ? 'check' : 'content_copy'}
                   </span>
                   <div className="sh-cta-text-group">
                     <span className="sh-cta-label">
-                      {isCopied 
-                        ? (isArabic ? 'تم النسخ' : 'Copied!') 
-                        : (isArabic ? 'نسخ الكود' : 'Get Code')
-                      }
-                    </span>
-                    {/* Subtitle hides on scroll to make button compact */}
-                    <span className={`sh-cta-sub ${isScrolled ? 'hidden' : ''}`}>
-                      {isArabic ? 'أفضل عرض' : 'Best Offer'}
+                        (isArabic ? 'الذهاب للمتجر' : 'Go to Store')
                     </span>
                   </div>
                 </div>
