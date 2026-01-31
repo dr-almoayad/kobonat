@@ -1,4 +1,5 @@
 'use client';
+
 import { useState, useEffect, useRef, useLayoutEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -19,6 +20,7 @@ const StoreHeader = ({
   const [isLoading, setIsLoading] = useState(true);
 
   const descriptionRef = useRef(null);
+  const scrollTimeoutRef = useRef(null);
   
   const isArabic = locale?.startsWith('ar');
   const dir = isArabic ? 'rtl' : 'ltr';
@@ -38,54 +40,69 @@ const StoreHeader = ({
     setIsLoading(false);
   }, []);
 
- // Smooth scroll detection with proper thresholds
+  // FIXED: Optimized scroll detection with throttling
   useEffect(() => {
+    let lastScrollY = window.scrollY;
     let ticking = false;
     
-    const updateScrolled = () => {
+    const updateScrolledState = () => {
       const currentScrollY = window.scrollY;
+      const scrollDifference = Math.abs(currentScrollY - lastScrollY);
       
-      if (currentScrollY >= 200) {
-        setIsScrolled(true);
-      } 
-      // Expand when scrolled back near top
-      else if (currentScrollY < 100) {
-        setIsScrolled(false);
+      // Only update if scrolled significantly (reduces flickering)
+      if (scrollDifference > 20) {
+        // Single threshold with hysteresis to prevent rapid toggling
+        if (currentScrollY >= 180) {
+          setIsScrolled(true);
+        } else if (currentScrollY < 120) {
+          setIsScrolled(false);
+        }
+        lastScrollY = currentScrollY;
       }
-      
       ticking = false;
     };
     
     const handleScroll = () => {
       if (!ticking) {
-        window.requestAnimationFrame(updateScrolled);
+        window.requestAnimationFrame(updateScrolledState);
         ticking = true;
       }
     };
     
     // Set initial state
-    updateScrolled();
+    updateScrolledState();
     
     window.addEventListener('scroll', handleScroll, { passive: true });
-    
-    return () => window.removeEventListener('scroll', handleScroll);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
+    };
   }, []);
 
-  // Robust Overflow Detection for Read More button
+  // FIXED: Improved overflow detection
   useLayoutEffect(() => {
     const checkOverflow = () => {
       const element = descriptionRef.current;
       if (element && storeDescription) {
-        // Compare scrollHeight vs clientHeight with buffer for rounding
-        const isOverflowing = element.scrollHeight > element.clientHeight + 1;
+        // More accurate overflow detection
+        const isOverflowing = element.scrollHeight > element.clientHeight + 5;
         setIsDescriptionOverflowing(isOverflowing);
       }
     };
 
-    // Run initially and on resize
     checkOverflow();
-    window.addEventListener('resize', checkOverflow);
-    return () => window.removeEventListener('resize', checkOverflow);
+    
+    // Debounce resize events
+    const handleResize = () => {
+      if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
+      scrollTimeoutRef.current = setTimeout(checkOverflow, 100);
+    };
+    
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
+    };
   }, [storeDescription, isLoading]);
 
   const toggleDescription = () => {
@@ -127,28 +144,6 @@ const StoreHeader = ({
     }
   };
 
-  const handleShare = async () => {
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: storeName,
-          text: `${isArabic ? 'تحقق من عروض' : 'Check out'} ${storeName} ${isArabic ? '' : 'offers!'}`,
-          url: window.location.href,
-        });
-      } catch (err) {
-        // User cancelled share
-      }
-    } else {
-      // Fallback: copy to clipboard
-      try {
-        await navigator.clipboard.writeText(window.location.href);
-        alert(isArabic ? 'تم نسخ الرابط' : 'Link copied to clipboard');
-      } catch (err) {
-        console.error('Share failed:', err);
-      }
-    }
-  };
-
   if (!store && !isLoading) return null;
 
   if (isLoading) {
@@ -167,6 +162,7 @@ const StoreHeader = ({
     <header 
       className={`sh-container ${isScrolled ? 'sh-scrolled' : ''}`} 
       dir={dir}
+      data-scrolled={isScrolled}
     >
       {/* --- BACKGROUND BANNER --- */}
       <div className="sh-banner-wrapper">
@@ -192,7 +188,7 @@ const StoreHeader = ({
           
           {/* 1. LEFT: Identity (Logo + Name) */}
           <div className="sh-identity-col">
-            {/* Logo - Only visible when scrolled */}
+            {/* Logo - Always visible, just scales */}
             <div className="sh-logo-wrapper">
               {storeLogo ? (
                 <Image 
@@ -331,18 +327,6 @@ const StoreHeader = ({
 
           {/* 3. RIGHT: Action Buttons - Only visible when scrolled */}
           <div className="sh-actions-col">
-            {/* Share Button (optional - currently commented out) */}
-            {/*
-            <button 
-              className="sh-share-btn"
-              onClick={handleShare}
-              aria-label={isArabic ? 'مشاركة' : 'Share'}
-              type="button"
-            >
-              <span className="material-symbols-sharp">ios_share</span>
-            </button>
-            */}
-
             {/* CTA Button */}
             {topVoucherTitle && (
               <button 
@@ -371,7 +355,6 @@ const StoreHeader = ({
               </button>
             )}
           </div>
-
         </div>
       </div>
     </header>
