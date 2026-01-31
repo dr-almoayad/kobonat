@@ -34,7 +34,7 @@
 .category-carousel-track {
   display: flex;
   gap: 0.25rem;
-  padding: 0 1rem 0.3rem;
+  padding: 0.5rem 0.75rem;
   min-width: min-content;
 }
 
