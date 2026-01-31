@@ -8,9 +8,11 @@
   --sh-success: #10b981;
   --sh-border: #e2e8f0;
   --sh-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-  --sh-glass: rgba(255, 255, 255, 0.98);
+  --sh-glass: rgba(255, 255, 255, 0.95);
   --sh-banner-height: 200px;
   --sh-header-z: 100;
+  
+  /* Font Definition */
   --sh-font: 'Alexandria', 'Open Sans', Arial, sans-serif;
 }
 
@@ -23,19 +25,20 @@
   background: transparent;
   font-family: var(--sh-font);
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* Key for performance: we don't animate height, we animate background */
   transition: background-color 0.4s ease, box-shadow 0.4s ease;
 }
 
-/* Scrolled State: Glassmorphism */
+/* Glass effect active only when scrolled */
 .sh-container.sh-scrolled {
   background: var(--sh-glass);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(0,0,0,0.05);
-  box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 1px 0 rgba(0,0,0,0.08);
 }
 
-/* --- BANNER --- */
+/* --- BANNER SECTION --- */
 .sh-banner-wrapper {
   position: absolute;
   top: 0;
@@ -46,8 +49,10 @@
   overflow: hidden;
   border-bottom-left-radius: 24px;
   border-bottom-right-radius: 24px;
+  /* Optimize Transition: Use transform instead of height */
   transform-origin: top center;
-  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s ease;
+  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.5s ease;
+  will-change: transform, opacity;
 }
 
 .sh-banner-img {
@@ -57,7 +62,7 @@
 .sh-banner-placeholder {
   width: 100%;
   height: 100%;
-  background: #1e293b;
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
 }
 
 .sh-banner-overlay {
@@ -66,22 +71,26 @@
   background: linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(255,255,255,0.95) 90%, #fff 100%);
 }
 
-/* Scrolled: Banner Retracts Up */
+/* When scrolled, slide banner up and fade out */
 .sh-scrolled .sh-banner-wrapper {
-  transform: translateY(-100%);
+  transform: translateY(-80px) scaleY(0.8);
   opacity: 0;
+  pointer-events: none;
 }
 
-/* --- LAYOUT WRAPPER --- */
+/* --- CONTENT LAYOUT --- */
 .sh-content-wrapper {
   max-width: 1280px;
   margin: 0 auto;
   padding: 1rem;
-  padding-top: calc(var(--sh-banner-height) - 70px);
-  transition: padding 0.4s ease;
+  /* Push content down to expose banner initially */
+  padding-top: calc(var(--sh-banner-height) - 65px);
+  /* Use transform for smooth shifting if needed, avoiding padding animation */
+  transition: padding-top 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .sh-scrolled .sh-content-wrapper {
+  /* We reduce padding slightly, but rely on transforms for elements for smoothness */
   padding-top: 0.5rem;
   padding-bottom: 0.5rem;
 }
@@ -92,13 +101,13 @@
   gap: 1rem;
 }
 
-/* --- 1. LEFT: IDENTITY --- */
+/* --- IDENTITY (Left Col) --- */
 .sh-identity-col {
   display: flex;
   align-items: flex-end;
   gap: 1rem;
+  /* Ensure positioning context for transforms */
   position: relative;
-  transition: transform 0.4s ease;
 }
 
 .sh-logo-wrapper {
@@ -109,9 +118,12 @@
   background: #fff;
   box-shadow: var(--sh-shadow-lg);
   padding: 4px;
-  /* Smooth scale transition */
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  /* Performance: Use transform for resizing logo */
   transform-origin: left bottom;
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
+              box-shadow 0.4s ease, 
+              border-radius 0.4s ease;
+  will-change: transform;
 }
 
 [dir="rtl"] .sh-logo-wrapper {
@@ -133,63 +145,58 @@
   justify-content: center;
   background: var(--sh-accent);
   color: white;
-  font-size: 2rem;
+  font-size: 1.75rem;
   font-weight: 700;
   border-radius: 12px;
 }
 
-/* Scrolled Identity: Scale down logo, align center */
-.sh-scrolled .sh-identity-col {
-  align-items: center;
-}
-
+/* Scrolled Logo State - using Scale for stutter-free resize */
 .sh-scrolled .sh-logo-wrapper {
-  width: 44px;
-  height: 44px;
-  border-radius: 10px;
+  transform: scale(0.6); 
   box-shadow: none;
   background: transparent;
-  padding: 0;
 }
 
 .sh-identity-text {
   flex: 1;
-  padding-bottom: 4px;
-  min-width: 0; /* Text truncation */
+  padding-bottom: 6px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .sh-store-name {
   margin: 0;
-  font-size: 1.5rem;
+  font-size: 1.4rem;
   font-weight: 700;
   color: var(--sh-text-primary);
   line-height: 1.2;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  transition: font-size 0.3s ease;
+  transition: transform 0.4s ease;
+  transform-origin: left center;
+}
+
+[dir="rtl"] .sh-store-name {
+  transform-origin: right center;
 }
 
 .sh-scrolled .sh-store-name {
-  font-size: 1.1rem;
-  padding-bottom: 0;
+  transform: scale(0.9) translateY(2px);
 }
 
 .sh-meta-row {
   display: flex;
   gap: 12px;
   margin-top: 6px;
-  transition: all 0.3s ease;
+  transition: opacity 0.3s ease, height 0.3s ease;
   overflow: hidden;
   height: auto;
-  opacity: 1;
 }
 
-/* Hide Meta info on scroll */
+/* Hide meta info on scroll smoothly */
 .sh-scrolled .sh-meta-row {
+  opacity: 0;
   height: 0;
   margin: 0;
-  opacity: 0;
 }
 
 .sh-meta-item {
@@ -198,27 +205,38 @@
   gap: 4px;
   font-size: 0.75rem;
   color: var(--sh-text-secondary);
-  font-weight: 500;
+  font-weight: 600;
 }
-.sh-meta-item .material-symbols-sharp { font-size: 15px; }
 
-/* --- 2. MIDDLE: DETAILS (Description/Cats) --- */
+.sh-meta-item .material-symbols-sharp {
+  font-size: 15px;
+}
+
+/* --- DETAILS (Middle Col) --- */
 .sh-details-container {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  transition: all 0.3s ease;
+  width: 100%;
+  /* Use max-height transition for container collapse if needed, or simple opacity */
+  transition: all 0.4s ease;
+}
+
+.sh-details-inner {
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  transform-origin: top center;
+}
+
+.sh-details-inner.fade-out {
+  opacity: 0;
+  transform: translateY(-10px);
+  pointer-events: none;
+  height: 0;
   overflow: hidden;
-  opacity: 1;
+  margin: 0;
 }
 
-/* Crucial: Completely hide middle section on scroll to bring Left & Right together */
-.sh-scrolled .sh-details-container {
-  display: none;
-}
-
+/* Description */
 .sh-description-wrapper {
   position: relative;
+  margin-bottom: 1rem;
 }
 
 .sh-description {
@@ -227,38 +245,43 @@
   line-height: 1.6;
   color: var(--sh-text-secondary);
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 2; /* Default collapsed state */
   -webkit-box-orient: vertical;
   overflow: hidden;
+  transition: all 0.3s ease; /* Does not animate line-clamp well, but handled by React state class below */
 }
 
 .sh-description.expanded {
   -webkit-line-clamp: unset;
-  display: block;
+  display: block; /* Fallback */
 }
 
 .sh-read-more-btn {
-  background: transparent;
+  background: none;
   border: none;
-  padding: 4px 0;
+  padding: 0;
   color: var(--sh-accent);
   font-size: 0.85rem;
   font-weight: 600;
   font-family: var(--sh-font);
+  margin-top: 4px;
   cursor: pointer;
   display: inline-flex;
+  align-items: center;
 }
 
 .sh-read-more-btn:hover {
   text-decoration: underline;
 }
 
+/* Category Pills */
 .sh-categories-scroll {
   display: flex;
   gap: 0.5rem;
   overflow-x: auto;
-  padding-bottom: 4px;
+  padding-bottom: 0.25rem;
   scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 .sh-categories-scroll::-webkit-scrollbar { display: none; }
 
@@ -266,8 +289,8 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 12px;
-  background: #f1f5f9;
+  padding: 6px 14px;
+  background: #f8fafc;
   border-radius: 99px;
   font-size: 0.8rem;
   font-weight: 600;
@@ -275,44 +298,48 @@
   text-decoration: none;
   white-space: nowrap;
   transition: all 0.2s;
+  border: 1px solid transparent;
 }
 
 .sh-cat-pill:hover {
   background: white;
   color: var(--hover-color);
-  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  border-color: var(--hover-color);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
 }
 
+/* Payments */
 .sh-payments-row {
   display: flex;
-  flex-wrap: wrap;
+  align-items: center;
   gap: 8px;
+  margin-top: 1rem;
+  flex-wrap: wrap;
 }
+
 .sh-pay-icon {
-  width: 40px;
-  height: 25px;
-  border: 1px solid #e2e8f0;
-  border-radius: 4px;
+  width: 42px;
+  height: 26px;
+  border: 1px solid var(--sh-border);
+  border-radius: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: white;
+  background: #fff;
 }
-.sh-pay-icon img { max-width: 90%; max-height: 90%; }
+.sh-pay-icon img {
+  object-fit: contain;
+  max-width: 85%;
+  max-height: 85%;
+}
 
-/* --- 3. RIGHT: ACTIONS --- */
+/* --- ACTIONS (Right Col) --- */
 .sh-actions-col {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  transition: all 0.3s ease;
-}
-
-/* On mobile scroll: Position absolute or flex to right */
-.sh-scrolled .sh-main-grid {
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
+  /* Smooth movement when layout changes */
+  transition: transform 0.3s ease;
 }
 
 .sh-share-btn {
@@ -326,6 +353,12 @@
   justify-content: center;
   color: var(--sh-text-secondary);
   cursor: pointer;
+  transition: all 0.2s;
+}
+.sh-share-btn:hover {
+  background: #f8fafc;
+  color: var(--sh-text-primary);
+  border-color: #cbd5e1;
 }
 
 .sh-cta-btn {
@@ -343,25 +376,29 @@
   height: 48px;
   cursor: pointer;
   overflow: hidden;
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   min-width: 140px;
   font-family: var(--sh-font);
 }
 
 .sh-cta-btn:hover {
   background: var(--sh-accent-hover);
-  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.35);
 }
 
 .sh-cta-btn.copied {
   background: var(--sh-success);
+  pointer-events: none;
 }
 
+/* Text inside button */
 .sh-cta-text-group {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   line-height: 1.1;
+  transition: all 0.3s ease;
 }
 
 .sh-cta-label {
@@ -373,32 +410,30 @@
   font-size: 0.7rem;
   opacity: 0.9;
   font-weight: 500;
+  /* Animate height/opacity on scroll */
   transition: all 0.3s ease;
-}
-.sh-cta-sub.hidden {
-  display: none;
+  max-height: 20px;
 }
 
-/* Scrolled Button: Compact */
+.sh-cta-sub.fade-out {
+  opacity: 0;
+  max-height: 0;
+  margin: 0;
+}
+
 .sh-scrolled .sh-cta-btn {
-  height: 40px;
+  height: 40px; /* Slightly smaller on scroll */
   border-radius: 10px;
-  min-width: auto;
-  padding: 0 1rem;
-}
-.sh-scrolled .sh-share-btn {
-  width: 40px;
-  height: 40px;
 }
 
-/* Ripple */
+/* Ripple Animation */
 .sh-cta-ripple {
   position: absolute;
   top: 0;
   left: -100%;
   width: 50%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.25), transparent);
   transform: skewX(-20deg);
   animation: ripple 3s infinite;
 }
@@ -409,7 +444,7 @@
   100% { left: 200%; }
 }
 
-/* --- DESKTOP (min-width: 768px) --- */
+/* --- RESPONSIVE / DESKTOP --- */
 @media (min-width: 768px) {
   .sh-main-grid {
     flex-direction: row;
@@ -423,28 +458,41 @@
   }
 
   .sh-logo-wrapper {
-    width: 100px;
-    height: 100px;
+    width: 110px;
+    height: 110px;
   }
   
+  /* Desktop text scaling */
   .sh-store-name {
     font-size: 2rem;
+    margin-bottom: 0.25rem;
   }
 
-  /* Desktop Details Area */
+  /* Scrolled Desktop: Alignments */
+  .sh-scrolled .sh-main-grid {
+    align-items: center;
+    gap: 1.5rem;
+  }
+  
+  .sh-scrolled .sh-identity-col {
+    align-items: center;
+  }
+  
   .sh-details-container {
     flex: 1;
     padding-left: 1.5rem;
-    padding-top: 4rem; /* Align below big logo */
+    padding-top: 4rem; /* Aligns with bottom of big logo */
   }
+
   [dir="rtl"] .sh-details-container {
     padding-left: 0;
     padding-right: 1.5rem;
   }
 
-  .sh-actions-col {
-    padding-top: 4rem;
-    flex-shrink: 0;
+  .sh-scrolled .sh-details-container {
+    padding: 0;
+    /* On desktop scroll, we might want to hide details completely or keep minimal */
+    display: none; 
   }
 
   .sh-categories-scroll {
@@ -452,22 +500,52 @@
     flex-wrap: wrap;
   }
 
-  /* Desktop Scrolled Overrides */
-  .sh-scrolled .sh-main-grid {
-    align-items: center;
-    gap: 1.5rem;
-  }
-  
-  .sh-scrolled .sh-details-container {
-    display: none; /* Hide details on desktop scroll too */
+  .sh-actions-col {
+    padding-top: 4rem;
+    flex-shrink: 0;
   }
 
   .sh-scrolled .sh-actions-col {
     padding-top: 0;
     margin-left: auto;
   }
+  
   [dir="rtl"] .sh-scrolled .sh-actions-col {
     margin-left: 0;
     margin-right: auto;
   }
+}
+
+/* --- SKELETON --- */
+.sh-skeleton-container {
+  width: 100%;
+  background: white;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 20px;
+  font-family: var(--sh-font);
+}
+.sh-skeleton-banner {
+  height: 200px;
+  background: #e2e8f0;
+}
+.sh-skeleton-content {
+  max-width: 1280px;
+  margin: -40px auto 0;
+  padding: 0 1rem;
+  display: flex;
+  gap: 20px;
+}
+.sh-skeleton-logo {
+  width: 100px;
+  height: 100px;
+  border-radius: 16px;
+  background: #cbd5e1;
+  border: 4px solid white;
+}
+.sh-skeleton-lines {
+  flex: 1;
+  padding-top: 50px;
+  height: 60px;
+  background: #f1f5f9;
+  border-radius: 8px;
 }
