@@ -7,33 +7,35 @@
   --sh-accent-hover: #4338ca;
   --sh-success: #10b981;
   --sh-border: #e2e8f0;
-  --sh-shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   --sh-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-  --sh-glass: rgba(255, 255, 255, 0.85);
-  --sh-transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  --sh-glass: rgba(255, 255, 255, 0.95);
+  --sh-banner-height: 200px;
+  --sh-header-z: 100;
   
-  --sh-header-height-mobile: 60px;
-  --sh-banner-height: 140px;
+  /* Font Definition */
+  --sh-font: 'Alexandria', 'Open Sans', Arial, sans-serif;
 }
 
-/* --- BASE CONTAINER (Mobile First) --- */
+/* --- BASE CONTAINER --- */
 .sh-container {
   position: sticky;
-  top: 0; /* Adjust based on your main nav height e.g., 60px */
-  z-index: 40;
+  top: 0;
+  z-index: var(--sh-header-z);
   width: 100%;
   background: transparent;
-  transition: background-color 0.3s ease, box-shadow 0.3s ease;
-  font-family: inherit; /* Inherit global font */
+  font-family: var(--sh-font);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* Key for performance: we don't animate height, we animate background */
+  transition: background-color 0.4s ease, box-shadow 0.4s ease;
 }
 
-/* Sticky State Styling */
+/* Glass effect active only when scrolled */
 .sh-container.sh-scrolled {
   background: var(--sh-glass);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(0,0,0,0.05);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 1px 0 rgba(0,0,0,0.08);
 }
 
 /* --- BANNER SECTION --- */
@@ -47,68 +49,85 @@
   overflow: hidden;
   border-bottom-left-radius: 24px;
   border-bottom-right-radius: 24px;
-  transform-origin: top;
-  transition: transform 0.4s ease, opacity 0.4s ease;
+  /* Optimize Transition: Use transform instead of height */
+  transform-origin: top center;
+  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.5s ease;
+  will-change: transform, opacity;
 }
 
 .sh-banner-img {
   object-fit: cover;
-  transition: transform 0.5s ease;
 }
 
-/* Dark gradient to make white text pop (if we had white text) or smooth transition */
+.sh-banner-placeholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+}
+
 .sh-banner-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(255,255,255,0.9) 85%, #fff 100%);
+  background: linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(255,255,255,0.95) 90%, #fff 100%);
 }
 
+/* When scrolled, slide banner up and fade out */
 .sh-scrolled .sh-banner-wrapper {
-  transform: translateY(-100%);
+  transform: translateY(-80px) scaleY(0.8);
   opacity: 0;
   pointer-events: none;
 }
 
-/* --- MAIN CONTENT LAYOUT --- */
+/* --- CONTENT LAYOUT --- */
 .sh-content-wrapper {
   max-width: 1280px;
   margin: 0 auto;
   padding: 1rem;
-  /* Add padding top to push content down below banner area initially */
-  padding-top: calc(var(--sh-banner-height) - 50px); 
-  transition: padding 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  /* Push content down to expose banner initially */
+  padding-top: calc(var(--sh-banner-height) - 65px);
+  /* Use transform for smooth shifting if needed, avoiding padding animation */
+  transition: padding-top 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .sh-scrolled .sh-content-wrapper {
+  /* We reduce padding slightly, but rely on transforms for elements for smoothness */
   padding-top: 0.5rem;
   padding-bottom: 0.5rem;
 }
 
 .sh-main-grid {
   display: flex;
-  flex-direction: column; /* Stack on mobile */
+  flex-direction: column;
   gap: 1rem;
+}
+
+/* --- IDENTITY (Left Col) --- */
+.sh-identity-col {
+  display: flex;
+  align-items: flex-end;
+  gap: 1rem;
+  /* Ensure positioning context for transforms */
   position: relative;
 }
 
-/* --- IDENTITY COLUMN (Logo & Title) --- */
-.sh-identity-col {
-  display: flex;
-  align-items: flex-end; /* Align bottom to overlap banner */
-  gap: 1rem;
-}
-
 .sh-logo-wrapper {
-  width: 72px;
-  height: 72px;
+  width: 80px;
+  height: 80px;
   flex-shrink: 0;
   border-radius: 16px;
   background: #fff;
   box-shadow: var(--sh-shadow-lg);
   padding: 4px;
-  position: relative;
-  transition: all 0.3s ease;
-  overflow: hidden;
+  /* Performance: Use transform for resizing logo */
+  transform-origin: left bottom;
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
+              box-shadow 0.4s ease, 
+              border-radius 0.4s ease;
+  will-change: transform;
+}
+
+[dir="rtl"] .sh-logo-wrapper {
+  transform-origin: right bottom;
 }
 
 .sh-logo-img {
@@ -126,46 +145,58 @@
   justify-content: center;
   background: var(--sh-accent);
   color: white;
-  font-size: 1.5rem;
-  font-weight: bold;
+  font-size: 1.75rem;
+  font-weight: 700;
   border-radius: 12px;
 }
 
-/* Scrolled Logo State */
+/* Scrolled Logo State - using Scale for stutter-free resize */
 .sh-scrolled .sh-logo-wrapper {
-  width: 42px;
-  height: 42px;
-  border-radius: 10px;
+  transform: scale(0.6); 
   box-shadow: none;
   background: transparent;
-  padding: 0;
 }
 
 .sh-identity-text {
   flex: 1;
-  padding-bottom: 4px;
+  padding-bottom: 6px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .sh-store-name {
   margin: 0;
-  font-size: 1.25rem;
+  font-size: 1.4rem;
   font-weight: 700;
   color: var(--sh-text-primary);
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
   line-height: 1.2;
+  transition: transform 0.4s ease;
+  transform-origin: left center;
 }
 
-.sh-verified-icon {
-  font-size: 18px;
-  color: #3b82f6; /* Blue tick color */
+[dir="rtl"] .sh-store-name {
+  transform-origin: right center;
+}
+
+.sh-scrolled .sh-store-name {
+  transform: scale(0.9) translateY(2px);
 }
 
 .sh-meta-row {
   display: flex;
   gap: 12px;
-  margin-top: 4px;
+  margin-top: 6px;
+  transition: opacity 0.3s ease, height 0.3s ease;
+  overflow: hidden;
+  height: auto;
+}
+
+/* Hide meta info on scroll smoothly */
+.sh-scrolled .sh-meta-row {
+  opacity: 0;
+  height: 0;
+  margin: 0;
 }
 
 .sh-meta-item {
@@ -174,29 +205,32 @@
   gap: 4px;
   font-size: 0.75rem;
   color: var(--sh-text-secondary);
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .sh-meta-item .material-symbols-sharp {
-  font-size: 14px;
+  font-size: 15px;
 }
 
-/* Scrolled Text State */
-.sh-scrolled .sh-meta-row {
-  display: none;
-}
-.sh-scrolled .sh-store-name {
-  font-size: 1rem;
-}
-
-/* --- DETAILS COLUMN (Desc, Cats, Payment) --- */
-.sh-details-col {
+/* --- DETAILS (Middle Col) --- */
+.sh-details-container {
   width: 100%;
-  transition: opacity 0.3s ease, height 0.3s ease;
+  /* Use max-height transition for container collapse if needed, or simple opacity */
+  transition: all 0.4s ease;
 }
 
-.sh-scrolled .sh-hide-details {
-  display: none; /* Hide purely on scroll for cleaner bar */
+.sh-details-inner {
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  transform-origin: top center;
+}
+
+.sh-details-inner.fade-out {
+  opacity: 0;
+  transform: translateY(-10px);
+  pointer-events: none;
+  height: 0;
+  overflow: hidden;
+  margin: 0;
 }
 
 /* Description */
@@ -207,18 +241,19 @@
 
 .sh-description {
   margin: 0;
-  font-size: 0.9rem;
-  line-height: 1.5;
+  font-size: 0.95rem;
+  line-height: 1.6;
   color: var(--sh-text-secondary);
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 2; /* Default collapsed state */
   -webkit-box-orient: vertical;
   overflow: hidden;
-  transition: all 0.3s ease;
+  transition: all 0.3s ease; /* Does not animate line-clamp well, but handled by React state class below */
 }
 
 .sh-description.expanded {
   -webkit-line-clamp: unset;
+  display: block; /* Fallback */
 }
 
 .sh-read-more-btn {
@@ -228,34 +263,37 @@
   color: var(--sh-accent);
   font-size: 0.85rem;
   font-weight: 600;
+  font-family: var(--sh-font);
   margin-top: 4px;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
 }
 
-/* Categories - Horizontal Scroll on Mobile */
+.sh-read-more-btn:hover {
+  text-decoration: underline;
+}
+
+/* Category Pills */
 .sh-categories-scroll {
   display: flex;
   gap: 0.5rem;
   overflow-x: auto;
-  padding-bottom: 0.5rem; /* Space for scrollbar if visible */
-  scrollbar-width: none; /* Hide scrollbar Firefox */
-  -ms-overflow-style: none; /* Hide scrollbar IE */
-  mask-image: linear-gradient(to right, black 90%, transparent 100%);
+  padding-bottom: 0.25rem;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
-
-.sh-categories-scroll::-webkit-scrollbar {
-  display: none;
-}
+.sh-categories-scroll::-webkit-scrollbar { display: none; }
 
 .sh-cat-pill {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 12px;
-  background: #f1f5f9;
+  padding: 6px 14px;
+  background: #f8fafc;
   border-radius: 99px;
   font-size: 0.8rem;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--sh-text-secondary);
   text-decoration: none;
   white-space: nowrap;
@@ -263,61 +301,50 @@
   border: 1px solid transparent;
 }
 
-.sh-cat-pill .material-symbols-sharp {
-  font-size: 16px;
-}
-
 .sh-cat-pill:hover {
   background: white;
   color: var(--hover-color);
   border-color: var(--hover-color);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
 }
 
-/* Payment Icons */
+/* Payments */
 .sh-payments-row {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-top: 0.75rem;
+  margin-top: 1rem;
   flex-wrap: wrap;
 }
 
 .sh-pay-icon {
-  width: 38px;
-  height: 24px;
+  width: 42px;
+  height: 26px;
   border: 1px solid var(--sh-border);
-  border-radius: 4px;
+  border-radius: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
   background: #fff;
 }
-
 .sh-pay-icon img {
   object-fit: contain;
-  max-width: 90%;
-  max-height: 90%;
+  max-width: 85%;
+  max-height: 85%;
 }
 
-.sh-pay-icon span {
-  font-size: 0.6rem;
-  font-weight: 700;
-  color: var(--sh-text-secondary);
-}
-
-/* --- ACTIONS COLUMN (CTA Buttons) --- */
+/* --- ACTIONS (Right Col) --- */
 .sh-actions-col {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  /* On mobile, this sits at the bottom or top right depending on design choice. 
-     Here we place it inline or fixed based on media queries below. */
+  /* Smooth movement when layout changes */
+  transition: transform 0.3s ease;
 }
 
 .sh-share-btn {
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   border: 1px solid var(--sh-border);
   background: white;
@@ -328,10 +355,10 @@
   cursor: pointer;
   transition: all 0.2s;
 }
-
 .sh-share-btn:hover {
   background: #f8fafc;
   color: var(--sh-text-primary);
+  border-color: #cbd5e1;
 }
 
 .sh-cta-btn {
@@ -344,18 +371,20 @@
   background: var(--sh-accent);
   color: white;
   border: none;
-  border-radius: 12px;
-  padding: 0.6rem 1.25rem;
+  border-radius: 14px;
+  padding: 0 1.25rem;
+  height: 48px;
   cursor: pointer;
   overflow: hidden;
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   min-width: 140px;
+  font-family: var(--sh-font);
 }
 
 .sh-cta-btn:hover {
   background: var(--sh-accent-hover);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.35);
 }
 
 .sh-cta-btn.copied {
@@ -363,45 +392,48 @@
   pointer-events: none;
 }
 
-.sh-cta-content {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  z-index: 2;
-}
-
+/* Text inside button */
 .sh-cta-text-group {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  line-height: 1;
+  line-height: 1.1;
+  transition: all 0.3s ease;
 }
 
 .sh-cta-label {
   font-weight: 700;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
 }
 
 .sh-cta-sub {
   font-size: 0.7rem;
   opacity: 0.9;
-  font-weight: 400;
-  margin-top: 2px;
+  font-weight: 500;
+  /* Animate height/opacity on scroll */
+  transition: all 0.3s ease;
+  max-height: 20px;
 }
 
-/* Ripple Animation for CTA */
+.sh-cta-sub.fade-out {
+  opacity: 0;
+  max-height: 0;
+  margin: 0;
+}
+
+.sh-scrolled .sh-cta-btn {
+  height: 40px; /* Slightly smaller on scroll */
+  border-radius: 10px;
+}
+
+/* Ripple Animation */
 .sh-cta-ripple {
   position: absolute;
   top: 0;
   left: -100%;
   width: 50%;
   height: 100%;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 255, 255, 0.2),
-    transparent
-  );
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.25), transparent);
   transform: skewX(-20deg);
   animation: ripple 3s infinite;
 }
@@ -412,72 +444,31 @@
   100% { left: 200%; }
 }
 
-/* Scrolled Actions */
-.sh-scrolled .sh-actions-col {
-  margin-left: auto; /* Push to right */
-}
-.sh-scrolled .sh-cta-sub {
-  display: none;
-}
-.sh-scrolled .sh-cta-btn {
-  padding: 0.5rem 1rem;
-  min-width: auto;
-  border-radius: 8px;
-}
-
-/* --- TABLET & DESKTOP OVERRIDES (min-width: 768px) --- */
+/* --- RESPONSIVE / DESKTOP --- */
 @media (min-width: 768px) {
-  :root {
-    --sh-banner-height: 200px;
-  }
-
   .sh-main-grid {
-    flex-direction: row; /* Horizontal layout */
+    flex-direction: row;
     align-items: flex-start;
     flex-wrap: wrap;
   }
 
   .sh-identity-col {
     width: auto;
-    flex-direction: row;
     align-items: flex-end;
   }
 
   .sh-logo-wrapper {
-    width: 100px;
-    height: 100px;
+    width: 110px;
+    height: 110px;
   }
   
+  /* Desktop text scaling */
   .sh-store-name {
-    font-size: 1.75rem;
+    font-size: 2rem;
     margin-bottom: 0.25rem;
   }
 
-  /* Details Column */
-  .sh-details-col {
-    flex: 1; /* Take remaining space */
-    padding-left: 1rem;
-    padding-top: 3.5rem; /* Align with text, account for overlapping logo */
-  }
-
-  [dir="rtl"] .sh-details-col {
-    padding-left: 0;
-    padding-right: 1rem;
-  }
-
-  .sh-categories-scroll {
-    overflow: visible; /* No scroll needed usually */
-    flex-wrap: wrap;
-    mask-image: none;
-  }
-
-  /* Actions Column */
-  .sh-actions-col {
-    padding-top: 3.5rem;
-    flex-shrink: 0;
-  }
-
-  /* Scrolled Desktop Adjustments */
+  /* Scrolled Desktop: Alignments */
   .sh-scrolled .sh-main-grid {
     align-items: center;
     gap: 1.5rem;
@@ -487,57 +478,74 @@
     align-items: center;
   }
   
-  .sh-scrolled .sh-details-col,
+  .sh-details-container {
+    flex: 1;
+    padding-left: 1.5rem;
+    padding-top: 4rem; /* Aligns with bottom of big logo */
+  }
+
+  [dir="rtl"] .sh-details-container {
+    padding-left: 0;
+    padding-right: 1.5rem;
+  }
+
+  .sh-scrolled .sh-details-container {
+    padding: 0;
+    /* On desktop scroll, we might want to hide details completely or keep minimal */
+    display: none; 
+  }
+
+  .sh-categories-scroll {
+    overflow: visible;
+    flex-wrap: wrap;
+  }
+
+  .sh-actions-col {
+    padding-top: 4rem;
+    flex-shrink: 0;
+  }
+
   .sh-scrolled .sh-actions-col {
     padding-top: 0;
+    margin-left: auto;
+  }
+  
+  [dir="rtl"] .sh-scrolled .sh-actions-col {
+    margin-left: 0;
+    margin-right: auto;
   }
 }
 
-/* --- SKELETON LOADER ANIMATIONS --- */
+/* --- SKELETON --- */
 .sh-skeleton-container {
   width: 100%;
   background: white;
   border-bottom: 1px solid #eee;
   padding-bottom: 20px;
+  font-family: var(--sh-font);
 }
 .sh-skeleton-banner {
-  height: 140px;
+  height: 200px;
   background: #e2e8f0;
-  animation: pulse 1.5s infinite;
 }
 .sh-skeleton-content {
   max-width: 1280px;
-  margin: -30px auto 0;
+  margin: -40px auto 0;
   padding: 0 1rem;
   display: flex;
-  gap: 15px;
+  gap: 20px;
 }
 .sh-skeleton-logo {
-  width: 72px;
-  height: 72px;
-  border-radius: 12px;
+  width: 100px;
+  height: 100px;
+  border-radius: 16px;
   background: #cbd5e1;
   border: 4px solid white;
-  animation: pulse 1.5s infinite;
 }
 .sh-skeleton-lines {
   flex: 1;
-  padding-top: 40px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-.sh-line {
-  height: 12px;
-  background: #e2e8f0;
-  border-radius: 6px;
-  animation: pulse 1.5s infinite;
-}
-.sh-line.long { width: 60%; }
-.sh-line.short { width: 40%; }
-
-@keyframes pulse {
-  0% { opacity: 1; }
-  50% { opacity: 0.5; }
-  100% { opacity: 1; }
+  padding-top: 50px;
+  height: 60px;
+  background: #f1f5f9;
+  border-radius: 8px;
 }
