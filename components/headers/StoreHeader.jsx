@@ -45,15 +45,13 @@ const StoreHeader = ({
     const updateScrolled = () => {
       const currentScrollY = window.scrollY;
       
-      // Collapse when scrolled past banner (with buffer)
-      if (currentScrollY >= 240) {
+      if (currentScrollY >= 200) {
         setIsScrolled(true);
       } 
       // Expand when scrolled back near top
-      else if (currentScrollY < 240) {
+      else if (currentScrollY < 100) {
         setIsScrolled(false);
       }
-      // Dead zone between 100-200px maintains current state
       
       ticking = false;
     };
