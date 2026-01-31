@@ -114,10 +114,10 @@ const StickyStoreHeader = ({
             <Image
               src={storeLogo}
               alt={`${storeName} logo`}
-              width={40}
-              height={40}
+              width={100}
+              height={100}
               className="ssh-logo-img"
-              quality={80}
+              quality={100}
             />
           ) : (
             <div className="ssh-logo-fallback">
