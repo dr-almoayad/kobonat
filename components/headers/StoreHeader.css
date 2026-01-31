@@ -739,3 +739,98 @@
   outline-offset: 3px;
   border-radius: 8px;
 }
+
+/* --- Fix the Stuttering & Layout --- */
+.sh-container {
+  /* Use a fixed height or min-height in scrolled state to prevent layout jumping */
+  transition: background-color 0.3s ease, padding 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* --- LOGO: Always visible, just scales --- */
+.sh-logo-wrapper {
+  width: 80px;
+  height: 80px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: var(--sh-shadow-lg);
+  display: flex; /* Ensure it's never hidden */
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 10;
+}
+
+/* Shrink Logo on scroll instead of hiding */
+.sh-scrolled .sh-logo-wrapper {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  box-shadow: none;
+  transform: translateY(0);
+}
+
+/* --- TEXT COLLAPSE FIX --- */
+.sh-scrolled .sh-description-wrapper,
+.sh-scrolled .sh-categories-scroll,
+.sh-scrolled .sh-payments-row,
+.sh-scrolled .sh-meta-row {
+  display: none; /* Instant hide to prevent stuttering height changes */
+}
+
+/* --- READ MORE BUTTON FIX --- */
+.sh-description-wrapper {
+  display: flex;
+  flex-direction: column;
+}
+
+.sh-description {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.sh-description.expanded {
+  -webkit-line-clamp: unset;
+}
+
+.sh-read-more-btn {
+  /* Force visibility if the state is overflowing */
+  display: inline-block !important; 
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+/* --- CTA BUTTON: SHRUNKEN STATE --- */
+.sh-cta-btn {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sh-scrolled .sh-cta-btn {
+  height: 38px;
+  min-width: auto;
+  padding: 0 12px;
+}
+
+/* Hide "Best Offer" subtitle ONLY on very small mobile scrolls to save space */
+.sh-scrolled .sh-cta-sub {
+  display: none;
+}
+
+/* Ensure Logo and CTA align on one line when scrolled */
+.sh-scrolled .sh-main-grid {
+  flex-direction: row !important;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.sh-scrolled .sh-identity-col {
+  padding-top: 0;
+  flex: 1;
+}
+
+.sh-scrolled .sh-actions-col {
+  padding-top: 0;
+  transform: none;
+}
