@@ -1,0 +1,161 @@
+/* STICKY STORE HEADER — compact bar */
+
+.ssh-bar {
+  position: fixed;
+  top: var(--header-height, 0px);
+  left: 0;
+  right: 0;
+  z-index: 90;
+  height: 56px;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.08);
+
+  /* Hidden state: translated up by its own height */
+  transform: translateY(-100%);
+  transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform;
+  font-family: 'Alexandria', 'Open Sans', Arial, sans-serif;
+}
+
+/* Visible state: slides down into place */
+.ssh-bar.ssh-visible {
+  transform: translateY(0);
+}
+
+/* ─── INNER LAYOUT ─────────────────────────────────── */
+.ssh-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0 1rem;
+}
+
+/* ─── LOGO ──────────────────────────────────────────── */
+.ssh-logo-wrap {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+}
+
+.ssh-logo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+.ssh-logo-fallback {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #4f46e5;
+  color: white;
+  font-size: 1.125rem;
+  font-weight: 700;
+  border-radius: 8px;
+}
+
+/* ─── STORE NAME ────────────────────────────────────── */
+.ssh-store-name {
+  flex: 1;
+  min-width: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0f172a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ─── CTA BUTTON ────────────────────────────────────── */
+.ssh-cta {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: #4f46e5;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 0.45rem 1rem;
+  height: 38px;
+  cursor: pointer;
+  overflow: hidden;
+  font-family: inherit;
+  min-width: 130px;
+  justify-content: center;
+  transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+}
+
+.ssh-cta:hover {
+  background: #4338ca;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+}
+
+.ssh-cta:active {
+  transform: translateY(0);
+}
+
+.ssh-cta.copied {
+  background: #10b981;
+}
+
+.ssh-cta .material-symbols-sharp {
+  font-size: 18px;
+}
+
+.ssh-cta-label {
+  font-weight: 700;
+  font-size: 0.875rem;
+}
+
+/* Shimmer ripple */
+.ssh-cta-ripple {
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.25),
+    transparent
+  );
+  transform: skewX(-20deg);
+  animation: ssh-ripple 3s infinite;
+}
+
+@keyframes ssh-ripple {
+  0%   { left: -100%; }
+  20%  { left: 200%; }
+  100% { left: 200%; }
+}
+
+/* ─── RTL SUPPORT ───────────────────────────────────── */
+[dir="rtl"] .ssh-inner {
+  flex-direction: row-reverse;
+}
+
+/* ─── ACCESSIBILITY ─────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .ssh-bar {
+    transition-duration: 0.01ms !important;
+  }
+  .ssh-cta-ripple {
+    animation-duration: 0.01ms !important;
+  }
+}
+
+.ssh-cta:focus-visible {
+  outline: 3px solid #4f46e5;
+  outline-offset: 3px;
+}
