@@ -750,9 +750,6 @@
 .sh-logo-wrapper {
   width: 80px;
   height: 80px;
-  background: white;
-  border-radius: 12px;
-  box-shadow: var(--sh-shadow-lg);
   display: flex; /* Ensure it's never hidden */
   align-items: center;
   justify-content: center;
@@ -762,7 +759,7 @@
 
 /* Shrink Logo on scroll instead of hiding */
 .sh-scrolled .sh-logo-wrapper {
-  width: 40px;
+  width: 70px;
   height: 40px;
   border-radius: 8px;
   box-shadow: none;
@@ -774,7 +771,8 @@
 .sh-scrolled .sh-categories-scroll,
 .sh-scrolled .sh-payments-row,
 .sh-scrolled .sh-meta-row {
-  display: none; /* Instant hide to prevent stuttering height changes */
+  display: block; /* Instant hide to prevent stuttering height changes */
+  transform: scale(0) !important;
 }
 
 /* --- READ MORE BUTTON FIX --- */
@@ -807,7 +805,7 @@
 }
 
 .sh-scrolled .sh-cta-btn {
-  height: 38px;
+  height: 32px;
   min-width: auto;
   padding: 0 12px;
 }
