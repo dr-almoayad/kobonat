@@ -391,7 +391,7 @@ export default async function UnifiedStorePage({ params }) {
         <>
           <FAQSchema faqs={faqs} locale={locale} />
           <div className="store-page-layout">
-            {/*{transformedStore.coverImage && (
+            {transformedStore.coverImage && (
               <div className="store-hero-section">
                 <HeroCarousel 
                   images={[{
@@ -407,7 +407,7 @@ export default async function UnifiedStorePage({ params }) {
                   showContent={false}
                 />
               </div>
-            )}*/}
+            )}
 
             <StoreHeader 
               store={transformedStore}
