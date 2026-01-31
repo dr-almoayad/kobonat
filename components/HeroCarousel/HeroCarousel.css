@@ -1,705 +1,466 @@
-/* components/HeroCarousel/HeroCarousel.css */
+/* ============================================================
+   HeroCarousel — Mobile-First
+   Tone: Refined marketplace. Frosted glass content strip with
+   logo pills + vivid discount badges. Imagery-driven.
+   ============================================================ */
 
-/* --- Variables & Reset --- */
 :root {
-  --hero-z-image: 1;
-  --hero-z-overlay: 2;
-  --hero-z-content: 3;
-  --hero-z-controls: 10;
-  --hero-transition-ease: cubic-bezier(0.25, 1, 0.5, 1);
+  --hc-max-width: 1280px;
+  --hc-radius: 24px;          /* wrapper rounding */
+  --hc-radius-md: 28px;
+  --hc-radius-lg: 32px;
+  --hc-accent: #e8412a;       /* discount badge — warm, punchy red */
+  --hc-accent-light: #ff5a45;
+  --hc-glass: rgba(12, 14, 22, 0.52);
+  --hc-glass-light: rgba(255, 255, 255, 0.13);
+  --hc-ease: cubic-bezier(0.25, 1, 0.5, 1);
+
+  /* z-layers */
+  --hc-z-img: 1;
+  --hc-z-overlay: 2;
+  --hc-z-content: 3;
+  --hc-z-controls: 10;
 }
 
-.hero-carousel-wrapper {
+/* ─── WRAPPER ───────────────────────────────────────────────── */
+.hc-wrapper {
   position: relative;
   width: 100%;
-  max-width: 1280px;
-  border-radius: 58px;
+  max-width: var(--hc-max-width);
   margin: 0 auto;
-  padding: 0;
-  height: 400px; /* Fallback to viewport height */
-  background-color: #0a0a0a; /* Prevent white flashes */
+  height: 260px;                   /* mobile height */
+  background: #0c0e16;             /* dark base — no white flash */
+  border-radius: var(--hc-radius);
   overflow: hidden;
-  /* Define aspect ratio for modern browsers to prevent layout shift */
-  contain: paint layout; 
+  contain: paint layout;
 }
 
-/* --- Embla Core --- */
-.hero-carousel {
+/* ─── EMBLA CORE ────────────────────────────────────────────── */
+.hc-embla {
   height: 100%;
   width: 100%;
 }
 
-.hero-carousel__container {
+.hc-embla__container {
   display: flex;
   height: 100%;
   touch-action: pan-y pinch-zoom;
 }
 
-.hero-carousel__slide {
+.hc-embla__slide {
   flex: 0 0 100%;
   min-width: 0;
   position: relative;
-  overflow: hidden; /* Important for parallax clipping */
+  overflow: hidden;
 }
 
-.hero-slide {
+/* ─── SLIDE INTERNALS ───────────────────────────────────────── */
+.hc-slide {
   position: relative;
   width: 100%;
   height: 100%;
 }
 
-/* --- Parallax & Image --- */
-.hero-slide__parallax {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-  z-index: var(--hero-z-image);
-}
-
-.hero-slide__image-wrapper {
-  position: absolute;
-  top: 0;
-  left: -15%; /* Allow bleed for parallax movement */
-  width: 130%; /* Wider than container to allow movement */
-  height: 100%;
-  will-change: transform; /* Optimize performance */
-}
-
-.hero-slide__image {
-  object-fit: cover;
-  object-position: top;
-  pointer-events: none;
-}
-
-/* --- Advanced Overlay --- */
-.hero-slide__overlay {
+/* Parallax container */
+.hc-slide__parallax {
   position: absolute;
   inset: 0;
-  z-index: var(--hero-z-overlay);
-  /* Modern Gradient Scrim: Darker at bottom for text, lighter top */
-  background: linear-gradient(
-    to bottom,
-    rgba(0, 0, 0, 0.2) 0%,
-    rgba(0, 0, 0, 0.1) 40%,
-    rgba(0, 0, 0, 0.6) 80%,
-    rgba(0, 0, 0, 0.9) 100%
-  );
-  pointer-events: none;
-}
-
-/* --- Content Styling --- */
-.hero-slide__content {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  padding: 1.5rem;
-  z-index: var(--hero-z-content);
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  height: 100%;
-  text-align: left; /* Mobile default */
-}
-
-/* Center content container */
-.content-inner {
-  max-width: 1280px;
-  width: 100%;
-  margin: 0 auto;
-  padding-bottom: 3rem; /* Space for dots */
-}
-
-/* RTL Support for Content */
-[dir="rtl"] .hero-slide__content {
-  text-align: right;
-}
-
-/* Typography & Animations */
-.hero-slide__tag {
-  display: inline-block;
-  padding: 0.35rem 0.75rem;
-  background: rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 50px;
-  color: #fff;
-  font-size: 0.75rem;
-  font-weight: 600;
-  margin-bottom: 1rem;
-  opacity: 0;
-  transform: translateY(20px);
-  transition: all 0.6s var(--hero-transition-ease);
-}
-
-.hero-slide__title {
-  color: white;
-  font-size: clamp(2rem, 5vw, 4.5rem); /* Responsive fluid typography */
-  font-weight: 800;
-  line-height: 1.1;
-  margin: 0 0 1rem;
-  opacity: 0;
-  transform: translateY(20px);
-  transition: all 0.6s var(--hero-transition-ease) 0.1s; /* Staggered */
-}
-
-.hero-slide__description {
-  color: rgba(255, 255, 255, 0.9);
-  font-size: clamp(1rem, 2vw, 1.25rem);
-  line-height: 1.6;
-  max-width: 600px;
-  margin: 0 0 1.5rem;
-  opacity: 0;
-  transform: translateY(20px);
-  transition: all 0.6s var(--hero-transition-ease) 0.2s;
-}
-
-.hero-slide__cta {
-  background-color: #fff;
-  color: #000;
-  border: none;
-  padding: 1rem 2rem;
-  font-size: 1rem;
-  font-weight: 700;
-  border-radius: 4px;
-  cursor: pointer;
-  opacity: 0;
-  transform: translateY(20px);
-  transition: all 0.6s var(--hero-transition-ease) 0.3s;
-}
-
-.hero-slide__cta:hover {
-    background-color: #f0f0f0;
-    transform: translateY(18px) scale(1.05); /* keep translateY from animation state */
-}
-
-/* Active State Animations */
-.hero-slide__content.is-active .hero-slide__tag,
-.hero-slide__content.is-active .hero-slide__title,
-.hero-slide__content.is-active .hero-slide__description,
-.hero-slide__content.is-active .hero-slide__cta {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-/* --- Controls (Arrows & Dots) --- */
-.hero-carousel__controls {
-    position: absolute;
-    bottom: 2rem;
-    left: 0;
-    width: 100%;
-    z-index: var(--hero-z-controls);
-    pointer-events: none; /* Let clicks pass through empty space */
-}
-
-/* Wrapper to align dots/arrows within container */
-.hero-carousel__dots {
-    display: flex;
-    justify-content: center;
-    gap: 0.75rem;
-    pointer-events: auto;
-}
-
-.dot-btn {
-    background: transparent;
-    border: none;
-    padding: 10px; /* Increase touch target */
-    cursor: pointer;
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.dot-visual {
-    width: 40px;
-    height: 3px;
-    background: rgba(255, 255, 255, 0.3);
-    border-radius: 2px;
-    overflow: hidden;
-    transition: all 0.3s ease;
-    position: relative;
-}
-
-.dot-btn.is-active .dot-visual {
-    width: 60px; /* Expand active dot */
-    background: rgba(255, 255, 255, 0.2);
-}
-
-.dot-progress {
-    position: absolute;
-    top: 0;
-    left: 0;
-    height: 100%;
-    width: 0%;
-    background-color: #fff;
-    /* Animation triggers only when parent has .is-active */
-}
-
-.dot-btn.is-active .dot-progress {
-    animation-name: progress;
-    animation-timing-function: linear;
-    animation-fill-mode: forwards;
-}
-
-@keyframes progress {
-    from { width: 0%; }
-    to { width: 100%; }
-}
-
-/* Navigation Arrows (Desktop Only usually) */
-.nav-btn {
-    position: absolute;
-    top: 50%; /* Center vertically relative to carousel wrapper, not controls */
-    transform: translateY(-500%); /* Move up to center of image */
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    color: white;
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    pointer-events: auto;
-    opacity: 0; /* Hidden by default for touch devices */
-}
-
-.nav-btn:hover {
-    background: white;
-    color: black;
-}
-
-.nav-btn--prev { left: 2rem; }
-.nav-btn--next { right: 2rem; }
-
-[dir="rtl"] .nav-btn--prev { left: auto; right: 2rem; transform: translateY(-500%) rotate(180deg); }
-[dir="rtl"] .nav-btn--next { right: auto; left: 2rem; transform: translateY(-500%) rotate(180deg); }
-
-
-/* --- Media Queries (Mobile First approach) --- */
-
-/* Tablet & Desktop */
-@media (min-width: 768px) {
-    .hero-slide__content {
-        padding: 3rem;
-        justify-content: center; /* Vertically center on desktop */
-    }
-
-    .nav-btn {
-        opacity: 1; /* Show arrows on desktop */
-    }
-
-    .hero-slide__image-wrapper {
-       left: -10%; /* Reduce parallax bleed slightly for wider screens */
-       width: 120%;
-    }
-}
-
-/* Large Desktop */
-@media (min-width: 1280px) {
-    .content-inner {
-        padding-left: 0;
-        padding-right: 0;
-    }
-}
-
-/* Reduce animation motion for accessibility preferences */
-@media (prefers-reduced-motion: reduce) {
-    .hero-slide__image-wrapper {
-        transform: none !important;
-    }
-    .hero-slide__tag,
-    .hero-slide__title,
-    .hero-slide__description,
-    .hero-slide__cta {
-        transition: opacity 0.3s ease;
-        transform: none;
-    }
-}
-
-
-/* components/HeroCarousel/HeroCarousel.css */
-
-:root {
-  /* --- Layout & Alignment (Synced with Header) --- */
-  --carousel-max-width: 1280px;
-  --pad-desktop: 1.5rem;   /* Matches Header Desktop */
-  --pad-tablet: 1rem;      /* Matches Header Tablet */
-  --pad-mobile: 0.75rem;   /* Matches Header Mobile */
-  
-  /* --- Z-Indices --- */
-  --hero-z-image: 1;
-  --hero-z-overlay: 2;
-  --hero-z-content: 3;
-  --hero-z-controls: 10;
-  
-  /* --- Transitions --- */
-  --hero-transition-ease: cubic-bezier(0.25, 1, 0.5, 1);
-}
-
-.hero-carousel-wrapper {
-  position: relative;
-  width: 100%;
-  height: 500px;
-  background-color: #f5f5f5; /* Light grey placeholder */
   overflow: hidden;
-  contain: paint layout; 
+  z-index: var(--hc-z-img);
 }
 
-/* --- Embla Core --- */
-.hero-carousel {
-  height: 100%;
-  width: 100%;
-}
-
-.hero-carousel__container {
-  display: flex;
-  height: 100%;
-  touch-action: pan-y pinch-zoom;
-}
-
-.hero-carousel__slide {
-  flex: 0 0 100%;
-  min-width: 0;
-  position: relative;
-  overflow: hidden;
-}
-
-.hero-slide {
-  position: relative;
-  width: 100%;
-  height: 100%;
-}
-
-/* --- Parallax & Image --- */
-.hero-slide__parallax {
+.hc-slide__img-wrap {
   position: absolute;
   top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-  z-index: var(--hero-z-image);
-}
-
-.hero-slide__image-wrapper {
-  position: absolute;
-  top: 0;
-  left: -15%;
-  width: 130%;
+  left: -12%;
+  width: 124%;
   height: 100%;
   will-change: transform;
 }
 
-.hero-slide__image {
+.hc-slide__img {
   object-fit: cover;
+  object-position: center top;
   pointer-events: none;
 }
 
-/* --- Overlay --- */
-.hero-slide__overlay {
+/* ─── GRADIENT OVERLAY ──────────────────────────────────────── */
+.hc-slide__overlay {
   position: absolute;
   inset: 0;
-  z-index: var(--hero-z-overlay);
-  /* Gradient favors text legibility at the bottom */
-  background: linear-gradient(
-    to bottom,
-    rgba(0, 0, 0, 0.1) 0%,
-    rgba(0, 0, 0, 0.05) 50%,
-    rgba(0, 0, 0, 0.5) 80%,
-    rgba(0, 0, 0, 0.8) 100%
-  );
+  z-index: var(--hc-z-overlay);
   pointer-events: none;
+  /* Two-zone scrim: subtle top vignette, heavy bottom for content */
+  background:
+    linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0.08)  0%,
+      rgba(0, 0, 0, 0.0)   30%,
+      rgba(0, 0, 0, 0.45)  65%,
+      rgba(0, 0, 0, 0.78)  85%,
+      rgba(0, 0, 0, 0.88) 100%
+    );
 }
 
-/* --- Content Alignment (Crucial for Header Match) --- */
-.hero-slide__content {
+/* ─── CONTENT STRIP (frosted glass bar at bottom) ───────────── */
+.hc-slide__content {
   position: absolute;
   bottom: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: var(--hero-z-content);
+  right: 0;
+  z-index: var(--hc-z-content);
+  padding: 1rem;                   /* mobile padding */
   display: flex;
-  flex-direction: column;
-  justify-content: flex-end; /* Text at bottom */
-  align-items: center;       /* Centers the inner container horizontally */
-  pointer-events: none;      /* Let clicks pass through empty areas */
-}
+  align-items: flex-end;
+  height: 55%;                     /* occupy bottom portion */
 
-/* The inner container that mimics the Header's .header_container */
-.content-inner {
-  width: 100%;
-  max-width: var(--carousel-max-width);
-  /* Apply exact padding to match header alignment */
-  padding-left: var(--pad-mobile);
-  padding-right: var(--pad-mobile);
-  padding-bottom: 3.5rem; /* Space for dots */
-  pointer-events: auto;   /* Re-enable clicks for text/buttons */
-  
-  /* Text styling */
-  text-align: left; 
-}
-
-[dir="rtl"] .content-inner {
-  text-align: right;
-}
-
-/* --- Typography & Animations --- */
-.hero-slide__tag {
-  display: inline-block;
-  padding: 0.35rem 0.85rem;
-  background: rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 50px;
-  color: #fff;
-  font-size: 0.75rem;
-  font-weight: 600;
-  margin-bottom: 1rem;
+  /* Staggered entrance — hidden by default */
   opacity: 0;
-  transform: translateY(20px);
-  transition: all 0.6s var(--hero-transition-ease);
+  transform: translateY(12px);
+  transition: opacity 0.45s var(--hc-ease), transform 0.45s var(--hc-ease);
 }
 
-.hero-slide__title {
-  color: white;
-  /* Fluid typography: scales between 1.75rem (mobile) and 4rem (desktop) */
-  font-size: clamp(1.75rem, 5vw, 4rem); 
-  font-weight: 800;
-  line-height: 1.1;
-  margin: 0 0 1rem;
-  opacity: 0;
-  transform: translateY(20px);
-  transition: all 0.6s var(--hero-transition-ease) 0.1s;
-  text-shadow: 0 2px 10px rgba(0,0,0,0.3);
-}
-
-.hero-slide__description {
-  color: rgba(255, 255, 255, 0.95);
-  font-size: clamp(0.95rem, 2vw, 1.15rem);
-  line-height: 1.6;
-  max-width: 600px;
-  margin: 0 0 1.5rem;
-  opacity: 0;
-  transform: translateY(20px);
-  transition: all 0.6s var(--hero-transition-ease) 0.2s;
-}
-
-.hero-slide__cta {
-  background-color: #fff;
-  color: #0f041c; /* Matches header text-primary */
-  border: none;
-  padding: 0.875rem 2rem;
-  font-size: 0.95rem;
-  font-weight: 700;
-  border-radius: 8px;
-  cursor: pointer;
-  opacity: 0;
-  transform: translateY(20px);
-  transition: all 0.6s var(--hero-transition-ease) 0.3s;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-}
-
-.hero-slide__cta:hover {
-  background-color: #f8f9fa;
-  transform: translateY(18px) scale(1.02);
-}
-
-/* Active State Animations */
-.hero-slide__content.is-active .hero-slide__tag,
-.hero-slide__content.is-active .hero-slide__title,
-.hero-slide__content.is-active .hero-slide__description,
-.hero-slide__content.is-active .hero-slide__cta {
+.hc-slide__content.is-active {
   opacity: 1;
   transform: translateY(0);
 }
 
-/* --- Controls (Arrows & Dots) --- */
-.hero-carousel__controls {
-  position: absolute;
-  bottom: 0;
-  left: 0;
+/* The actual frosted card row */
+.hc-content-row {
   width: 100%;
-  height: 100%; /* Cover full height to position arrows vertically */
-  z-index: var(--hero-z-controls);
-  pointer-events: none;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: var(--hc-glass);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid var(--hc-glass-light);
+  border-radius: 16px;
+  padding: 0.65rem 0.85rem;
+}
+
+/* ── Logo pill ── */
+.hc-logo-pill {
+  flex-shrink: 0;
+  width: 52px;
+  height: 52px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.hc-logo-pill img {
+  width: 80%;
+  height: 80%;
+  object-fit: contain;
+}
+
+/* Fallback when no logo — first letter on accent bg */
+.hc-logo-pill--fallback {
+  background: var(--hc-accent);
+  color: #fff;
+  font-size: 1.375rem;
+  font-weight: 800;
+  font-family: 'Alexandria', sans-serif;
+}
+
+/* ── Middle: badge + store name ── */
+.hc-content-mid {
+  flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
+  gap: 0.2rem;
 }
 
-/* Inner wrapper for controls to match Header width */
-.controls-inner {
-  position: absolute;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 100%;
-  height: 100%;
-  max-width: var(--carousel-max-width);
-  padding-left: var(--pad-mobile);
-  padding-right: var(--pad-mobile);
+/* Discount badge */
+.hc-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  background: var(--hc-accent);
+  color: #fff;
+  font-size: 0.6875rem;           /* 11px */
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 0.22rem 0.55rem;
+  border-radius: 6px;
+  width: fit-content;
 }
 
-/* Dots at the bottom */
-.hero-carousel__dots {
+.hc-badge .material-symbols-sharp {
+  font-size: 13px;
+}
+
+/* Store name (kept as small supporting text) */
+.hc-store-name {
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  font-family: 'Alexandria', 'Open Sans', sans-serif;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin: 0;
+}
+
+/* ── CTA link ── */
+.hc-cta {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  font-family: 'Alexandria', 'Open Sans', sans-serif;
+  text-decoration: none;
+  white-space: nowrap;
+  opacity: 0.85;
+  transition: opacity 0.2s, gap 0.2s;
+}
+
+.hc-cta:hover {
+  opacity: 1;
+  gap: 0.5rem;
+}
+
+.hc-cta .material-symbols-sharp {
+  font-size: 16px;
+}
+
+/* ─── CONTROLS ──────────────────────────────────────────────── */
+.hc-controls {
   position: absolute;
-  bottom: 2rem;
+  inset: 0;
+  z-index: var(--hc-z-controls);
+  pointer-events: none;
+}
+
+/* ── Dots (progress bars) ── */
+.hc-dots {
+  position: absolute;
+  bottom: 0.75rem;
   left: 0;
   width: 100%;
   display: flex;
   justify-content: center;
-  gap: 0.75rem;
+  gap: 0.5rem;
   pointer-events: auto;
-  z-index: 12;
 }
 
-.dot-btn {
+.hc-dot {
   background: transparent;
   border: none;
-  padding: 10px;
+  padding: 6px 0;
   cursor: pointer;
   display: flex;
   align-items: center;
 }
 
-.dot-visual {
-  width: 32px;
-  height: 4px;
-  background: rgba(255, 255, 255, 0.3);
+.hc-dot__track {
+  width: 28px;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.25);
   border-radius: 2px;
   overflow: hidden;
-  position: relative;
-  transition: width 0.3s ease, background 0.3s ease;
+  transition: width 0.3s var(--hc-ease), background 0.3s;
 }
 
-.dot-btn.is-active .dot-visual {
-  width: 48px;
-  background: rgba(255, 255, 255, 0.2);
+.hc-dot.is-active .hc-dot__track {
+  width: 44px;
+  background: rgba(255, 255, 255, 0.18);
 }
 
-.dot-progress {
-  position: absolute;
-  top: 0;
-  left: 0; /* Changed from RTL logic, handled by dir prop */
+.hc-dot__progress {
   height: 100%;
   width: 0%;
-  background-color: #fff;
+  background: #fff;
+  border-radius: 2px;
 }
 
-[dir="rtl"] .dot-progress {
-  left: auto;
-  right: 0;
+.hc-dot.is-active .hc-dot__progress {
+  animation: hc-progress linear forwards;
 }
 
-.dot-btn.is-active .dot-progress {
-  animation-name: progress;
-  animation-timing-function: linear;
-  animation-fill-mode: forwards;
-}
-
-@keyframes progress {
+@keyframes hc-progress {
   from { width: 0%; }
-  to { width: 100%; }
+  to   { width: 100%; }
 }
 
-/* Navigation Arrows */
-.nav-btn {
+[dir="rtl"] .hc-dot__progress {
+  margin-left: auto;
+}
+
+/* ── Nav arrows (hidden on mobile) ── */
+.hc-nav {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.2);
   background: rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: white;
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
+  -webkit-backdrop-filter: blur(10px);
+  color: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.3s ease;
   pointer-events: auto;
-  opacity: 0; /* Hidden on mobile */
-  z-index: 15;
+  opacity: 0;                      /* hidden on mobile */
+  transition: background 0.2s, border-color 0.2s, opacity 0.3s;
 }
 
-.nav-btn:hover {
-  background: white;
-  color: var(--text-primary);
-  border-color: white;
+.hc-nav:hover {
+  background: #fff;
+  color: #0c0e16;
+  border-color: #fff;
 }
 
-/* Position arrows relative to the constrained width */
-.nav-btn--prev { left: var(--pad-mobile); }
-.nav-btn--next { right: var(--pad-mobile); }
+.hc-nav--prev { left: 0.75rem; }
+.hc-nav--next { right: 0.75rem; }
 
-[dir="rtl"] .nav-btn--prev { left: auto; right: var(--pad-mobile); transform: translateY(-50%) rotate(180deg); }
-[dir="rtl"] .nav-btn--next { right: auto; left: var(--pad-mobile); transform: translateY(-50%) rotate(180deg); }
+[dir="rtl"] .hc-nav--prev { left: auto; right: 0.75rem; }
+[dir="rtl"] .hc-nav--next { right: auto; left: 0.75rem; }
 
-/* --- Responsive Breakpoints (Synced with Header) --- */
-
-/* Tablet (matches Header 1024px logic) */
+/* ─── TABLET (768px+) ───────────────────────────────────────── */
 @media (min-width: 768px) {
-  .content-inner, 
-  .controls-inner {
-    padding-left: var(--pad-tablet);
-    padding-right: var(--pad-tablet);
-  }
-  
-  .hero-slide__content {
-    justify-content: center; /* Center content vertically on larger screens */
+  .hc-wrapper {
+    height: 340px;
+    border-radius: var(--hc-radius-md);
   }
 
-  .content-inner {
-     padding-bottom: 0; /* Reset bottom padding as we center vertically */
+  .hc-slide__content {
+    padding: 1.5rem;
   }
 
-  .nav-btn {
-    opacity: 1; /* Show arrows */
+  .hc-content-row {
+    padding: 0.75rem 1rem;
+    gap: 1rem;
+    border-radius: 18px;
   }
-  
-  .nav-btn--prev { left: var(--pad-tablet); }
-  .nav-btn--next { right: var(--pad-tablet); }
-  [dir="rtl"] .nav-btn--prev { right: var(--pad-tablet); }
-  [dir="rtl"] .nav-btn--next { left: var(--pad-tablet); }
+
+  .hc-logo-pill {
+    width: 60px;
+    height: 60px;
+    border-radius: 14px;
+  }
+
+  .hc-badge {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.65rem;
+  }
+
+  .hc-store-name {
+    font-size: 0.875rem;
+  }
+
+  .hc-cta {
+    font-size: 0.8125rem;
+  }
+
+  .hc-nav {
+    opacity: 1;                    /* show arrows on tablet+ */
+    width: 46px;
+    height: 46px;
+  }
+
+  .hc-nav--prev { left: 1.25rem; }
+  .hc-nav--next { right: 1.25rem; }
+
+  [dir="rtl"] .hc-nav--prev { left: auto; right: 1.25rem; }
+  [dir="rtl"] .hc-nav--next { right: auto; left: 1.25rem; }
+
+  .hc-dots {
+    bottom: 1rem;
+  }
 }
 
-/* Desktop (matches Header 1280px logic) */
+/* ─── DESKTOP (1024px+) ─────────────────────────────────────── */
 @media (min-width: 1024px) {
-  .content-inner, 
-  .controls-inner {
-    padding-left: var(--pad-desktop);
-    padding-right: var(--pad-desktop);
+  .hc-wrapper {
+    height: 420px;
+    border-radius: var(--hc-radius-lg);
   }
-  
-  .nav-btn {
-    width: 52px;
-    height: 52px;
+
+  .hc-slide__content {
+    padding: 2rem;
   }
-  
-  /* Pull arrows slightly outside the text alignment for a cleaner look if desired, 
-     or keep them aligned. Here we keep them aligned with padding. */
-  .nav-btn--prev { left: var(--pad-desktop); }
-  .nav-btn--next { right: var(--pad-desktop); }
-  [dir="rtl"] .nav-btn--prev { right: var(--pad-desktop); }
-  [dir="rtl"] .nav-btn--next { left: var(--pad-desktop); }
+
+  .hc-content-row {
+    padding: 0.85rem 1.25rem;
+    gap: 1.25rem;
+    border-radius: 20px;
+    max-width: 480px;             /* don't stretch full width on big screens */
+  }
+
+  .hc-logo-pill {
+    width: 68px;
+    height: 68px;
+    border-radius: 16px;
+  }
+
+  .hc-badge {
+    font-size: 0.75rem;
+    padding: 0.28rem 0.7rem;
+    border-radius: 7px;
+  }
+
+  .hc-store-name {
+    font-size: 0.9375rem;
+  }
+
+  .hc-cta {
+    font-size: 0.875rem;
+  }
+
+  .hc-nav {
+    width: 50px;
+    height: 50px;
+  }
+
+  .hc-nav--prev { left: 1.5rem; }
+  .hc-nav--next { right: 1.5rem; }
+
+  [dir="rtl"] .hc-nav--prev { left: auto; right: 1.5rem; }
+  [dir="rtl"] .hc-nav--next { right: auto; left: 1.5rem; }
+
+  .hc-dots {
+    bottom: 1.25rem;
+  }
 }
 
-@media (max-width: 480px) {
-    .hero-carousel-wrapper {
-        height: 244px; /* Slightly shorter on mobile */
-        padding: 0;
-    }
+/* ─── ACCESSIBILITY ─────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .hc-slide__img-wrap {
+    transform: none !important;
+  }
+
+  .hc-slide__content {
+    transition: opacity 0.2s ease;
+    transform: none !important;
+  }
+
+  .hc-dot__progress {
+    animation-duration: 0.01ms !important;
+  }
+
+  .hc-nav,
+  .hc-dot__track {
+    transition-duration: 0.01ms !important;
+  }
+}
+
+.hc-nav:focus-visible,
+.hc-dot:focus-visible {
+  outline: 3px solid #fff;
+  outline-offset: 2px;
 }
