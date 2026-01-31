@@ -46,9 +46,9 @@ const StoreHeader = ({
         window.requestAnimationFrame(() => {
           const scrollY = window.scrollY;
           
-          if (scrollY > 180) {
+          if (scrollY > 240) {
             setIsScrolled(true);
-          } else if (scrollY <= 180) {
+          } else if (scrollY <= 100) {
             setIsScrolled(false);
           }
           
