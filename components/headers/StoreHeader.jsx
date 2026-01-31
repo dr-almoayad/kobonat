@@ -37,32 +37,68 @@ const StoreHeader = ({
     setIsLoading(false);
   }, []);
 
-  // FIXED: Simple, clean scroll handler
-  useEffect(() => {
-    let ticking = false;
+ // FIXED: Optimized scroll handler with debouncing
+  const handleScroll = useCallback(() => {
+    const currentScroll = window.scrollY;
+    setScrollPosition(currentScroll);
     
-    const handleScroll = () => {
+    // Get the banner height
+    const bannerHeight = 240; // Default mobile
+    if (window.innerWidth >= 768) {
+      bannerHeight = 360; // Tablet/desktop
+    }
+    
+    // Calculate threshold based on banner height minus some pixels
+    const threshold = bannerHeight - 80;
+    
+    if (currentScroll > threshold && !isScrolled) {
+      setIsScrolled(true);
+    } else if (currentScroll <= threshold && isScrolled) {
+      setIsScrolled(false);
+    }
+  }, [isScrolled]);
+
+  useEffect(() => {
+    // Initial check
+    handleScroll();
+    
+    // Throttled scroll handler
+    let ticking = false;
+    const throttledHandleScroll = () => {
       if (!ticking) {
-        window.requestAnimationFrame(() => {
-          const scrollY = window.scrollY;
-          
-          // Simple threshold: collapse at 180px, expand at 120px
-          if (scrollY > 150) {
-            setIsScrolled(true);
-          } else if (scrollY <= 150) {
-            setIsScrolled(false);
-          }
-          
+        requestAnimationFrame(() => {
+          handleScroll();
           ticking = false;
         });
         ticking = true;
       }
     };
     
-    handleScroll();
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+    window.addEventListener('scroll', throttledHandleScroll, { passive: true });
+    
+    return () => {
+      window.removeEventListener('scroll', throttledHandleScroll);
+    };
+  }, [handleScroll]);
+
+  // FIXED: Add padding to body when header becomes fixed to prevent content jump
+  useEffect(() => {
+    if (containerRef.current) {
+      const headerHeight = containerRef.current.offsetHeight;
+      
+      if (isScrolled) {
+        // When header becomes fixed, add padding to body
+        document.body.style.paddingTop = `${headerHeight}px`;
+      } else {
+        // When header is not fixed, remove padding
+        document.body.style.paddingTop = '0';
+      }
+      
+      return () => {
+        document.body.style.paddingTop = '0';
+      };
+    }
+  }, [isScrolled]);
 
   useLayoutEffect(() => {
     const checkOverflow = () => {
