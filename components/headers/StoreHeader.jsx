@@ -39,7 +39,7 @@ const StoreHeader = ({
   }, []);
 
   // Optimized Scroll Handler
-  useEffect(() => {
+  {/*useEffect(() => {
     let ticking = false;
     const handleScroll = () => {
       if (!ticking) {
@@ -53,7 +53,7 @@ const StoreHeader = ({
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, []);*/}
 
   // Fix: Robust Overflow Detection for Read More button
   useLayoutEffect(() => {
