@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useLayoutEffect } from 'react';
+import { useState, useRef, useLayoutEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import './StoreHeader.css';
@@ -11,16 +11,13 @@ const StoreHeader = ({
   paymentMethods = [],
   bnplMethods = [],
   locale,
-  country 
+  country,
+  sentinelRef  // forwarded ref so parent can observe when this header leaves the viewport
 }) => {
-  const [isCopied, setIsCopied] = useState(false);
-  const [isScrolled, setIsScrolled] = useState(false);
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
   const [isDescriptionOverflowing, setIsDescriptionOverflowing] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
 
   const descriptionRef = useRef(null);
-  const isScrolledRef = useRef(false); // Track state without triggering re-renders in scroll handler
   
   const isArabic = locale?.startsWith('ar');
   const dir = isArabic ? 'rtl' : 'ltr';
@@ -31,111 +28,27 @@ const StoreHeader = ({
   const storeDescription = store?.description;
   const categories = store?.categories || [];
   const websiteUrl = store?.websiteUrl;
-  const topVoucherTitle = mostTrackedVoucher?.title || null;
-  const voucherCode = mostTrackedVoucher?.code;
 
-  useEffect(() => {
-    setIsLoading(false);
-  }, []);
-
-  // Single, clean scroll handler - attached once, never re-created
-  useEffect(() => {
-    let ticking = false;
-
-    const handleScroll = () => {
-      if (!ticking) {
-        window.requestAnimationFrame(() => {
-          const scrollY = window.scrollY;
-
-          if (scrollY > 180 && !isScrolledRef.current) {
-            isScrolledRef.current = true;
-            setIsScrolled(true);
-          } else if (scrollY < 120 && isScrolledRef.current) {
-            isScrolledRef.current = false;
-            setIsScrolled(false);
-          }
-
-          ticking = false;
-        });
-        ticking = true;
-      }
-    };
-
-    // Check initial position
-    handleScroll();
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []); // Empty deps - attached once, never re-created
-
+  // Overflow detection for "Read more"
   useLayoutEffect(() => {
     const checkOverflow = () => {
       const element = descriptionRef.current;
       if (element && storeDescription) {
-        const isOverflowing = element.scrollHeight > element.clientHeight + 2;
-        setIsDescriptionOverflowing(isOverflowing);
+        setIsDescriptionOverflowing(element.scrollHeight > element.clientHeight + 2);
       }
     };
 
     checkOverflow();
     window.addEventListener('resize', checkOverflow);
     return () => window.removeEventListener('resize', checkOverflow);
-  }, [storeDescription, isLoading]);
+  }, [storeDescription]);
 
-  const toggleDescription = () => {
-    setIsDescriptionExpanded(!isDescriptionExpanded);
-  };
-
-  const handleCopyAndTrack = async () => {
-    if (!voucherCode) {
-      if (websiteUrl) window.open(websiteUrl, '_blank', 'noopener,noreferrer');
-      return;
-    }
-
-    try {
-      await navigator.clipboard.writeText(voucherCode);
-      setIsCopied(true);
-      if (navigator.vibrate) navigator.vibrate(50);
-
-      if (mostTrackedVoucher?.id) {
-        fetch('/api/vouchers/track', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            voucherId: mostTrackedVoucher.id,
-            countryCode: country?.code 
-          })
-        }).catch(err => console.error('Tracking Error:', err));
-      }
-
-      setTimeout(() => {
-        if (websiteUrl) window.open(websiteUrl, '_blank', 'noopener,noreferrer');
-      }, 800);
-      
-      setTimeout(() => setIsCopied(false), 3000);
-    } catch (err) {
-      console.error('Copy failed:', err);
-      if (websiteUrl) window.open(websiteUrl, '_blank', 'noopener,noreferrer');
-    }
-  };
-
-  if (!store && !isLoading) return null;
-
-  if (isLoading) {
-    return (
-      <div className="sh-skeleton-container">
-        <div className="sh-skeleton-banner" />
-        <div className="sh-skeleton-content">
-          <div className="sh-skeleton-logo" />
-          <div className="sh-skeleton-lines" />
-        </div>
-      </div>
-    );
-  }
+  if (!store) return null;
 
   return (
-    <header className={`sh-container ${isScrolled ? 'sh-scrolled' : ''}`} dir={dir}>
+    <header className="sh-container" dir={dir} ref={sentinelRef}>
       
+      {/* Banner */}
       <div className="sh-banner-wrapper">
         {storeCover ? (
           <Image
@@ -153,17 +66,19 @@ const StoreHeader = ({
         <div className="sh-banner-overlay" />
       </div>
 
+      {/* Content */}
       <div className="sh-content-wrapper">
         <div className="sh-main-grid">
           
+          {/* Identity column: logo + name + meta */}
           <div className="sh-identity-col">
             <div className="sh-logo-wrapper">
               {storeLogo ? (
                 <Image 
                   src={storeLogo} 
                   alt={`${storeName} logo`} 
-                  width={80} 
-                  height={80} 
+                  width={110} 
+                  height={110} 
                   className="sh-logo-img"
                   quality={90}
                 />
@@ -188,6 +103,7 @@ const StoreHeader = ({
             </div>
           </div>
 
+          {/* Details column: description, categories, payments */}
           <div className="sh-details-container">
             {storeDescription && (
               <div className="sh-description-wrapper">
@@ -200,7 +116,7 @@ const StoreHeader = ({
                 
                 {(isDescriptionOverflowing || isDescriptionExpanded) && (
                   <button 
-                    onClick={toggleDescription}
+                    onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
                     className="sh-read-more-btn"
                     type="button"
                   >
@@ -251,27 +167,6 @@ const StoreHeader = ({
                   </div>
                 ))}
               </div>
-            )}
-          </div>
-
-          <div className="sh-actions-col">
-            {topVoucherTitle && (
-              <button 
-                className={`sh-cta-btn ${isCopied ? 'copied' : ''}`}
-                onClick={handleCopyAndTrack}
-                type="button"
-              >
-                <span className="material-symbols-sharp">
-                  {isCopied ? 'check_circle' : 'arrow_forward'}
-                </span>
-                <span className="sh-cta-label">
-                  {isCopied 
-                    ? (isArabic ? 'تم النسخ!' : 'Copied!') 
-                    : (isArabic ? 'الذهاب للمتجر' : 'Go to Store')
-                  }
-                </span>
-                {!isCopied && <div className="sh-cta-ripple" />}
-              </button>
             )}
           </div>
 
