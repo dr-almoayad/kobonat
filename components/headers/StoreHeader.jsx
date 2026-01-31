@@ -20,7 +20,7 @@ const StoreHeader = ({
   const [isLoading, setIsLoading] = useState(true);
 
   const descriptionRef = useRef(null);
-  const scrollTimeoutRef = useRef(null);
+  const resizeTimeoutRef = useRef(null);
   
   const isArabic = locale?.startsWith('ar');
   const dir = isArabic ? 'rtl' : 'ltr';
@@ -40,68 +40,63 @@ const StoreHeader = ({
     setIsLoading(false);
   }, []);
 
-  // FIXED: Optimized scroll detection with throttling
+  // CLEAN SCROLL HANDLER - No stuttering
   useEffect(() => {
-    let lastScrollY = window.scrollY;
     let ticking = false;
     
-    const updateScrolledState = () => {
-      const currentScrollY = window.scrollY;
-      const scrollDifference = Math.abs(currentScrollY - lastScrollY);
+    const updateScrollState = () => {
+      const scrollY = window.scrollY;
       
-      // Only update if scrolled significantly (reduces flickering)
-      if (scrollDifference > 20) {
-        // Single threshold with hysteresis to prevent rapid toggling
-        if (currentScrollY >= 180) {
-          setIsScrolled(true);
-        } else if (currentScrollY < 120) {
-          setIsScrolled(false);
-        }
-        lastScrollY = currentScrollY;
+      // Simple hysteresis: collapse at 180px, expand at 120px
+      if (scrollY > 180) {
+        setIsScrolled(true);
+      } else if (scrollY < 120) {
+        setIsScrolled(false);
       }
+      // Between 120-180px: maintain current state (dead zone)
+      
       ticking = false;
     };
     
     const handleScroll = () => {
       if (!ticking) {
-        window.requestAnimationFrame(updateScrolledState);
+        window.requestAnimationFrame(updateScrollState);
         ticking = true;
       }
     };
     
     // Set initial state
-    updateScrolledState();
+    updateScrollState();
     
     window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-      if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
-    };
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // FIXED: Improved overflow detection
+  // Overflow detection for Read More button
   useLayoutEffect(() => {
     const checkOverflow = () => {
       const element = descriptionRef.current;
       if (element && storeDescription) {
-        // More accurate overflow detection
-        const isOverflowing = element.scrollHeight > element.clientHeight + 5;
+        const isOverflowing = element.scrollHeight > element.clientHeight + 2;
         setIsDescriptionOverflowing(isOverflowing);
       }
     };
 
     checkOverflow();
     
-    // Debounce resize events
     const handleResize = () => {
-      if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
-      scrollTimeoutRef.current = setTimeout(checkOverflow, 100);
+      if (resizeTimeoutRef.current) {
+        clearTimeout(resizeTimeoutRef.current);
+      }
+      resizeTimeoutRef.current = setTimeout(checkOverflow, 150);
     };
     
     window.addEventListener('resize', handleResize);
     return () => {
       window.removeEventListener('resize', handleResize);
-      if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
+      if (resizeTimeoutRef.current) {
+        clearTimeout(resizeTimeoutRef.current);
+      }
     };
   }, [storeDescription, isLoading]);
 
@@ -120,7 +115,6 @@ const StoreHeader = ({
       setIsCopied(true);
       if (navigator.vibrate) navigator.vibrate(50);
 
-      // Track voucher usage
       if (mostTrackedVoucher?.id) {
         fetch('/api/vouchers/track', {
           method: 'POST',
@@ -132,7 +126,6 @@ const StoreHeader = ({
         }).catch(err => console.error('Tracking Error:', err));
       }
 
-      // Open store website after brief delay
       setTimeout(() => {
         if (websiteUrl) window.open(websiteUrl, '_blank', 'noopener,noreferrer');
       }, 800);
@@ -162,9 +155,8 @@ const StoreHeader = ({
     <header 
       className={`sh-container ${isScrolled ? 'sh-scrolled' : ''}`} 
       dir={dir}
-      data-scrolled={isScrolled}
     >
-      {/* --- BACKGROUND BANNER --- */}
+      {/* BACKGROUND BANNER */}
       <div className="sh-banner-wrapper">
         {storeCover ? (
           <Image
@@ -182,13 +174,12 @@ const StoreHeader = ({
         <div className="sh-banner-overlay" />
       </div>
 
-      {/* --- MAIN CONTENT --- */}
+      {/* MAIN CONTENT */}
       <div className="sh-content-wrapper">
         <div className="sh-main-grid">
           
-          {/* 1. LEFT: Identity (Logo + Name) */}
+          {/* LEFT: Logo + Name */}
           <div className="sh-identity-col">
-            {/* Logo - Always visible, just scales */}
             <div className="sh-logo-wrapper">
               {storeLogo ? (
                 <Image 
@@ -209,7 +200,6 @@ const StoreHeader = ({
             <div className="sh-identity-text">
               <h1 className="sh-store-name">{storeName}</h1>
               
-              {/* Meta info - hides on scroll */}
               <div className="sh-meta-row">
                 {country?.name && (
                   <span className="sh-meta-item">
@@ -221,9 +211,8 @@ const StoreHeader = ({
             </div>
           </div>
 
-          {/* 2. MIDDLE: Description & Categories - Hides on scroll */}
+          {/* MIDDLE: Description & Categories */}
           <div className="sh-details-container">
-            {/* Description */}
             {storeDescription && (
               <div className="sh-description-wrapper">
                 <p 
@@ -233,7 +222,6 @@ const StoreHeader = ({
                   {storeDescription}
                 </p>
                 
-                {/* Show button if overflowing OR already expanded */}
                 {(isDescriptionOverflowing || isDescriptionExpanded) && (
                   <button 
                     onClick={toggleDescription}
@@ -241,8 +229,8 @@ const StoreHeader = ({
                     type="button"
                     aria-expanded={isDescriptionExpanded}
                     aria-label={isDescriptionExpanded 
-                      ? (isArabic ? 'عرض أقل' : 'Show less description')
-                      : (isArabic ? 'عرض المزيد' : 'Show more description')
+                      ? (isArabic ? 'عرض أقل' : 'Show less')
+                      : (isArabic ? 'عرض المزيد' : 'Read more')
                     }
                   >
                     {isDescriptionExpanded 
@@ -254,7 +242,6 @@ const StoreHeader = ({
               </div>
             )}
 
-            {/* Categories */}
             {categories.length > 0 && (
               <div className="sh-categories-scroll">
                 {categories.map((cat) => (
@@ -275,16 +262,13 @@ const StoreHeader = ({
               </div>
             )}
 
-            {/* Payment Methods */}
             {(paymentMethods.length > 0 || bnplMethods.length > 0) && (
               <div className="sh-payments-row">
-                {/* BNPL Methods First */}
                 {bnplMethods.map(pm => (
                   <div 
                     key={pm.id} 
                     className="sh-pay-icon bnpl" 
                     title={pm.name}
-                    aria-label={`Payment method: ${pm.name}`}
                   >
                     {pm.logo ? (
                       <Image 
@@ -300,13 +284,11 @@ const StoreHeader = ({
                   </div>
                 ))}
                 
-                {/* Regular Payment Methods */}
                 {paymentMethods.slice(0, 5).map(pm => (
                   <div 
                     key={pm.id} 
                     className="sh-pay-icon" 
                     title={pm.name}
-                    aria-label={`Payment method: ${pm.name}`}
                   >
                     {pm.logo ? (
                       <Image 
@@ -325,9 +307,8 @@ const StoreHeader = ({
             )}
           </div>
 
-          {/* 3. RIGHT: Action Buttons - Only visible when scrolled */}
+          {/* RIGHT: CTA Button (visible when scrolled) */}
           <div className="sh-actions-col">
-            {/* CTA Button */}
             {topVoucherTitle && (
               <button 
                 className={`sh-cta-btn ${isCopied ? 'copied' : ''}`}
@@ -338,23 +319,20 @@ const StoreHeader = ({
                   : (isArabic ? 'الذهاب للمتجر' : 'Go to Store')
                 }
               >
-                <div className="sh-cta-content">
-                  <span className="material-symbols-sharp" aria-hidden="true">
-                    {isCopied ? 'check_circle' : 'arrow_forward'}
-                  </span>
-                  <div className="sh-cta-text-group">
-                    <span className="sh-cta-label">
-                      {isCopied 
-                        ? (isArabic ? 'تم النسخ!' : 'Copied!') 
-                        : (isArabic ? 'الذهاب للمتجر' : 'Go to Store')
-                      }
-                    </span>
-                  </div>
-                </div>
+                <span className="material-symbols-sharp" aria-hidden="true">
+                  {isCopied ? 'check_circle' : 'arrow_forward'}
+                </span>
+                <span className="sh-cta-label">
+                  {isCopied 
+                    ? (isArabic ? 'تم النسخ!' : 'Copied!') 
+                    : (isArabic ? 'الذهاب للمتجر' : 'Go to Store')
+                  }
+                </span>
                 {!isCopied && <div className="sh-cta-ripple" aria-hidden="true" />}
               </button>
             )}
           </div>
+
         </div>
       </div>
     </header>
