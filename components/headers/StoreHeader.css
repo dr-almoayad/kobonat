@@ -78,8 +78,9 @@
 }
 
 .sh-logo-wrapper {
-  width: 80px;
-  height: 80px;
+  width: 100px;
+  height: auto;
+  max-height: 80px;
   flex-shrink: 0;
 }
 
