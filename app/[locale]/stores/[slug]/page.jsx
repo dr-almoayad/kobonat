@@ -4,6 +4,8 @@ import { notFound } from "next/navigation";
 import { getTranslations } from 'next-intl/server';
 import StoresGrid from "@/components/StoresGrid/StoresGrid";
 import StoreHeader from "@/components/headers/StoreHeader";
+import StickyStoreHeader from "@/components/headers/StickyStoreHeader";
+import StorePageShell from "@/components/headers/StorePageShell";  // thin 'use client' wrapper that owns the ref
 import VouchersGrid from "@/components/VouchersGrid/VouchersGrid";
 import StoreFAQ from "@/components/StoreFAQ/StoreFAQ";
 import StoreCard from "@/components/StoreCard/StoreCard";
@@ -41,7 +43,6 @@ export async function generateMetadata({ params }) {
             ? `أفضل كوبونات ${categoryName} في ${countryCode}`
             : `Best ${categoryName} coupons in ${countryCode}`),
         
-        // ✅ Include locale in canonical
         alternates: {
           canonical: `${BASE_URL}/${locale}/stores/${slug}`,
           languages: {
@@ -79,7 +80,6 @@ export async function generateMetadata({ params }) {
             ? `احصل على أفضل الكوبونات من ${storeName}`
             : `Get the best deals from ${storeName}`),
         
-        // ✅ Include locale in canonical
         alternates: {
           canonical: `${BASE_URL}/${locale}/stores/${slug}`,
           languages: {
@@ -387,36 +387,28 @@ export default async function UnifiedStorePage({ params }) {
       const shippingVouchers = transformedVouchers.filter(v => v.type === 'FREE_SHIPPING');
       const countryName = country.translations[0]?.name || country.code;
 
+      // ── Props bundle passed down to the client shell ──
+      const headerProps = {
+        store: transformedStore,
+        mostTrackedVoucher,
+        paymentMethods: otherPaymentMethods,
+        bnplMethods,
+        locale,
+        country,
+      };
+
       return (
         <>
           <FAQSchema faqs={faqs} locale={locale} />
           <div className="store-page-layout">
-            {/*{transformedStore.coverImage && (
-              <div className="store-hero-section">
-                <HeroCarousel 
-                  images={[{
-                    id: transformedStore.id,
-                    image: transformedStore.coverImage,
-                    name: transformedStore.name,
-                    logo: transformedStore.logo,
-                  }]}
-                  locale={locale}
-                  height="350px"
-                  showDots={false}
-                  showOverlay={false}
-                  showContent={false}
-                />
-              </div>
-            )}*/}
 
-            <StoreHeader 
-              store={transformedStore}
-              mostTrackedVoucher={mostTrackedVoucher}
-              paymentMethods={otherPaymentMethods}
-              bnplMethods={bnplMethods}
-              locale={locale}
-              country={country}
-            />
+            {/*
+              StorePageShell is a thin 'use client' wrapper.
+              It creates the shared ref, renders StoreHeader (with the ref
+              as sentinelRef) and StickyStoreHeader (which observes that ref).
+              Everything else on this page stays a Server Component.
+            */}
+            <StorePageShell {...headerProps} />
 
             <main className="store-main-content">
                   {codeVouchers.length > 0 && (
