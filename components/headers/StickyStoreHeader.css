@@ -82,8 +82,8 @@
   background: #4f46e5;
   color: white;
   border: none;
-  border-radius: 10px;
-  padding: 0.3rem 7rem;
+  border-radius: 8px;
+  padding: 0.4rem 0.7rem;
   cursor: pointer;
   overflow: hidden;
   font-family: inherit;
