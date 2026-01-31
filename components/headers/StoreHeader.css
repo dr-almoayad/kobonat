@@ -18,7 +18,7 @@
 
 /* --- BASE CONTAINER --- */
 .sh-container {
-  position: sticky;
+  position: relative;
   top: 0;
   z-index: var(--sh-header-z);
   width: 100%;
