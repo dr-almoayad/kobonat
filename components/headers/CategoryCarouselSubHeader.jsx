@@ -44,9 +44,9 @@ const CategoryCarouselSubHeader = () => {
                     const currentScrollY = window.scrollY;
                     
                     // Hide when scrolling down past 100px, show when near top
-                    if (currentScrollY > lastScrollYRef.current && currentScrollY > 100) {
+                    if (currentScrollY > lastScrollYRef.current && currentScrollY > 60) {
                         setIsVisible(false);
-                    } else if (currentScrollY < lastScrollYRef.current || currentScrollY < 50) {
+                    } else if (currentScrollY < lastScrollYRef.current || currentScrollY < 40) {
                         setIsVisible(true);
                     }
                     
