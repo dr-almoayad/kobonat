@@ -37,7 +37,7 @@ const StoreHeader = ({
     setIsLoading(false);
   }, []);
 
-  // Simple scroll handler
+  // FIXED: Simple, clean scroll handler
   useEffect(() => {
     let ticking = false;
     
@@ -46,9 +46,10 @@ const StoreHeader = ({
         window.requestAnimationFrame(() => {
           const scrollY = window.scrollY;
           
-          if (scrollY > 240) {
+          // Simple threshold: collapse at 180px, expand at 120px
+          if (scrollY > 180) {
             setIsScrolled(true);
-          } else if (scrollY <= 100) {
+          } else if (scrollY < 120) {
             setIsScrolled(false);
           }
           
@@ -63,7 +64,6 @@ const StoreHeader = ({
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Overflow detection
   useLayoutEffect(() => {
     const checkOverflow = () => {
       const element = descriptionRef.current;
@@ -132,7 +132,6 @@ const StoreHeader = ({
   return (
     <header className={`sh-container ${isScrolled ? 'sh-scrolled' : ''}`} dir={dir}>
       
-      {/* Banner */}
       <div className="sh-banner-wrapper">
         {storeCover ? (
           <Image
@@ -150,11 +149,9 @@ const StoreHeader = ({
         <div className="sh-banner-overlay" />
       </div>
 
-      {/* Content */}
       <div className="sh-content-wrapper">
         <div className="sh-main-grid">
           
-          {/* Logo + Name */}
           <div className="sh-identity-col">
             <div className="sh-logo-wrapper">
               {storeLogo ? (
@@ -187,7 +184,6 @@ const StoreHeader = ({
             </div>
           </div>
 
-          {/* Details (hidden when scrolled) */}
           <div className="sh-details-container">
             {storeDescription && (
               <div className="sh-description-wrapper">
@@ -254,7 +250,6 @@ const StoreHeader = ({
             )}
           </div>
 
-          {/* CTA (shown when scrolled) */}
           <div className="sh-actions-col">
             {topVoucherTitle && (
               <button 
