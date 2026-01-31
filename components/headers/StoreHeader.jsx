@@ -20,6 +20,7 @@ const StoreHeader = ({
   const [isLoading, setIsLoading] = useState(true);
 
   const descriptionRef = useRef(null);
+  const isScrolledRef = useRef(false); // Track state without triggering re-renders in scroll handler
   
   const isArabic = locale?.startsWith('ar');
   const dir = isArabic ? 'rtl' : 'ltr';
@@ -37,68 +38,35 @@ const StoreHeader = ({
     setIsLoading(false);
   }, []);
 
- // FIXED: Optimized scroll handler with debouncing
-  const handleScroll = useCallback(() => {
-    const currentScroll = window.scrollY;
-    setScrollPosition(currentScroll);
-    
-    // Get the banner height
-    const bannerHeight = 240; // Default mobile
-    if (window.innerWidth >= 768) {
-      bannerHeight = 360; // Tablet/desktop
-    }
-    
-    // Calculate threshold based on banner height minus some pixels
-    const threshold = bannerHeight - 80;
-    
-    if (currentScroll > threshold && !isScrolled) {
-      setIsScrolled(true);
-    } else if (currentScroll <= threshold && isScrolled) {
-      setIsScrolled(false);
-    }
-  }, [isScrolled]);
-
+  // Single, clean scroll handler - attached once, never re-created
   useEffect(() => {
-    // Initial check
-    handleScroll();
-    
-    // Throttled scroll handler
     let ticking = false;
-    const throttledHandleScroll = () => {
+
+    const handleScroll = () => {
       if (!ticking) {
-        requestAnimationFrame(() => {
-          handleScroll();
+        window.requestAnimationFrame(() => {
+          const scrollY = window.scrollY;
+
+          if (scrollY > 180 && !isScrolledRef.current) {
+            isScrolledRef.current = true;
+            setIsScrolled(true);
+          } else if (scrollY < 120 && isScrolledRef.current) {
+            isScrolledRef.current = false;
+            setIsScrolled(false);
+          }
+
           ticking = false;
         });
         ticking = true;
       }
     };
-    
-    window.addEventListener('scroll', throttledHandleScroll, { passive: true });
-    
-    return () => {
-      window.removeEventListener('scroll', throttledHandleScroll);
-    };
-  }, [handleScroll]);
 
-  // FIXED: Add padding to body when header becomes fixed to prevent content jump
-  useEffect(() => {
-    if (containerRef.current) {
-      const headerHeight = containerRef.current.offsetHeight;
-      
-      if (isScrolled) {
-        // When header becomes fixed, add padding to body
-        document.body.style.paddingTop = `${headerHeight}px`;
-      } else {
-        // When header is not fixed, remove padding
-        document.body.style.paddingTop = '0';
-      }
-      
-      return () => {
-        document.body.style.paddingTop = '0';
-      };
-    }
-  }, [isScrolled]);
+    // Check initial position
+    handleScroll();
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []); // Empty deps - attached once, never re-created
 
   useLayoutEffect(() => {
     const checkOverflow = () => {
