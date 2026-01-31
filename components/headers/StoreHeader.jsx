@@ -271,12 +271,12 @@ const StoreHeader = ({
                 type="button"
               >
                 <div className="sh-cta-content">
-                  <span className="material-symbols-sharp">
+                  {/*<span className="material-symbols-sharp">
                     {isCopied ? 'check' : 'content_copy'}
-                  </span>
+                  </span>*/}
                   <div className="sh-cta-text-group">
                     <span className="sh-cta-label">
-                        (isArabic ? 'الذهاب للمتجر' : 'Go to Store')
+                      {isArabic ? 'الذهاب للمتجر' : 'Go to Store'}
                     </span>
                   </div>
                 </div>
