@@ -1,584 +1,543 @@
-.store-header-enhanced {
-    position: sticky;
-    top: calc(var(--header-height, 68px) - 1px);
-    left: 0;
-    right: 0;
-    z-index: 100;
-    background: linear-gradient(135deg, #f9fafb 0%, #fff 100%);
-    border-bottom: 1px solid #e5e7eb;
-    border-top-left-radius: 32px;
-    border-top-right-radius: 32px;
-    margin-top: -36px;
-    height: fit-content;
-    transition: height 0.4s cubic-bezier(0.4, 0, 0.2, 1),
-                background 0.4s ease,
-                box-shadow 0.4s ease;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
+/* --- CSS VARIABLES & TOKENS --- */
+:root {
+  --sh-bg-color: #ffffff;
+  --sh-text-primary: #0f172a;
+  --sh-text-secondary: #64748b;
+  --sh-accent: #4f46e5;
+  --sh-accent-hover: #4338ca;
+  --sh-success: #10b981;
+  --sh-border: #e2e8f0;
+  --sh-shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --sh-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --sh-glass: rgba(255, 255, 255, 0.85);
+  --sh-transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  --sh-header-height-mobile: 60px;
+  --sh-banner-height: 140px;
 }
 
-.store-header-enhanced.scrolled {
-    height: fit-content;
-    background: rgba(255, 255, 255, 0.98);
-    backdrop-filter: blur(8px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+/* --- BASE CONTAINER (Mobile First) --- */
+.sh-container {
+  position: sticky;
+  top: 0; /* Adjust based on your main nav height e.g., 60px */
+  z-index: 40;
+  width: 100%;
+  background: transparent;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  font-family: inherit; /* Inherit global font */
 }
 
-/* Fixed container to prevent layout jumps */
-.store-header-container {
-    width: 100%;
-    height: 100%;
-    position: relative;
+/* Sticky State Styling */
+.sh-container.sh-scrolled {
+  background: var(--sh-glass);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
 }
 
-.store-header-banner {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 180px;
-    background-image: var(--store-cover);
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1),
-                transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    transform: translateY(0);
-    opacity: 1;
-    z-index: 1;
+/* --- BANNER SECTION --- */
+.sh-banner-wrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--sh-banner-height);
+  z-index: -1;
+  overflow: hidden;
+  border-bottom-left-radius: 24px;
+  border-bottom-right-radius: 24px;
+  transform-origin: top;
+  transition: transform 0.4s ease, opacity 0.4s ease;
 }
 
-.store-header-enhanced.scrolled .store-header-banner {
-    opacity: 0;
-    transform: translateY(-20px);
-    pointer-events: none;
+.sh-banner-img {
+  object-fit: cover;
+  transition: transform 0.5s ease;
 }
 
-.store-header-content {
-    background: linear-gradient(to top, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0.95) 50%, transparent 100%);
-    padding: 0;
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+/* Dark gradient to make white text pop (if we had white text) or smooth transition */
+.sh-banner-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(255,255,255,0.9) 85%, #fff 100%);
 }
 
-.scrolled .store-header-content {
-    position: static;
-    background: transparent;
-    padding: 0;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+.sh-scrolled .sh-banner-wrapper {
+  transform: translateY(-100%);
+  opacity: 0;
+  pointer-events: none;
 }
 
-.store-header-inner {
-    width: 100%;
-    max-width: 1280px;
-    margin: 0 auto;
-    padding: 1.45rem;
-    display: flex;
-    align-items: flex-end;
-    justify-content: space-between;
-    gap: 1.5rem;
-    transition: all 0.4s ease;
+/* --- MAIN CONTENT LAYOUT --- */
+.sh-content-wrapper {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 1rem;
+  /* Add padding top to push content down below banner area initially */
+  padding-top: calc(var(--sh-banner-height) - 50px); 
+  transition: padding 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.scrolled .store-header-inner {
-    align-items: center;
-    gap: 1rem;
-    padding: 0.3rem 1.45rem;
+.sh-scrolled .sh-content-wrapper {
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
 }
 
-/* Store Info */
-.store-info-section {
-    flex: 1;
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
+.sh-main-grid {
+  display: flex;
+  flex-direction: column; /* Stack on mobile */
+  gap: 1rem;
+  position: relative;
+}
+
+/* --- IDENTITY COLUMN (Logo & Title) --- */
+.sh-identity-col {
+  display: flex;
+  align-items: flex-end; /* Align bottom to overlap banner */
+  gap: 1rem;
+}
+
+.sh-logo-wrapper {
+  width: 72px;
+  height: 72px;
+  flex-shrink: 0;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: var(--sh-shadow-lg);
+  padding: 4px;
+  position: relative;
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.sh-logo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 12px;
+}
+
+.sh-logo-fallback {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--sh-accent);
+  color: white;
+  font-size: 1.5rem;
+  font-weight: bold;
+  border-radius: 12px;
+}
+
+/* Scrolled Logo State */
+.sh-scrolled .sh-logo-wrapper {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  box-shadow: none;
+  background: transparent;
+  padding: 0;
+}
+
+.sh-identity-text {
+  flex: 1;
+  padding-bottom: 4px;
+}
+
+.sh-store-name {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--sh-text-primary);
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  line-height: 1.2;
+}
+
+.sh-verified-icon {
+  font-size: 18px;
+  color: #3b82f6; /* Blue tick color */
+}
+
+.sh-meta-row {
+  display: flex;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.sh-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.75rem;
+  color: var(--sh-text-secondary);
+  font-weight: 500;
+}
+
+.sh-meta-item .material-symbols-sharp {
+  font-size: 14px;
+}
+
+/* Scrolled Text State */
+.sh-scrolled .sh-meta-row {
+  display: none;
+}
+.sh-scrolled .sh-store-name {
+  font-size: 1rem;
+}
+
+/* --- DETAILS COLUMN (Desc, Cats, Payment) --- */
+.sh-details-col {
+  width: 100%;
+  transition: opacity 0.3s ease, height 0.3s ease;
+}
+
+.sh-scrolled .sh-hide-details {
+  display: none; /* Hide purely on scroll for cleaner bar */
+}
+
+/* Description */
+.sh-description-wrapper {
+  position: relative;
+  margin-bottom: 1rem;
+}
+
+.sh-description {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--sh-text-secondary);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.sh-description.expanded {
+  -webkit-line-clamp: unset;
+}
+
+.sh-read-more-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--sh-accent);
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-top: 4px;
+  cursor: pointer;
+}
+
+/* Categories - Horizontal Scroll on Mobile */
+.sh-categories-scroll {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  padding-bottom: 0.5rem; /* Space for scrollbar if visible */
+  scrollbar-width: none; /* Hide scrollbar Firefox */
+  -ms-overflow-style: none; /* Hide scrollbar IE */
+  mask-image: linear-gradient(to right, black 90%, transparent 100%);
+}
+
+.sh-categories-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.sh-cat-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: #f1f5f9;
+  border-radius: 99px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--sh-text-secondary);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: all 0.2s;
+  border: 1px solid transparent;
+}
+
+.sh-cat-pill .material-symbols-sharp {
+  font-size: 16px;
+}
+
+.sh-cat-pill:hover {
+  background: white;
+  color: var(--hover-color);
+  border-color: var(--hover-color);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+/* Payment Icons */
+.sh-payments-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.sh-pay-icon {
+  width: 38px;
+  height: 24px;
+  border: 1px solid var(--sh-border);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+}
+
+.sh-pay-icon img {
+  object-fit: contain;
+  max-width: 90%;
+  max-height: 90%;
+}
+
+.sh-pay-icon span {
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: var(--sh-text-secondary);
+}
+
+/* --- ACTIONS COLUMN (CTA Buttons) --- */
+.sh-actions-col {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  /* On mobile, this sits at the bottom or top right depending on design choice. 
+     Here we place it inline or fixed based on media queries below. */
+}
+
+.sh-share-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid var(--sh-border);
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--sh-text-secondary);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.sh-share-btn:hover {
+  background: #f8fafc;
+  color: var(--sh-text-primary);
+}
+
+.sh-cta-btn {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: var(--sh-accent);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 0.6rem 1.25rem;
+  cursor: pointer;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  min-width: 140px;
+}
+
+.sh-cta-btn:hover {
+  background: var(--sh-accent-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+}
+
+.sh-cta-btn.copied {
+  background: var(--sh-success);
+  pointer-events: none;
+}
+
+.sh-cta-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  z-index: 2;
+}
+
+.sh-cta-text-group {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  line-height: 1;
+}
+
+.sh-cta-label {
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.sh-cta-sub {
+  font-size: 0.7rem;
+  opacity: 0.9;
+  font-weight: 400;
+  margin-top: 2px;
+}
+
+/* Ripple Animation for CTA */
+.sh-cta-ripple {
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  transform: skewX(-20deg);
+  animation: ripple 3s infinite;
+}
+
+@keyframes ripple {
+  0% { left: -100%; }
+  20% { left: 200%; }
+  100% { left: 200%; }
+}
+
+/* Scrolled Actions */
+.sh-scrolled .sh-actions-col {
+  margin-left: auto; /* Push to right */
+}
+.sh-scrolled .sh-cta-sub {
+  display: none;
+}
+.sh-scrolled .sh-cta-btn {
+  padding: 0.5rem 1rem;
+  min-width: auto;
+  border-radius: 8px;
+}
+
+/* --- TABLET & DESKTOP OVERRIDES (min-width: 768px) --- */
+@media (min-width: 768px) {
+  :root {
+    --sh-banner-height: 200px;
+  }
+
+  .sh-main-grid {
+    flex-direction: row; /* Horizontal layout */
     align-items: flex-start;
-    gap: 0.75rem;
-}
+    flex-wrap: wrap;
+  }
 
-.scrolled .store-info-section {
+  .sh-identity-col {
+    width: auto;
     flex-direction: row;
-    align-items: center;
-    gap: 1rem;
-}
+    align-items: flex-end;
+  }
 
-/* Logo */
-.store-logo-section {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    flex-shrink: 0;
-}
+  .sh-logo-wrapper {
+    width: 100px;
+    height: 100px;
+  }
+  
+  .sh-store-name {
+    font-size: 1.75rem;
+    margin-bottom: 0.25rem;
+  }
 
-.store-logo-img {
-    object-fit: contain;
-    border-radius: 0;
-    background: none;
-    padding: 0;
-    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    transform-origin: left bottom;
-}
+  /* Details Column */
+  .sh-details-col {
+    flex: 1; /* Take remaining space */
+    padding-left: 1rem;
+    padding-top: 3.5rem; /* Align with text, account for overlapping logo */
+  }
 
-[dir="rtl"] .store-logo-img {
-    transform-origin: right bottom;
-}
+  [dir="rtl"] .sh-details-col {
+    padding-left: 0;
+    padding-right: 1rem;
+  }
 
-.scrolled .store-logo-img {
-    transform-origin: left center;
-}
-
-[dir="rtl"] .scrolled .store-logo-img {
-    transform-origin: right center;
-}
-
-.store-logo-placeholder {
-    width: 80px;
-    height: 80px;
-    border-radius: 8px;
-    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 2rem;
-    font-weight: 700;
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.scrolled .store-logo-placeholder {
-    width: 40px;
-    height: 40px;
-    font-size: 1.25rem;
-}
-
-.store-header-inner .store-name {
-    font-size: 1.4rem;
-    font-weight: 600;
-    font-family: 'Alexandria', 'Open Sans', sans-serif;
-    -webkit-font-smoothing: antialiased;
-    color: #1e293b;
-    margin: 0;
-    line-height: 1.2;
-    transition: font-size 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.scrolled .store-name {
-    font-size: 1.125rem;
-}
-
-/* Description with Read More */
-.store-description-container {
-    position: relative;
-    max-width: 700px;
-}
-
-.store-description {
-    font-size: 0.9rem;
-    font-family: 'Alexandria', 'Open Sans', sans-serif;
-    -webkit-font-smoothing: antialiased;
-    text-align: start;
-    color: #64748b;
-    margin: 0;
-    line-height: 1.4;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    transition: all 0.3s ease;
-    max-height: 2.8em;
-}
-
-.store-description.expanded {
-    -webkit-line-clamp: unset;
-    max-height: none;
-    overflow: visible;
-}
-
-.read-more-btn {
-    background: none;
-    border: none;
-    color: #4f46e5;
-    font-size: 0.8rem;
-    font-weight: 500;
-    font-family: 'Alexandria', 'Open Sans', sans-serif;
-    cursor: pointer;
-    padding: 0.25rem 0.5rem;
-    margin-left: 0.5rem;
-    border-radius: 4px;
-    transition: all 0.2s ease;
-    position: absolute;
-    right: 0;
-    bottom: 0;
-    background: white;
-}
-
-[dir="rtl"] .read-more-btn {
-    right: auto;
-    left: 0;
-}
-
-.read-more-btn:hover {
-    background-color: rgba(79, 70, 229, 0.1);
-}
-
-.scrolled .store-description,
-.scrolled .store-description-container,
-.scrolled .read-more-btn {
-    display: none;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-
-/* Categories */
-.store-categories {
-    display: flex;
+  .sh-categories-scroll {
+    overflow: visible; /* No scroll needed usually */
     flex-wrap: wrap;
-    gap: 0.35rem;
-    animation: fadeIn 0.3s ease;
-}
+    mask-image: none;
+  }
 
-.category-pill {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.25rem;
-    padding: 0.25rem 0.65rem;
-    background: rgba(83, 83, 96, 0.1);
-    color: #424243;
-    border-radius: 20px;
-    font-size: 0.825rem;
-    font-family: 'Alexandria', 'Open Sans', sans-serif;
-    -webkit-font-smoothing: antialiased;
-    font-weight: 500;
-    white-space: nowrap;
-}
-
-.category-pill .material-symbols-sharp {
-    font-size: 14px;
-}
-
-.scrolled .store-categories {
-    display: none;
-}
-
-/* Payment Section */
-.payment-section {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    padding-top: 0.5rem;
-    border-top: 1px solid #e5e7eb;
-    animation: fadeIn 0.3s ease;
-}
-
-.payment-title {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: #475569;
-    margin: 0;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.payment-title .material-symbols-sharp {
-    font-size: 16px;
-}
-
-.payment-methods-grid {
-    display: flex;
-    gap: 0.7rem;
-}
-
-.bnpl-group {
-    display: flex;
-    gap: 0.5rem;
-}
-
-.bnpl-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0;
-    background: none;
-    color: #059669;
-    border-radius: 8px;
-    font-size: 0.8rem;
-    font-family: 'Alexandria', 'Open Sans', sans-serif;
-    -webkit-font-smoothing: antialiased;
-    font-weight: 500;
-    width: fit-content;
-}
-
-.bnpl-badge .material-symbols-sharp {
-    font-size: 18px;
-}
-
-.payment-icons {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.7rem;
-}
-
-.payment-icon {
-    max-width: 70px;
-    max-height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 6px;
-    background: none;
-    border: none;
-    overflow: hidden;
-    transition: all 0.2s ease;
-}
-
-.payment-icon img {
-    width: 100%;
-    max-width: 100%;
-    height: 100%;
-    object-fit: contain;
-}
-
-.payment-icon .material-symbols-sharp {
-    font-size: 20px;
-    color: #64748b;
-}
-
-.payment-icon span:not(.material-symbols-sharp) {
-    font-size: 0.625rem;
-    font-weight: 600;
-    color: #64748b;
-    text-align: center;
-    padding: 0.25rem;
-    line-height: 1.2;
-}
-
-.scrolled .payment-section {
-    display: none;
-}
-
-/* Scrolled Indicators */
-.scrolled-indicators {
-    display: none;
-    gap: 0.5rem;
-    animation: fadeIn 0.3s ease;
-}
-
-.scrolled .scrolled-indicators {
-    display: flex;
-    flex: 1;
-    justify-content: flex-end;
-}
-
-.mini-indicator {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.25rem;
-    padding: 0.25rem 0.5rem;
-    background: #f1f5f9;
-    border: 1px solid #e2e8f0;
-    color: #475569;
-    border-radius: 12px;
-    font-size: 0.75rem;
-    font-weight: 600;
-}
-
-.mini-indicator.bnpl {
-    background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.1) 100%);
-    border-color: #10b981;
-    color: #059669;
-}
-
-.mini-indicator .material-symbols-sharp {
-    font-size: 14px;
-}
-
-/* CTA Button */
-.store-header-cta {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.25rem;
-    padding: 0.5rem 1rem;
-    background: #4f46e5;
-    border: none;
-    color: white;
-    border-radius: 8px;
-    font-size: 0.85rem;
-    font-weight: 600;
-    font-family: 'Alexandria', 'Open Sans', sans-serif;
-    -webkit-font-smoothing: antialiased;
-    cursor: pointer;
-    transition: all 0.2s ease;
+  /* Actions Column */
+  .sh-actions-col {
+    padding-top: 3.5rem;
     flex-shrink: 0;
-    white-space: nowrap;
-    max-width: 220px;
+  }
+
+  /* Scrolled Desktop Adjustments */
+  .sh-scrolled .sh-main-grid {
+    align-items: center;
+    gap: 1.5rem;
+  }
+  
+  .sh-scrolled .sh-identity-col {
+    align-items: center;
+  }
+  
+  .sh-scrolled .sh-details-col,
+  .sh-scrolled .sh-actions-col {
+    padding-top: 0;
+  }
 }
 
-.store-header-cta:hover {
-    background: #4338ca;
+/* --- SKELETON LOADER ANIMATIONS --- */
+.sh-skeleton-container {
+  width: 100%;
+  background: white;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 20px;
 }
-
-.store-header-cta:active {
-    transform: translateY(0);
+.sh-skeleton-banner {
+  height: 140px;
+  background: #e2e8f0;
+  animation: pulse 1.5s infinite;
 }
-
-.store-header-cta.copied {
-    background: #10b981;
+.sh-skeleton-content {
+  max-width: 1280px;
+  margin: -30px auto 0;
+  padding: 0 1rem;
+  display: flex;
+  gap: 15px;
 }
-
-.store-header-cta.copied:hover {
-    background: #059669;
+.sh-skeleton-logo {
+  width: 72px;
+  height: 72px;
+  border-radius: 12px;
+  background: #cbd5e1;
+  border: 4px solid white;
+  animation: pulse 1.5s infinite;
 }
-
-.store-header-cta.compact {
-    padding: 0.5rem;
-    max-width: 48px;
+.sh-skeleton-lines {
+  flex: 1;
+  padding-top: 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
-
-.store-header-cta .material-symbols-sharp {
-    font-size: 20px;
-    flex-shrink: 0;
+.sh-line {
+  height: 12px;
+  background: #e2e8f0;
+  border-radius: 6px;
+  animation: pulse 1.5s infinite;
 }
+.sh-line.long { width: 60%; }
+.sh-line.short { width: 40%; }
 
-.cta-title {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-/* Mobile Responsiveness */
-@media (max-width: 768px) {
-    .store-header-enhanced {
-        top: 56px;
-    }
-    .store-header-inner {
-        padding: 1.25rem 1rem;
-    }
-    
-    .scrolled .store-header-inner{
-        padding: 0.5rem 0.75rem;
-    }
-    
-    .store-name {
-        font-size: 1.25rem;
-    }
-    
-    .scrolled .store-name {
-        font-size: 1rem;
-    }
-    
-    .store-description {
-        font-size: 0.8125rem;
-        -webkit-line-clamp: 2;
-    }
-    
-    .category-pill {
-        font-size: 0.6875rem;
-        padding: 0.25rem 0.5rem;
-    }
-    
-    .payment-section {
-        padding-top: 0.5rem;
-    }
-    
-    .payment-title {
-        font-size: 0.75rem;
-    }
-    
-    .bnpl-badge {
-        font-size: 0.75rem;
-        padding: 0.375rem 0.75rem;
-    }
-    
-    .payment-icon {
-        width: 36px;
-        height: 36px;
-    }
-    
-    .store-header-cta {
-        padding: 0.5rem 0.75rem;
-        font-size: 0.75rem;
-        max-width: 160px;
-    }
-    
-    .store-header-cta .material-symbols-sharp {
-        font-size: 18px;
-    }
-    
-    .read-more-btn {
-        font-size: 0.75rem;
-        padding: 0.2rem 0.4rem;
-    }
-}
-
-@media (max-width: 480px) {
-    
-    .store-header-banner {
-        height: 120px;
-    }
-    
-    .store-header-inner {
-        gap: 0.5rem;
-        flex-direction: column;
-        align-items: flex-start;
-        padding: 1rem 0.75rem;
-    }
-    
-    .scrolled .store-header-inner {
-        flex-direction: row;
-        justify-content: space-between;
-        align-items: center;
-         padding: 0.5rem 0.75rem;
-    }
-    
-    .scrolled .store-info-section {
-        flex-direction: row;
-        align-items: center;
-        gap: 0.5rem;
-    }
-    
-    .store-logo-img,
-    .store-logo-placeholder {
-        width: 100px !important;
-        height: auto !important;
-    }
-    
-    .scrolled .store-logo-img,
-    .scrolled .store-logo-placeholder {
-        width: 90px !important;
-        height: auto !important;
-    }
-    
-    .store-header-inner .store-name {
-        font-size: 0.9rem;
-    }
-    
-    .store-header-cta {
-        padding: 0.3rem 0.5rem;
-        max-width: fit-content;
-        margin-top: 0.5rem;
-    }
-    
-    .scrolled .store-header-cta {
-        padding: 0.5rem;
-        margin-top: 0;
-    }
-    
-    .cta-title {
-        display: flex;
-        font-size: 0.7rem;
-    }
-    
-    .scrolled .scrolled-indicators {
-        display: none;
-    }
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.5; }
+  100% { opacity: 1; }
 }
