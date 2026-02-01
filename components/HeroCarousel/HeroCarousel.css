@@ -109,7 +109,7 @@
   left: 0;
   right: 0;
   z-index: var(--hc-z-content);
-  padding: 1rem;                   /* mobile padding */
+  padding: 0.7rem;                   /* mobile padding */
   display: flex;
   align-items: flex-end;
   height: 55%;                     /* occupy bottom portion */
@@ -244,12 +244,11 @@
 
 /* ── Dots (progress bars) ── */
 .hc-dots {
-   display: none;
   position: absolute;
   bottom: 0.75rem;
   left: 0;
   width: 100%;
-  display: flex;
+  display: none;
   justify-content: center;
   gap: 0.5rem;
   pointer-events: auto;
