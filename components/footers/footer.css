@@ -288,9 +288,6 @@
   padding-left: 1rem;
 }
 
-[dir="rtl"] .footer_link {
-  flex-direction: row-reverse;
-}
 
 [dir="rtl"] .footer_link:hover {
   transform: translateX(-4px);
