@@ -16,12 +16,12 @@ export async function generateMetadata({ params }) {
 }
 
 export default async function PrivacyPage({ params }) {
-  const { locale } = await params;
-  const isArabic = locale.startsWith("ar");
-  const ar = isArabic;
+  const resolvedParams = await params;
+  const locale = resolvedParams.locale;
+  const ar = locale.startsWith("ar");
 
   return (
-    <div className="static-page-wrapper">
+    <div className="static-page-wrapper" dir={ar ? "rtl" : "ltr"}>
       {/* Hero */}
       <div className="static-page-hero">
         <div className="hero-icon">
