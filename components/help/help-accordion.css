@@ -19,12 +19,15 @@
   background: #fff;
   color: #444;
   font-size: 0.82rem;
-  font-family: 'Alexandria', 'Open Sans', sans-serif;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.18s ease;
   font-family: inherit;
   white-space: nowrap;
+}
+
+.help-filter-btn h4 {
+    font-family: 'Alexandria', 'Open Sans', sans-serif;
 }
 
 .help-filter-btn .material-symbols-sharp {
