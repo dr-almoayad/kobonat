@@ -1,0 +1,266 @@
+/* help-accordion.css */
+
+/* ─── Filter Tab Bar ─── */
+.help-filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1.75rem;
+  justify-content: center;
+}
+
+.help-filter-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 1rem;
+  border-radius: 24px;
+  border: 1.5px solid #e5e0f5;
+  background: #fff;
+  color: #444;
+  font-size: 0.82rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  font-family: inherit;
+  white-space: nowrap;
+}
+
+.help-filter-btn .material-symbols-sharp {
+  font-size: 1rem;
+  color: #888;
+  transition: color 0.18s ease;
+}
+
+.help-filter-btn:hover {
+  border-color: #470ae2;
+  color: #470ae2;
+  background: #f5f0ff;
+}
+
+.help-filter-btn:hover .material-symbols-sharp {
+  color: #470ae2;
+}
+
+.help-filter-btn.active {
+  border-color: #470ae2;
+  background: #470ae2;
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(71, 10, 226, 0.25);
+}
+
+.help-filter-btn.active .material-symbols-sharp {
+  color: #fff;
+}
+
+/* ─── Topic Group ─── */
+.help-topic-group {
+  margin-bottom: 1.5rem;
+}
+
+.help-topic-heading {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #470ae2;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 0.6rem 0 0.5rem;
+  border-bottom: 2px solid #f0eaff;
+  margin-bottom: 0.25rem;
+}
+
+.help-topic-heading .material-symbols-sharp {
+  font-size: 1.1rem;
+}
+
+/* ─── Accordion Item ─── */
+.help-accordion-item {
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 12px;
+  margin-bottom: 0.5rem;
+  overflow: hidden;
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.help-accordion-item:hover {
+  border-color: #ddd;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.help-accordion-item.open {
+  border-color: #d4c5f9;
+  box-shadow: 0 3px 12px rgba(71, 10, 226, 0.08);
+}
+
+/* ─── Trigger (clickable row) ─── */
+.help-accordion-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 1rem 1.25rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: inherit; /* respects RTL */
+  gap: 0.75rem;
+  font-family: inherit;
+}
+
+.help-accordion-question {
+  flex: 1;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #1e1b4b;
+  line-height: 1.5;
+  text-align: inherit;
+}
+
+.help-accordion-chevron {
+  font-size: 1.25rem;
+  color: #888;
+  flex-shrink: 0;
+  transition: color 0.18s ease, transform 0.25s ease;
+}
+
+.help-accordion-item.open .help-accordion-chevron {
+  color: #470ae2;
+}
+
+/* ─── Answer Panel ─── */
+.help-accordion-panel {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.help-accordion-item.open .help-accordion-panel {
+  max-height: 600px; /* large enough for any answer; transition still animates smoothly */
+}
+
+.help-accordion-answer {
+  padding: 0 1.25rem 1.1rem;
+  font-size: 0.87rem;
+  color: #555;
+  line-height: 1.75;
+}
+
+/* Links inside answers */
+.help-accordion-answer a {
+  color: #470ae2;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.15s;
+}
+
+.help-accordion-answer a:hover {
+  color: #6c3ce0;
+  text-decoration: underline;
+}
+
+/* ─── "Still need help?" banner at bottom ─── */
+.help-still-stuck {
+  background: linear-gradient(135deg, #f5f0ff 0%, #eee8ff 100%);
+  border: 1px solid #e0d6f5;
+  border-radius: 16px;
+  padding: 1.75rem 1.5rem;
+  text-align: center;
+  margin-top: 0.5rem;
+}
+
+.help-still-stuck .stuck-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(71, 10, 226, 0.12);
+  font-size: 1.6rem;
+  color: #470ae2;
+  margin-bottom: 0.85rem;
+}
+
+.help-still-stuck h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #0f041c;
+  margin: 0 0 0.4rem;
+}
+
+.help-still-stuck p {
+  font-size: 0.85rem;
+  color: #666;
+  margin: 0 0 1rem;
+  max-width: 440px;
+  margin-inline: auto;
+  line-height: 1.6;
+}
+
+.help-still-stuck a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.6rem 1.35rem;
+  background: #470ae2;
+  color: #fff;
+  border-radius: 24px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.18s ease, box-shadow 0.18s ease;
+}
+
+.help-still-stuck a:hover {
+  background: #3a08c4;
+  box-shadow: 0 4px 12px rgba(71, 10, 226, 0.3);
+}
+
+.help-still-stuck a .material-symbols-sharp {
+  font-size: 1rem;
+}
+
+/* ─── Responsive ─── */
+@media (max-width: 640px) {
+  .help-filter-bar {
+    gap: 0.375rem;
+  }
+
+  .help-filter-btn {
+    padding: 0.4rem 0.75rem;
+    font-size: 0.78rem;
+  }
+
+  .help-accordion-trigger {
+    padding: 0.85rem 1rem;
+  }
+
+  .help-accordion-question {
+    font-size: 0.85rem;
+  }
+
+  .help-accordion-answer {
+    padding: 0 1rem 0.9rem;
+    font-size: 0.83rem;
+  }
+
+  .help-still-stuck {
+    padding: 1.25rem 1rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .help-filter-btn {
+    padding: 0.35rem 0.6rem;
+    font-size: 0.74rem;
+  }
+
+  .help-filter-btn .material-symbols-sharp {
+    font-size: 0.9rem;
+  }
+}
