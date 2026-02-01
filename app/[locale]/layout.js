@@ -9,6 +9,7 @@ import SessionProviderWrapper from "@/components/SessionProviderComp";
 import "@emran-alhaddad/saudi-riyal-font/index.css";
 import MobileFooter from "@/components/footers/MobileFooter";
 import CategoryCarouselSubHeader from "@/components/headers/CategoryCarouselSubHeader";
+import Disclaimer from "@/components/Disclaimer/Disclaimer";
 import Script from 'next/script';
 
 // 1. Optimized Font Loading (Removes need for manual <link> in <head>)
@@ -132,7 +133,10 @@ export default async function LocaleLayout({ children, params }) {
           <SessionProviderWrapper>
             <Header />
             <CategoryCarouselSubHeader />
-            <main>{children}</main>
+              <main>
+                {children}
+                <Disclaimer locale={locale} />
+              </main>
             <Footer />
             <MobileFooter />
           </SessionProviderWrapper>
