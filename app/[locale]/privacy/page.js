@@ -1,4 +1,3 @@
-// app/[locale]/privacy/page.js
 import "../../../app/[locale]/static-pages.css";
 
 export async function generateMetadata({ params }) {
@@ -16,8 +15,7 @@ export async function generateMetadata({ params }) {
 }
 
 export default async function PrivacyPage({ params }) {
-  const resolvedParams = await params;
-  const locale = resolvedParams.locale;
+  const { locale } = await params;
   const ar = locale.startsWith("ar");
 
   return (
