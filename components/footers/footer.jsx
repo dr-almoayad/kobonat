@@ -64,9 +64,6 @@ const Footer = () => {
                 alt={t('logoAlt', { defaultValue: 'Coubonat Logo' })}
               />
             </Link>
-            <p className='footer_tagline'>
-              {t('tagline', { defaultValue: 'Your ultimate destination for the best deals and coupons' })}
-            </p>
             
             <div className='footer_social_links'>
               <a 
@@ -230,11 +227,6 @@ const Footer = () => {
         <div className='footer_bottom_container'>
           <div className='footer_copyright'>
             <p>{t('copyright', { defaultValue: '© 2025 Coubonat. All rights reserved.' })}</p>
-            <p className='footer_disclaimer'>
-              {t('footerDisclaimer', { 
-                defaultValue: 'Cobonat is an affiliate platform. We may earn commissions from purchases made through our links. All trademarks belong to their respective owners.' 
-              })}
-            </p>
           </div>
         </div>
       </div>
