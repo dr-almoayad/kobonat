@@ -1,0 +1,346 @@
+/* static-pages.css — shared styles for Privacy, Terms, Cookies, About, Contact */
+
+.static-page-wrapper {
+  min-height: 100vh;
+  background: #f8f9fc;
+}
+
+/* ─── Hero Banner ─── */
+.static-page-hero {
+  position: relative;
+  background: linear-gradient(135deg, #470ae2 0%, #6c3ce0 50%, #8b5cf6 100%);
+  padding: 3.5rem 1.5rem 3rem;
+  text-align: center;
+  overflow: hidden;
+}
+
+.static-page-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 20% 50%, rgba(255,255,255,0.07) 0%, transparent 70%),
+    radial-gradient(ellipse 60% 80% at 80% 40%, rgba(255,255,255,0.05) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.static-page-hero .hero-icon {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  background: rgba(255,255,255,0.12);
+  backdrop-filter: blur(8px);
+  border-radius: 18px;
+  margin-bottom: 1.25rem;
+  font-size: 2rem;
+  color: #fff;
+}
+
+.static-page-hero h1 {
+  position: relative;
+  z-index: 1;
+  color: #fff;
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem;
+  letter-spacing: -0.02em;
+}
+
+.static-page-hero p {
+  position: relative;
+  z-index: 1;
+  color: rgba(255,255,255,0.75);
+  font-size: 0.95rem;
+  margin: 0;
+  max-width: 540px;
+  margin-inline: auto;
+  line-height: 1.5;
+}
+
+/* ─── Content Container ─── */
+.static-page-content {
+  max-width: 780px;
+  margin: 0 auto;
+  padding: 2.5rem 1.5rem 4rem;
+}
+
+/* ─── Section Block ─── */
+.static-section {
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid #eee;
+  padding: 2rem 2.25rem;
+  margin-bottom: 1.25rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  transition: box-shadow 0.2s ease;
+}
+
+.static-section:hover {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+}
+
+.static-section h2 {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: #0f041c;
+  margin: 0 0 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid #f0eaff;
+}
+
+.static-section h2 .material-symbols-sharp {
+  color: #470ae2;
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.static-section h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1e1b4b;
+  margin: 1.25rem 0 0.5rem;
+}
+
+.static-section h3:first-of-type {
+  margin-top: 0;
+}
+
+.static-section p {
+  font-size: 0.9rem;
+  color: #444;
+  line-height: 1.75;
+  margin: 0 0 0.75rem;
+}
+
+.static-section p:last-child {
+  margin-bottom: 0;
+}
+
+/* ─── Inline lists (no bullets) ─── */
+.static-section ul {
+  list-style: none;
+  padding: 0;
+  margin: 0.5rem 0 0.75rem;
+}
+
+.static-section ul li {
+  position: relative;
+  padding-inline-start: 1.5rem;
+  font-size: 0.9rem;
+  color: #444;
+  line-height: 1.75;
+  margin-bottom: 0.25rem;
+}
+
+.static-section ul li::before {
+  content: '';
+  position: absolute;
+  inset-inline-start: 0.25rem;
+  top: 0.72rem;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #470ae2;
+  flex-shrink: 0;
+}
+
+/* ─── Last-updated badge ─── */
+.last-updated {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: #f0eaff;
+  color: #470ae2;
+  font-size: 0.78rem;
+  font-weight: 500;
+  padding: 0.3rem 0.7rem;
+  border-radius: 20px;
+  margin-bottom: 1.5rem;
+}
+
+.last-updated .material-symbols-sharp {
+  font-size: 0.9rem;
+}
+
+/* ─── Contact Card Grid ─── */
+.contact-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.contact-card {
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 14px;
+  padding: 1.5rem 1.25rem;
+  text-align: center;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.contact-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(71, 10, 226, 0.12);
+}
+
+.contact-card .card-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  background: #f0eaff;
+  border-radius: 14px;
+  font-size: 1.4rem;
+  color: #470ae2;
+  margin-bottom: 0.75rem;
+}
+
+.contact-card h3 {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #0f041c;
+  margin: 0 0 0.3rem;
+}
+
+.contact-card a,
+.contact-card p {
+  font-size: 0.82rem;
+  color: #555;
+  margin: 0;
+  word-break: break-all;
+}
+
+.contact-card a {
+  color: #470ae2;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.15s;
+}
+
+.contact-card a:hover {
+  color: #6c3ce0;
+  text-decoration: underline;
+}
+
+/* ─── Social Links Row ─── */
+.social-links-row {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.social-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 1rem;
+  border-radius: 24px;
+  border: 1.5px solid #e5e0f5;
+  background: #fff;
+  color: #333;
+  font-size: 0.82rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.social-link:hover {
+  border-color: #470ae2;
+  background: #f5f0ff;
+  color: #470ae2;
+}
+
+.social-link .social-icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+/* individual brand colours on hover */
+.social-link[data-brand="facebook"]:hover  { border-color: #1877f2; color: #1877f2; background: #eef4fd; }
+.social-link[data-brand="telegram"]:hover  { border-color: #0088cc; color: #0088cc; background: #eef7fd; }
+.social-link[data-brand="whatsapp"]:hover  { border-color: #25d366; color: #25d366; background: #eefcf2; }
+.social-link[data-brand="tiktok"]:hover    { border-color: #010101; color: #010101; background: #f2f2f2; }
+
+/* ─── Contact form area (FAQ-style Q&A) ─── */
+.faq-item {
+  border-bottom: 1px solid #f0f0f0;
+  padding: 1rem 0;
+}
+
+.faq-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.faq-item:first-child {
+  padding-top: 0;
+}
+
+.faq-item h4 {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #1e1b4b;
+  margin: 0 0 0.35rem;
+}
+
+.faq-item p {
+  font-size: 0.85rem;
+  color: #555;
+  margin: 0;
+  line-height: 1.65;
+}
+
+/* ─── RTL overrides ─── */
+[dir="rtl"] .static-section ul li::before {
+  inset-inline-start: 0.25rem;
+}
+
+/* ─── Responsive ─── */
+@media (max-width: 640px) {
+  .static-page-hero {
+    padding: 2.5rem 1rem 2rem;
+  }
+
+  .static-page-hero h1 {
+    font-size: 1.55rem;
+  }
+
+  .static-page-content {
+    padding: 1.5rem 0.85rem 3rem;
+  }
+
+  .static-section {
+    padding: 1.5rem 1.25rem;
+  }
+
+  .static-section h2 {
+    font-size: 1.05rem;
+  }
+
+  .contact-cards {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 360px) {
+  .static-page-hero h1 {
+    font-size: 1.3rem;
+  }
+
+  .static-section {
+    padding: 1.25rem 1rem;
+  }
+}
