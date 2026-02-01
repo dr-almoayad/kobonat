@@ -10,11 +10,13 @@ const Disclaimer = ({ locale = 'en' }) => {
       title: "Important Disclaimer",
       affiliate: "Disclosure: This site contains affiliate links. We may earn a commission on qualifying purchases.",
       accuracy: "Disclaimer: All offers are subject to the merchant's terms and conditions and availability.",
+      brandsDisclaimer: "All company, product, and service names used on this website are for identification purposes only. All trademarks and registered trademarks are the property of their respective owners. Use of these names, logos, and brands does not imply endorsement or official affiliation."
     },
     ar: {
       title: "تنويه هام",
       affiliate: "إفصاح: يحتوي هذا الموقع على روابط ترويجية. قد نحصل على عمولة عند إتمام عمليات الشراء المؤهلة.",
       accuracy: "إخلاء مسؤولية: جميع العروض تخضع للشروط والأحكام الخاصة بالمتجر وتوافر المنتجات.",
+      brandsDisclaimer: "جميع أسماء الشركات والعلامات التجارية والشعارات هي ملك لأصحابها المعنيين، وتُستخدم في هذا الموقع لأغراض تحديد الهوية فقط. ولا يعني استخدامها وجود أي شراكة أو ارتباط رسمي أو مصادقة من قِبل هؤلاء الملاك."
     }
   };
 
@@ -36,6 +38,10 @@ const Disclaimer = ({ locale = 'en' }) => {
           <p className="disclaimer-p">
             <strong>{text.accuracy.split(':')[0]}:</strong> 
             {text.accuracy.split(':')[1]}
+          </p>
+          <p className="disclaimer-p">
+            <strong>{text.accuracy.split(':')[0]}:</strong> 
+            {text.brandsDisclaimer}
           </p>
         </div>
       </div>
