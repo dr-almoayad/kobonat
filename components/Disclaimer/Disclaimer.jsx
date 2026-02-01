@@ -40,8 +40,7 @@ const Disclaimer = ({ locale = 'en' }) => {
             {text.accuracy.split(':')[1]}
           </p>
           <p className="disclaimer-p">
-            <strong>{text.accuracy.split(':')[0]}:</strong> 
-            {text.brandsDisclaimer}
+            <strong>{text.brandsDisclaimer}</strong> 
           </p>
         </div>
       </div>
