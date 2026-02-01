@@ -47,7 +47,7 @@ export default function HelpAccordion({ topics }) {
             aria-selected={activeFilter === topic.id}
           >
             <span className="material-symbols-sharp">{topic.icon}</span>
-            {topic.label}
+            <h4>{topic.label}</h4>
           </button>
         ))}
       </div>
