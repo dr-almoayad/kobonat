@@ -18,7 +18,7 @@
 /* Main Footer Section */
 .main_footer {
   width: 100%;
-  background: var(--bg-secondary);
+  background: linear-gradient(180deg, #fafafa, #ffffff 50%, #fafafa);
   border-top: 1px solid var(--border-color);
   padding-top: 4rem;
   padding-bottom: 2rem;
