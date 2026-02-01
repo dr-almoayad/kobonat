@@ -193,6 +193,7 @@
 
 .footer_copyright {
   text-align: center;
+  font-family: 'Alexandria', 'Open Sans', sans-serif;
   color: #64748b;
   font-size: 0.85rem;
 }
@@ -235,8 +236,8 @@
 
   .footer_container {
     padding: 0 var(--header-padding-x-mobile);
-    grid-template-columns: 1fr; /* Stacked */
-    gap: 2rem;
+    grid-template-columns: 1fr 1fr; /* Stacked */
+    gap: 1rem;
   }
   
   .footer_bottom_container {
@@ -244,7 +245,7 @@
   }
 
   .footer_section.company_section {
-    grid-column: span 1;
+    grid-column: span 2;
     flex-direction: column;
     text-align: center;
     align-items: center;
@@ -261,20 +262,6 @@
 
   .footer_social_links {
     justify-content: center;
-  }
-
-  /* Accordion-style layout for mobile could go here, 
-     but sticking to simple stack for now */
-  .footer_section {
-    text-align: center;
-  }
-
-  .footer_section_title {
-    justify-content: center;
-  }
-  
-  .footer_links {
-    align-items: center;
   }
   
   [dir="rtl"] .footer_section.company_section {
