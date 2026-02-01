@@ -36,7 +36,7 @@ export default function HelpAccordion({ topics }) {
           aria-selected={activeFilter === 'all'}
         >
           <span className="material-symbols-sharp">grid_view</span>
-          {topics.length > 0 ? topics[0].allLabel || 'All' : 'All'}
+          <h4>{topics.length > 0 ? topics[0].allLabel || 'All' : 'All'}</h4>
         </button>
         {topics.map(topic => (
           <button
