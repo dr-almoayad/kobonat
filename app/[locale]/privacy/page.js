@@ -1,5 +1,5 @@
 // app/[locale]/privacy/page.js
-import "../static-pages.css"; // Changed from "../../../app/[locale]/static-pages.css"
+import "../static-pages.css";
 
 export async function generateMetadata({ params }) {
   const { locale } = await params;
@@ -51,7 +51,7 @@ export default async function PrivacyPage({ params }) {
           <p>
             {ar
               ? "شركة كوبونات (\"نحن\", \"الشركة\") تحترم خصوصيتك وتلتزم بحمايتها. تحكم هذه السياسة كيفية جمعنا واستخدامنا وحفظنا للمعلومات الشخصية التي تزودنا بها عند استخدامك لموقعنا وتطبيقاتنا."
-              : "Cobonat ("we", "the company") respects your privacy and is committed to protecting it. This policy governs how we collect, use, and store personal information you provide when using our website and applications."}
+              : "Cobonat (\"we\", \"the company\") respects your privacy and is committed to protecting it. This policy governs how we collect, use, and store personal information you provide when using our website and applications."}
           </p>
         </div>
 
