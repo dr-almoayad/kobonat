@@ -165,7 +165,7 @@ const CouponsPage = async ({ params }) => {
           }
         />
       </div>
-      <HelpBox/>
+      <HelpBox locale={locale}/>
     </main>
   );
 };
