@@ -223,6 +223,7 @@ export default async function UnifiedStorePage({ params }) {
               />
             </section>
           </main>
+          <HelpBox locale={locale}/>
         </div>
       );
     }
