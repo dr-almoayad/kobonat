@@ -2,6 +2,7 @@
   width: 100%;
   margin-top: 0; /* Pushes to bottom if in a flex container */
   padding-top: 0;
+  padding-bottom: 0;
   font-family: 'Alexandria', 'Open Sans', sans-serif;
 }
 
