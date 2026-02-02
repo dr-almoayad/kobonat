@@ -378,7 +378,7 @@ header {
 
 @media (max-width: 768px) {
   :root {
-    --header-height: 60px;
+    --header-height: 64px;
   }
 
   .main_header {
@@ -450,7 +450,7 @@ header {
 
 @media (max-width: 480px) {
   :root {
-    --header-height: 56px;
+    --header-height: 60px;
   }
 
   .main_header {
