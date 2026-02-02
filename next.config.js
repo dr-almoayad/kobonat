@@ -1,4 +1,4 @@
-// next.config.js - FIXED: Let middleware handle locale routing
+// next.config.js - FIXED: Removed problematic redirects
 import createNextIntlPlugin from 'next-intl/plugin';
 
 const withNextIntl = createNextIntlPlugin();
@@ -54,17 +54,8 @@ const nextConfig = {
     ];
   },
   
-  // ✅ CRITICAL FIX: Removed root redirect - middleware handles locale routing
-  async redirects() {
-    return [
-      // Only redirect old URL patterns
-      {
-        source: '/store/:slug',
-        destination: '/ar-SA/stores/:slug',
-        permanent: true,
-      },
-    ];
-  },
+  // ✅ REMOVED: All redirects that could cause indexing issues
+  // Let middleware handle all locale routing
   
   async rewrites() {
     return [
@@ -81,6 +72,12 @@ const nextConfig = {
   },
   
   productionBrowserSourceMaps: false,
+  
+  // ✅ CRITICAL: Ensure trailing slash behavior is consistent
+  trailingSlash: false,
+  
+  // ✅ Skip trailing slash redirect to avoid redirect chains
+  skipTrailingSlashRedirect: true,
 };
 
 export default withNextIntl(nextConfig);
