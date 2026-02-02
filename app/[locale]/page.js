@@ -320,7 +320,7 @@ export default async function Home({ params }) {
           </Link>
         </section>
       </main>
-      <HelpBox/>
+      <HelpBox locale={locale}/>
     </>
   );
 }
