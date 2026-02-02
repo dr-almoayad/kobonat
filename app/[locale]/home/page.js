@@ -1,13 +1,16 @@
-// app/[locale]/page.js - FIXED SEO METADATA
+// app/[locale]/page.js - UPDATED with BrandsCarousel
 import { prisma } from "@/lib/prisma";
 import { getTranslations } from 'next-intl/server';
 import Link from "next/link";
 import "./page.css";
-
+import { notFound } from "next/navigation";
+import { allLocaleCodes } from "@/i18n/locales";
 import VoucherCard from "@/components/VoucherCard/VoucherCard";
 import StoreCard from "@/components/StoreCard/StoreCard";
 import HeroCarousel from "@/components/HeroCarousel/HeroCarousel";
+import BrandsCarousel from "@/components/BrandsCarousel/BrandsCarousel";
 import AffiliatesHero from "@/components/affiliates/affiliatesHero";
+import HelpBox from "@/components/help/HelpBox";
 
 import { 
   generateOrganizationSchema,
@@ -28,12 +31,11 @@ export async function generateMetadata({ params }) {
   
   return {
     title: isArabic 
-      ? `كوبونات وعروض ${countryCode} - وفر المال`
-      : `${countryCode} Coupons & Deals - Save Money`,
+      ? "Cobonat | كوبونات - أكواد خصم السعودية (محدث باستمرار) - وفر أكثر على مشترياتك ومقاضيك!"
+      : "Cobonat | Active & Verified KSA Promo Codes 2026 - Verified Daily for Smart Savings!",
     description: isArabic
-      ? `أفضل الكوبونات والعروض في ${countryCode}. وفر المال مع أكواد خصم حصرية ومحدثة يومياً.`
-      : `Best coupons and deals in ${countryCode}. Save money with exclusive promo codes updated daily.`,
-    
+      ? "منصتك الأولى لأكواد الخصم والعروض في السعودية 🇸🇦. وفر فلوسك مع كوبونات فعالة وموثقة لأشهر المتاجر العالمية والمحلية. مقاضيك، لبسك، وسفرياتك صارت أوفر!"
+      : "Your #1 source for verified discount codes in Saudi 🇸🇦. Save more on fashion, electronics, and groceries with verified and active coupons for top local and global stores.",
     // ✅ CRITICAL: Include locale in canonical
     alternates: {
       canonical: `${BASE_URL}/${locale}`,
@@ -42,14 +44,7 @@ export async function generateMetadata({ params }) {
         'en-SA': `${BASE_URL}/en-SA`,
         'ar-AE': `${BASE_URL}/ar-AE`,
         'en-AE': `${BASE_URL}/en-AE`,
-        'ar-EG': `${BASE_URL}/ar-EG`,
-        'en-EG': `${BASE_URL}/en-EG`,
-        'ar-QA': `${BASE_URL}/ar-QA`,
-        'en-QA': `${BASE_URL}/en-QA`,
-        'ar-KW': `${BASE_URL}/ar-KW`,
-        'en-KW': `${BASE_URL}/en-KW`,
-        'ar-OM': `${BASE_URL}/ar-OM`,
-        'en-OM': `${BASE_URL}/en-OM`,
+        
         'x-default': `${BASE_URL}/ar-SA`,
       }
     },
@@ -69,24 +64,31 @@ export async function generateMetadata({ params }) {
 
 export default async function Home({ params }) {
   const { locale } = await params;
-  const t = await getTranslations('HomePage');
 
+  // FAIL-SAFE: If the locale is not in your allowed list, trigger 404 immediately.
+  // This prevents Prisma from receiving "favicon.ico" as a locale.
+  if (!allLocaleCodes.includes(locale)) {
+    notFound();
+  }
+
+  const t = await getTranslations('HomePage');
   const [language, countryCode] = locale.split('-');
 
-  const [featuredStoresWithCovers, topVouchers, featuredStores] = await Promise.all([
+  // Fetch data with proper joins for translations
+  const [featuredStoresWithCovers, topVouchers, featuredStores, allActiveBrands] = await Promise.all([
+    // Featured stores WITH cover images
     prisma.store.findMany({
       where: { 
         isActive: true,
         isFeatured: true,
         coverImage: { not: null },
+        // Ensure store is available in this country
+        countries: { some: { country: { code: countryCode || 'SA' } } }
       },
       include: {
         translations: {
           where: { locale: language },
-          select: {
-            name: true,
-            slug: true,
-          }
+          select: { name: true, slug: true }
         },
       },
       orderBy: { isFeatured: 'desc' },
@@ -149,6 +151,48 @@ export default async function Home({ params }) {
         }
       },
       take: 16
+    }),
+
+    // NEW: Fetch brands for the carousel
+    prisma.store.findMany({
+      where: { 
+        isActive: true,
+        countries: {
+          some: {
+            country: { code: countryCode || 'SA' }
+          }
+        }
+      },
+      include: {
+        translations: {
+          where: { locale: language },
+          select: {
+            name: true,
+            slug: true,
+          }
+        },
+        _count: {
+          select: {
+            vouchers: {
+              where: {
+                expiryDate: { gte: new Date() },
+                countries: {
+                  some: {
+                    country: {
+                      code: countryCode || 'SA'
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      orderBy: [
+        { isFeatured: 'desc' },
+        { id: 'asc' }
+      ],
+      take: 20
     })
   ]);
 
@@ -184,6 +228,15 @@ export default async function Home({ params }) {
   const transformedFeaturedStores = featuredStores.map(transformStoreWithTranslation);
   const transformedTopVouchers = topVouchers.map(transformVoucherWithTranslation);
 
+  // Transform brands for carousel
+  const transformedBrands = allActiveBrands.map(brand => ({
+    id: brand.id,
+    name: brand.translations?.[0]?.name || '',
+    slug: brand.translations?.[0]?.slug || '',
+    logo: brand.logo,
+    activeVouchersCount: brand._count?.vouchers || 0
+  }));
+
   const schemas = [
     generateOrganizationSchema(locale),
     generateWebsiteSchema(locale),
@@ -207,11 +260,15 @@ export default async function Home({ params }) {
               locale={locale}
               height="400px"
               autoplayDelay={4000}
+              showOverlay={true}
             />
           </div>
         )}
 
-        <AffiliatesHero/>
+        {/* REPLACED: AffiliatesHero with BrandsCarousel */}
+        {transformedBrands.length > 0 && (
+          <BrandsCarousel brands={transformedBrands} />
+        )}
         
         <section className="home-section">
           <div className="section-header">
@@ -263,6 +320,7 @@ export default async function Home({ params }) {
           </Link>
         </section>
       </main>
+      <HelpBox locale={locale}/>
     </>
   );
 }
