@@ -3,6 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { getTranslations } from 'next-intl/server';
 import VouchersGrid from "@/components/VouchersGrid/VouchersGrid";
 import Breadcrumbs from "@/components/breadcrumbs/Breadcrumbs";
+import HelpBox from "@/components/help/HelpBox";
+
 import "./coupons-page.css";
 
 export const revalidate = 60; 
@@ -163,6 +165,7 @@ const CouponsPage = async ({ params }) => {
           }
         />
       </div>
+      <HelpBox/>
     </main>
   );
 };
