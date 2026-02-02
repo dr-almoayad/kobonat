@@ -183,7 +183,7 @@ const BrandsCarousel = ({ brands = [], title, subtitle, showControls = false }) 
                   }`}
                 >
                   <Link
-                    href={`/${locale}/brands/${brand.slug}`}
+                    href={`/${locale}/stores/${brand.slug}`}
                     className="brand-logo-link"
                     aria-label={`View ${brand.name} products`}
                   >
