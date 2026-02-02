@@ -15,6 +15,7 @@ import OtherPromosSection from "@/components/OtherPromosSection/OtherPromosSecti
 import { FAQSchema } from "@/lib/seo/faqSchema";
 import { getCategoryData, getCountryCategories } from "@/lib/storeCategories";
 import { getStoresData, getStoreData } from "@/lib/stores";
+import HelpBox from "@/components/help/HelpBox";
 import "./store-page.css";
 import "./stores-page.css";
 
@@ -479,6 +480,7 @@ export default async function UnifiedStorePage({ params }) {
                   )}
             </main>
           </div>
+          <HelpBox/>
         </>
       );
     }
