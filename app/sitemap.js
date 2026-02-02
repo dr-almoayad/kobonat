@@ -35,7 +35,7 @@ export default async function sitemap() {
     urls.push({
       url: `${BASE_URL}/${locale}/stores`,
       lastModified: new Date(),
-      changeFrequency: 'weekly',
+      changeFrequency: 'daily',
       priority: 0.9,
       alternates: {
         languages: Object.fromEntries(
@@ -71,7 +71,7 @@ export default async function sitemap() {
         urls.push({
           url: `${BASE_URL}/${locale}/stores/${translation.slug}`,
           lastModified: category.updatedAt || new Date(),
-          changeFrequency: 'weekly',
+          changeFrequency: 'daily',
           priority: 0.8,
           alternates: {
             languages: alternates,
