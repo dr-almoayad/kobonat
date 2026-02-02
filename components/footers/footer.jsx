@@ -180,6 +180,12 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
+                <Link href={`/${locale}/help`} className='footer_link'>
+                  <span className="material-symbols-sharp">help</span>
+                  {t('help', { defaultValue: 'Help Center' })}
+                </Link>
+              </li>
+              <li>
                 <Link href={`/${locale}/about`} className='footer_link'>
                   <span className="material-symbols-sharp">info</span>
                   {t('aboutUs', { defaultValue: 'About Us' })}
