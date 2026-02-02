@@ -3,19 +3,20 @@ import './HelpBox.css';
 import Link from 'next/link';
 
 const HelpBox = ({ locale = 'en' }) => {
-  const isArabic = locale?.startsWith('ar');
+  // Check if locale is a full string like 'ar-EG' or just 'ar'
+  const isArabic = typeof locale === 'string' && locale.startsWith('ar');
   const dir = isArabic ? 'rtl' : 'ltr';
 
   const content = {
     en: {
       title: "Need Help?",
-      description: "Can't find what you're looking for? Our help center has answers to common questions about coupons, deals, and more.",
+      description: "Can't find what you're looking for? Our help center has answers to common questions about coupons, deals, accounts, and more.",
       button: "Visit Help Center",
       link: "/help"
     },
     ar: {
       title: "هل تحتاج إلى مساعدة؟",
-      description: "لم تجد ما تبحث عنه؟ يحتوي مركز المساعدة لدينا على إجابات للأسئلة الشائعة حول الكوبونات والعروض والمزيد.",
+      description: "لم تجد ما تبحث عنه؟ يحتوي مركز المساعدة لدينا على إجابات للأسئلة الشائعة حول الكوبونات والعروض والحسابات والمزيد.",
       button: "زيارة مركز المساعدة",
       link: "/help"
     }
@@ -27,7 +28,7 @@ const HelpBox = ({ locale = 'en' }) => {
     <div className="site-help-box" dir={dir}>
       <div className="help-box-container">
         <div className="help-box-icon">
-          <span className="material-symbols-sharp">help_circle</span>
+          <span className="material-symbols-sharp">help</span>
         </div>
         
         <div className="help-box-content">
