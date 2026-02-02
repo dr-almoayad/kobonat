@@ -7,6 +7,8 @@ import { getCountryCategories } from "@/lib/storeCategories";
 import { getStoresData } from "@/lib/stores";
 import { isValidLocale } from "@/i18n/locales"; // Import your validator
 import { notFound } from "next/navigation";
+import HelpBox from "@/components/help/HelpBox";
+
 import "./stores-page.css";
 
 export const revalidate = 60;
@@ -190,6 +192,7 @@ export default async function AllStoresPage({ params }) {
           locale={locale} 
         />
       </section>
+      <HelpBox/>
     </div>
   );
 }
