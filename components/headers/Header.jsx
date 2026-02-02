@@ -141,7 +141,7 @@ const Header = () => {
 
   // Navigation links
   const navLinks = useMemo(() => [
-    { href: '/coupons', label: t('offers') || 'Offers', key: 'offers' },
+    { href: '/coupons', label: t('deals') || 'Deals', key: 'deals' },
     { href: '/stores', label: t('stores') || 'Stores', key: 'stores' },
     { href: '/help', label: t('help') || 'Help', key: 'help' },
     { href: '/about', label: t('about') || 'About', key: 'about' },
