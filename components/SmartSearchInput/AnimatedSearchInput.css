@@ -622,7 +622,7 @@
 
   .search-input-container {
     padding: 5px 8px !important;
-    height: 34px;
+    height: 40px;
     gap: 6px;
   }
 
@@ -646,7 +646,7 @@
 @media (max-width: 480px) {
   .search-input-container {
     padding: 4px 6px !important;
-    height: 32px;
+    height: 38px;
     gap: 4px;
   }
 
