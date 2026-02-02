@@ -16,16 +16,16 @@ export const routing = defineRouting({
   pathnames: {
     '/': '/',
     '/home': '/home',
-    '/categories': '/categories',
+    '/coupons': '/coupons',
+    '/stores': '/stores',
     '/search': '/search',
     '/about': '/about',
-    '/auth/signin': '/auth/signin',
     '/contact': '/contact',
     '/privacy': '/privacy',
+    '/cookies': '/cookies',
     '/terms': '/terms',
     '/help': '/help',
     // Add dynamic routes
-    '/categories/[slug]': '/categories/[slug]',
     '/stores/[slug]': '/stores/[slug]',
   }
 });
