@@ -1,0 +1,145 @@
+.site-help-box {
+  width: 100%;
+  margin: 2rem auto 0 auto;
+  font-family: 'Alexandria', 'Open Sans', sans-serif;
+}
+
+.help-box-container {
+  max-width: 1280px;
+  background-color: #f0f9ff;
+  border: 1px solid #bae6fd;
+  border-radius: 16px;
+  padding: 1.75rem 1.5rem;
+  margin: 0 auto;
+  display: flex;
+  gap: 1.25rem;
+  align-items: center;
+  color: #0c4a6e;
+  transition: all 0.3s ease;
+}
+
+.help-box-container:hover {
+  background-color: #e0f2fe;
+  border-color: #7dd3fc;
+}
+
+/* Icon Styling */
+.help-box-icon {
+  flex-shrink: 0;
+}
+
+.help-box-icon .material-symbols-sharp {
+  font-size: 2.5rem;
+  color: #0284c7;
+}
+
+/* Content Styling */
+.help-box-content {
+  flex: 1;
+}
+
+.help-box-title {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #0369a1;
+}
+
+.help-box-description {
+  margin: 0 0 1rem 0;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: #0c4a6e;
+  opacity: 0.9;
+}
+
+/* Button Styling */
+.help-box-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.25rem;
+  background-color: #0284c7;
+  color: white;
+  text-decoration: none;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  border: 1px solid #0284c7;
+}
+
+.help-box-button:hover {
+  background-color: #0369a1;
+  border-color: #0369a1;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.2);
+}
+
+.help-box-button:active {
+  transform: translateY(0);
+}
+
+.help-box-button .material-symbols-sharp {
+  font-size: 1.1rem;
+}
+
+/* RTL Adjustments */
+[dir="rtl"] .help-box-container {
+  text-align: right;
+}
+
+[dir="rtl"] .help-box-button {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .help-box-button .material-symbols-sharp {
+  transform: rotate(180deg);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .site-help-box {
+    margin: 1.5rem auto 0 auto;
+  }
+  
+  .help-box-container {
+    padding: 1.25rem 1rem;
+    flex-direction: column;
+    text-align: center;
+    gap: 1rem;
+  }
+  
+  .help-box-icon .material-symbols-sharp {
+    font-size: 2rem;
+  }
+  
+  .help-box-title {
+    font-size: 1.1rem;
+  }
+  
+  .help-box-description {
+    font-size: 0.875rem;
+    margin-bottom: 1.25rem;
+  }
+  
+  .help-box-button {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  [dir="rtl"] .help-box-container {
+    text-align: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .help-box-container {
+    padding: 1rem;
+    border-radius: 12px;
+  }
+  
+  .help-box-button {
+    padding: 0.75rem 1rem;
+  }
+}
