@@ -10,6 +10,7 @@ import StoreCard from "@/components/StoreCard/StoreCard";
 import HeroCarousel from "@/components/HeroCarousel/HeroCarousel";
 import BrandsCarousel from "@/components/BrandsCarousel/BrandsCarousel";
 import AffiliatesHero from "@/components/affiliates/affiliatesHero";
+import HelpBox from "@/components/help/HelpBox";
 
 import { 
   generateOrganizationSchema,
@@ -319,6 +320,7 @@ export default async function Home({ params }) {
           </Link>
         </section>
       </main>
+      <HelpBox/>
     </>
   );
 }
