@@ -1,4 +1,5 @@
 /* components/Header/header.css */
+
 :root {
   --header-height: 68px;
   --header-btn-height: 36px;
@@ -43,7 +44,7 @@ header {
   align-items: center;
   max-width: 1280px;
   justify-content: space-between;
-  gap: 0.5rem;
+  gap: 1rem;
 }
 
 /* Logo & Mobile Toggle */
@@ -64,42 +65,62 @@ header {
 }
 
 .logo {
-  width: 160px;
-  height: auto;
+  width: auto;
+  height: 30px;
   cursor: pointer;
   transition: transform 0.2s ease;
+  object-fit: contain;
 }
 
 .logo:hover {
   transform: scale(1.02);
 }
 
-.hamburger {
-  display: none;
-  color: var(--text-primary);
-  z-index: 999;
+/* Navigation Links - Desktop Only */
+.header_links.desktop-only {
+  display: flex;
   align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  padding: 0.5rem;
-  border-radius: 50%;
-  border: none;
-  outline: none;
-  background: transparent;
-  cursor: pointer;
+  gap: 1.5rem;
+  margin: 0 1rem;
+  flex-shrink: 0;
+}
+
+.nav-link {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+  text-decoration: none;
   transition: all 0.2s ease;
+  font-family: 'Alexandria', 'Open Sans', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  padding: 0.25rem 0;
+  position: relative;
+  white-space: nowrap;
 }
 
-.hamburger:hover {
-  background: #f8f9fa;
+.nav-link:hover {
+  color: var(--accent-color);
 }
 
-.hamburger.active {
-  transform: scale(0.95);
-  background: #f8f9fa;
-  border: 1px solid #dc2626;
-  color: #dc2626;
+.nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background-color: var(--accent-color);
+  transition: width 0.3s ease;
+}
+
+.nav-link:hover::after {
+  width: 100%;
+}
+
+/* RTL support for nav links */
+[dir="rtl"] .nav-link::after {
+  left: auto;
+  right: 0;
 }
 
 /* Search Bar */
@@ -299,14 +320,12 @@ header {
 }
 
 /* RTL Support */
-
 [dir="rtl"] .locale-item,
 [dir="rtl"] .region-item,
 [dir="rtl"] .lang-item,
 [dir="rtl"] .dropdown-section-header {
   text-align: right;
 }
-
 
 /* Responsive Design */
 @media (max-width: 1024px) {
@@ -320,7 +339,11 @@ header {
   }
 
   .logo {
-    width: 140px;
+    height: 28px;
+  }
+
+  .header_links.desktop-only {
+    display: none; /* Hide navigation links on tablet and mobile */
   }
 
   .searchbar_container {
@@ -383,7 +406,7 @@ header {
   }
 
   .logo {
-    width: 120px;
+    height: 24px;
   }
 
   .locale-toggle {
@@ -436,7 +459,7 @@ header {
   }
 
   .logo {
-    width: 100px;
+    height: 22px;
   }
 
   .searchbar_container {
@@ -475,7 +498,7 @@ header {
   }
 
   .logo {
-    width: 90px;
+    height: 20px;
   }
 
   .searchbar_container {
@@ -491,177 +514,4 @@ header {
     font-size: 9px;
     max-width: 20px;
   }
-}
-
-
-
-
-
-/* components/Header/header.css */
-:root {
-  --header-height: 68px;
-  --header-padding-x-desktop: 1.5rem;
-  --header-padding-x-tablet: 1rem;
-  --header-padding-x-mobile: 0.75rem;
-  --content-max-width: 1280px;
-}
-
-header {
-  position: sticky;
-  top: 0;
-  z-index: 999;
-}
-
-.main_header {
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: var(--header-height);
-  background: var(--bg-primary);
-  backdrop-filter: blur(5px);
-  border-bottom: none;
-  transition: background 0.2s ease-out;
-  /* Removed padding here to let container handle it */
-  padding: 0; 
-}
-
-.main_header:hover {
-  background: #fff;
-}
-
-.header_container {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-  
-  /* Standardized Alignment */
-  max-width: var(--content-max-width);
-  margin: 0 auto;
-  padding: 0 var(--header-padding-x-desktop);
-}
-
-/* Logo & Mobile Toggle */
-.logo_container {
-  display: flex;
-  align-items: center;
-  flex-shrink: 0;
-}
-
-.logo_container a {
-  display: flex;
-  align-items: center;
-  line-height: 1;
-}
-
-.logo {
-  width: 140px;
-  height: auto;
-  transition: transform 0.2s ease;
-}
-
-.logo:hover {
-  transform: scale(1.02);
-}
-
-/* Search Bar */
-.searchbar_container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex: 1;
-  max-width: 600px; /* Reduced slightly to give space */
-  margin: 0 1rem;
-  min-width: 0;
-}
-
-/* Right Side Buttons */
-.bubs_container {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  gap: 0.75rem;
-  flex-shrink: 0;
-}
-
-/* --- Keeping existing Locale/Dropdown styles mostly as is --- */
-.locale-selector-wrapper { position: relative; }
-
-.locale-toggle {
-  display: flex;
-  align-items: center;
-  gap: 0.375rem;
-  padding: 0.5rem 0.875rem;
-  background: transparent;
-  border: 1.5px solid var(--border-color);
-  border-radius: 50px;
-  color: var(--text-primary);
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  height: 36px;
-}
-
-/* ... [Include the rest of your Dropdown/Locale styles here without changes] ... */
-
-/* ===========================
-   RESPONSIVE ALIGNMENT
-   =========================== */
-
-@media (max-width: 1024px) {
-  .header_container {
-    padding: 0 var(--header-padding-x-tablet);
-  }
-}
-
-@media (max-width: 768px) {
-  :root {
-    --header-height: 60px;
-  }
-  
-  .header_container {
-    padding: 0 var(--header-padding-x-mobile);
-    gap: 0.5rem;
-  }
-
-  .logo { width: 120px; }
-  
-  .searchbar_container {
-    margin: 0 0.5rem;
-  }
-}
-
-@media (max-width: 480px) {
-  :root {
-    --header-height: 56px;
-  }
-  
-  .logo { width: 100px; }
-  
-  .searchbar_container {
-    margin: 0 0.25rem;
-  }
-  
-  .locale-toggle {
-    padding: 0.25rem 0.5rem;
-  }
-}
-
-/* components/Header/header.css */
-:root {
-  --header-height: 68px;
-  --header-btn-height: 36px;
-  --accent-color: #470ae2;
-  --text-primary: #0f041c;
-  --text-secondary: #333;
-  --bg-primary: rgba(255, 255, 255, 0.95) !important;
-  --bg-hover: rgba(255, 255, 255, 0.95) !important;
-  --border-color: #eee;
-  --dropdown-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
-  --dropdown-radius: 16px;
-  --header-padding-mobile: 0.25rem 0.5rem;
 }
