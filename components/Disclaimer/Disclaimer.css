@@ -1,6 +1,7 @@
 .site-disclaimer {
   width: 100%;
-  margin-top: auto; /* Pushes to bottom if in a flex container */
+  margin-top: 0; /* Pushes to bottom if in a flex container */
+  padding-top: 0;
   font-family: 'Alexandria', 'Open Sans', sans-serif;
 }
 
@@ -9,7 +10,7 @@
   background-color: #fff6e1;
   border: 1px solid #ffc35a;
   border-radius: 16px;
-  padding: 0rem 1rem 1rem;
+  padding: 1rem 1rem;
   margin: 1rem auto;
   display: flex;
   gap: 1rem;
