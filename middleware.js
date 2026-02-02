@@ -7,6 +7,8 @@ const intlMiddleware = createMiddleware({
   locales: allLocaleCodes,
   defaultLocale: 'ar-SA',
   localePrefix: 'always',
+  // ✅ CRITICAL: Prevent redirect loops
+  localeDetection: false,
 });
 
 export async function middleware(request) {
@@ -17,7 +19,9 @@ export async function middleware(request) {
     pathname.startsWith('/_next') || 
     pathname.startsWith('/api') && !pathname.startsWith('/api/admin') ||
     pathname.includes('.') || // Catches .ico, .png, .txt, etc.
-    pathname === '/favicon.ico'
+    pathname === '/favicon.ico' ||
+    pathname === '/robots.txt' ||
+    pathname === '/sitemap.xml'
   ) {
     return NextResponse.next();
   }
@@ -45,11 +49,25 @@ export async function middleware(request) {
     return NextResponse.next();
   }
 
-  // 4. APPLY i18n for everything else
+  // 4. ✅ CRITICAL FIX: Check if already on a valid locale path
+  const hasValidLocale = allLocaleCodes.some(locale => pathname.startsWith(`/${locale}`));
+  
+  // If already on a valid locale path, don't redirect
+  if (hasValidLocale) {
+    return NextResponse.next();
+  }
+
+  // 5. APPLY i18n only for paths without locale
   return intlMiddleware(request);
 }
 
 export const config = {
   // Enhanced matcher to exclude more static patterns
-  matcher: ['/((?!api|_next/static|_next/image|favicon.ico|.*\\..*).*)', '/admin/:path*', '/api/admin/:path*']
+  matcher: [
+    // Match all paths except static files
+    '/((?!_next/static|_next/image|favicon.ico|.*\\..*|robots.txt|sitemap.xml).*)',
+    // Include admin routes
+    '/admin/:path*', 
+    '/api/admin/:path*'
+  ]
 };
