@@ -480,7 +480,7 @@ export default async function UnifiedStorePage({ params }) {
                   )}
             </main>
           </div>
-          <HelpBox/>
+          <HelpBox locale={locale}/>
         </>
       );
     }
