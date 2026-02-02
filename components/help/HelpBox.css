@@ -136,6 +136,7 @@
 @media (max-width: 480px) {
   .help-box-container {
     padding: 1rem;
+    margin: 0 0.75rem;
     border-radius: 12px;
   }
   
