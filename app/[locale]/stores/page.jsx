@@ -192,7 +192,7 @@ export default async function AllStoresPage({ params }) {
           locale={locale} 
         />
       </section>
-      <HelpBox/>
+      <HelpBox locale={locale}/>
     </div>
   );
 }
