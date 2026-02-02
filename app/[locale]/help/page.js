@@ -34,16 +34,16 @@ export default async function HelpPage({ params }) {
       items: [
         {
           id: "codes-how",
-          question: ar ? "كيف أستخدم كود كوبون؟" : "How do I use a coupon code?",
+          question: ar ? "كيف أستخدم كود الخصم من Cobonat؟" : "How do I use a coupon code from Cobonat?",
           answer: ar
-            ? "انقر على زر \"نسخ الكود\" الذي يظهر على كل كوبون. سيُنسخ الكود تلقائيًا إلى حافظة النسخ، ثم انتقل إلى موقع المتجر وأدخل الكود في حقل الخصم أو العروض خلال عملية الدفع. تأكد من أن قيمة سلة التسوق تلبي الحد الأدنى للكوبون إن كان هناك حد."
+            ? "انقر على زر \"نسخ الكود\" الذي يظهر على كل كوبون. وسيتم نسخ الكود تلقائيًا. بعد ذلك، انتقل إلى المتجر وأدخل الكود في المكان المخصص عند اتمام عملية الدفع. تأكد من أن قيمة سلة التسوق تلبي الحد الأدنى للكوبون -ان وجد- حسب شروط المتجر."
             : "Click the \"Copy Code\" button shown on the coupon card. The code will automatically be copied to your clipboard. Go to the store's website, add items to your cart, and paste the code into the discount or promo-code field at checkout. Make sure your cart meets any minimum spend the coupon requires."
         },
         {
           id: "codes-not-working",
-          question: ar ? "كود الكوبون لا يعمل، ماذا أفعل؟" : "The coupon code isn't working — what should I do?",
+          question: ar ? "كود الخصم لا يعمل، ماذا أفعل؟" : "The coupon code isn't working — what should I do?",
           answer: ar
-            ? "هناك عدة أسباب محتملة: (1) انتهت صلاحية الكوبون — تحقق من تاريخ الانتهاء المُعرض على البطاقة. (2) الكوبون مخصص لمنتجات أو فئات بعينها فقط. (3) لم يتم تحقيق الحد الأدنى للإنفاق. (4) يجوز أن يكون الكوبون حصريًا لمستخدم واحد فقط. إذا استمر الخطأ، أخبرنا عبر contact@cobonat.me وسنحقق في الأمر."
+            ? "هناك عدة أسباب محتملة: (1) انتهت صلاحية الكوبون — تحقق من تاريخ الانتهاء. (2) الكوبون مخصص لمنتجات أو فئات بعينها فقط. (3) لم يتم تحقيق الحد الأدنى للإنفاق. (4) يجوز أن يكون الكوبون حصريًا لمستخدم واحد فقط. إذا استمر الخطأ، تواصل معنا عبر contact@cobonat.me وسنحقق في الأمر."
             : "There are several possible reasons: (1) The coupon has expired — check the expiry date shown on the card. (2) The coupon is valid only for specific products or categories. (3) The minimum spend requirement hasn't been met. (4) The coupon may be a one-time or single-use code that has already been redeemed. If the issue persists, let us know at contact@cobonat.me and we'll look into it."
         },
         {
@@ -74,28 +74,28 @@ export default async function HelpPage({ params }) {
           id: "deals-difference",
           question: ar ? "ما الفرق بين الكوبون والصفقة؟" : "What's the difference between a coupon and a deal?",
           answer: ar
-            ? "الكوبون هو كود نصي يجب إدخاله يدويًا في حقل الخصم عند الدفع. أما الصفقة فهي عرض يُطبَّق تلقائيًا عند فتح الرابط، لا يحتاج كودًا. كلاهما يوفر لك خصومات وعروض حقيقية على متاجر فعلية."
+            ? "الكوبون هو كود نصي يجب إدخاله يدويًا في حقل الخصم عند الدفع. أما الصفقة فهي عرض يُطبَّق تلقائيًا عند فتح الرابط. كلاهما يوفر لك خصومات وعروض حقيقية على متاجر فعلية."
             : "A coupon is a text code you type manually into the discount field at checkout. A deal is an offer that is applied automatically when you click the link — no code needed. Both give you real discounts on real stores."
         },
         {
           id: "deals-activate",
           question: ar ? "كيف أفعّل صفقة أو عرض؟" : "How do I activate a deal or offer?",
           answer: ar
-            ? "انقر على زر \"خذ العرض\" الذي يظهر على البطاقة. سيُفتح موقع المتجر في نافذة جديدة مع تطبيق العرض تلقائيًا. تأكد من إتمام عملية الشراء في نفس الجلسة لأن بعض العروض مرتبطة بالجلسة فقط."
+            ? "انقر على زر \"تفعيل العرض\" الذي يظهر على البطاقة. سيُفتح موقع المتجر في نافذة جديدة مع تطبيق العرض تلقائيًا. تأكد من إتمام عملية الشراء في نفس الجلسة لأن بعض العروض مرتبطة بالجلسة فقط."
             : "Click the \"Get Deal\" button shown on the card. The store's website will open in a new tab with the offer already applied. Make sure to complete your purchase in the same session, as some deals are session-based only."
         },
         {
           id: "deals-free-shipping",
           question: ar ? "كيف أستفيد من عروض التوصيل المجاني؟" : "How do I take advantage of free-shipping offers?",
           answer: ar
-            ? "عروض التوصيل المجاني تعمل بنفس طريقة الصفقات: انقر على زر \"خذ العرض\". في بعض الحالات، قد يكون هناك حد أدنى للقيمة الإجمالية للطلب للحصول على التوصيل المجاني، وهذا الحد يحدده المتجر نفسه."
+            ? "عروض التوصيل المجاني تعمل بنفس طريقة الصفقات: انقر على زر \"تفعيل العرض\". في بعض الحالات، قد يكون هناك حد أدنى للقيمة الإجمالية للطلب للحصول على التوصيل المجاني، وهذا الحد يحدده المتجر نفسه."
             : "Free-shipping offers work the same way as deals: click \"Get Deal\". In some cases there may be a minimum order value to qualify for free shipping — this minimum is set by the store itself."
         },
         {
           id: "deals-expired",
           question: ar ? "ماذا أفعل إذا كان العرض منتهيًا؟" : "What if the deal has already expired?",
           answer: ar
-            ? "الصفقات المنتهية تظل معروضة أحيانًا لأسباب إحصائية. إذا حاولت فتح صفقة وظهر لك خطأ أو لم يتطبق الخصم، فهذا يعني أنها انتهت. نحن نحدّث قوائمنا باستمرار، لكن يمكنك إبلاغنا عن أي صفقة منتهية عبر contact@cobonat.me."
+            ? "الصفقات المنتهية تظل معروضة أحيانًا لأسباب إحصائية. نحن نحدّث قوائمنا باستمرار، لكن يمكنك إبلاغنا عن أي صفقة منتهية عبر contact@cobonat.me."
             : "Expired deals sometimes remain visible for statistical reasons. If you try to open a deal and get an error or the discount isn't applied, it means it has expired. We update our listings regularly, but you can report any expired deal to us at contact@cobonat.me."
         }
       ]
@@ -112,8 +112,8 @@ export default async function HelpPage({ params }) {
           id: "stores-find",
           question: ar ? "كيف أبحث عن متجر بعينه؟" : "How do I find a specific store?",
           answer: ar
-            ? "استخدم شريط البحث في أعلى الصفحة وأدخل اسم المتجر. ستظهر نتائج فورية تشمل المتاجر والكوبونات والصفقات المرتبطة. يمكنك أيضًا تصفح المتاجر بحسب الفئة عبر القسم الأعلى في الصفحة الرئيسية أو صفحة المتاجر."
-            : "Use the search bar at the top of the page and type the store name. Instant results will appear showing matching stores, coupons, and deals. You can also browse stores by category using the tabs on the homepage or the stores page."
+            ? "استخدم شريط البحث في أعلى الصفحة وأدخل اسم المتجر. ستظهر نتائج فورية تشمل المتاجر والكوبونات والصفقات المرتبطة. يمكنك أيضًا تصفح المتاجر بحسب الفئة من خلال شريط الفئات أعلى الصفحة أو عبر صفحة المتاجر."
+            : "Use the search bar at the top of the page and type the store name. Instant results will appear showing matching stores, coupons, and deals. You can also browse stores by category using the tabs on top of the page or the stores page."
         },
         {
           id: "stores-missing",
@@ -126,7 +126,7 @@ export default async function HelpPage({ params }) {
           id: "stores-country",
           question: ar ? "لماذا لا أرى كوبونات لمتجر في منطقتي؟" : "Why don't I see coupons for a store in my region?",
           answer: ar
-            ? "بعض المتاجر والكوبونات مخصصة لدول أو مناطق بعينها فقط. كوبونات يصنّف المحتوى حسب البلد والعملة التي اخترتها. تأكد من أن إعدادات البلد الصحيحة مختارة في أعلى يمين الصفحة. إذا كانت كثيرة العروض غائبة، تواصل معنا لإبلاغنا."
+            ? "بعض المتاجر والكوبونات مخصصة لدول أو مناطق بعينها فقط. كوبونات يصنّف المحتوى حسب البلد والعملة التي اخترتها. تأكد من أن إعدادات البلد الصحيحة مختارة في أعلى يمين الصفحة. إذا كانت العروض غائبة، تواصل معنا لإبلاغنا."
             : "Some stores and coupons are exclusive to specific countries or regions. Cobonat filters content based on the country and currency you've selected. Make sure the correct country setting is chosen in the top-right corner. If many offers seem to be missing, reach out to us so we can look into it."
         }
       ]
@@ -203,14 +203,14 @@ export default async function HelpPage({ params }) {
       items: [
         {
           id: "tech-slow",
-          question: ar ? "الموقع بطيء أو لا يتحمل بسرعة كافية" : "The site is slow or not loading fast enough",
+          question: ar ? "الموقع بطيء أو لا يعمل بسرعة كافية" : "The site is slow or not loading fast enough",
           answer: ar
             ? "حاول تحديث الصفحة، وإذا استمر البطء فحاول مسح ذاكرة التخزين المؤقت للمتصفح (Cache). يمكنك أيضًا محاولة فتح الموقع بمتصفح آخر أو وضع التصفح الخاص. إذا استمر الخطأ، أخبرنا عبر contact@cobonat.me."
             : "Try refreshing the page. If it's still slow, clear your browser cache and cookies. You can also try opening the site in a different browser or in private/incognito mode. If the problem persists, let us know at contact@cobonat.me."
         },
         {
           id: "tech-display",
-          question: ar ? "المحتوى لا يتحمل أو يظهر بشكل غير صحيح" : "Content isn't loading or is displaying incorrectly",
+          question: ar ? "المحتوى لا يعمل أو يظهر بشكل غير صحيح" : "Content isn't loading or is displaying incorrectly",
           answer: ar
             ? "قد يكون هذا بسبب متصفح قديم. حاول تحديث متصفحك إلى الإصدار الأخير. كما يُنصح بالتأكد من أن اتصالك بالإنترنت مستقر. إذا كان المشكلة متكررة على جهاز بعينه فقط، حاول فتح الموقع على جهاز آخر للتأكد."
             : "This may be caused by an outdated browser. Try updating your browser to the latest version. Also make sure your internet connection is stable. If the issue only happens on one device, try opening the site on another device to confirm."
@@ -238,13 +238,13 @@ export default async function HelpPage({ params }) {
       {/* Hero */}
       <div className="static-page-hero">
         <div className="hero-icon">
-          <span className="material-symbols-sharp">help_circle</span>
+          <span className="material-symbols-sharp">help</span>
         </div>
         <h1>{ar ? "مركز المساعدة" : "Help Center"}</h1>
         <p>
           {ar
-            ? "اعثر على إجابات لأسئلتك الأكثر شيوعًا حول كوبونات والعروض."
-            : "Find answers to your most common questions about coupons and deals."}
+            ? " اعثر على إجابات لأسئلتك الأكثر شيوعًا حول الكوبونات والعروض على Cobonat."
+            : "Find answers to your most common questions about coupons and deals on Cobonat."}
         </p>
       </div>
 
@@ -266,7 +266,7 @@ export default async function HelpPage({ params }) {
           </p>
           <a href={`/${locale}/contact`}>
             <span className="material-symbols-sharp">mail</span>
-            {ar ? "التواصل معنا" : "Contact Us"}
+            {ar ? "تواصل معنا" : "Contact Us"}
           </a>
         </div>
       </div>
