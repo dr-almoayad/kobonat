@@ -1,4 +1,4 @@
-// app/[locale]/page.js - UPDATED with BrandsCarousel
+// app/[locale]/page.js - FIXED: Proper canonical URLs without redirects
 import { prisma } from "@/lib/prisma";
 import { getTranslations } from 'next-intl/server';
 import Link from "next/link";
@@ -9,7 +9,6 @@ import VoucherCard from "@/components/VoucherCard/VoucherCard";
 import StoreCard from "@/components/StoreCard/StoreCard";
 import HeroCarousel from "@/components/HeroCarousel/HeroCarousel";
 import BrandsCarousel from "@/components/BrandsCarousel/BrandsCarousel";
-import AffiliatesHero from "@/components/affiliates/affiliatesHero";
 import HelpBox from "@/components/help/HelpBox";
 
 import { 
@@ -21,22 +20,23 @@ import {
 
 export const revalidate = 60;
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://coubonat.vercel.app';
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://cobonat.me';
 
-// ✅ FIXED: Generate metadata with proper canonical
+// ✅ FIXED: Generate metadata with proper canonical (NO TRAILING SLASH)
 export async function generateMetadata({ params }) {
   const { locale } = await params;
   const [language, countryCode] = locale.split('-');
   const isArabic = language === 'ar';
   
   return {
+    metadataBase: new URL(BASE_URL),
     title: isArabic 
       ? "Cobonat | كوبونات - أكواد خصم السعودية (محدث باستمرار) - وفر أكثر على مشترياتك ومقاضيك!"
       : "Cobonat | Active & Verified KSA Promo Codes 2026 - Verified Daily for Smart Savings!",
     description: isArabic
       ? "منصتك الأولى لأكواد الخصم والعروض في السعودية 🇸🇦. وفر فلوسك مع كوبونات فعالة وموثقة لأشهر المتاجر العالمية والمحلية. مقاضيك، لبسك، وسفرياتك صارت أوفر!"
       : "Your #1 source for verified discount codes in Saudi 🇸🇦. Save more on fashion, electronics, and groceries with verified and active coupons for top local and global stores.",
-    // ✅ CRITICAL: Include locale in canonical
+    // ✅ CRITICAL: No trailing slash, exact locale match
     alternates: {
       canonical: `${BASE_URL}/${locale}`,
       languages: {
@@ -44,7 +44,14 @@ export async function generateMetadata({ params }) {
         'en-SA': `${BASE_URL}/en-SA`,
         'ar-AE': `${BASE_URL}/ar-AE`,
         'en-AE': `${BASE_URL}/en-AE`,
-        
+        'ar-EG': `${BASE_URL}/ar-EG`,
+        'en-EG': `${BASE_URL}/en-EG`,
+        'ar-QA': `${BASE_URL}/ar-QA`,
+        'en-QA': `${BASE_URL}/en-QA`,
+        'ar-KW': `${BASE_URL}/ar-KW`,
+        'en-KW': `${BASE_URL}/en-KW`,
+        'ar-OM': `${BASE_URL}/ar-OM`,
+        'en-OM': `${BASE_URL}/en-OM`,
         'x-default': `${BASE_URL}/ar-SA`,
       }
     },
@@ -53,11 +60,20 @@ export async function generateMetadata({ params }) {
       url: `${BASE_URL}/${locale}`,
       locale: locale,
       type: 'website',
+      title: isArabic ? "Cobonat | كوبونات" : 'Cobonat - Coupons',
+      description: isArabic ? "وفر فلوسك مع كوبونات فعالة وموثقة" : "Save more with verified coupons",
     },
     
     robots: {
       index: true,
       follow: true,
+      googleBot: {
+        index: true,
+        follow: true,
+        'max-video-preview': -1,
+        'max-image-preview': 'large',
+        'max-snippet': -1,
+      },
     },
   };
 }
@@ -66,7 +82,6 @@ export default async function Home({ params }) {
   const { locale } = await params;
 
   // FAIL-SAFE: If the locale is not in your allowed list, trigger 404 immediately.
-  // This prevents Prisma from receiving "favicon.ico" as a locale.
   if (!allLocaleCodes.includes(locale)) {
     notFound();
   }
@@ -82,7 +97,6 @@ export default async function Home({ params }) {
         isActive: true,
         isFeatured: true,
         coverImage: { not: null },
-        // Ensure store is available in this country
         countries: { some: { country: { code: countryCode || 'SA' } } }
       },
       include: {
@@ -153,7 +167,6 @@ export default async function Home({ params }) {
       take: 16
     }),
 
-    // NEW: Fetch brands for the carousel
     prisma.store.findMany({
       where: { 
         isActive: true,
@@ -228,7 +241,6 @@ export default async function Home({ params }) {
   const transformedFeaturedStores = featuredStores.map(transformStoreWithTranslation);
   const transformedTopVouchers = topVouchers.map(transformVoucherWithTranslation);
 
-  // Transform brands for carousel
   const transformedBrands = allActiveBrands.map(brand => ({
     id: brand.id,
     name: brand.translations?.[0]?.name || '',
@@ -265,7 +277,6 @@ export default async function Home({ params }) {
           </div>
         )}
 
-        {/* REPLACED: AffiliatesHero with BrandsCarousel */}
         {transformedBrands.length > 0 && (
           <BrandsCarousel brands={transformedBrands} />
         )}
