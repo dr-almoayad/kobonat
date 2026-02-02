@@ -1,5 +1,7 @@
 // components/headers/Header.jsx - WITH SLUG TRANSLATION SUPPORT
+
 'use client'
+
 import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { useTranslations, useLocale } from "next-intl";
@@ -7,6 +9,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import coubonatLogo from '../../public/cobonat.webp';
+import coubonatCompactLogo from '../../public/cobonat-compact.webp';
 import AnimatedSearchInput from '../SmartSearchInput/AnimatedSearchInput';
 import './header.css';
 
@@ -21,7 +24,11 @@ const Header = () => {
   const [currentLanguage, currentRegion] = currentLocale.split('-');
   const currentDirection = currentLanguage === 'ar' ? 'rtl' : 'ltr';
   
-  const logoSrc = coubonatLogo;
+  // State for responsive logo
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Choose logo based on screen size
+  const logoSrc = isMobile ? coubonatCompactLogo : coubonatLogo;
 
   // State management
   const [showModal, setShowModal] = useState(false);
@@ -33,6 +40,22 @@ const Header = () => {
 
   // Get language display code
   const languageCode = currentLanguage === 'ar' ? 'AR' : 'EN';
+
+  // Check screen size for responsive logo
+  useEffect(() => {
+    const checkScreenSize = () => {
+      setIsMobile(window.innerWidth <= 768); // 768px is your tablet breakpoint
+    };
+
+    // Initial check
+    checkScreenSize();
+
+    // Add event listener
+    window.addEventListener('resize', checkScreenSize);
+
+    // Cleanup
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, []);
 
   // Fetch active countries from API
   useEffect(() => {
@@ -115,6 +138,13 @@ const Header = () => {
   const currentLanguageObj = useMemo(() => {
     return allLanguages.find(l => l.code === currentLanguage);
   }, [allLanguages, currentLanguage]);
+
+  // Navigation links
+  const navLinks = useMemo(() => [
+    { href: '/help', label: t('help') || 'Help', key: 'help' },
+    { href: '/about', label: t('about') || 'About', key: 'about' },
+    { href: '/coupons', label: t('coupons') || 'Coupons', key: 'coupons' }
+  ], [t]);
 
   // Handle locale change with slug translation support
   const handleLocaleChange = useCallback(async (newLocale) => {
@@ -211,8 +241,28 @@ const Header = () => {
           {/* Logo */}
           <div className='logo_container'>       
             <Link href={`/${currentLocale}`}>
-              <Image className='logo' src={logoSrc} width={130} height={30} alt='Logo' priority />
+              <Image 
+                className='logo' 
+                src={logoSrc} 
+                width={isMobile ? 80 : 130} 
+                height={30} 
+                alt='Logo' 
+                priority 
+              />
             </Link>
+          </div>
+
+          {/* Navigation Links - Desktop Only */}
+          <div className='header_links desktop-only'>
+            {navLinks.map((link) => (
+              <Link
+                key={link.key}
+                href={`/${currentLocale}${link.href}`}
+                className="nav-link"
+              >
+                {link.label}
+              </Link>
+            ))}
           </div>
 
           {/* Search - Center aligned */}
