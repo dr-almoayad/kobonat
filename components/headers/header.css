@@ -406,7 +406,7 @@ header {
   }
 
   .logo {
-    height: 24px;
+    height: 42px;
   }
 
   .locale-toggle {
@@ -459,11 +459,12 @@ header {
   }
 
   .logo {
-    height: 22px;
+    height: 38px;
   }
 
   .searchbar_container {
     margin: 0 0.25rem;
+    
   }
 
   .locale-toggle {
