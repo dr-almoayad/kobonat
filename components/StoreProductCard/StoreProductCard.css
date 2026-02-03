@@ -5,7 +5,6 @@
 .store-product-card {
   background: white;
   border-radius: 8px;
-  border: 1px solid #e3e6e6;
   overflow: hidden;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -15,33 +14,33 @@
   height: 100%;
 }
 
-.store-product-card:hover {
-  box-shadow: 0 4px 12px rgba(15, 17, 17, 0.15);
-  border-color: #d5d9d9;
-}
-
 /* Product Image Container */
 .product-image-wrapper {
   position: relative;
   width: 100%;
-  aspect-ratio: 1/1;
+  aspect-ratio: 4/5;
   background: white;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 1rem;
-  border-bottom: 1px solid #e3e6e6;
 }
 
 .product-image {
   width: 100%;
   height: 100%;
+   aspect-ratio: 4/5;
+   border-radius: 12px;
+   border: 1px solid #eee;
   object-fit: contain;
   transition: transform 0.2s ease;
 }
 
+
 .store-product-card:hover .product-image {
-  transform: scale(1.05);
+   transform: scale(1.05);
+   box-shadow: 0 4px 12px rgba(15, 17, 17, 0.15);
+   border-color: #d5d9d9;
 }
 
 /* Discount Badge - Amazon Style */
@@ -81,7 +80,7 @@
   right: 8px;
   background: rgba(255, 255, 255, 0.95);
   border: 1px solid #e3e6e6;
-  border-radius: 4px;
+  border-radius: 8px;
   padding: 4px 8px;
   display: flex;
   align-items: center;
@@ -92,6 +91,7 @@
   z-index: 2;
   max-width: 120px;
   height: auto;
+   max-height: 40px;
 }
 
 .store-logo-mini {
@@ -139,60 +139,6 @@
   font-size: 14px;
 }
 
-/* Pricing Section - Amazon Style */
-.product-pricing {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  margin-top: auto;
-}
-
-.current-price {
-  display: flex;
-  align-items: baseline;
-  gap: 4px;
-  font-family: 'Open Sans', Arial, sans-serif;
-}
-
-.current-price .currency {
-  font-size: 13px;
-  color: #0f1111;
-  font-weight: 400;
-  vertical-align: super;
-}
-
-.current-price .icon-saudi_riyal_new {
-  font-size: 16px;
-}
-
-.current-price .amount {
-  font-size: 28px;
-  font-weight: 400;
-  color: #0f1111;
-  line-height: 1;
-}
-
-.current-price .cents {
-  font-size: 13px;
-  font-weight: 400;
-  color: #0f1111;
-  vertical-align: super;
-}
-
-/* Original Price */
-.original-price {
-  display: flex;
-  align-items: center;
-  gap: 3px;
-  font-size: 13px;
-  color: #565959;
-  text-decoration: line-through;
-  font-family: 'Open Sans', Arial, sans-serif;
-}
-
-.original-price .icon-saudi_riyal_new {
-  font-size: 13px;
-}
 
 /* Savings Text (Optional) */
 .savings-text {
@@ -210,76 +156,6 @@
   font-size: 12px;
   font-weight: 700;
   margin-top: 4px;
-}
-
-/* Delivery Info (Optional) */
-.delivery-info {
-  font-size: 12px;
-  color: #007600;
-  font-weight: 400;
-  margin-top: 4px;
-}
-
-/* Shop Now Button - Amazon Style */
-.shop-now-btn {
-  width: 100%;
-  padding: 8px 16px;
-  background: #FFD814;
-  color: #0f1111;
-  border: 1px solid #FCD200;
-  border-radius: 8px;
-  font-size: 13px;
-  font-weight: 400;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  transition: all 0.2s ease;
-  font-family: 'Open Sans', Arial, sans-serif;
-  margin-top: 8px;
-  box-shadow: 0 2px 5px rgba(15, 17, 17, 0.1);
-}
-
-.shop-now-btn:hover {
-  background: #F7CA00;
-  border-color: #F2C200;
-}
-
-.shop-now-btn:active {
-  background: #F0B800;
-  box-shadow: 0 1px 3px rgba(15, 17, 17, 0.15) inset;
-}
-
-.shop-now-btn.clicked {
-  background: #19a661;
-  border-color: #178a54;
-  color: white;
-  pointer-events: none;
-}
-
-.shop-now-btn .material-symbols-sharp {
-  font-size: 16px;
-  transition: transform 0.2s ease;
-}
-
-.shop-now-btn:hover .material-symbols-sharp:not(.flip-icon) {
-  transform: translateX(2px);
-}
-
-.shop-now-btn:hover .flip-icon {
-  transform: translateX(-2px);
-}
-
-/* Alternative Button Style (Add to Cart) */
-.add-to-cart-btn {
-  background: #FF9900;
-  border-color: #E77600;
-}
-
-.add-to-cart-btn:hover {
-  background: #FA8900;
-  border-color: #E47000;
 }
 
 /* ============================================
