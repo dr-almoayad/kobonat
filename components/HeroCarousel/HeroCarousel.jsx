@@ -1,154 +1,194 @@
-// components/HeroCarousel/HeroCarousel.jsx - Modern Minimalist Design
+// components/HeroCarousel/HeroCarousel.jsx
 'use client';
 import React, { useCallback, useEffect, useState, useRef } from 'react';
 import Image from 'next/image';
 import useEmblaCarousel from 'embla-carousel-react';
 import Autoplay from 'embla-carousel-autoplay';
+import { flushSync } from 'react-dom';
 import './HeroCarousel.css';
 
-/* ── Arrow Icon ── */
-const ArrowIcon = ({ direction = 'right' }) => (
-  <svg 
-    width="24" 
-    height="24" 
-    viewBox="0 0 24 24" 
-    fill="none" 
-    stroke="currentColor" 
-    strokeWidth="2" 
-    strokeLinecap="round" 
-    strokeLinejoin="round"
-    style={{ transform: direction === 'left' ? 'rotate(180deg)' : 'none' }}
-  >
-    <path d="M5 12h14M12 5l7 7-7 7" />
+/* ── inline SVG arrows ── */
+const ChevronLeft = () => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M15 18l-6-6 6-6" />
+  </svg>
+);
+const ChevronRight = () => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M9 18l6-6-6-6" />
   </svg>
 );
 
+/**
+ * HeroCarousel
+ *
+ * Props (each item in `images` array):
+ *   image        – cover image URL (required)
+ *   logo         – store logo URL  (renders inside frosted pill)
+ *   name         – store name      (shown under badge)
+ *   discount     – e.g. "Up to 60% off" (badge text; if omitted badge is hidden)
+ *   ctaText      – link label (defaults to "Explore Deals")
+ *   ctaUrl       – link href  (defaults to "#")
+ *
+ * Component Props:
+ *   locale, autoplayDelay, showDots, showArrows
+ */
 const HeroCarousel = ({
   images = [],
   locale = 'en-SA',
-  autoplayDelay = 5000,
+  autoplayDelay = 5500,
   showDots = true,
   showArrows = true,
 }) => {
   const isRtl = locale.startsWith('ar');
-  const autoplayRef = useRef(Autoplay({ 
-    delay: autoplayDelay, 
-    stopOnInteraction: false 
-  }));
-  
+
+  const autoplayRef = useRef(
+    Autoplay({ delay: autoplayDelay, stopOnInteraction: false })
+  );
+
   const [emblaRef, emblaApi] = useEmblaCarousel(
-    { 
-      loop: true, 
-      direction: isRtl ? 'rtl' : 'ltr',
-      skipSnaps: false
-    },
+    { loop: true, direction: isRtl ? 'rtl' : 'ltr' },
     [autoplayRef.current]
   );
 
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [scrollSnaps, setScrollSnaps] = useState([]);
+  const [tweenValues, setTweenValues] = useState([]);
 
-  // ── Navigation Logic ──
-  const scrollPrev = useCallback(() => {
-    emblaApi?.scrollPrev();
-    autoplayRef.current.reset();
+  // ── Parallax ──────────────────────────────────────────
+  const onScroll = useCallback(() => {
+    if (!emblaApi) return;
+    const engine = emblaApi.internalEngine();
+    const scrollProgress = emblaApi.scrollProgress();
+
+    const styles = emblaApi.scrollSnapList().map((scrollSnap, index) => {
+      let diff = scrollSnap - scrollProgress;
+      if (engine.options.loop) {
+        engine.slideLooper.loopPoints.forEach((loopItem) => {
+          const target = loopItem.target();
+          if (index === loopItem.index && target !== 0) {
+            const sign = Math.sign(target);
+            if (sign === -1) diff = scrollSnap - (1 + scrollProgress);
+            if (sign === 1) diff = scrollSnap + (1 - scrollProgress);
+          }
+        });
+      }
+      return diff * (-12) + '%'; // 12% parallax — smooth on mobile
+    });
+    setTweenValues(styles);
   }, [emblaApi]);
-  
-  const scrollNext = useCallback(() => {
-    emblaApi?.scrollNext();
-    autoplayRef.current.reset();
-  }, [emblaApi]);
-  
+
+  // ── Navigation ────────────────────────────────────────
+  const scrollPrev = useCallback(() => emblaApi?.scrollPrev(), [emblaApi]);
+  const scrollNext = useCallback(() => emblaApi?.scrollNext(), [emblaApi]);
+
   const scrollTo = useCallback((index) => {
-    emblaApi?.scrollTo(index);
+    if (!emblaApi) return;
+    emblaApi.scrollTo(index);
     autoplayRef.current.reset();
   }, [emblaApi]);
 
+  // ── Selection sync ────────────────────────────────────
   const onSelect = useCallback(() => {
     if (!emblaApi) return;
     setSelectedIndex(emblaApi.selectedScrollSnap());
+    autoplayRef.current.reset();
   }, [emblaApi]);
 
+  // ── Mount / event wiring ──────────────────────────────
   useEffect(() => {
     if (!emblaApi) return;
+
+    onScroll();
     setScrollSnaps(emblaApi.scrollSnapList());
+    onSelect();
+
+    emblaApi.on('scroll', () => flushSync(() => onScroll()));
     emblaApi.on('select', onSelect);
     emblaApi.on('reInit', onSelect);
-    onSelect();
-    
+
     return () => {
       emblaApi.off('select', onSelect);
       emblaApi.off('reInit', onSelect);
+      emblaApi.off('scroll', onScroll);
     };
-  }, [emblaApi, onSelect]);
+  }, [emblaApi, onSelect, onScroll]);
 
+  // ── Early exit ────────────────────────────────────────
   if (!images || images.length === 0) return null;
 
+  // Localised CTA default
+  const defaultCta = isRtl ? 'استكشاف العروض' : 'Explore Deals';
+
   return (
-    <section className="hc-wrapper" dir={isRtl ? 'rtl' : 'ltr'}>
-      
-      {/* ── Carousel Viewport ── */}
-      <div className="hc-viewport" ref={emblaRef}>
-        <div className="hc-container">
+    <div className="hc-wrapper" dir={isRtl ? 'rtl' : 'ltr'}>
+      {/* ── Embla viewport ── */}
+      <div className="hc-embla" ref={emblaRef}>
+        <div className="hc-embla__container">
           {images.map((item, index) => {
             const isActive = index === selectedIndex;
-            const ctaText = item.ctaText || (isRtl ? 'تسوق الآن' : 'Shop Now');
+            const logo = item.logo;
+            const name = item.name || '';
+            const discount = item.discount || '';
+            const ctaText = item.ctaText || defaultCta;
             const ctaUrl = item.ctaUrl || '#';
-            const brandInitial = item.name ? item.name.charAt(0) : 'S';
 
             return (
-              <div 
-                key={item.id || index} 
-                className={`hc-slide ${isActive ? 'is-active' : ''}`}
-              >
-                <div className="hc-slide-inner">
-                  
-                  {/* ── Background Image ── */}
-                  <div className="hc-image-container">
-                    <Image 
-                      src={item.image} 
-                      alt={item.name || "Promotion"} 
-                      fill 
-                      className="hc-img"
-                      sizes="100vw"
-                      priority={index === 0}
-                      quality={90}
-                    />
+              <div key={item.id || index} className="hc-embla__slide">
+                <div className="hc-slide">
+
+                  {/* Parallax image */}
+                  <div className="hc-slide__parallax">
+                    <div
+                      className="hc-slide__img-wrap"
+                      style={{ transform: `translateX(${tweenValues[index] || '0%'})` }}
+                    >
+                      <Image
+                        src={item.image || item.coverImage}
+                        alt={name || `Slide ${index + 1}`}
+                        fill
+                        priority={index === 0}
+                        className="hc-slide__img"
+                        sizes="100vw"
+                      />
+                    </div>
                   </div>
 
-                  {/* ── Content Overlay ── */}
-                  <div className="hc-content-overlay">
-                    
-                    {/* Logo Badge */}
-                    {(item.logo || item.name) && (
-                      <div className="hc-logo-badge">
-                        {item.logo ? (
-                          <Image 
-                            src={item.logo} 
-                            alt="Brand Logo" 
-                            width={56} 
-                            height={56}
-                          />
+                  {/* Gradient scrim */}
+                  <div className="hc-slide__overlay" />
+
+                  {/* ── Frosted content strip ── */}
+                  <div className={`hc-slide__content ${isActive ? 'is-active' : ''}`}>
+                    <div className="hc-content-row">
+
+                      {/* Logo pill */}
+                      <div className={`hc-logo-pill ${!logo ? 'hc-logo-pill--fallback' : ''}`}>
+                        {logo ? (
+                          <Image src={logo} alt={`${name} logo`} width={54} height={54} quality={85} />
                         ) : (
-                          <span className="hc-logo-char">{brandInitial}</span>
+                          name.charAt(0).toUpperCase()
                         )}
                       </div>
-                    )}
 
-                    {/* Text Content */}
-                    <div className="hc-text-content">
-                      <h2 className="hc-title">{item.name}</h2>
-                      {item.description && (
-                        <p className="hc-description">{item.description}</p>
-                      )}
-                      
-                      {/* CTA Button */}
-                      <a href={ctaUrl} className="hc-cta-button">
-                        <span>{ctaText}</span>
-                        <ArrowIcon direction={isRtl ? 'left' : 'right'} />
+                      {/* Badge + name */}
+                      <div className="hc-content-mid">
+                        {discount && (
+                          <span className="hc-badge">
+                            <span className="material-symbols-sharp">local_offer</span>
+                            {discount}
+                          </span>
+                        )}
+                        {name && <p className="hc-store-name">{name}</p>}
+                      </div>
+
+                      {/* CTA arrow link */}
+                      <a href={ctaUrl} className="hc-cta" aria-label={`${ctaText} – ${name}`}>
+                        {ctaText}
+                        <span className="material-symbols-sharp">
+                          {isRtl ? 'arrow_back' : 'arrow_forward'}
+                        </span>
                       </a>
                     </div>
-
                   </div>
                 </div>
               </div>
@@ -157,42 +197,45 @@ const HeroCarousel = ({
         </div>
       </div>
 
-      {/* ── Navigation Controls ── */}
-      
-      {/* Arrows */}
-      {showArrows && images.length > 1 && (
-        <div className="hc-arrows">
-          <button 
-            onClick={scrollPrev} 
-            className="hc-arrow hc-arrow--prev" 
-            aria-label={isRtl ? 'التالي' : 'Previous'}
-          >
-            <ArrowIcon direction={isRtl ? 'right' : 'left'} />
-          </button>
-          <button 
-            onClick={scrollNext} 
-            className="hc-arrow hc-arrow--next" 
-            aria-label={isRtl ? 'السابق' : 'Next'}
-          >
-            <ArrowIcon direction={isRtl ? 'left' : 'right'} />
-          </button>
-        </div>
-      )}
+      {/* ── Controls layer ── */}
+      <div className="hc-controls">
 
-      {/* Dot Indicators */}
-      {showDots && images.length > 1 && (
-        <div className="hc-dots">
-          {scrollSnaps.map((_, idx) => (
-            <button
-              key={idx}
-              className={`hc-dot ${idx === selectedIndex ? 'is-active' : ''}`}
-              onClick={() => scrollTo(idx)}
-              aria-label={`${isRtl ? 'انتقل إلى الشريحة' : 'Go to slide'} ${idx + 1}`}
-            />
-          ))}
-        </div>
-      )}
-    </section>
+        {/* Nav arrows */}
+        {showArrows && images.length > 1 && (
+          <>
+            <button className="hc-nav hc-nav--prev" onClick={scrollPrev} aria-label={isRtl ? 'الشريحة التالية' : 'Previous slide'}>
+              {isRtl ? <ChevronRight /> : <ChevronLeft />}
+            </button>
+            <button className="hc-nav hc-nav--next" onClick={scrollNext} aria-label={isRtl ? 'الشريحة السابقة' : 'Next slide'}>
+              {isRtl ? <ChevronLeft /> : <ChevronRight />}
+            </button>
+          </>
+        )}
+
+        {/* Progress dots */}
+        {showDots && images.length > 1 && (
+          <div className="hc-dots">
+            {scrollSnaps.map((_, index) => (
+              <button
+                key={index}
+                className={`hc-dot ${index === selectedIndex ? 'is-active' : ''}`}
+                onClick={() => scrollTo(index)}
+                aria-label={`Go to slide ${index + 1}`}
+              >
+                <span className="hc-dot__track">
+                  {index === selectedIndex && (
+                    <span
+                      className="hc-dot__progress"
+                      style={{ animationDuration: `${autoplayDelay}ms` }}
+                    />
+                  )}
+                </span>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
   );
 };
 
