@@ -27,7 +27,7 @@
   margin: 0 auto 2rem;
   height: 420px; /* Reduced from 500px to 400px */
   padding: 1.5rem 0;
-  background: #fff;
+  background: transparent;
   overflow: visible;
 }
 
@@ -40,7 +40,6 @@
 }
 
 .hc-embla__container {
-  position: relative;
   display: flex;
   height: 100%;
   touch-action: pan-y pinch-zoom;
@@ -161,6 +160,7 @@
 .hc-content-wrapper {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 1.5rem;
   max-width: 100%;
 }
@@ -168,8 +168,8 @@
 /* Logo pill */
 .hc-logo-pill {
   flex-shrink: 0;
-  width: 70px;
-  height: 70px;
+  width: 100px;
+  height: 100px;
   background: #fff;
   border-radius: 12px;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
@@ -457,11 +457,11 @@
   }
   
   .hc-nav {
-    display: none;
+    display:none;
   }
   
-  .hc-nav--prev { display: none; }
-  .hc-nav--next { display: none; }
+  .hc-nav--prev { display:none; }
+  .hc-nav--next { display:none; }
   
   .hc-dots {
     bottom: 0.75rem;
