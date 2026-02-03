@@ -36,15 +36,20 @@ const StoreProductCard = ({ product, storeName, storeLogo }) => {
 
   // Format discount display
   const getDiscountDisplay = () => {
-    if (!product.discountValue) return null;
-    
-    if (product.discountType === 'PERCENTAGE') {
-      return `${Math.round(product.discountValue)}% ${t('off', { default: 'OFF' })}`;
-    } else {
-      // ABSOLUTE discount in SAR
-      return `${Math.round(product.discountValue)} SAR ${t('off', { default: 'OFF' })}`;
-    }
-  };
+  // Ensure we have a valid number greater than 0
+  if (product.discountValue === null || product.discountValue <= 0) return null;
+  
+  const value = Math.round(product.discountValue);
+  
+  // Use a fallback string if the translation is missing
+  const offText = t('off') || 'OFF'; 
+  
+  if (product.discountType === 'PERCENTAGE') {
+    return `${value}% ${offText}`;
+  } else {
+    return `${value} SAR ${offText}`;
+  }
+};
 
   const discountDisplay = getDiscountDisplay();
 
