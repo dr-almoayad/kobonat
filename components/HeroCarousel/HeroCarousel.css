@@ -36,7 +36,7 @@
   height: 100%;
   width: 100%;
   overflow: hidden;
-  border-radius: var(--hc-radius);
+  border-radius: 0;
 }
 
 .hc-embla__container {
