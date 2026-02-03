@@ -7,7 +7,7 @@
   display: flex;
   flex-direction: column;
   background: none;
-  overflow: hidden;
+  overflow: visible;
   cursor: pointer;
   /* Minimal transition for touch feedback */
   height: fit-content; /* Ensure uniform height in grids */
@@ -38,7 +38,8 @@
 
 .product-image {
   width: 100%;
-  height: 100%;
+  height: 100%
+  aspect-ratio: 1 / 1;;
   object-fit: contain; /* Ensures product is seen clearly */
   padding: 1rem; /* Breathing room for the product inside the square */
   transition: transform 0.4s ease;
@@ -56,24 +57,25 @@
   font-size: 1rem;
   font-weight: bold;
   font-family: 'Alexandria','Open Sans','Arial',sans-serif ;
+  mix-blend-mode: normal;
   color: #fff;
   --r: .4em; /* control the ribbon shape (the radius) */
-  --c: #FA6900;
+  --c: #e3392d;
   position: absolute;
   bottom: 20px;
-  left: calc(-1*var(--r));
+  inset-inline: calc(-1*var(--r));
+  text-align: center;
   line-height: 1.8; 
   padding: calc(2*var(--r)) .5em 0;
-  border-radius: var(--r) 0 0 var(--r);
+  border-radius: var(--r);
+  --_g:0/var(--r) calc(2*var(--r)) no-repeat;
   background: 
-    radial-gradient(100% 50% at left,var(--c) 98%,#0000 101%)
-     100% 100%/.5lh calc(100% - 2*var(--r)),
-    radial-gradient(100% 50% at right,#0005 98%,#0000 101%) 
-     0 0/var(--r) calc(2*var(--r)),
-    conic-gradient(at var(--r) calc(2*var(--r)),#0000 25%,var(--c) 0)
-     0 0/calc(101% - .5lh) 100%;
-  background-repeat: no-repeat;   
+    radial-gradient(100% 50% at right,#0005 98%,#0000 101%) 0    var(--_g),
+    radial-gradient(100% 50% at left ,#0005 98%,#0000 101%) 100% var(--_g),
+    conic-gradient(at var(--r) calc(2*var(--r)),#0000 25%,#e3392d 0)
+     0 0/calc(100% - var(--r)) 100%;
 }
+
 
 /* --- Store Badge --- */
 .store-badge {
