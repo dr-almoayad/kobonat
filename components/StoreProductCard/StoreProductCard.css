@@ -3,8 +3,7 @@
    ============================================ */
 
 .store-product-card {
-  background: white;
-  border-radius: 8px;
+  background: none;
   overflow: hidden;
   cursor: pointer;
   transition: all 0.2s ease;
