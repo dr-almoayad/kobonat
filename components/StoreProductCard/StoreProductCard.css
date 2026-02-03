@@ -284,51 +284,6 @@
 }
 
 /* ============================================
-   DARK MODE SUPPORT
-   ============================================ */
-
-@media (prefers-color-scheme: dark) {
-  .store-product-card {
-    background: #1f2937;
-    border-color: #374151;
-  }
-  
-  .store-product-card:hover {
-    border-color: #4b5563;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  }
-  
-  .product-image-wrapper {
-    background: #111827;
-    border-bottom-color: #374151;
-  }
-  
-  .product-title {
-    color: #f3f4f6;
-  }
-  
-  .store-product-card:hover .product-title {
-    color: #fbbf24;
-  }
-  
-  .current-price .amount,
-  .current-price .currency,
-  .current-price .cents {
-    color: #f3f4f6;
-  }
-  
-  .original-price {
-    color: #9ca3af;
-  }
-  
-  .store-badge {
-    background: rgba(31, 41, 55, 0.95);
-    border-color: #4b5563;
-    color: #d1d5db;
-  }
-}
-
-/* ============================================
    ACCESSIBILITY
    ============================================ */
 
