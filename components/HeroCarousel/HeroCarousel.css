@@ -40,6 +40,7 @@
 }
 
 .hc-embla__container {
+  position: relative;
   display: flex;
   height: 100%;
   touch-action: pan-y pinch-zoom;
