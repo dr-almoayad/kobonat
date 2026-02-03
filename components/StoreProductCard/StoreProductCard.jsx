@@ -33,13 +33,12 @@ const StoreProductCard = ({ product, storeName, storeLogo }) => {
     }
 
     const value = Math.round(discountValue);
-    const offText = t('off') || 'OFF';
     
     let display = '';
     if (discountType === 'PERCENTAGE') {
-      display = `${value}% ${offText}`;
+      display = `${value}%`;
     } else if (discountType === 'ABSOLUTE') {
-      display = `${value} SAR ${offText}`;
+      display = `${value} SAR`;
     } else {
       // Fallback for any other type
       display = `${value} ${offText}`;
@@ -81,20 +80,7 @@ const StoreProductCard = ({ product, storeName, storeLogo }) => {
             {discountDisplay}
           </div>
         )}
-
-        {/* Store Badge - Top Right (Sponsored style) */}
-        {storeLogo && (
-          <div className="store-badge">
-            <Image
-              src={storeLogo}
-              alt={storeName || 'Store'}
-              width={60}
-              height={20}
-              className="store-logo-mini"
-            />
-          </div>
-        )}
-
+        
         {/* Product Image */}
         <Image
           src={product.image || '/placeholder-product.jpg'}
@@ -104,6 +90,19 @@ const StoreProductCard = ({ product, storeName, storeLogo }) => {
           className="product-image"
         />
       </div>
+
+      {/* Store Badge - Top Right (Sponsored style) */}
+      {storeLogo && (
+        <div className="store-badge">
+          <Image
+            src={storeLogo}
+            alt={storeName || 'Store'}
+            width={100}
+            height={80}
+            className="store-logo-mini"
+          />
+        </div>
+      )}
 
       {/* Product Info Section */}
       <div className="product-info">
