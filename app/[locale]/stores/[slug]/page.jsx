@@ -366,22 +366,36 @@ export default async function UnifiedStorePage({ params }) {
           storeId: store.id,
           isFeatured: true
         },
-        include: {
+        select: {  // Use select instead of include for better control
+          id: true,
+          image: true,
+          price: true,
+          originalPrice: true,
+          productUrl: true,
+          discountValue: true,  // ADD THIS
+          discountType: true,   // ADD THIS
           translations: {
-            where: { locale: language }
+            where: { locale: language },
+            select: {
+              title: true
+            }
           }
         },
         orderBy: { order: 'asc' },
         take: 12
       });
 
+      
+      // Update the transformedProducts mapping to include discount data
       const transformedProducts = storeProducts.map(p => ({
         id: p.id,
         image: p.image,
         title: p.translations[0]?.title || '',
         price: p.price,
         originalPrice: p.originalPrice,
-        productUrl: p.productUrl
+        productUrl: p.productUrl,
+        discountValue: p.discountValue,  // ADD THIS
+        discountType: p.discountType     // ADD THIS
       }));
 
       const codeVouchers = transformedVouchers.filter(v => v.type === 'CODE');
