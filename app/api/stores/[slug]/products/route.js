@@ -1,6 +1,5 @@
-// ============================================================================
-// API ROUTE: app/api/stores/[slug]/products/route.js
-// ============================================================================
+// UPDATED: app/api/stores/[slug]/products/route.js
+// Replace the existing file with this version
 
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
@@ -32,7 +31,7 @@ export async function GET(req, { params }) {
       );
     }
 
-    // Get featured products
+    // Get featured products with discount data
     const products = await prisma.storeProduct.findMany({
       where: {
         storeId: store.id,
@@ -54,8 +53,8 @@ export async function GET(req, { params }) {
     const transformedProducts = products.map(p => ({
       id: p.id,
       image: p.image,
-      price: p.price,
-      originalPrice: p.originalPrice,
+      discountValue: p.discountValue,
+      discountType: p.discountType,
       productUrl: p.productUrl,
       clickCount: p.clickCount,
       title: p.translations[0]?.title || '',
