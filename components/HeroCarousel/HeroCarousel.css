@@ -10,7 +10,6 @@
   --hc-text: #333333;
   --hc-text-light: #666666;
   --hc-border: #e0e0e0;
-  --hc-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
   --hc-ease: cubic-bezier(0.4, 0, 0.2, 1);
   
   /* Slide sizing - Fixed for visibility */
@@ -53,7 +52,7 @@
   flex: 0 0 var(--hc-slide-inactive-width);
   min-width: 0;
   position: relative;
-  height: 85%;
+  height: 100%;
   border-radius: var(--hc-radius);
   overflow: hidden;
   opacity: var(--hc-slide-inactive-opacity);
@@ -82,7 +81,7 @@
   position: relative;
   width: 100%;
   height: 100%;
-  background: var(--hc-bg);
+  background: none;
 }
 
 /* Parallax container */
@@ -123,6 +122,7 @@
     rgba(255, 255, 255, 0.4) 70%,
     rgba(255, 255, 255, 0.7) 100%
   );
+  display: none;
 }
 
 /* Non-active slides have darker overlay */
