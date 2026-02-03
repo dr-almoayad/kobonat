@@ -852,5 +852,20 @@
   "FeaturedProducts": {
     "title": "Featured Products",
     "subtitle": "Check out our top picks for you"
+  },
+   "FeaturedProducts": {
+    "title": "Today's Top Deals",
+    "presentedBy": "PRESENTED BY",
+    "viewAllDeals": "View all exclusive deals",
+    "viewMoreDeals": "View more deals",
+    "previousSlide": "Previous",
+    "nextSlide": "Next"
+  },
+  "StoreProductCard": {
+    "off": "OFF",
+    "save": "Save",
+    "freeDelivery": "FREE delivery",
+    "checkPrice": "Check price",
+    "opening": "Opening..."
   }
 }
