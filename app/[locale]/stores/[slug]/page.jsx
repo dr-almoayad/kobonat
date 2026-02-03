@@ -413,6 +413,14 @@ export default async function UnifiedStorePage({ params }) {
             <StorePageShell {...headerProps} />
 
             <main className="store-main-content">
+              {transformedProducts.length > 0 && (
+                    <FeaturedProductsCarousel
+                      storeSlug={transformedStore.slug}
+                      storeName={transformedStore.name}
+                      storeLogo={transformedStore.logo}
+                      products={transformedProducts}
+                    />
+                  )}
                   {codeVouchers.length > 0 && (
                     <section className="vouchers-section">
                       <h2 className="section-title">
@@ -443,14 +451,7 @@ export default async function UnifiedStorePage({ params }) {
                     </section>
                   )}
 
-                  {transformedProducts.length > 0 && (
-                    <FeaturedProductsCarousel
-                      storeSlug={transformedStore.slug}
-                      storeName={transformedStore.name}
-                      storeLogo={transformedStore.logo}
-                      products={transformedProducts}
-                    />
-                  )}
+                  
 
                   <OtherPromosSection storeSlug={transformedStore.slug} />
 
