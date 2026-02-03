@@ -1,78 +1,116 @@
-/* components/product_carousel/carousel.css - Embla version */
+/* ============================================
+   FEATURED PRODUCTS CAROUSEL - AMAZON STYLE
+   ============================================ */
 
-.product-carousel {
+.featured-products-carousel {
     width: 100%;
-    display: block;
-    padding: 1rem 0;
-    box-sizing: border-box;
-    margin: 1rem 0;
+    background: linear-gradient(180deg, #f8f9fa 0%, #ffffff 100%);
+    padding: 2rem 0;
+    margin: 2rem 0;
     position: relative;
 }
 
-.product-carousel .carousel-header {
-    width: 100%;
+/* Header Section - Similar to Amazon's "Today's Top Deals" */
+.carousel-header {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 2.5rem 1.5rem;
     display: flex;
-    flex-wrap: nowrap;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.25rem 2.5rem;
-}
-
-/* Title styling */
-.product-carousel .carousel-title {
-    font-size: clamp(1.4rem, 3vw, 2rem);
-    text-align: left;
-    font-family: 'Alexandria', 'Open Sans', Arial, sans-serif;
-    font-weight: 600;
-    -webkit-font-smoothing: antialiased;
-    padding: 0;
-    color: #0f041c;
-    margin: 0;
-    line-height: 1.2;
-}
-
-.view-all-btn {
-    display: flex;
-    color: #0f041c;
-    gap: 0.3rem;
-    transition: all 0.2s ease-out;
-    position: relative;
-    text-decoration: none;
-    font-family: 'Alexandria', 'Open Sans', Arial, sans-serif;
-    font-weight: 600;
-    -webkit-font-smoothing: antialiased;
-    font-size: clamp(0.9rem, 1.5vw, 1rem);
-    align-items: center;
-}
-
-.view-all-btn::after {
-    content: '';
-    width: 100%;
-    height: 1.5px;
-    display: block;
-    background: #6321d4;
-    position: absolute;
-    bottom: 0;
-    opacity: 0;
-    transform: scaleX(0);
-    transition: all 0.2s ease-out;
-}
-
-.view-all-btn:hover::after {
-    transform-origin: left;
-    transform: scaleX(1);
-    opacity: 1;
-}
-
-.view-all-btn:hover {
-    color: #6321d4;
+    flex-direction: column;
     gap: 0.5rem;
 }
 
-/* Embla Carousel Core */
+.carousel-title {
+    font-size: clamp(1.75rem, 3vw, 2.25rem);
+    font-weight: 700;
+    color: #0f1111;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-family: 'Alexandria', 'Open Sans', Arial, sans-serif;
+}
+
+.carousel-title .material-symbols-sharp {
+    font-size: 2rem;
+    color: #470ae2;
+}
+
+.carousel-subtitle {
+    font-size: 0.95rem;
+    color: #565959;
+    margin: 0;
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-family: 'Open Sans', Arial, sans-serif;
+}
+
+/* Featured Banner Link */
+.featured-banner-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #007185;
+    text-decoration: none;
+    font-size: 0.95rem;
+    font-weight: 500;
+    margin-top: 0.25rem;
+    transition: all 0.2s ease;
+}
+
+.featured-banner-link:hover {
+    color: #C7511F;
+    text-decoration: underline;
+}
+
+.featured-banner-link .material-symbols-sharp {
+    font-size: 1.2rem;
+    transition: transform 0.2s ease;
+}
+
+.featured-banner-link:hover .material-symbols-sharp {
+    transform: translateX(3px);
+}
+
+[dir="rtl"] .featured-banner-link:hover .material-symbols-sharp {
+    transform: translateX(-3px);
+}
+
+/* View More Button - Amazon Style */
+.view-more-container {
+    position: absolute;
+    top: 1.5rem;
+    right: 2.5rem;
+}
+
+.view-more-btn {
+    background: white;
+    border: 1px solid #d5d9d9;
+    border-radius: 8px;
+    padding: 0.5rem 1.25rem;
+    color: #0f1111;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    box-shadow: 0 2px 5px rgba(15, 17, 17, 0.05);
+}
+
+.view-more-btn:hover {
+    background: #f7fafa;
+    border-color: #470ae2;
+}
+
+/* Embla Container */
 .embla {
     position: relative;
-    width: 100%;
+    max-width: 1400px;
+    margin: 0 auto;
     overflow: hidden;
 }
 
@@ -83,52 +121,39 @@
 
 .embla__container {
     display: flex;
-    gap: 0.75rem;
-    padding: 1.5rem 0;
+    gap: 1rem;
+    padding: 1rem 2.5rem;
     touch-action: pan-y pinch-zoom;
 }
 
 .embla__slide {
-    flex: 0 0 254px;
-    min-width: 153px;
-    overflow: visible;
-    scroll-snap-align: start;
+    flex: 0 0 280px;
+    min-width: 240px;
 }
 
-.embla__slide:last-of-type {
-    margin-right: 2.5rem;
-}
-
-.product-slide {
-    height: 100%;
-}
-
-/* Navigation Buttons - Hidden on mobile */
+/* Navigation Buttons - Amazon Style */
 .embla__button {
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
     z-index: 10;
-    width: 50px;
-    height: 50px;
+    width: 48px;
+    height: 48px;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgba(255, 255, 255, 0.9);
-    border: none;
+    background: white;
+    border: 1px solid #d5d9d9;
     border-radius: 50%;
     cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-    backdrop-filter: blur(10px);
-    opacity: 0.9;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 5px rgba(15, 17, 17, 0.15);
 }
 
 .embla__button:hover {
-    background: rgba(255, 255, 255, 1);
-    transform: translateY(-50%) scale(1.1);
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
-    opacity: 1;
+    background: #f7fafa;
+    border-color: #470ae2;
+    box-shadow: 0 4px 12px rgba(71, 10, 226, 0.2);
 }
 
 .embla__button:active {
@@ -136,53 +161,102 @@
 }
 
 .embla__button--prev {
-    left: 1.25rem;
+    left: 1rem;
 }
 
 .embla__button--next {
-    right: 1.25rem;
+    right: 1rem;
 }
 
-.embla__button i {
-  font-size: 1.5rem;
-  color: #0f041c;
+.embla__button .material-symbols-sharp {
+    font-size: 1.5rem;
+    color: #0f1111;
 }
 
-.embla__button:hover i {
-    color: #0f041c;
+.embla__button:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+    pointer-events: none;
 }
 
-/* Loading States */
+/* Dot Indicators - Amazon Style */
+.carousel-dots {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 1.5rem;
+    padding: 0 2.5rem;
+}
+
+.carousel-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #d5d9d9;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    padding: 0;
+}
+
+.carousel-dot.active {
+    background: #470ae2;
+    transform: scale(1.2);
+}
+
+.carousel-dot:hover {
+    background: #a0a0a0;
+}
+
+/* Loading State */
 .carousel-skeleton {
-    padding: 1rem 2.5rem;
+    padding: 2rem 2.5rem;
+}
+
+.skeleton-header {
+    max-width: 1400px;
+    margin: 0 auto;
+    margin-bottom: 1.5rem;
 }
 
 .skeleton-title {
-    width: 200px;
-    height: 2rem;
+    width: 300px;
+    height: 2.25rem;
     background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
     background-size: 200% 100%;
-    animation: loading 1.5s infinite;
+    animation: shimmer 1.5s infinite;
     border-radius: 8px;
-    margin-bottom: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.skeleton-subtitle {
+    width: 200px;
+    height: 1rem;
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 4px;
 }
 
 .skeleton-products {
     display: flex;
-    gap: 0.85rem;
+    gap: 1rem;
     overflow: hidden;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 2.5rem;
 }
 
 .skeleton-card {
-    flex: 0 0 254px;
-    height: 380px;
+    flex: 0 0 280px;
+    height: 420px;
     background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
     background-size: 200% 100%;
-    animation: loading 1.5s infinite;
+    animation: shimmer 1.5s infinite;
     border-radius: 12px;
 }
 
-@keyframes loading {
+@keyframes shimmer {
     0% {
         background-position: 200% 0;
     }
@@ -191,374 +265,238 @@
     }
 }
 
-/* Error State */
-.carousel-error {
-    padding: 2rem;
-    text-align: center;
-    color: #666;
-}
-
-.carousel-error i {
-    font-size: 3rem;
-    color: #ff4444;
-    margin-bottom: 1rem;
-}
-
-.carousel-error p {
-    font-size: 1.1rem;
-    margin: 0.5rem 0;
-}
-
-.carousel-error small {
-    color: #999;
-    display: block;
-    margin-top: 0.5rem;
-}
-
-.retry-btn {
-    margin-top: 1rem;
-    padding: 0.5rem 1.5rem;
-    background: #0f041c;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: background 0.2s;
-}
-
-.retry-btn:hover {
-    background: #1a0a2e;
-}
-
 /* Empty State */
 .carousel-empty {
-    padding: 3rem;
+    padding: 4rem 2rem;
     text-align: center;
-    color: #999;
+    max-width: 1400px;
+    margin: 0 auto;
 }
 
-.carousel-empty i {
-    font-size: 3rem;
+.carousel-empty .material-symbols-sharp {
+    font-size: 4rem;
+    color: #d5d9d9;
     margin-bottom: 1rem;
-    display: block;
+}
+
+.carousel-empty p {
+    color: #565959;
+    font-size: 1rem;
 }
 
 /* ============================================
-   RESPONSIVE DESIGN - MOBILE/TABLET OPTIMIZED
+   RESPONSIVE DESIGN
    ============================================ */
 
-/* Tablet: 992px and below */
-@media (max-width: 992px) {
-    .product-carousel .carousel-header {
-        padding: 0.75rem 1.25rem;
+/* Tablet: 1024px and below */
+@media (max-width: 1024px) {
+    .carousel-header {
+        padding: 0 1.5rem 1.25rem;
+    }
+    
+    .view-more-container {
+        right: 1.5rem;
     }
     
     .embla__container {
-        padding: 1.25rem;
+        padding: 1rem 1.5rem;
+        gap: 0.75rem;
+    }
+    
+    .embla__slide {
+        flex: 0 0 260px;
+        min-width: 220px;
+    }
+    
+    .embla__button {
+        display: none;
+    }
+}
+
+/* Tablet: 768px and below */
+@media (max-width: 768px) {
+    .featured-products-carousel {
+        padding: 1.5rem 0;
+        margin: 1.5rem 0;
+    }
+    
+    .carousel-header {
+        padding: 0 1.25rem 1rem;
+    }
+    
+    .carousel-title {
+        font-size: 1.5rem;
+    }
+    
+    .carousel-subtitle {
+        font-size: 0.85rem;
+    }
+    
+    .view-more-container {
+        position: static;
+        margin-top: 0.75rem;
+    }
+    
+    .view-more-btn {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .embla__container {
+        padding: 1rem 1.25rem;
         gap: 0.6rem;
     }
     
     .embla__slide {
         flex: 0 0 220px;
-        min-width: 170px;
-    }
-    
-    .product-carousel .carousel-title {
-        font-size: 1.5rem;
-    }
-    
-    /* Hide arrows on tablet */
-    .embla__button {
-        display: none !important;
-    }
-    
-    /* Enable swipe gestures */
-    .embla__viewport {
-        cursor: grab;
-    }
-    
-    .embla__viewport:active {
-        cursor: grabbing;
-    }
-}
-
-/* Tablet Small: 768px and below */
-@media (max-width: 768px) {
-    .product-carousel .carousel-header {
-        padding: 0.75rem 1.25rem;
-    }
-    
-    .embla__container {
-        padding: 1rem 1.25rem;
-        gap: 0.5rem;
-    }
-    
-    .embla__slide {
-        flex: 0 0 200px;
-        min-width: 180px;
-    }
-    
-    .product-carousel .carousel-title {
-        font-size: 1.4rem;
-    }
-    
-    .view-all-btn {
-        font-size: 0.85rem;
-    }
-    
-    /* Ensure proper swipe area */
-    .embla__viewport {
-        padding: 0;
+        min-width: 200px;
     }
 }
 
 /* Mobile: 480px and below */
 @media (max-width: 480px) {
-    .product-carousel .carousel-header {
-        padding: 0.5rem 1rem;
+    .featured-products-carousel {
+        padding: 1rem 0;
+        margin: 1rem 0;
+    }
+    
+    .carousel-header {
+        padding: 0 1rem 0.75rem;
+    }
+    
+    .carousel-title {
+        font-size: 1.3rem;
+    }
+    
+    .carousel-title .material-symbols-sharp {
+        font-size: 1.5rem;
+    }
+    
+    .carousel-subtitle {
+        font-size: 0.8rem;
     }
     
     .embla__container {
         padding: 0.75rem 1rem;
+        gap: 0.5rem;
+    }
+    
+    .embla__slide {
+        flex: 0 0 180px;
+        min-width: 160px;
+    }
+    
+    .carousel-dots {
         gap: 0.4rem;
+        margin-top: 1rem;
     }
     
-    .embla__slide {
-        flex: 0 0 170px;
-        min-width: 150px;
-    }
-    
-    .embla__slide:last-of-type {
-        margin-right: 1rem;
-    }
-    
-    .product-carousel .carousel-title {
-        font-size: 1.3rem;
-    }
-    
-    .view-all-btn {
-        font-size: 0.8rem;
-        gap: 0.2rem;
-    }
-    
-    /* Skeleton adjustments */
-    .skeleton-card {
-        flex: 0 0 170px;
-        height: 280px;
-    }
-    
-    /* Better touch feedback */
-    .embla__slide {
-        -webkit-tap-highlight-color: transparent;
+    .carousel-dot {
+        width: 6px;
+        height: 6px;
     }
 }
 
 /* Small Mobile: 375px and below */
 @media (max-width: 375px) {
-    .product-carousel .carousel-header {
-        padding: 0.5rem 0.75rem;
+    .carousel-header {
+        padding: 0 0.75rem 0.5rem;
     }
     
     .embla__container {
         padding: 0.5rem 0.75rem;
-        gap: 0.3rem;
     }
     
     .embla__slide {
-        flex: 0 0 155px;
-        min-width: 140px;
-    }
-    
-    .product-carousel .carousel-title {
-        font-size: 1.2rem;
-    }
-    
-    .view-all-btn {
-        font-size: 0.75rem;
-    }
-}
-
-/* Large Desktop: 1440px and above */
-@media (min-width: 1440px) {
-    .embla__slide {
-        flex: 0 0 254px;
-    }
-}
-
-/* Desktop: 1200px to 1439px */
-@media (max-width: 1439px) and (min-width: 1200px) {
-    .embla__slide {
-        flex: 0 0 240px;
+        flex: 0 0 165px;
+        min-width: 150px;
     }
 }
 
 /* ============================================
-   SWIPE GESTURE INDICATORS FOR MOBILE
+   RTL SUPPORT
    ============================================ */
 
-/* Add subtle fade effect on edges to indicate scrollable area */
-.embla__viewport::before,
-.embla__viewport::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    width: 20px;
-    z-index: 1;
-    pointer-events: none;
-}
-
-.embla__viewport::before {
-    left: 0;
-    background: linear-gradient(to right, rgba(255,255,255,0.9), transparent);
-}
-
-.embla__viewport::after {
-    right: 0;
-    background: linear-gradient(to left, rgba(255,255,255,0.9), transparent);
-}
-
-/* Hide gradient indicators when not needed */
-.embla--is-scrollable .embla__viewport::before,
-.embla--is-scrollable .embla__viewport::after {
-    display: block;
-}
-
-.embla--is-not-scrollable .embla__viewport::before,
-.embla--is-not-scrollable .embla__viewport::after {
-    display: none;
-}
-
-/* Show gradient only on mobile/tablet */
-@media (min-width: 993px) {
-    .embla__viewport::before,
-    .embla__viewport::after {
-        display: none;
-    }
-}
-
-/* ============================================
-   IMPROVED TOUCH INTERACTION
-   ============================================ */
-
-@media (hover: none) and (pointer: coarse) {
-    /* Better touch targets for mobile */
-    .embla__slide {
-        margin: 2px;
-    }
-    
-    /* Disable hover effects on touch devices */
-    .embla__button {
-        display: none; /* Already hidden, but ensure it */
-    }
-    
-    .view-all-btn:hover {
-        gap: 0.3rem; /* Keep original gap on mobile */
-    }
-    
-    .view-all-btn:hover::after {
-        transform: scaleX(0);
-        opacity: 0;
-    }
-}
-
-/* Reduced motion support */
-@media (prefers-reduced-motion: reduce) {
-    .embla__container {
-        transition: none;
-    }
-    
-    .view-all-btn,
-    .embla__button {
-        transition: none;
-    }
-}
-
-/* ============================================
-   RTL SUPPORT - ADJUSTED FOR MOBILE
-   ============================================ */
-
-/* RTL: Flip title alignment */
-[dir="rtl"] .product-carousel .carousel-title {
+[dir="rtl"] .carousel-header {
     text-align: right;
 }
 
-/* RTL: Flip 'View All' icon and text order */
-[dir="rtl"] .view-all-btn {
-    flex-direction: row;
+[dir="rtl"] .view-more-container {
+    right: auto;
+    left: 2.5rem;
 }
 
-/* RTL: Flip the icon itself */
-[dir="rtl"] .view-all-btn i,
-[dir="rtl"] .view-all-btn span.material-symbols-sharp {
-    transform: scaleX(1);
-}
-
-/* RTL: Flip the underline origin */
-[dir="rtl"] .view-all-btn::after {
-    transform-origin: right;
-}
-
-/* RTL: Adjust container and slides */
-[dir="rtl"] .embla__container {
-    margin-left: 0;
-    margin-right: 0;
-    direction: rtl;
-}
-
-[dir="rtl"] .embla__slide:first-of-type {
-    padding-right: 0;
-    margin-left: 0;
-}
-
-[dir="rtl"] .embla__slide:last-of-type {
-    margin-left: 2.5rem;
-    margin-right: 0;
-}
-
-/* RTL: Flip button positions */
 [dir="rtl"] .embla__button--prev {
     left: auto;
-    right: 1.25rem;
+    right: 1rem;
 }
 
 [dir="rtl"] .embla__button--next {
     right: auto;
-    left: 1.25rem;
+    left: 1rem;
 }
 
-/* RTL: Adjust gradient indicators */
-[dir="rtl"] .embla__viewport::before {
-    left: auto;
-    right: 0;
-    background: linear-gradient(to left, rgba(255,255,255,0.9), transparent);
+[dir="rtl"] .featured-banner-link .material-symbols-sharp {
+    transform: scaleX(-1);
 }
 
-[dir="rtl"] .embla__viewport::after {
-    right: auto;
-    left: 0;
-    background: linear-gradient(to right, rgba(255,255,255,0.9), transparent);
+/* RTL Mobile */
+@media (max-width: 1024px) {
+    [dir="rtl"] .view-more-container {
+        left: 1.5rem;
+    }
 }
 
-/* RTL Mobile adjustments */
-@media (max-width: 992px) {
-    [dir="rtl"] .embla__container {
-        margin-right: 0;
-        margin-left: 0;
+@media (max-width: 768px) {
+    [dir="rtl"] .view-more-container {
+        left: auto;
+    }
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+    .featured-products-carousel {
+        background: linear-gradient(180deg, #1a1a1a 0%, #0f1111 100%);
     }
     
-    [dir="rtl"] .embla__slide {
-        padding-left: 0;
-        padding-right: 0;
+    .carousel-title {
+        color: #f3f4f6;
     }
-
-    [dir="rtl"] .embla__slide:last-of-type {
-        margin-left: 1.5rem;
+    
+    .carousel-subtitle {
+        color: #9ca3af;
     }
-}
-
-@media (max-width: 480px) {
-    [dir="rtl"] .embla__slide:last-of-type {
-        margin-left: 1rem;
+    
+    .featured-banner-link {
+        color: #7dd3fc;
+    }
+    
+    .featured-banner-link:hover {
+        color: #38bdf8;
+    }
+    
+    .view-more-btn {
+        background: #1f2937;
+        border-color: #374151;
+        color: #f3f4f6;
+    }
+    
+    .view-more-btn:hover {
+        background: #111827;
+        border-color: #7c3aed;
+    }
+    
+    .embla__button {
+        background: #1f2937;
+        border-color: #374151;
+    }
+    
+    .embla__button .material-symbols-sharp {
+        color: #f3f4f6;
+    }
+    
+    .embla__button:hover {
+        background: #111827;
+        border-color: #7c3aed;
     }
 }
