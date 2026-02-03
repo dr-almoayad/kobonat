@@ -1,14 +1,19 @@
 /* HeroCarousel.css */
+
+/* ── Configuration ── */
 :root {
-  --hc-height-mobile: 480px;
-  --hc-height-desktop: 550px;
-  --hc-squircle-clip: url(#SquircleClip-3);
-  --hc-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
-  --hc-color-bg: #0f1115;
-  --hc-color-text: #ffffff;
-  --hc-color-accent: #ff4757; /* Vibrant Red/Pink */
-  --hc-glass-bg: rgba(255, 255, 255, 0.1);
-  --hc-glass-border: rgba(255, 255, 255, 0.15);
+  --hc-height-mobile: 520px;
+  --hc-height-desktop: 600px;
+  
+  --hc-color-bg: #ffffff;
+  --hc-color-text: #0c0e16;  /* Deep Charcoal */
+  --hc-color-sub: #555;
+  --hc-color-accent: #e8412a; /* Original punchy red */
+  
+  --hc-font-main: 'Alexandria', 'Open Sans', sans-serif;
+  --hc-ease-expo: cubic-bezier(0.16, 1, 0.3, 1); /* Snappy and smooth */
+  
+  --hc-squircle-path: url(#SquircleClip-Hero);
 }
 
 .hc-wrapper {
@@ -16,12 +21,13 @@
   width: 100%;
   height: var(--hc-height-mobile);
   background-color: var(--hc-color-bg);
+  font-family: var(--hc-font-main);
   overflow: hidden;
-  font-family: 'Inter', system-ui, sans-serif;
-  contain: paint layout;
+  /* Ensure z-index context */
+  isolation: isolate; 
 }
 
-/* ── Carousel Core ── */
+/* ── Embla Core ── */
 .hc-viewport {
   width: 100%;
   height: 100%;
@@ -39,342 +45,387 @@
   flex: 0 0 100%;
   min-width: 0;
   position: relative;
+  padding: 1rem;
+}
+
+.hc-slide-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+/* ── 1. The Visual Stage (The Squircle) ── */
+.hc-visual-stage {
+  position: relative;
+  width: 100%;
+  height: 70%; /* Occupy most of mobile height */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+  
+  /* Entrance Animation */
+  opacity: 0;
+  transform: scale(0.9);
+  transition: opacity 0.8s ease, transform 0.8s var(--hc-ease-expo);
+}
+
+.hc-slide.is-active .hc-visual-stage {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.hc-squircle-mask {
+  position: relative;
+  width: 100%;
+  max-width: 380px; /* Mobile max width */
+  aspect-ratio: 1 / 1;
+  
+  /* The Shape */
+  clip-path: var(--hc-squircle-path);
+  -webkit-clip-path: var(--hc-squircle-path);
+  
+  /* Drop Shadow Hack: filter on the parent usually helps, 
+     but with clip-path, standard drop-shadow often gets clipped. 
+     We rely on the clean white negative space here. */
+  filter: drop-shadow(0px 20px 40px rgba(0,0,0,0.15));
+}
+
+.hc-img {
+  object-fit: cover;
+  transition: transform 6s ease;
+}
+.hc-slide.is-active .hc-img {
+  transform: scale(1.15); /* Slow zoom effect */
+}
+
+/* Inner shadow to prevent image from looking "stuck" on white */
+.hc-img-vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle, transparent 50%, rgba(0,0,0,0.2) 100%);
+  pointer-events: none;
+}
+
+/* ── 2. Content Layer (Overlays) ── */
+.hc-content-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none; /* Let clicks pass to image/bg */
+}
+
+/* Brand Pill (Top Left) */
+.hc-brand-pill {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  background: #fff;
+  border: 1px solid rgba(0,0,0,0.08);
+  padding: 6px 14px 6px 6px;
+  border-radius: 50px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+  pointer-events: auto;
+  
+  transform: translateY(-20px);
+  opacity: 0;
+  transition: 0.6s var(--hc-ease-expo);
+}
+[dir="rtl"] .hc-brand-pill { left: auto; right: 1rem; padding: 6px 6px 6px 14px; }
+
+.hc-slide.is-active .hc-brand-pill {
+  transform: translateY(0);
+  opacity: 1;
+  transition-delay: 0.2s;
+}
+
+.hc-brand-logo {
+  object-fit: contain;
+}
+.hc-brand-char {
+  width: 32px;
+  height: 32px;
+  background: var(--hc-color-accent);
+  color: #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 14px;
+}
+.hc-brand-name {
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--hc-color-text);
+}
+
+/* Headline (Bottom overlapping image) */
+.hc-headline-wrap {
+  position: absolute;
+  bottom: 4.5rem; /* Make room for CTA */
+  left: 1rem;
+  right: 1rem;
+  text-align: center;
   overflow: hidden;
 }
 
-/* ── 1. Blurred Backdrop ── */
-.hc-slide__backdrop {
-  position: absolute;
-  inset: -10%; /* Slightly larger to avoid edge blur issues */
-  width: 120%;
-  height: 120%;
-  z-index: 1;
-  filter: blur(40px) brightness(0.4);
-  transform: scale(1.1);
-  pointer-events: none;
-}
-.hc-backdrop-img {
-  object-fit: cover;
-}
-.hc-backdrop-overlay {
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(circle at center, transparent 0%, rgba(0,0,0,0.6) 100%);
-}
-
-/* ── 2. Content Grid (The Core Layout) ── */
-.hc-content-grid {
-  position: relative;
-  z-index: 5;
-  width: 100%;
-  height: 100%;
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 1.5rem;
+.hc-headline {
+  margin: 0;
+  font-size: 2.5rem;
+  line-height: 0.95;
+  font-weight: 800;
+  color: var(--hc-color-text);
+  text-transform: uppercase;
+  letter-spacing: -0.03em;
   
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 1.5rem;
+  /* To overlap the image visually on mobile */
+  text-shadow: 2px 2px 0px #fff, -2px -2px 0px #fff, 2px -2px 0px #fff, -2px 2px 0px #fff;
+  
+  transform: translateY(100%);
+  transition: transform 0.8s var(--hc-ease-expo);
 }
-
-/* ── Column: Brand (Top/Left) ── */
-.hc-col-brand {
-  order: 1;
-  width: 100%;
-  display: flex;
-  justify-content: center;
-}
-.hc-brand-wrapper {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.75rem;
-  /* Entrance Animation */
-  opacity: 0;
-  transform: translateY(20px);
-  transition: opacity 0.6s var(--hc-ease-out), transform 0.6s var(--hc-ease-out);
-}
-.hc-slide.is-active .hc-brand-wrapper {
-  opacity: 1;
+.hc-slide.is-active .hc-headline {
   transform: translateY(0);
   transition-delay: 0.1s;
 }
 
-.hc-logo-frame {
-  width: 64px;
-  height: 64px;
-  background: white;
-  border-radius: 16px;
-  padding: 8px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.hc-logo-img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-}
-
-.hc-discount-tag {
-  background: var(--hc-color-accent);
-  color: white;
-  font-size: 0.75rem;
+.hc-headline-highlight {
+  display: block;
+  font-size: 0.5em; /* Smaller relative to headline */
+  color: var(--hc-color-accent);
   font-weight: 700;
-  text-transform: uppercase;
-  padding: 0.25rem 0.75rem;
-  border-radius: 20px;
-  box-shadow: 0 4px 12px rgba(255, 71, 87, 0.4);
+  margin-top: 0.2rem;
+  letter-spacing: 0.05em;
 }
 
-/* ── Column: Visual (Center) - The Squircle ── */
-.hc-col-visual {
-  order: 2;
-  flex-grow: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  max-height: 50%; /* Cap height on mobile */
-}
-
-.hc-squircle-frame {
-  position: relative;
-  width: min(80vw, 320px);
-  aspect-ratio: 1 / 1;
-  /* The Magic Clip */
-  clip-path: var(--hc-squircle-clip);
-  -webkit-clip-path: var(--hc-squircle-clip);
-  
-  /* Animation: Pop In */
-  transform: scale(0.92);
-  opacity: 0;
-  transition: transform 0.8s var(--hc-ease-out), opacity 0.8s ease;
-  box-shadow: 0 20px 50px rgba(0,0,0,0.5); /* Note: shadow clips with clip-path, usually requires wrapper. Relying on bg depth here. */
-}
-
-.hc-slide.is-active .hc-squircle-frame {
-  transform: scale(1);
-  opacity: 1;
-}
-
-.hc-squircle-img {
-  object-fit: cover;
-  transition: transform 6s ease; /* Subtle zoom */
-}
-.hc-slide.is-active .hc-squircle-img {
-  transform: scale(1.1);
-}
-
-/* Inner Shine/Border */
-.hc-squircle-shine {
+/* CTA Button (Bottom Center) */
+.hc-cta-wrap {
   position: absolute;
-  inset: 0;
-  border: 1px solid rgba(255,255,255,0.2);
-  /* Clip needs to be applied here too or it shows a square border */
-  clip-path: var(--hc-squircle-clip);
-  -webkit-clip-path: var(--hc-squircle-clip);
-  background: linear-gradient(135deg, rgba(255,255,255,0.25) 0%, transparent 40%);
-  pointer-events: none;
-  z-index: 2;
-}
-
-/* ── Column: Info (Bottom/Right) ── */
-.hc-col-info {
-  order: 3;
+  bottom: 1rem;
+  left: 0;
   width: 100%;
-  text-align: center;
-  /* Overlap logic handled in desktop media query */
-}
-
-.hc-info-wrapper {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1rem;
+  justify-content: center;
+  pointer-events: auto;
   
-  /* Entrance Animation */
   opacity: 0;
-  transform: translateY(30px);
-  transition: opacity 0.6s var(--hc-ease-out), transform 0.6s var(--hc-ease-out);
+  transform: translateY(10px);
+  transition: 0.6s ease;
 }
-.hc-slide.is-active .hc-info-wrapper {
+.hc-slide.is-active .hc-cta-wrap {
   opacity: 1;
   transform: translateY(0);
-  transition-delay: 0.2s;
+  transition-delay: 0.3s;
 }
 
-.hc-headline {
-  font-size: 1.75rem;
-  font-weight: 800;
-  line-height: 1.1;
-  color: white;
-  margin: 0;
-  text-shadow: 0 2px 10px rgba(0,0,0,0.3);
-}
-
-.hc-cta-btn {
-  display: inline-flex;
+.hc-cta-button {
+  background: var(--hc-color-text);
+  color: #fff;
+  padding: 0 24px;
+  height: 52px;
+  border-radius: 26px; /* Pill shape */
+  display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1.5rem;
-  background: rgba(255, 255, 255, 0.95);
-  color: #000;
+  gap: 12px;
   text-decoration: none;
   font-weight: 600;
-  font-size: 0.9rem;
-  border-radius: 30px;
-  transition: gap 0.2s ease, transform 0.2s ease;
+  font-size: 0.95rem;
+  transition: background 0.3s, gap 0.3s;
 }
-.hc-cta-btn:hover {
-  gap: 0.75rem;
-  transform: scale(1.03);
-}
-.arrow-icon {
-  font-size: 1.1em;
+.hc-cta-button:hover {
+  background: var(--hc-color-accent);
+  gap: 16px;
 }
 
-/* ─── DESKTOP LAYOUT (1024px+) ───────────────────────────── */
+/* ── UI Layer (Arrows/Dots) ── */
+.hc-ui-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.hc-dots {
+  position: absolute;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  display: flex;
+  gap: 6px;
+  pointer-events: auto;
+}
+/* Hide dots on mobile if they clash with CTA, or move them */
+@media (max-width: 767px) {
+  .hc-dots { display: none; }
+}
+
+.hc-dot {
+  width: 30px;
+  height: 4px;
+  background: rgba(0,0,0,0.1);
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  border-radius: 2px;
+  overflow: hidden;
+}
+.hc-dot-bar {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: var(--hc-color-accent);
+  transform: translateX(-100%);
+  transition: transform 0.3s;
+}
+.hc-dot.is-active .hc-dot-bar {
+  transform: translateX(0);
+}
+
+.hc-arrows {
+  display: none; /* Hidden on mobile */
+}
+
+/* ─── DESKTOP (1024px+) - The Magazine Layout ─── */
 @media (min-width: 1024px) {
   .hc-wrapper {
     height: var(--hc-height-desktop);
   }
 
-  .hc-content-grid {
-    flex-direction: row; /* Switch to Row */
-    display: grid;
-    /* 1fr (Brand) | auto (Image) | 1fr (Info) */
-    grid-template-columns: 1fr auto 1fr;
-    align-items: center;
-    justify-content: space-between;
+  .hc-slide-inner {
+    flex-direction: row; /* Horizontal layout */
     padding: 0 4rem;
   }
 
-  /* 1. Left: Brand */
-  .hc-col-brand {
-    order: 0; /* Natural order */
-    justify-content: flex-start;
-  }
-  .hc-brand-wrapper {
-    align-items: flex-start; /* Left align text */
-    /* Overlap: Push closer to image */
-    margin-inline-end: -40px; 
-    z-index: 6; /* Sit on top of image edge */
-  }
-  .hc-logo-frame {
-    width: 80px;
-    height: 80px;
-  }
-  .hc-discount-tag {
-    font-size: 0.9rem;
-    margin-left: 10px; /* Slight offset for style */
-  }
-  [dir="rtl"] .hc-discount-tag { margin-left: 0; margin-right: 10px; }
-
-  /* 2. Center: Squircle */
-  .hc-col-visual {
-    order: 1;
-    max-height: 100%;
-    /* No flex grow, fixed size logic */
+  /* 1. Visual Stage (Center) */
+  .hc-visual-stage {
+    height: 100%;
+    width: auto;
     flex-grow: 0;
+    margin: 0 -30px; /* Negative margin to pull text in */
   }
-  .hc-squircle-frame {
-    width: 420px; /* Large fixed size */
-    transition: transform 0.5s ease;
-  }
-  
-  /* 3. Right: Info */
-  .hc-col-info {
-    order: 2;
-    text-align: left;
-  }
-  [dir="rtl"] .hc-col-info { text-align: right; }
 
-  .hc-info-wrapper {
-    align-items: flex-start;
-    /* Overlap: Pull left over image */
-    margin-inline-start: -60px;
-    z-index: 6;
+  .hc-squircle-mask {
+    max-width: none;
+    height: 90%; /* Very tall image */
+    width: auto;
+    aspect-ratio: 1/1;
   }
-  [dir="rtl"] .hc-info-wrapper { align-items: flex-start; }
+
+  /* 2. Content Layer - Becomes Static Grid on Desktop */
+  .hc-content-layer {
+    position: relative;
+    inset: auto;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  /* Text Group Left (Headline) */
+  .hc-headline-wrap {
+    position: relative;
+    bottom: auto;
+    left: auto;
+    right: auto;
+    text-align: left;
+    width: 40%;
+    z-index: 5; /* Overlap image */
+  }
+  [dir="rtl"] .hc-headline-wrap { text-align: right; }
 
   .hc-headline {
-    font-size: 3.5rem; /* Big impact font */
-    max-width: 400px;
+    font-size: 4.5rem; /* Massive */
+    color: var(--hc-color-text);
+    /* No text shadow on desktop needed if designed well, 
+       but we keep a subtle white glow for legibility over overlap */
+    text-shadow: 3px 3px 0px #fff; 
   }
-  .hc-cta-btn {
-    font-size: 1rem;
-    padding: 1rem 2rem;
+
+  .hc-headline-highlight {
+    font-size: 1.25rem;
+    display: inline-block;
+    vertical-align: middle;
+    background: var(--hc-color-accent);
+    color: #fff;
+    padding: 4px 12px;
+    border-radius: 4px;
+    margin-left: 15px;
+    transform: translateY(-8px);
   }
-}
 
-/* ── Controls ── */
-.hc-controls {
-  position: absolute;
-  bottom: 2rem;
-  left: 0;
-  width: 100%;
-  pointer-events: none;
-  display: flex;
-  justify-content: center;
-  z-index: 10;
-}
+  /* Info Group Right (Logo + CTA) */
+  .hc-cta-wrap {
+    position: relative;
+    bottom: auto;
+    left: auto;
+    width: 30%;
+    flex-direction: column;
+    align-items: flex-end; /* Align right */
+    justify-content: center;
+    gap: 2rem;
+    z-index: 5;
+  }
+  [dir="rtl"] .hc-cta-wrap { align-items: flex-start; }
 
-.hc-dots {
-  display: flex;
-  gap: 8px;
-  pointer-events: auto;
-}
-.hc-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: rgba(255,255,255,0.3);
-  border: none;
-  cursor: pointer;
-  transition: all 0.3s;
-  padding: 0;
-}
-.hc-dot.is-active {
-  background: #fff;
-  transform: scale(1.4);
-}
+  .hc-brand-pill {
+    position: relative;
+    top: auto;
+    left: auto;
+    right: auto;
+    transform: translateX(20px); /* Slide in logic handled by carousel parent, keep static here */
+    box-shadow: none;
+    background: transparent;
+    border: none;
+    padding: 0;
+  }
+  .hc-brand-char { width: 48px; height: 48px; font-size: 1.2rem; }
+  .hc-brand-name { font-size: 1.1rem; }
 
-.hc-arrows {
-  position: absolute;
-  top: 50%; /* Center vertically relative to wrapper, not controls */
-  left: 0;
-  right: 0;
-  transform: translateY(-500%); /* Move up to middle of slider */
-  display: flex;
-  justify-content: space-between;
-  padding: 0 1.5rem;
-  pointer-events: none; /* Let clicks pass through gap */
-}
-@media (min-width: 1024px) {
-  .hc-arrows { transform: translateY(-750%); padding: 0 2rem; }
-}
+  .hc-cta-button {
+    height: 60px;
+    padding: 0 32px;
+    font-size: 1.1rem;
+    border-radius: 30px;
+  }
 
-.hc-nav-btn {
-  pointer-events: auto;
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background: rgba(255,255,255,0.1);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255,255,255,0.2);
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: background 0.2s, transform 0.2s;
-}
-.hc-nav-btn:hover {
-  background: white;
-  color: black;
-  transform: scale(1.1);
+  /* Controls */
+  .hc-arrows {
+    display: flex;
+    justify-content: space-between;
+    position: absolute;
+    top: 50%;
+    left: 2rem;
+    right: 2rem;
+    transform: translateY(-50%);
+    pointer-events: none;
+  }
+  
+  .hc-arrow {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    border: 1px solid #e5e5e5;
+    background: #fff;
+    color: var(--hc-color-text);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    pointer-events: auto;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  }
+  .hc-arrow:hover {
+    border-color: var(--hc-color-text);
+    transform: scale(1.05);
+  }
 }
