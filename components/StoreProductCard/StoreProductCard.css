@@ -62,7 +62,7 @@
   --r: .4em; /* control the ribbon shape (the radius) */
   --c: #e3392d;
   position: absolute;
-  bottom: 20px;
+  bottom: -10px;
   inset-inline: calc(-1*var(--r));
   text-align: center;
   line-height: 1.8; 
