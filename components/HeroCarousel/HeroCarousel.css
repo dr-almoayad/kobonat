@@ -14,10 +14,10 @@
   --hc-ease: cubic-bezier(0.4, 0, 0.2, 1);
   
   /* Slide sizing - Fixed for visibility */
-  --hc-slide-active-width: 70%; /* Active slide takes 70% */
-  --hc-slide-inactive-width: 30%; /* Inactive slides take 30% */
-  --hc-slide-inactive-scale: 0.85;
-  --hc-slide-inactive-opacity: 0.6;
+  --hc-slide-active-width: 1280px; /* Active slide takes 70% */
+  --hc-slide-inactive-width: 1280px; /* Inactive slides take 30% */
+  --hc-slide-inactive-scale: 1
+  --hc-slide-inactive-opacity: 1;
 }
 
 /* ─── WRAPPER ───────────────────────────────────────────────── */
