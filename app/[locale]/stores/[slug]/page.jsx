@@ -369,8 +369,6 @@ export default async function UnifiedStorePage({ params }) {
         select: {  // Use select instead of include for better control
           id: true,
           image: true,
-          price: true,
-          originalPrice: true,
           productUrl: true,
           discountValue: true,  // ADD THIS
           discountType: true,   // ADD THIS
