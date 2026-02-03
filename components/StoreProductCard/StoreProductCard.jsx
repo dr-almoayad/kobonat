@@ -1,4 +1,4 @@
-// components/StoreProductCard/StoreProductCard.jsx - SIMPLIFIED FOR COUPONS PLATFORM
+// components/StoreProductCard/StoreProductCard.jsx - AMAZON STYLE
 'use client';
 import React, { useState } from 'react';
 import Image from 'next/image';
@@ -39,76 +39,79 @@ const StoreProductCard = ({ product, storeName, storeLogo }) => {
     ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
     : null;
 
+  // Split price into whole and decimal parts
+  const priceWhole = Math.floor(product.price);
+  const priceCents = Math.round((product.price % 1) * 100);
+
   return (
     <article className="store-product-card" onClick={handleClick}>
-      {/* Product Image */}
+      {/* Product Image Container */}
       <div className="product-image-wrapper">
-        <Image
-          src={product.image}
-          alt={product.title}
-          width={300}
-          height={300}
-          className="product-image"
-        />
+        {/* Discount Badge - Top Left (Amazon style) */}
+        {discountPercentage && discountPercentage > 0 && (
+          <div className="discount-badge">
+            {discountPercentage}% {t('off', { default: 'OFF' })}
+          </div>
+        )}
 
-        {/* Store Logo (small) */}
+        {/* Store Badge - Top Right (Sponsored style) */}
         {storeLogo && (
           <div className="store-badge">
             <Image
               src={storeLogo}
               alt={storeName}
-              width={100}
-              height={100}
+              width={60}
+              height={20}
               className="store-logo-mini"
             />
           </div>
         )}
-        
-        {/* Discount Badge */}
-        {discountPercentage && discountPercentage > 0 && (
-          <div className="discount-badge">
-            <span className="percentage">-{discountPercentage}%</span>
-          </div>
-        )}
+
+        {/* Product Image */}
+        <Image
+          src={product.image}
+          alt={product.title}
+          width={280}
+          height={280}
+          className="product-image"
+        />
       </div>
 
-      {/* Product Info */}
+      {/* Product Info Section */}
       <div className="product-info">
-
-        {/* Title */}
+        {/* Product Title */}
         <h3 className="product-title">{product.title}</h3>
 
-        {/* Pricing */}
-        <div className="product-pricing">
-          <div className="current-price">
-            <span className="currency">
-              <span className="icon-saudi_riyal_new"></span>
-            </span>
-            <span className="amount">
-              {Math.floor(product.price)}
-            </span>
-            <sup className="cents">
-              {(product.price % 1).toFixed(2).substring(1)}
-            </sup>
+        {/* Optional: Savings Text */}
+        {discountPercentage && (
+          <div className="savings-text">
+            {t('save', { default: 'Save' })} {discountPercentage}%
           </div>
+        )}
 
-          {product.originalPrice && (
-            <div className="original-price">
-              <span className="icon-saudi_riyal_new"></span>
-              {product.originalPrice.toFixed(2)}
-            </div>
-          )}
+        {/* Optional: Delivery Info */}
+        <div className="delivery-info">
+          {t('freeDelivery', { default: 'FREE delivery' })}
         </div>
 
-        {/* CTA Button */}
+        {/* Shop Now Button - Amazon Yellow */}
         <button 
           className={`shop-now-btn ${isClicked ? 'clicked' : ''}`}
           disabled={isClicked}
         >
-          <span>{t('shopNow')}</span>
-          <span className={`material-symbols-sharp ${isRtl ? 'flip-icon' : ''}`}>
-            arrow_outward
-          </span>
+          {isClicked ? (
+            <>
+              <span className="material-symbols-sharp">check_circle</span>
+              <span>{t('opening', { default: 'Opening...' })}</span>
+            </>
+          ) : (
+            <>
+              <span>{t('checkPrice', { default: 'Check price' })}</span>
+              <span className="material-symbols-sharp">
+                arrow_outward
+              </span>
+            </>
+          )}
         </button>
       </div>
     </article>
