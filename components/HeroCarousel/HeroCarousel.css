@@ -27,7 +27,7 @@
   margin: 0 auto 2rem;
   height: 420px; /* Reduced from 500px to 400px */
   padding: 1.5rem 0;
-  background: transparent;
+  background: #fff;
   overflow: visible;
 }
 
@@ -143,14 +143,7 @@
   right: 0;
   z-index: 3;
   padding: 1.5rem;
-  background: linear-gradient(
-    to top,
-    rgba(255, 255, 255, 0.98) 0%,
-    rgba(255, 255, 255, 0.95) 30%,
-    rgba(255, 255, 255, 0.85) 100%
-  );
-  backdrop-filter: blur(10px);
-  border-top: 1px solid rgba(255, 255, 255, 0.8);
+  background: none;
   
   /* Hidden for inactive slides */
   opacity: 0;
@@ -464,13 +457,11 @@
   }
   
   .hc-nav {
-    width: 36px;
-    height: 36px;
-    opacity: 0.8;
+    display: none;
   }
   
-  .hc-nav--prev { left: 0.5rem; }
-  .hc-nav--next { right: 0.5rem; }
+  .hc-nav--prev { display: none; }
+  .hc-nav--next { display: none; }
   
   .hc-dots {
     bottom: 0.75rem;
