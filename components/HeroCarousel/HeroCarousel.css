@@ -6,7 +6,7 @@
   --hc-radius: 24px;
   --hc-accent: #d32f2f; /* RetailMeNot red color */
   --hc-accent-light: #ff6659;
-  --hc-bg: #ffffff;
+  --hc-bg: transparent;
   --hc-text: #333333;
   --hc-text-light: #666666;
   --hc-border: #e0e0e0;
@@ -56,11 +56,9 @@
   height: 85%;
   border-radius: var(--hc-radius);
   overflow: hidden;
-  box-shadow: var(--hc-shadow);
   opacity: var(--hc-slide-inactive-opacity);
   transform: scale(var(--hc-slide-inactive-scale));
   transition: all 0.5s var(--hc-ease);
-  background: var(--hc-bg);
 }
 
 /* Active slide styling */
@@ -70,22 +68,13 @@
   opacity: 1;
   transform: scale(1);
   z-index: 2;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
 }
 
 /* Adjacent slides (prev/next) - Now visible */
 .hc-embla__slide.is-prev,
 .hc-embla__slide.is-next {
   flex: 0 0 var(--hc-slide-inactive-width);
-  opacity: 0.6;
-  transform: scale(0.9);
   z-index: 1;
-}
-
-/* Far away slides - Less visible */
-.hc-embla__slide:not(.is-active):not(.is-prev):not(.is-next) {
-  opacity: 0.3;
-  transform: scale(0.8);
 }
 
 /* ─── SLIDE INTERNALS ───────────────────────────────────────── */
