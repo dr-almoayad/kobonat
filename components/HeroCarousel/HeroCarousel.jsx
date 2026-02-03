@@ -4,31 +4,31 @@ import React, { useCallback, useEffect, useState, useRef } from 'react';
 import Image from 'next/image';
 import useEmblaCarousel from 'embla-carousel-react';
 import Autoplay from 'embla-carousel-autoplay';
-import { flushSync } from 'react-dom';
 import './HeroCarousel.css';
 
-/* ── Global SVG Defs for Squircle Clip ── */
-const SquircleDefs = () => (
+/* ── Inline SVG Definitions ── */
+const CarouselDefs = () => (
   <svg width="0" height="0" style={{ position: 'absolute' }} aria-hidden="true">
     <defs>
-      <clipPath id="SquircleClip-3" clipPathUnits="objectBoundingBox">
+      {/* The Requested Squircle Shape */}
+      <clipPath id="SquircleClip-Hero" clipPathUnits="objectBoundingBox">
         <path d="M 0,0.5 C 0,0.115  0.115,0  0.5,0 0.885,0  1,0.115  1,0.5 1,0.885  0.885,1  0.5,1 0.115,1  0,0.885  0,0.5" />
       </clipPath>
     </defs>
   </svg>
 );
 
-const ChevronLeft = () => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6" /></svg>
-);
-const ChevronRight = () => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6" /></svg>
+/* ── Icons ── */
+const ArrowIcon = ({ direction = 'right' }) => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ transform: direction === 'left' ? 'rotate(180deg)' : 'none' }}>
+    <path d="M5 12h14M12 5l7 7-7 7" />
+  </svg>
 );
 
 const HeroCarousel = ({
   images = [],
   locale = 'en-SA',
-  autoplayDelay = 6000,
+  autoplayDelay = 5500,
   showDots = true,
   showArrows = true,
 }) => {
@@ -43,7 +43,7 @@ const HeroCarousel = ({
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [scrollSnaps, setScrollSnaps] = useState([]);
 
-  // ── Navigation ────────────────────────────────────────
+  // ── Navigation Logic ──
   const scrollPrev = useCallback(() => emblaApi?.scrollPrev(), [emblaApi]);
   const scrollNext = useCallback(() => emblaApi?.scrollNext(), [emblaApi]);
   const scrollTo = useCallback((index) => {
@@ -71,76 +71,69 @@ const HeroCarousel = ({
   if (!images.length) return null;
 
   return (
-    <div className="hc-wrapper" dir={isRtl ? 'rtl' : 'ltr'}>
-      {/* Inject Clip Path Definition */}
-      <SquircleDefs />
+    <section className="hc-wrapper" dir={isRtl ? 'rtl' : 'ltr'}>
+      <CarouselDefs />
 
       <div className="hc-viewport" ref={emblaRef}>
         <div className="hc-container">
           {images.map((item, index) => {
             const isActive = index === selectedIndex;
-            const ctaText = item.ctaText || (isRtl ? 'اكتشف المزيد' : 'Shop Collection');
+            // Default Text Handling
+            const ctaText = item.ctaText || (isRtl ? 'تسوق المجموعة' : 'Explore Collection');
+            const ctaUrl = item.ctaUrl || '#';
+            const brandInitial = item.name ? item.name.charAt(0) : 'S';
 
             return (
               <div key={item.id || index} className={`hc-slide ${isActive ? 'is-active' : ''}`}>
-                
-                {/* 1. Blurred Backdrop */}
-                <div className="hc-slide__backdrop">
-                  <Image 
-                    src={item.image} 
-                    alt="" 
-                    fill 
-                    className="hc-backdrop-img"
-                    sizes="100vw"
-                    priority={index === 0}
-                  />
-                  <div className="hc-backdrop-overlay" />
-                </div>
-
-                {/* 2. Main Content Grid */}
-                <div className="hc-content-grid">
+                <div className="hc-slide-inner">
                   
-                  {/* Left Column: Branding (Logo + Badge) */}
-                  <div className="hc-col-brand">
-                    <div className="hc-brand-wrapper">
-                      {item.logo && (
-                        <div className="hc-logo-frame">
-                          <Image src={item.logo} alt={item.name} width={60} height={60} className="hc-logo-img" />
-                        </div>
-                      )}
-                      {item.discount && (
-                        <span className="hc-discount-tag">{item.discount}</span>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Center Column: Squircle Image */}
-                  <div className="hc-col-visual">
-                    <div className="hc-squircle-frame">
+                  {/* ── 1. The Visual Stage (Center) ── */}
+                  <div className="hc-visual-stage">
+                    <div className="hc-squircle-mask">
                       <Image 
                         src={item.image} 
-                        alt={item.name} 
+                        alt={item.name || "Cover"} 
                         fill 
-                        className="hc-squircle-img"
-                        sizes="(max-width: 768px) 90vw, 400px"
+                        className="hc-img"
+                        sizes="(max-width: 768px) 100vw, 50vw"
                         priority={index === 0}
                       />
-                      {/* Inner border shine effect */}
-                      <div className="hc-squircle-shine" />
+                      {/* Subtle inner shadow overlay for depth inside the shape */}
+                      <div className="hc-img-vignette" />
                     </div>
                   </div>
 
-                  {/* Right Column: Text & CTA */}
-                  <div className="hc-col-info">
-                    <div className="hc-info-wrapper">
-                      <h2 className="hc-headline">{item.name}</h2>
-                      <a href={item.ctaUrl || '#'} className="hc-cta-btn">
-                        {ctaText}
-                        <span className="material-symbols-sharp arrow-icon">
-                          {isRtl ? 'arrow_back' : 'arrow_forward'}
-                        </span>
-                      </a>
+                  {/* ── 2. The Text Overlay (Magazine Style) ── */}
+                  <div className="hc-content-layer">
+                    
+                    {/* Top Left: Floating Logo Pill */}
+                    <div className="hc-brand-pill">
+                      {item.logo ? (
+                        <Image src={item.logo} alt="Logo" width={32} height={32} className="hc-brand-logo" />
+                      ) : (
+                        <span className="hc-brand-char">{brandInitial}</span>
+                      )}
+                      <span className="hc-brand-name">{item.name}</span>
                     </div>
+
+                    {/* Left/Bottom: Massive Headline */}
+                    <div className="hc-headline-wrap">
+                      <h2 className="hc-headline">
+                        {item.name}
+                        {item.discount && <span className="hc-headline-highlight">{item.discount}</span>}
+                      </h2>
+                    </div>
+
+                    {/* Right/Bottom: Call to Action */}
+                    <div className="hc-cta-wrap">
+                       <a href={ctaUrl} className="hc-cta-button">
+                          <span>{ctaText}</span>
+                          <span className="hc-cta-icon">
+                            <ArrowIcon direction={isRtl ? 'left' : 'right'} />
+                          </span>
+                       </a>
+                    </div>
+
                   </div>
 
                 </div>
@@ -150,15 +143,15 @@ const HeroCarousel = ({
         </div>
       </div>
 
-      {/* Controls */}
-      <div className="hc-controls">
+      {/* ── Minimal Controls ── */}
+      <div className="hc-ui-layer">
         {showArrows && (
           <div className="hc-arrows">
-            <button onClick={scrollPrev} className="hc-nav-btn" aria-label="Previous">
-              {isRtl ? <ChevronRight /> : <ChevronLeft />}
+            <button onClick={scrollPrev} className="hc-arrow hc-arrow--prev" aria-label="Previous">
+               <ArrowIcon direction={isRtl ? 'right' : 'left'} />
             </button>
-            <button onClick={scrollNext} className="hc-nav-btn" aria-label="Next">
-              {isRtl ? <ChevronLeft /> : <ChevronRight />}
+            <button onClick={scrollNext} className="hc-arrow hc-arrow--next" aria-label="Next">
+               <ArrowIcon direction={isRtl ? 'left' : 'right'} />
             </button>
           </div>
         )}
@@ -170,13 +163,15 @@ const HeroCarousel = ({
                 key={idx}
                 className={`hc-dot ${idx === selectedIndex ? 'is-active' : ''}`}
                 onClick={() => scrollTo(idx)}
-                aria-label={`Slide ${idx + 1}`}
-              />
+                aria-label={`Go to slide ${idx + 1}`}
+              >
+                <span className="hc-dot-bar" />
+              </button>
             ))}
           </div>
         )}
       </div>
-    </div>
+    </section>
   );
 };
 
