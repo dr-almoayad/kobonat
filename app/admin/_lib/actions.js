@@ -224,19 +224,19 @@ export async function updateStoreCategories(id, formData) {
 export async function createStoreProduct(formData) {
   try {
     const storeId = parseInt(formData.get('storeId'));
-    const price = parseFloat(formData.get('price'));
-    const originalPrice = formData.get('originalPrice') ? parseFloat(formData.get('originalPrice')) : null;
+    const discountValue = formData.get('discountValue') ? parseFloat(formData.get('discountValue')) : null;
+    const discountType = formData.get('discountType') || 'PERCENTAGE';
 
-    const isFeatured = formData.get('isFeatured') === true; // Convert "on" to true, else false
+    const isFeatured = formData.get('isFeatured') === 'on';
 
     const product = await prisma.storeProduct.create({
       data: {
         storeId,
         image: formData.get('image'),
-        price,
-        originalPrice,
+        discountValue,
+        discountType,
         productUrl: formData.get('productUrl'),
-        isFeatured: isFeatured, // <--- Add this line
+        isFeatured: isFeatured,
         order: parseInt(formData.get('order') || '0'),
         translations: {
           create: [
@@ -265,19 +265,19 @@ export async function createStoreProduct(formData) {
 
 export async function updateStoreProduct(id, formData) {
   try {
-    const price = parseFloat(formData.get('price'));
-    const originalPrice = formData.get('originalPrice') ? parseFloat(formData.get('originalPrice')) : null;
+    const discountValue = formData.get('discountValue') ? parseFloat(formData.get('discountValue')) : null;
+    const discountType = formData.get('discountType') || 'PERCENTAGE';
 
-    const isFeatured = formData.get('isFeatured') === true;
+    const isFeatured = formData.get('isFeatured') === 'on';
+    
     const updatedProduct = await prisma.storeProduct.update({
       where: { id: parseInt(id) },
       data: {
         image: formData.get('image'),
-        isFeatured: isFeatured,
-        price,
-        originalPrice,
+        discountValue,
+        discountType,
         productUrl: formData.get('productUrl'),
-        isFeatured: formData.get('isFeatured') === 'on',
+        isFeatured: isFeatured,
         order: parseInt(formData.get('order') || '0')
       }
     });
@@ -311,6 +311,9 @@ export async function updateStoreProduct(id, formData) {
     return { error: error.message };
   }
 }
+
+
+
 
 export async function deleteStoreProduct(id) {
   try {
