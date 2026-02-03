@@ -9,12 +9,12 @@ import './HeroCarousel.css';
 
 /* ── inline SVG arrows ── */
 const ChevronLeft = () => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M15 18l-6-6 6-6" />
   </svg>
 );
 const ChevronRight = () => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M9 18l6-6-6-6" />
   </svg>
 );
@@ -197,7 +197,7 @@ const HeroCarousel = ({
               >
                 <div className="hc-slide">
 
-                  {/* Parallax image - Simplified for side peeking */}
+                  {/* Parallax image */}
                   <div className="hc-slide__parallax">
                     <div className="hc-slide__img-wrap">
                       <Image
@@ -206,7 +206,7 @@ const HeroCarousel = ({
                         fill
                         priority={index === selectedIndex}
                         className="hc-slide__img"
-                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 1000px"
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                         quality={index === selectedIndex ? 90 : 70}
                       />
                     </div>
@@ -225,8 +225,8 @@ const HeroCarousel = ({
                           <Image 
                             src={logo} 
                             alt={`${name} logo`} 
-                            width={90} 
-                            height={90} 
+                            width={70} 
+                            height={70} 
                             quality={90}
                             style={{ objectFit: 'contain' }}
                           />
