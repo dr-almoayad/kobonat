@@ -2,31 +2,26 @@
 
 /* --- Card Container --- */
 .store-product-card {
+  max-width: 240px;
   position: relative;
   display: flex;
   flex-direction: column;
-  background: #ffffff;
-  border: 1px solid #e5e7eb; /* Subtle neutral border */
-  border-radius: 12px;
+  background: none;
   overflow: hidden;
   cursor: pointer;
   /* Minimal transition for touch feedback */
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
-  height: 100%; /* Ensure uniform height in grids */
+  height: fit-content; /* Ensure uniform height in grids */
 }
 
 /* Touch active state (Mobile feedback) */
 .store-product-card:active {
   background-color: #f9fafb;
-  border-color: #d1d5db;
 }
 
 /* Desktop Hover State - Only apply on devices that support hover */
 @media (hover: hover) {
-  .store-product-card:hover {
-    border-color: #470ae2;
+  .store-product-card:hover  .product-image-wrapper{
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); /* Soft, professional shadow */
-    transform: translateY(-2px);
   }
 }
 
@@ -37,6 +32,7 @@
   aspect-ratio: 1 / 1; /* Square is often best for mobile uniformity */
   background: #f3f4f6; /* Light gray placeholder background */
   overflow: hidden;
+  border-radius: 24px;
   border-bottom: 1px solid #f3f4f6;
 }
 
@@ -57,31 +53,25 @@
 
 /* --- Discount Badge (The Hero) --- */
 .discount-badge {
+  font-size: 1.25rem;
+  font-weight: bold;
+  color: #fff;
+  --r: .4em; /* control the ribbon shape (the radius) */
+  --c: #FA6900;
   position: absolute;
-  top: 10px;
-  right: 10px; /* Standard position */
-  z-index: 10;
-  
-  /* Visuals */
-  background-color: #dc2626; /* Professional "Offer" Red */
-  color: #ffffff;
-  
-  /* Typography */
-  font-family: 'Alexandria', sans-serif;
-  font-size: 0.875rem; /* ~14px - Large and readable */
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  
-  /* Shape & Spacing */
-  padding: 6px 12px;
-  border-radius: 999px; /* Pill shape is modern & friendly */
-  box-shadow: 0 2px 4px rgba(220, 38, 38, 0.2); /* Coloured shadow adds depth */
-  
-  /* Alignment */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 3.5rem;
+  bottom: 20px;
+  left: calc(-1*var(--r));
+  line-height: 1.8; 
+  padding: calc(2*var(--r)) .5em 0;
+  border-radius: var(--r) 0 0 var(--r);
+  background: 
+    radial-gradient(100% 50% at left,var(--c) 98%,#0000 101%)
+     100% 100%/.5lh calc(100% - 2*var(--r)),
+    radial-gradient(100% 50% at right,#0005 98%,#0000 101%) 
+     0 0/var(--r) calc(2*var(--r)),
+    conic-gradient(at var(--r) calc(2*var(--r)),#0000 25%,var(--c) 0)
+     0 0/calc(101% - .5lh) 100%;
+  background-repeat: no-repeat;   
 }
 
 /* --- Store Badge --- */
