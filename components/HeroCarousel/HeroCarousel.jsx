@@ -20,18 +20,16 @@ const ChevronRight = () => (
 );
 
 /**
- * HeroCarousel
- *
- * Props (each item in `images` array):
+ * HeroCarousel - RetailMeNot Style
+ * 
+ * Props (same as original):
  *   image        – cover image URL (required)
- *   logo         – store logo URL  (renders inside frosted pill)
- *   name         – store name      (shown under badge)
- *   discount     – e.g. "Up to 60% off" (badge text; if omitted badge is hidden)
- *   ctaText      – link label (defaults to "Explore Deals")
- *   ctaUrl       – link href  (defaults to "#")
- *
- * Component Props:
- *   locale, autoplayDelay, showDots, showArrows
+ *   logo         – store logo URL  (renders inside pill)
+ *   name         – store name
+ *   discount     – discount text
+ *   ctaText      – link label
+ *   ctaUrl       – link href
+ *   description  – store description
  */
 const HeroCarousel = ({
   images = [],
@@ -73,7 +71,7 @@ const HeroCarousel = ({
           }
         });
       }
-      return diff * (-12) + '%'; // 12% parallax — smooth on mobile
+      return diff * (-10) + '%'; // Slightly reduced parallax for cleaner look
     });
     setTweenValues(styles);
   }, [emblaApi]);
@@ -115,10 +113,45 @@ const HeroCarousel = ({
   }, [emblaApi, onSelect, onScroll]);
 
   // ── Early exit ────────────────────────────────────────
-  if (!images || images.length === 0) return null;
+  if (!images || images.length === 0) {
+    // Fallback default images if none provided
+    const defaultImages = [
+      {
+        id: 1,
+        image: '/hero/hero1.jpg',
+        logo: '/stores/boohoo-logo.png',
+        name: 'BoohooMAN',
+        discount: 'Extra 15% Off',
+        description: 'For RMN Shoppers',
+        ctaText: 'SHOP NOW',
+        ctaUrl: '#'
+      },
+      {
+        id: 2,
+        image: '/hero/hero2.jpg',
+        logo: '/stores/nike-logo.png',
+        name: 'Nike',
+        discount: 'Up to 40% Off',
+        description: 'Limited time offer on select styles',
+        ctaText: 'EXPLORE DEALS',
+        ctaUrl: '#'
+      },
+      {
+        id: 3,
+        image: '/hero/hero3.jpg',
+        logo: '/stores/apple-logo.png',
+        name: 'Apple',
+        discount: 'Save on iPhone',
+        description: 'Exclusive deals for members',
+        ctaText: 'VIEW OFFERS',
+        ctaUrl: '#'
+      }
+    ];
+    return <HeroCarousel images={defaultImages} {...{ locale, autoplayDelay, showDots, showArrows }} />;
+  }
 
   // Localised CTA default
-  const defaultCta = isRtl ? 'استكشاف العروض' : 'Explore Deals';
+  const defaultCta = isRtl ? 'تسوق الآن' : 'Shop Now';
 
   return (
     <div className="hc-wrapper" dir={isRtl ? 'rtl' : 'ltr'}>
@@ -130,6 +163,7 @@ const HeroCarousel = ({
             const logo = item.logo;
             const name = item.name || '';
             const discount = item.discount || '';
+            const description = item.description || '';
             const ctaText = item.ctaText || defaultCta;
             const ctaUrl = item.ctaUrl || '#';
 
@@ -137,7 +171,7 @@ const HeroCarousel = ({
               <div key={item.id || index} className="hc-embla__slide">
                 <div className="hc-slide">
 
-                  {/* Parallax image */}
+                  {/* Parallax image - Same as original */}
                   <div className="hc-slide__parallax">
                     <div
                       className="hc-slide__img-wrap"
@@ -150,44 +184,54 @@ const HeroCarousel = ({
                         priority={index === 0}
                         className="hc-slide__img"
                         sizes="100vw"
+                        quality={85}
                       />
                     </div>
                   </div>
 
-                  {/* Gradient scrim */}
+                  {/* Light gradient overlay */}
                   <div className="hc-slide__overlay" />
 
-                  {/* ── Frosted content strip ── */}
+                  {/* ── RetailMeNot Style Content Strip ── */}
                   <div className={`hc-slide__content ${isActive ? 'is-active' : ''}`}>
-                    <div className="hc-content-row">
-
+                    <div className="hc-content-wrapper">
+                      
                       {/* Logo pill */}
                       <div className={`hc-logo-pill ${!logo ? 'hc-logo-pill--fallback' : ''}`}>
                         {logo ? (
-                          <Image src={logo} alt={`${name} logo`} width={54} height={54} quality={85} />
+                          <Image 
+                            src={logo} 
+                            alt={`${name} logo`} 
+                            width={80} 
+                            height={80} 
+                            quality={90}
+                            style={{ objectFit: 'contain' }}
+                          />
                         ) : (
                           name.charAt(0).toUpperCase()
                         )}
                       </div>
 
-                      {/* Badge + name */}
-                      <div className="hc-content-mid">
+                      {/* Content details */}
+                      <div className="hc-content-details">
                         {discount && (
-                          <span className="hc-badge">
+                          <span className="hc-deal-badge">
                             <span className="material-symbols-sharp">local_offer</span>
                             {discount}
                           </span>
                         )}
-                        {name && <p className="hc-store-name">{name}</p>}
+                        
+                        {name && <h2 className="hc-store-name">{name}</h2>}
+                        
+                        {description && <p className="hc-store-description">{description}</p>}
+                        
+                        <a href={ctaUrl} className="hc-cta" aria-label={`${ctaText} – ${name}`}>
+                          {ctaText}
+                          <span className="material-symbols-sharp">
+                            {isRtl ? 'arrow_back' : 'arrow_forward'}
+                          </span>
+                        </a>
                       </div>
-
-                      {/* CTA arrow link */}
-                      <a href={ctaUrl} className="hc-cta" aria-label={`${ctaText} – ${name}`}>
-                        {ctaText}
-                        <span className="material-symbols-sharp">
-                          {isRtl ? 'arrow_back' : 'arrow_forward'}
-                        </span>
-                      </a>
                     </div>
                   </div>
                 </div>
@@ -203,10 +247,18 @@ const HeroCarousel = ({
         {/* Nav arrows */}
         {showArrows && images.length > 1 && (
           <>
-            <button className="hc-nav hc-nav--prev" onClick={scrollPrev} aria-label={isRtl ? 'الشريحة التالية' : 'Previous slide'}>
+            <button 
+              className="hc-nav hc-nav--prev" 
+              onClick={scrollPrev} 
+              aria-label={isRtl ? 'الشريحة التالية' : 'Previous slide'}
+            >
               {isRtl ? <ChevronRight /> : <ChevronLeft />}
             </button>
-            <button className="hc-nav hc-nav--next" onClick={scrollNext} aria-label={isRtl ? 'الشريحة السابقة' : 'Next slide'}>
+            <button 
+              className="hc-nav hc-nav--next" 
+              onClick={scrollNext} 
+              aria-label={isRtl ? 'الشريحة السابقة' : 'Next slide'}
+            >
               {isRtl ? <ChevronLeft /> : <ChevronRight />}
             </button>
           </>
