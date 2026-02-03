@@ -9,18 +9,18 @@ import './HeroCarousel.css';
 
 /* ── inline SVG arrows ── */
 const ChevronLeft = () => (
-  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
     <path d="M15 18l-6-6 6-6" />
   </svg>
 );
 const ChevronRight = () => (
-  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
     <path d="M9 18l6-6-6-6" />
   </svg>
 );
 
 /**
- * HeroCarousel - RetailMeNot Style
+ * HeroCarousel - RetailMeNot Style with Side Peeking
  * 
  * Props (same as original):
  *   image        – cover image URL (required)
@@ -34,7 +34,7 @@ const ChevronRight = () => (
 const HeroCarousel = ({
   images = [],
   locale = 'en-SA',
-  autoplayDelay = 5500,
+  autoplayDelay = 5000,
   showDots = true,
   showArrows = true,
 }) => {
@@ -45,40 +45,48 @@ const HeroCarousel = ({
   );
 
   const [emblaRef, emblaApi] = useEmblaCarousel(
-    { loop: true, direction: isRtl ? 'rtl' : 'ltr' },
+    { 
+      loop: true, 
+      direction: isRtl ? 'rtl' : 'ltr',
+      align: 'center',
+      dragFree: false,
+      containScroll: false,
+      startIndex: 1
+    },
     [autoplayRef.current]
   );
 
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [scrollSnaps, setScrollSnaps] = useState([]);
-  const [tweenValues, setTweenValues] = useState([]);
+  const [prevIndex, setPrevIndex] = useState(0);
+  const [nextIndex, setNextIndex] = useState(0);
 
-  // ── Parallax ──────────────────────────────────────────
-  const onScroll = useCallback(() => {
-    if (!emblaApi) return;
-    const engine = emblaApi.internalEngine();
-    const scrollProgress = emblaApi.scrollProgress();
-
-    const styles = emblaApi.scrollSnapList().map((scrollSnap, index) => {
-      let diff = scrollSnap - scrollProgress;
-      if (engine.options.loop) {
-        engine.slideLooper.loopPoints.forEach((loopItem) => {
-          const target = loopItem.target();
-          if (index === loopItem.index && target !== 0) {
-            const sign = Math.sign(target);
-            if (sign === -1) diff = scrollSnap - (1 + scrollProgress);
-            if (sign === 1) diff = scrollSnap + (1 - scrollProgress);
-          }
-        });
-      }
-      return diff * (-10) + '%'; // Slightly reduced parallax for cleaner look
-    });
-    setTweenValues(styles);
-  }, [emblaApi]);
+  // Calculate prev and next indices
+  useEffect(() => {
+    if (!emblaApi || images.length <= 1) return;
+    
+    const total = images.length;
+    const prev = selectedIndex === 0 ? total - 1 : selectedIndex - 1;
+    const next = selectedIndex === total - 1 ? 0 : selectedIndex + 1;
+    
+    setPrevIndex(prev);
+    setNextIndex(next);
+  }, [selectedIndex, images.length, emblaApi]);
 
   // ── Navigation ────────────────────────────────────────
-  const scrollPrev = useCallback(() => emblaApi?.scrollPrev(), [emblaApi]);
-  const scrollNext = useCallback(() => emblaApi?.scrollNext(), [emblaApi]);
+  const scrollPrev = useCallback(() => {
+    if (emblaApi) {
+      emblaApi.scrollPrev();
+      autoplayRef.current.reset();
+    }
+  }, [emblaApi]);
+
+  const scrollNext = useCallback(() => {
+    if (emblaApi) {
+      emblaApi.scrollNext();
+      autoplayRef.current.reset();
+    }
+  }, [emblaApi]);
 
   const scrollTo = useCallback((index) => {
     if (!emblaApi) return;
@@ -97,20 +105,17 @@ const HeroCarousel = ({
   useEffect(() => {
     if (!emblaApi) return;
 
-    onScroll();
     setScrollSnaps(emblaApi.scrollSnapList());
     onSelect();
 
-    emblaApi.on('scroll', () => flushSync(() => onScroll()));
     emblaApi.on('select', onSelect);
     emblaApi.on('reInit', onSelect);
 
     return () => {
       emblaApi.off('select', onSelect);
       emblaApi.off('reInit', onSelect);
-      emblaApi.off('scroll', onScroll);
     };
-  }, [emblaApi, onSelect, onScroll]);
+  }, [emblaApi, onSelect]);
 
   // ── Early exit ────────────────────────────────────────
   if (!images || images.length === 0) {
@@ -145,6 +150,16 @@ const HeroCarousel = ({
         description: 'Exclusive deals for members',
         ctaText: 'VIEW OFFERS',
         ctaUrl: '#'
+      },
+      {
+        id: 4,
+        image: '/hero/hero4.jpg',
+        logo: '/stores/amazon-logo.png',
+        name: 'Amazon',
+        discount: 'Prime Day Deals',
+        description: 'Early access for members',
+        ctaText: 'SHOP DEALS',
+        ctaUrl: '#'
       }
     ];
     return <HeroCarousel images={defaultImages} {...{ locale, autoplayDelay, showDots, showArrows }} />;
@@ -153,13 +168,21 @@ const HeroCarousel = ({
   // Localised CTA default
   const defaultCta = isRtl ? 'تسوق الآن' : 'Shop Now';
 
+  // Get slide className based on position
+  const getSlideClassName = (index) => {
+    if (index === selectedIndex) return 'is-active';
+    if (index === prevIndex) return 'is-prev';
+    if (index === nextIndex) return 'is-next';
+    return '';
+  };
+
   return (
     <div className="hc-wrapper" dir={isRtl ? 'rtl' : 'ltr'}>
       {/* ── Embla viewport ── */}
       <div className="hc-embla" ref={emblaRef}>
         <div className="hc-embla__container">
           {images.map((item, index) => {
-            const isActive = index === selectedIndex;
+            const slideClass = getSlideClassName(index);
             const logo = item.logo;
             const name = item.name || '';
             const discount = item.discount || '';
@@ -168,32 +191,32 @@ const HeroCarousel = ({
             const ctaUrl = item.ctaUrl || '#';
 
             return (
-              <div key={item.id || index} className="hc-embla__slide">
+              <div 
+                key={item.id || index} 
+                className={`hc-embla__slide ${slideClass}`}
+              >
                 <div className="hc-slide">
 
-                  {/* Parallax image - Same as original */}
+                  {/* Parallax image - Simplified for side peeking */}
                   <div className="hc-slide__parallax">
-                    <div
-                      className="hc-slide__img-wrap"
-                      style={{ transform: `translateX(${tweenValues[index] || '0%'})` }}
-                    >
+                    <div className="hc-slide__img-wrap">
                       <Image
                         src={item.image || item.coverImage}
                         alt={name || `Slide ${index + 1}`}
                         fill
-                        priority={index === 0}
+                        priority={index === selectedIndex}
                         className="hc-slide__img"
-                        sizes="100vw"
-                        quality={85}
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 1000px"
+                        quality={index === selectedIndex ? 90 : 70}
                       />
                     </div>
                   </div>
 
-                  {/* Light gradient overlay */}
+                  {/* Gradient overlay */}
                   <div className="hc-slide__overlay" />
 
                   {/* ── RetailMeNot Style Content Strip ── */}
-                  <div className={`hc-slide__content ${isActive ? 'is-active' : ''}`}>
+                  <div className="hc-slide__content">
                     <div className="hc-content-wrapper">
                       
                       {/* Logo pill */}
@@ -202,8 +225,8 @@ const HeroCarousel = ({
                           <Image 
                             src={logo} 
                             alt={`${name} logo`} 
-                            width={80} 
-                            height={80} 
+                            width={90} 
+                            height={90} 
                             quality={90}
                             style={{ objectFit: 'contain' }}
                           />
@@ -225,7 +248,14 @@ const HeroCarousel = ({
                         
                         {description && <p className="hc-store-description">{description}</p>}
                         
-                        <a href={ctaUrl} className="hc-cta" aria-label={`${ctaText} – ${name}`}>
+                        <a 
+                          href={ctaUrl} 
+                          className="hc-cta" 
+                          aria-label={`${ctaText} – ${name}`}
+                          onClick={(e) => {
+                            if (ctaUrl === '#') e.preventDefault();
+                          }}
+                        >
                           {ctaText}
                           <span className="material-symbols-sharp">
                             {isRtl ? 'arrow_back' : 'arrow_forward'}
@@ -250,14 +280,14 @@ const HeroCarousel = ({
             <button 
               className="hc-nav hc-nav--prev" 
               onClick={scrollPrev} 
-              aria-label={isRtl ? 'الشريحة التالية' : 'Previous slide'}
+              aria-label={isRtl ? 'الشريحة السابقة' : 'Previous slide'}
             >
               {isRtl ? <ChevronRight /> : <ChevronLeft />}
             </button>
             <button 
               className="hc-nav hc-nav--next" 
               onClick={scrollNext} 
-              aria-label={isRtl ? 'الشريحة السابقة' : 'Next slide'}
+              aria-label={isRtl ? 'الشريحة التالية' : 'Next slide'}
             >
               {isRtl ? <ChevronLeft /> : <ChevronRight />}
             </button>
