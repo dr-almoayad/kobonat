@@ -31,7 +31,7 @@
   width: 100%;
   aspect-ratio: 1 / 1; /* Square is often best for mobile uniformity */
   background: #f3f4f6; /* Light gray placeholder background */
-  overflow: hidden;
+  overflow: visible;
   border-radius: 24px;
   border-bottom: 1px solid #f3f4f6;
 }
@@ -53,8 +53,9 @@
 
 /* --- Discount Badge (The Hero) --- */
 .discount-badge {
-  font-size: 1.25rem;
+  font-size: 1rem;
   font-weight: bold;
+  font-family: 'Alexandria','Open Sans','Arial',sans-serif ;
   color: #fff;
   --r: .4em; /* control the ribbon shape (the radius) */
   --c: #FA6900;
@@ -128,7 +129,7 @@
 
 /* Savings Text (Primary Call to Action since no Price) */
 .savings-text {
-  font-family: 'Alexandria', sans-serif;
+  font-family: 'Alexandria','Open Sans','Arial',sans-serif ;
   font-size: 0.9rem;
   font-weight: 700;
   color: #16a34a; /* Success Green - indicates value/saving */
@@ -153,12 +154,6 @@
   }
 }
 
-/* --- RTL Support --- */
-[dir="rtl"] .discount-badge {
-  right: auto;
-  left: 10px;
-}
-
 [dir="rtl"] .store-badge {
   left: auto;
   right: 10px;
@@ -170,46 +165,4 @@
 
 [dir="rtl"] .store-product-card:hover .savings-text::after {
   transform: translateX(-4px);
-}
-
-/* --- Dark Mode --- */
-@media (prefers-color-scheme: dark) {
-  .store-product-card {
-    background: #1f2937;
-    border-color: #374151;
-  }
-
-  .store-product-card:active {
-    background: #374151;
-  }
-
-  @media (hover: hover) {
-    .store-product-card:hover {
-      border-color: #6366f1; /* Indigo highlight */
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-    }
-  }
-
-  .product-image-wrapper {
-    background: #111827;
-    border-bottom-color: #374151;
-  }
-
-  .product-image {
-    mix-blend-mode: normal; /* Multiply doesn't work well on dark backgrounds */
-    opacity: 0.9;
-  }
-
-  .store-badge {
-    background: rgba(31, 41, 55, 0.85);
-    border-color: rgba(255, 255, 255, 0.1);
-  }
-
-  .product-title {
-    color: #f3f4f6;
-  }
-
-  .savings-text {
-    color: #4ade80; /* Brighter green for dark mode contrast */
-  }
 }
