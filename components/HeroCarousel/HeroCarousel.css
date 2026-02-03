@@ -1,21 +1,20 @@
-/* HeroCarousel.css */
+/* HeroCarousel.css - Modern Minimalist Design */
 
 /* ── Configuration ── */
 :root {
-  --hc-height-mobile: 520px;
-  --hc-height-desktop: 600px;
+  --hc-height-mobile: 400px;
+  --hc-height-desktop: 480px;
   
-  --hc-color-bg: #ffffff;
-  --hc-color-text: #0c0e16;  /* Deep Charcoal */
-  --hc-color-sub: #555;
-  --hc-color-accent: #e8412a; /* Original punchy red */
+  --hc-color-bg: #f8f8f8;
+  --hc-color-text: #1a1a1a;
+  --hc-color-sub: #666;
+  --hc-color-accent: #000;
   
-  --hc-font-main: 'Alexandria', 'Open Sans', sans-serif;
-  --hc-ease-expo: cubic-bezier(0.16, 1, 0.3, 1); /* Snappy and smooth */
-  
-  --hc-squircle-path: url(#SquircleClip-Hero);
+  --hc-font-main: 'Alexandria', 'Open Sans', -apple-system, sans-serif;
+  --hc-ease: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* ── Main Container ── */
 .hc-wrapper {
   position: relative;
   width: 100%;
@@ -23,8 +22,9 @@
   background-color: var(--hc-color-bg);
   font-family: var(--hc-font-main);
   overflow: hidden;
-  /* Ensure z-index context */
-  isolation: isolate; 
+  border-radius: 16px;
+  margin: 0 auto;
+  max-width: 1400px;
 }
 
 /* ── Embla Core ── */
@@ -32,126 +32,103 @@
   width: 100%;
   height: 100%;
   cursor: grab;
+  overflow: hidden;
 }
+
 .hc-viewport:active {
   cursor: grabbing;
 }
+
 .hc-container {
   display: flex;
   height: 100%;
   touch-action: pan-y pinch-zoom;
 }
+
 .hc-slide {
   flex: 0 0 100%;
   min-width: 0;
   position: relative;
-  padding: 1rem;
 }
 
 .hc-slide-inner {
   position: relative;
   width: 100%;
   height: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
+  background: #fff;
+  overflow: hidden;
 }
 
-/* ── 1. The Visual Stage (The Squircle) ── */
-.hc-visual-stage {
-  position: relative;
-  width: 100%;
-  height: 70%; /* Occupy most of mobile height */
-  display: flex;
-  align-items: center;
-  justify-content: center;
+/* ── Image Container ── */
+.hc-image-container {
+  position: absolute;
+  inset: 0;
   z-index: 1;
-  
-  /* Entrance Animation */
-  opacity: 0;
-  transform: scale(0.9);
-  transition: opacity 0.8s ease, transform 0.8s var(--hc-ease-expo);
-}
-
-.hc-slide.is-active .hc-visual-stage {
-  opacity: 1;
-  transform: scale(1);
-}
-
-.hc-squircle-mask {
-  position: relative;
-  width: 100%;
-  max-width: 380px; /* Mobile max width */
-  aspect-ratio: 1 / 1;
-  
-  /* The Shape */
-  clip-path: var(--hc-squircle-path);
-  -webkit-clip-path: var(--hc-squircle-path);
-  
-  /* Drop Shadow Hack: filter on the parent usually helps, 
-     but with clip-path, standard drop-shadow often gets clipped. 
-     We rely on the clean white negative space here. */
-  filter: drop-shadow(0px 20px 40px rgba(0,0,0,0.15));
 }
 
 .hc-img {
   object-fit: cover;
-  transition: transform 6s ease;
+  transition: transform 0.6s var(--hc-ease);
 }
+
 .hc-slide.is-active .hc-img {
-  transform: scale(1.15); /* Slow zoom effect */
+  transform: scale(1.02);
 }
 
-/* Inner shadow to prevent image from looking "stuck" on white */
-.hc-img-vignette {
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(circle, transparent 50%, rgba(0,0,0,0.2) 100%);
-  pointer-events: none;
-}
-
-/* ── 2. Content Layer (Overlays) ── */
-.hc-content-layer {
+/* ── Content Overlay ── */
+.hc-content-overlay {
   position: absolute;
   inset: 0;
   z-index: 2;
-  pointer-events: none; /* Let clicks pass to image/bg */
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0) 0%,
+    rgba(0, 0, 0, 0.3) 100%
+  );
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 2rem;
 }
 
-/* Brand Pill (Top Left) */
-.hc-brand-pill {
+/* ── Logo Badge ── */
+.hc-logo-badge {
   position: absolute;
-  top: 1rem;
-  left: 1rem;
+  top: 2rem;
+  left: 2rem;
   background: #fff;
-  border: 1px solid rgba(0,0,0,0.08);
-  padding: 6px 14px 6px 6px;
-  border-radius: 50px;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
-  gap: 10px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.06);
-  pointer-events: auto;
-  
-  transform: translateY(-20px);
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   opacity: 0;
-  transition: 0.6s var(--hc-ease-expo);
+  transform: translateY(-10px);
+  transition: all 0.5s var(--hc-ease);
 }
-[dir="rtl"] .hc-brand-pill { left: auto; right: 1rem; padding: 6px 6px 6px 14px; }
 
-.hc-slide.is-active .hc-brand-pill {
-  transform: translateY(0);
+[dir="rtl"] .hc-logo-badge {
+  left: auto;
+  right: 2rem;
+}
+
+.hc-slide.is-active .hc-logo-badge {
   opacity: 1;
+  transform: translateY(0);
   transition-delay: 0.2s;
 }
 
-.hc-brand-logo {
+.hc-logo-badge img {
+  width: 48px;
+  height: 48px;
   object-fit: contain;
 }
-.hc-brand-char {
-  width: 32px;
-  height: 32px;
+
+.hc-logo-char {
+  width: 48px;
+  height: 48px;
   background: var(--hc-color-accent);
   color: #fff;
   border-radius: 50%;
@@ -159,273 +136,257 @@
   align-items: center;
   justify-content: center;
   font-weight: 800;
-  font-size: 14px;
-}
-.hc-brand-name {
-  font-size: 0.85rem;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-  color: var(--hc-color-text);
+  font-size: 1.25rem;
 }
 
-/* Headline (Bottom overlapping image) */
-.hc-headline-wrap {
-  position: absolute;
-  bottom: 4.5rem; /* Make room for CTA */
-  left: 1rem;
-  right: 1rem;
-  text-align: center;
-  overflow: hidden;
-}
-
-.hc-headline {
-  margin: 0;
-  font-size: 2.5rem;
-  line-height: 0.95;
-  font-weight: 800;
-  color: var(--hc-color-text);
-  text-transform: uppercase;
-  letter-spacing: -0.03em;
-  
-  /* To overlap the image visually on mobile */
-  text-shadow: 2px 2px 0px #fff, -2px -2px 0px #fff, 2px -2px 0px #fff, -2px 2px 0px #fff;
-  
-  transform: translateY(100%);
-  transition: transform 0.8s var(--hc-ease-expo);
-}
-.hc-slide.is-active .hc-headline {
-  transform: translateY(0);
-  transition-delay: 0.1s;
-}
-
-.hc-headline-highlight {
-  display: block;
-  font-size: 0.5em; /* Smaller relative to headline */
-  color: var(--hc-color-accent);
-  font-weight: 700;
-  margin-top: 0.2rem;
-  letter-spacing: 0.05em;
-}
-
-/* CTA Button (Bottom Center) */
-.hc-cta-wrap {
-  position: absolute;
-  bottom: 1rem;
-  left: 0;
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  pointer-events: auto;
-  
+/* ── Text Content ── */
+.hc-text-content {
+  max-width: 600px;
   opacity: 0;
-  transform: translateY(10px);
-  transition: 0.6s ease;
+  transform: translateY(20px);
+  transition: all 0.6s var(--hc-ease);
 }
-.hc-slide.is-active .hc-cta-wrap {
+
+.hc-slide.is-active .hc-text-content {
   opacity: 1;
   transform: translateY(0);
   transition-delay: 0.3s;
 }
 
-.hc-cta-button {
-  background: var(--hc-color-text);
+.hc-title {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.75rem;
+  line-height: 1.2;
+  font-weight: 700;
   color: #fff;
-  padding: 0 24px;
-  height: 52px;
-  border-radius: 26px; /* Pill shape */
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  text-decoration: none;
-  font-weight: 600;
-  font-size: 0.95rem;
-  transition: background 0.3s, gap 0.3s;
-}
-.hc-cta-button:hover {
-  background: var(--hc-color-accent);
-  gap: 16px;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
-/* ── UI Layer (Arrows/Dots) ── */
-.hc-ui-layer {
+.hc-description {
+  margin: 0 0 1.5rem 0;
+  font-size: 1rem;
+  line-height: 1.4;
+  color: rgba(255, 255, 255, 0.95);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* ── CTA Button ── */
+.hc-cta-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #fff;
+  color: var(--hc-color-text);
+  padding: 0.875rem 1.75rem;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.9375rem;
+  transition: all 0.3s var(--hc-ease);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.hc-cta-button:hover {
+  background: var(--hc-color-accent);
+  color: #fff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+.hc-cta-button svg {
+  width: 16px;
+  height: 16px;
+  transition: transform 0.3s var(--hc-ease);
+}
+
+.hc-cta-button:hover svg {
+  transform: translateX(4px);
+}
+
+[dir="rtl"] .hc-cta-button:hover svg {
+  transform: translateX(-4px);
+}
+
+/* ── Navigation Arrows ── */
+.hc-arrows {
   position: absolute;
-  inset: 0;
+  top: 50%;
+  left: 1rem;
+  right: 1rem;
+  transform: translateY(-50%);
+  display: flex;
+  justify-content: space-between;
   pointer-events: none;
   z-index: 10;
 }
 
+.hc-arrow {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #fff;
+  color: var(--hc-color-text);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  pointer-events: auto;
+  transition: all 0.2s var(--hc-ease);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  opacity: 0.9;
+}
+
+.hc-arrow:hover {
+  opacity: 1;
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.hc-arrow:active {
+  transform: scale(0.95);
+}
+
+.hc-arrow svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* Hide arrows on small mobile */
+@media (max-width: 640px) {
+  .hc-arrows {
+    display: none;
+  }
+}
+
+/* ── Dot Indicators ── */
 .hc-dots {
   position: absolute;
   bottom: 1.5rem;
-  right: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
   display: flex;
-  gap: 6px;
+  gap: 8px;
   pointer-events: auto;
-}
-/* Hide dots on mobile if they clash with CTA, or move them */
-@media (max-width: 767px) {
-  .hc-dots { display: none; }
+  z-index: 10;
 }
 
 .hc-dot {
-  width: 30px;
-  height: 4px;
-  background: rgba(0,0,0,0.1);
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
   border: none;
   padding: 0;
   cursor: pointer;
-  border-radius: 2px;
-  overflow: hidden;
-}
-.hc-dot-bar {
-  display: block;
-  width: 100%;
-  height: 100%;
-  background: var(--hc-color-accent);
-  transform: translateX(-100%);
-  transition: transform 0.3s;
-}
-.hc-dot.is-active .hc-dot-bar {
-  transform: translateX(0);
+  transition: all 0.3s var(--hc-ease);
 }
 
-.hc-arrows {
-  display: none; /* Hidden on mobile */
+.hc-dot:hover {
+  background: rgba(255, 255, 255, 0.8);
+  transform: scale(1.2);
 }
 
-/* ─── DESKTOP (1024px+) - The Magazine Layout ─── */
-@media (min-width: 1024px) {
+.hc-dot.is-active {
+  background: #fff;
+  width: 24px;
+  border-radius: 4px;
+}
+
+/* ── Desktop Layout ── */
+@media (min-width: 768px) {
   .hc-wrapper {
     height: var(--hc-height-desktop);
+    border-radius: 20px;
   }
 
-  .hc-slide-inner {
-    flex-direction: row; /* Horizontal layout */
-    padding: 0 4rem;
+  .hc-content-overlay {
+    padding: 3rem;
   }
 
-  /* 1. Visual Stage (Center) */
-  .hc-visual-stage {
-    height: 100%;
-    width: auto;
-    flex-grow: 0;
-    margin: 0 -30px; /* Negative margin to pull text in */
+  .hc-logo-badge {
+    top: 3rem;
+    left: 3rem;
+    width: 80px;
+    height: 80px;
   }
 
-  .hc-squircle-mask {
-    max-width: none;
-    height: 90%; /* Very tall image */
-    width: auto;
-    aspect-ratio: 1/1;
-  }
-
-  /* 2. Content Layer - Becomes Static Grid on Desktop */
-  .hc-content-layer {
-    position: relative;
-    inset: auto;
-    width: 100%;
-    height: 100%;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  /* Text Group Left (Headline) */
-  .hc-headline-wrap {
-    position: relative;
-    bottom: auto;
+  [dir="rtl"] .hc-logo-badge {
     left: auto;
-    right: auto;
-    text-align: left;
-    width: 40%;
-    z-index: 5; /* Overlap image */
-  }
-  [dir="rtl"] .hc-headline-wrap { text-align: right; }
-
-  .hc-headline {
-    font-size: 4.5rem; /* Massive */
-    color: var(--hc-color-text);
-    /* No text shadow on desktop needed if designed well, 
-       but we keep a subtle white glow for legibility over overlap */
-    text-shadow: 3px 3px 0px #fff; 
+    right: 3rem;
   }
 
-  .hc-headline-highlight {
-    font-size: 1.25rem;
-    display: inline-block;
-    vertical-align: middle;
-    background: var(--hc-color-accent);
-    color: #fff;
-    padding: 4px 12px;
-    border-radius: 4px;
-    margin-left: 15px;
-    transform: translateY(-8px);
+  .hc-logo-badge img {
+    width: 56px;
+    height: 56px;
   }
 
-  /* Info Group Right (Logo + CTA) */
-  .hc-cta-wrap {
-    position: relative;
-    bottom: auto;
-    left: auto;
-    width: 30%;
-    flex-direction: column;
-    align-items: flex-end; /* Align right */
-    justify-content: center;
-    gap: 2rem;
-    z-index: 5;
+  .hc-logo-char {
+    width: 56px;
+    height: 56px;
+    font-size: 1.5rem;
   }
-  [dir="rtl"] .hc-cta-wrap { align-items: flex-start; }
 
-  .hc-brand-pill {
-    position: relative;
-    top: auto;
-    left: auto;
-    right: auto;
-    transform: translateX(20px); /* Slide in logic handled by carousel parent, keep static here */
-    box-shadow: none;
-    background: transparent;
-    border: none;
-    padding: 0;
+  .hc-title {
+    font-size: 2.5rem;
   }
-  .hc-brand-char { width: 48px; height: 48px; font-size: 1.2rem; }
-  .hc-brand-name { font-size: 1.1rem; }
+
+  .hc-description {
+    font-size: 1.125rem;
+  }
 
   .hc-cta-button {
-    height: 60px;
-    padding: 0 32px;
-    font-size: 1.1rem;
-    border-radius: 30px;
+    padding: 1rem 2rem;
+    font-size: 1rem;
   }
 
-  /* Controls */
   .hc-arrows {
-    display: flex;
-    justify-content: space-between;
-    position: absolute;
-    top: 50%;
     left: 2rem;
     right: 2rem;
-    transform: translateY(-50%);
-    pointer-events: none;
   }
-  
+
   .hc-arrow {
     width: 56px;
     height: 56px;
-    border-radius: 50%;
-    border: 1px solid #e5e5e5;
-    background: #fff;
-    color: var(--hc-color-text);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    pointer-events: auto;
-    transition: all 0.2s ease;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
   }
-  .hc-arrow:hover {
-    border-color: var(--hc-color-text);
-    transform: scale(1.05);
+
+  .hc-arrow svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  .hc-dots {
+    bottom: 2rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .hc-content-overlay {
+    padding: 4rem;
+  }
+
+  .hc-title {
+    font-size: 3rem;
+  }
+}
+
+/* ── Animations ── */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
   }
 }
