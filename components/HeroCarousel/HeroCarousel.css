@@ -2,8 +2,8 @@
 /* RetailMeNot Style Hero Carousel - Side Peeking Slides */
 
 :root {
-  --hc-max-width: 1280px;
-  --hc-radius: 12px;
+  --hc-max-width: 100%;
+  --hc-radius: 24px;
   --hc-accent: #d32f2f; /* RetailMeNot red color */
   --hc-accent-light: #ff6659;
   --hc-bg: #ffffff;
@@ -26,7 +26,8 @@
   width: 100%;
   max-width: var(--hc-max-width);
   margin: 0 auto 2rem;
-  height: 400px; /* Reduced from 500px to 400px */
+  height: 420px; /* Reduced from 500px to 400px */
+  padding: 1.5rem 0;
   background: transparent;
   overflow: visible;
 }
@@ -395,13 +396,6 @@
 
 /* ─── TABLET (768px+) ───────────────────────────────────────── */
 @media (max-width: 1024px) {
-  :root {
-    --hc-slide-active-width: 80%;
-    --hc-slide-inactive-width: 25%;
-    --hc-slide-inactive-scale: 0.85;
-    --hc-slide-inactive-opacity: 0.5;
-  }
-  
   .hc-wrapper {
     height: 350px;
   }
@@ -435,8 +429,8 @@
   :root {
     --hc-slide-active-width: 90%;
     --hc-slide-inactive-width: 20%;
-    --hc-slide-inactive-scale: 0.8;
-    --hc-slide-inactive-opacity: 0.4;
+    --hc-slide-inactive-scale: 1;
+    --hc-slide-inactive-opacity: 1;
   }
   
   .hc-wrapper {
