@@ -56,47 +56,82 @@ export default function ProductsSection({ storeId, products: initialProducts }) 
               <FormField label="Title (EN)" name="title_en" defaultValue={editingProduct?.translations?.find(t => t.locale === 'en')?.title} required />
               <FormField label="Title (AR)" name="title_ar" defaultValue={editingProduct?.translations?.find(t => t.locale === 'ar')?.title} required dir="rtl" />
             </FormRow>
+            
+            {/* UPDATED: Discount Fields instead of Price */}
             <FormRow>
-              <FormField label="Price" name="price" type="number" step="0.01" defaultValue={editingProduct?.price} required />
-              <FormField label="Original Price" name="originalPrice" type="number" step="0.01" defaultValue={editingProduct?.originalPrice} />
+              <FormField 
+                label="Discount Type" 
+                name="discountType" 
+                type="select" 
+                defaultValue={editingProduct?.discountType || 'PERCENTAGE'}
+                options={[
+                  { value: 'PERCENTAGE', label: 'Percentage (%)' },
+                  { value: 'ABSOLUTE', label: 'Absolute Amount (SAR)' }
+                ]}
+                required 
+              />
+              <FormField 
+                label="Discount Value" 
+                name="discountValue" 
+                type="number" 
+                step="0.01" 
+                defaultValue={editingProduct?.discountValue} 
+                placeholder="e.g., 20 for 20% or 50 for 50 SAR"
+                helpText="Enter the discount value (without % or SAR symbol)"
+              />
             </FormRow>
+            
             <FormField label="Product URL" name="productUrl" defaultValue={editingProduct?.productUrl} required />
             <FormField label="Image URL" name="image" defaultValue={editingProduct?.image} required />
 
-            {/* --- ADD THIS CHECKBOX --- */}
+            {/* Featured Checkbox */}
             <div style={{ padding: '10px 0', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <input 
+              <input 
                 type="checkbox" 
                 id="isFeatured" 
                 name="isFeatured" 
                 defaultChecked={editingProduct?.isFeatured} 
                 style={{ width: '20px', height: '20px' }}
-                />
-                <label htmlFor="isFeatured" style={{ fontWeight: 500 }}>
+              />
+              <label htmlFor="isFeatured" style={{ fontWeight: 500 }}>
                 Show in Featured Carousel?
-                </label>
+              </label>
             </div>
-            {/* ------------------------- */}
           </FormSection>
           
           <div className={styles.formActions}>
-            <button type="submit" className={styles.btnPrimary} disabled={isPending}>{isPending ? 'Saving...' : 'Save Product'}</button>
-            <button type="button" onClick={() => {setShowForm(false); setEditingProduct(null);}} className={styles.btnSecondary}>Cancel</button>
+            <button type="submit" className={styles.btnPrimary} disabled={isPending}>
+              {isPending ? 'Saving...' : 'Save Product'}
+            </button>
+            <button type="button" onClick={() => {setShowForm(false); setEditingProduct(null);}} className={styles.btnSecondary}>
+              Cancel
+            </button>
           </div>
         </form>
       )}
 
       <div className={styles.grid}>
-        {products.map(product => (
-          <div key={product.id} className={styles.card}>
-            <h4>{product.translations.find(t => t.locale === 'en')?.title}</h4>
-            <p>{product.price} SAR</p>
-            <div className={styles.actions}>
-              <button onClick={() => {setEditingProduct(product); setShowForm(true);}} className={styles.btnEdit}>Edit</button>
-              <button onClick={() => handleDelete(product.id)} className={styles.btnDelete}>Delete</button>
+        {products.map(product => {
+          const enTitle = product.translations.find(t => t.locale === 'en')?.title || '';
+          const discountDisplay = product.discountValue 
+            ? `${product.discountValue}${product.discountType === 'PERCENTAGE' ? '%' : ' SAR'} OFF`
+            : 'No discount';
+          
+          return (
+            <div key={product.id} className={styles.card}>
+              <h4>{enTitle}</h4>
+              <p style={{ color: '#CC0C39', fontWeight: 600 }}>{discountDisplay}</p>
+              <div className={styles.actions}>
+                <button onClick={() => {setEditingProduct(product); setShowForm(true);}} className={styles.btnEdit}>
+                  Edit
+                </button>
+                <button onClick={() => handleDelete(product.id)} className={styles.btnDelete}>
+                  Delete
+                </button>
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
