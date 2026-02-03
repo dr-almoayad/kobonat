@@ -268,31 +268,33 @@ const HeroCarousel = ({
               </div>
             );
           })}
+
+          {/* Nav arrows */}
+          {showArrows && images.length > 1 && (
+            <>
+              <button 
+                className="hc-nav hc-nav--prev" 
+                onClick={scrollPrev} 
+                aria-label={isRtl ? 'الشريحة السابقة' : 'Previous slide'}
+              >
+                {isRtl ? <ChevronRight /> : <ChevronLeft />}
+              </button>
+              <button 
+                className="hc-nav hc-nav--next" 
+                onClick={scrollNext} 
+                aria-label={isRtl ? 'الشريحة التالية' : 'Next slide'}
+              >
+                {isRtl ? <ChevronLeft /> : <ChevronRight />}
+              </button>
+            </>
+          )}
         </div>
       </div>
 
       {/* ── Controls layer ── */}
       <div className="hc-controls">
 
-        {/* Nav arrows */}
-        {showArrows && images.length > 1 && (
-          <>
-            <button 
-              className="hc-nav hc-nav--prev" 
-              onClick={scrollPrev} 
-              aria-label={isRtl ? 'الشريحة السابقة' : 'Previous slide'}
-            >
-              {isRtl ? <ChevronRight /> : <ChevronLeft />}
-            </button>
-            <button 
-              className="hc-nav hc-nav--next" 
-              onClick={scrollNext} 
-              aria-label={isRtl ? 'الشريحة التالية' : 'Next slide'}
-            >
-              {isRtl ? <ChevronLeft /> : <ChevronRight />}
-            </button>
-          </>
-        )}
+        
 
         {/* Progress dots */}
         {showDots && images.length > 1 && (
