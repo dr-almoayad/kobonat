@@ -268,8 +268,13 @@ const HeroCarousel = ({
               </div>
             );
           })}
+        </div>
+      </div>
 
-          {/* Nav arrows */}
+      {/* ── Controls layer ── */}
+      <div className="hc-controls">
+
+        {/* Nav arrows */}
           {showArrows && images.length > 1 && (
             <>
               <button 
@@ -288,13 +293,6 @@ const HeroCarousel = ({
               </button>
             </>
           )}
-        </div>
-      </div>
-
-      {/* ── Controls layer ── */}
-      <div className="hc-controls">
-
-        
 
         {/* Progress dots */}
         {showDots && images.length > 1 && (
