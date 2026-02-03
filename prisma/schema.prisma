@@ -218,36 +218,41 @@ enum VoucherType {
 // STORE PRODUCTS - FEATURED ITEMS
 // ============================================================================
 
-model StoreProduct {
-  id          Int     @id @default(autoincrement())
-  storeId     Int
-  
-  // Product Details
-  image       String  // Product image (required)
-  price       Float   // Current price
-  originalPrice Float? // Original price (for discount calculation)
-  
-  // Links
-  productUrl  String  // Direct link to product on store website
-  
-  // Display
-  isFeatured  Boolean @default(true)  // Show on store page
-  order       Int     @default(0)     // Display order
-  
-  // Analytics
-  clickCount  Int     @default(0)
-  
-  // Relations
-  translations StoreProductTranslation[]
-  store        Store   @relation(fields: [storeId], references: [id], onDelete: Cascade)
-  clicks       StoreProductClick[]
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
-  @@index([storeId])
-  @@index([isFeatured])
-  @@index([order])
+ model StoreProduct {
+   id          Int     @id @default(autoincrement())
+   storeId     Int
+   
+   // Product Details
+   image       String  // Product image (required)
+  discountValue Float?        // Discount amount (percentage or absolute)
+  discountType  DiscountType @default(PERCENTAGE) // PERCENTAGE or ABSOLUTE
+   
+   // Links
+   productUrl  String  // Direct link to product on store website
+   
+   // Display
+   isFeatured  Boolean @default(true)  // Show on store page
+   order       Int     @default(0)     // Display order
+   
+   // Analytics
+   clickCount  Int     @default(0)
+   
+   // Relations
+   translations StoreProductTranslation[]
+   store        Store   @relation(fields: [storeId], references: [id], onDelete: Cascade)
+   clicks       StoreProductClick[]
+   
+   createdAt   DateTime @default(now())
+   updatedAt   DateTime @updatedAt
+   
+   @@index([storeId])
+   @@index([isFeatured])
+   @@index([order])
+ }
+
+enum DiscountType {
+  PERCENTAGE
+  ABSOLUTE
 }
 
 model StoreProductTranslation {
