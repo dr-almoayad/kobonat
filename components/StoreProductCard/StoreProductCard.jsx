@@ -89,30 +89,6 @@ const StoreProductCard = ({ product, storeName, storeLogo }) => {
           </div>
         )}
 
-        {/* Optional: Delivery Info */}
-        <div className="delivery-info">
-          {t('freeDelivery', { default: 'FREE delivery' })}
-        </div>
-
-        {/* Shop Now Button - Amazon Yellow */}
-        <button 
-          className={`shop-now-btn ${isClicked ? 'clicked' : ''}`}
-          disabled={isClicked}
-        >
-          {isClicked ? (
-            <>
-              <span className="material-symbols-sharp">check_circle</span>
-              <span>{t('opening', { default: 'Opening...' })}</span>
-            </>
-          ) : (
-            <>
-              <span>{t('checkPrice', { default: 'Check price' })}</span>
-              <span className="material-symbols-sharp">
-                arrow_outward
-              </span>
-            </>
-          )}
-        </button>
       </div>
     </article>
   );
