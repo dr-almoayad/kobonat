@@ -1,4 +1,4 @@
-// components/StoreProductCard/StoreProductCard.jsx - AMAZON STYLE
+// components/StoreProductCard/StoreProductCard.jsx - UPDATED WITH DISCOUNT
 'use client';
 import React, { useState } from 'react';
 import Image from 'next/image';
@@ -34,23 +34,28 @@ const StoreProductCard = ({ product, storeName, storeLogo }) => {
     window.open(product.productUrl, '_blank', 'noopener,noreferrer');
   };
 
-  // Calculate discount percentage
-  const discountPercentage = product.originalPrice 
-    ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
-    : null;
+  // Format discount display
+  const getDiscountDisplay = () => {
+    if (!product.discountValue) return null;
+    
+    if (product.discountType === 'PERCENTAGE') {
+      return `${Math.round(product.discountValue)}% ${t('off', { default: 'OFF' })}`;
+    } else {
+      // ABSOLUTE discount in SAR
+      return `${Math.round(product.discountValue)} SAR ${t('off', { default: 'OFF' })}`;
+    }
+  };
 
-  // Split price into whole and decimal parts
-  const priceWhole = Math.floor(product.price);
-  const priceCents = Math.round((product.price % 1) * 100);
+  const discountDisplay = getDiscountDisplay();
 
   return (
     <article className="store-product-card" onClick={handleClick}>
       {/* Product Image Container */}
       <div className="product-image-wrapper">
         {/* Discount Badge - Top Left (Amazon style) */}
-        {discountPercentage && discountPercentage > 0 && (
+        {discountDisplay && (
           <div className="discount-badge">
-            {discountPercentage}% {t('off', { default: 'OFF' })}
+            {discountDisplay}
           </div>
         )}
 
@@ -83,12 +88,11 @@ const StoreProductCard = ({ product, storeName, storeLogo }) => {
         <h3 className="product-title">{product.title}</h3>
 
         {/* Optional: Savings Text */}
-        {discountPercentage && (
+        {discountDisplay && (
           <div className="savings-text">
-            {t('save', { default: 'Save' })} {discountPercentage}%
+            {t('save', { default: 'Save' })} {discountDisplay}
           </div>
         )}
-
       </div>
     </article>
   );
