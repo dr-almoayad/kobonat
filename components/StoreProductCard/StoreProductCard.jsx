@@ -72,28 +72,9 @@ const StoreProductCard = ({ product, storeName, storeLogo }) => {
 
   return (
     <article className="store-product-card" onClick={handleClick}>
-      {/* Store Badge - Top Right (Sponsored style) */}
-      {storeLogo && (
-        <div className="store-badge">
-          <Image
-            src={storeLogo}
-            alt={storeName || 'Store'}
-            width={100}
-            height={80}
-            className="store-logo-mini"
-          />
-        </div>
-      )}
 
       {/* Product Image Container */}
       <div className="product-image-wrapper">
-        {/* Discount Badge - Top Left (Amazon style) */}
-        {discountDisplay && (
-          <div className="discount-badge">
-            {discountDisplay}
-          </div>
-        )}
-        
         {/* Product Image */}
         <Image
           src={product.image || '/placeholder-product.jpg'}
@@ -103,10 +84,21 @@ const StoreProductCard = ({ product, storeName, storeLogo }) => {
           className="product-image"
         />
       </div>
-
       
       {/* Product Info Section */}
       <div className="product-info">
+        {/* Store Badge - Top Right (Sponsored style) */}
+        {storeLogo && (
+          <div className="store-badge">
+            <Image
+              src={storeLogo}
+              alt={storeName || 'Store'}
+              width={100}
+              height={80}
+              className="store-logo-mini"
+            />
+          </div>
+        )}
         {/* Product Title */}
         <h3 className="product-title">{product.title || 'Product Title'}</h3>
 
@@ -117,6 +109,12 @@ const StoreProductCard = ({ product, storeName, storeLogo }) => {
           </div>
         )}
       </div>
+      {/* Discount Badge - Top Left (Amazon style) */}
+      {discountDisplay && (
+        <div className="discount-badge">
+          {t('off', { default: 'OFF' })} {discountDisplay}
+        </div>
+      )}
     </article>
   );
 };
