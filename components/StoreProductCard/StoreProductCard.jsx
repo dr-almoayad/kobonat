@@ -1,4 +1,4 @@
-// components/StoreProductCard/StoreProductCard.jsx - POLISHED VERSION
+// components/StoreProductCard/StoreProductCard.jsx - FIXED VERSION
 'use client';
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
@@ -69,18 +69,21 @@ const StoreProductCard = ({ product, storeName, storeLogo }) => {
     return null;
   }
 
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      handleClick(e);
+    }
+  };
+
   return (
     <article 
       className="store-product-card" 
       onClick={handleClick}
       role="link"
       tabIndex={0}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          handleClick(e);
-        }
-      }}
+      onKeyDown={handleKeyDown}
+      aria-label={`${product.title || 'Product'} - ${storeName}`}
     >
       {/* Product Image Container */}
       <div className="product-image-wrapper">
@@ -93,6 +96,7 @@ const StoreProductCard = ({ product, storeName, storeLogo }) => {
               width={80}
               height={24}
               className="store-logo-mini"
+              unoptimized
             />
           </div>
         )}
@@ -105,6 +109,7 @@ const StoreProductCard = ({ product, storeName, storeLogo }) => {
           height={280}
           className="product-image"
           priority={false}
+          unoptimized
         />
 
         {/* Discount Badge - Bottom (Ribbon Style) */}
