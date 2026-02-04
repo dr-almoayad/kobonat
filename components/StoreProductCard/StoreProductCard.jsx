@@ -108,6 +108,8 @@ const StoreProductCard = ({ product, storeName, storeLogo }) => {
         {/* Product Title */}
         <h3 className="product-title">{product.title || 'Product Title'}</h3>
 
+        <h3 className="product-store">{t('soldBy', { default: 'Sold by' })} {storeName}</h3>
+
         {/* Optional: Savings Text */}
         {discountDisplay && (
           <div className="savings-text">
