@@ -1,9 +1,9 @@
-// components/StoreProductCard/StoreProductCard.jsx - UPDATED WITH DEBUGGING
+// components/StoreProductCard/StoreProductCard.jsx - POLISHED VERSION
 'use client';
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useTranslations, useLocale } from 'next-intl';
-import './StoreProductCard.css';
+import './store-product-card.css';
 
 const StoreProductCard = ({ product, storeName, storeLogo }) => {
   const t = useTranslations('StoreProductCard');
@@ -13,11 +13,8 @@ const StoreProductCard = ({ product, storeName, storeLogo }) => {
   const [isClicked, setIsClicked] = useState(false);
   const [discountDisplay, setDiscountDisplay] = useState(null);
 
-  // Format discount display - FIXED VERSION
+  // Format discount display
   useEffect(() => {
-    // Debug log
-    console.log('Product data:', product);
-    
     if (!product) {
       setDiscountDisplay(null);
       return;
@@ -27,7 +24,6 @@ const StoreProductCard = ({ product, storeName, storeLogo }) => {
     
     // Check if discountValue exists and is greater than 0
     if (discountValue === null || discountValue === undefined || discountValue <= 0) {
-      console.log('No valid discount:', discountValue);
       setDiscountDisplay(null);
       return;
     }
@@ -40,19 +36,17 @@ const StoreProductCard = ({ product, storeName, storeLogo }) => {
     } else if (discountType === 'ABSOLUTE') {
       display = `${value} SAR`;
     } else {
-      // Fallback for any other type
-      display = `${value} ${offText}`;
+      display = `${value}`;
     }
     
-    console.log('Discount display set to:', display);
     setDiscountDisplay(display);
-  }, [product, t]);
+  }, [product]);
 
   // Track click and redirect
   const handleClick = async (e) => {
     e.preventDefault();
     
-    if (isClicked) return;
+    if (isClicked || !product?.productUrl) return;
     setIsClicked(true);
 
     // Track click analytics
@@ -70,11 +64,39 @@ const StoreProductCard = ({ product, storeName, storeLogo }) => {
     window.open(product.productUrl, '_blank', 'noopener,noreferrer');
   };
 
-  return (
-    <article className="store-product-card" onClick={handleClick}>
+  // Handle missing data gracefully
+  if (!product) {
+    return null;
+  }
 
+  return (
+    <article 
+      className="store-product-card" 
+      onClick={handleClick}
+      role="link"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          handleClick(e);
+        }
+      }}
+    >
       {/* Product Image Container */}
       <div className="product-image-wrapper">
+        {/* Store Badge - Top Left */}
+        {storeLogo && (
+          <div className="store-badge">
+            <Image
+              src={storeLogo}
+              alt={storeName || 'Store'}
+              width={80}
+              height={24}
+              className="store-logo-mini"
+            />
+          </div>
+        )}
+
         {/* Product Image */}
         <Image
           src={product.image || '/placeholder-product.jpg'}
@@ -82,10 +104,12 @@ const StoreProductCard = ({ product, storeName, storeLogo }) => {
           width={280}
           height={280}
           className="product-image"
+          priority={false}
         />
-        {/* Discount Badge - Top Left (Amazon style) */}
+
+        {/* Discount Badge - Bottom (Ribbon Style) */}
         {discountDisplay && (
-          <div className="discount-badge">
+          <div className="discount-badge" aria-label={`${t('discount', { default: 'Discount' })} ${discountDisplay}`}>
             {t('off', { default: 'OFF' })} {discountDisplay}
           </div>
         )}
@@ -93,32 +117,27 @@ const StoreProductCard = ({ product, storeName, storeLogo }) => {
       
       {/* Product Info Section */}
       <div className="product-info">
-        {/* Store Badge - Top Right (Sponsored style) */}
-        {storeLogo && (
-          <div className="store-badge">
-            <Image
-              src={storeLogo}
-              alt={storeName || 'Store'}
-              width={100}
-              height={80}
-              className="store-logo-mini"
-            />
-          </div>
-        )}
         {/* Product Title */}
-        <h3 className="product-title">{product.title || 'Product Title'}</h3>
+        <h3 className="product-title">
+          {product.title || t('untitled', { default: 'Product' })}
+        </h3>
 
-        <h3 className="product-store">{t('soldBy', { default: 'Sold by' })} {storeName}</h3>
+        {/* Store Name */}
+        <p className="product-store">
+          {t('soldBy', { default: 'Sold by' })} {storeName}
+        </p>
 
-        {/* Optional: Savings Text */}
+        {/* Savings Text (CTA) */}
         {discountDisplay && (
           <div className="savings-text">
-            <span class="material-symbols-sharp">
-            percent_discount
-            </span> 
-            <h6>{t('save', { default: 'Save' })} {discountDisplay}</h6>
-            <span class="material-symbols-sharp">
-              arrow_back
+            <span className="material-symbols-sharp" aria-hidden="true">
+              local_offer
+            </span>
+            <h6>
+              {t('save', { default: 'Save' })} {discountDisplay}
+            </h6>
+            <span className="material-symbols-sharp" aria-hidden="true">
+              {isRtl ? 'arrow_back' : 'arrow_forward'}
             </span>
           </div>
         )}
