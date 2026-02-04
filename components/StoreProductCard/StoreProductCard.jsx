@@ -111,7 +111,10 @@ const StoreProductCard = ({ product, storeName, storeLogo }) => {
         {/* Optional: Savings Text */}
         {discountDisplay && (
           <div className="savings-text">
-            {t('save', { default: 'Save' })} {discountDisplay}
+            <span class="material-symbols-sharp">
+            percent_discount
+            </span> 
+            <h6>{t('save', { default: 'Save' })} {discountDisplay}</h6>
           </div>
         )}
       </div>
