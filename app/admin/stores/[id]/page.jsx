@@ -528,46 +528,123 @@ const handleApplyCountries = async () => {
       )}
 
       {/* FAQS */}
-      {tab === 'faqs' && (
-        <div className={styles.section}>
-          <form action={(formData) => startTransition(async () => {
-            const result = await upsertFAQ(formData);
-            if (result.success) router.refresh();
-          })} className={styles.form}>
-            <FormSection title="Add FAQ">
-              <input type="hidden" name="storeId" value={store.id} />
-              <FormRow>
-                <FormField label="Country" name="countryId" type="select" options={allCountries.map(c => ({ label: c.translations[0]?.name, value: c.id }))} required />
-                <FormField label="Order" name="order" type="number" defaultValue="0" />
-              </FormRow>
-              <FormRow>
-                <FormField label="Question (EN)" name="question_en" required />
-                <FormField label="Question (AR)" name="question_ar" required dir="rtl" />
-              </FormRow>
-              <FormField label="Answer (EN)" name="answer_en" type="textarea" required />
-              <FormField label="Answer (AR)" name="answer_ar" type="textarea" required dir="rtl" />
-              <button type="submit" className={styles.btnPrimary} disabled={isPending}>Add FAQ</button>
-            </FormSection>
-          </form>
-
-          <DataTable
-            data={store.faqs || []}
-            columns={[
-              { key: 'country.code', label: 'Country' },
-              { key: 'translations', label: 'Question', render: (t) => t?.[0]?.question || '—' },
-              { key: 'order', label: 'Order' },
-              { key: 'isActive', label: 'Status', render: (val) => val ? 'Active' : 'Inactive' }
-            ]}
-            onDelete={async (faqId) => {
-              const fd = new FormData();
-              fd.append('id', faqId);
-              fd.append('storeId', store.id);
-              await deleteFAQ(fd);
-              router.refresh();
-            }}
+{tab === 'faqs' && (
+  <div className={styles.section}>
+    <form action={(formData) => startTransition(async () => {
+      const result = await upsertFAQ(formData);
+      if (result.success) router.refresh();
+    })} className={styles.form}>
+      <FormSection title="Add FAQ">
+        <input type="hidden" name="storeId" value={store.id} />
+        <FormRow>
+          <FormField 
+            label="Country" 
+            name="countryId" 
+            type="select" 
+            options={allCountries.map(c => ({ 
+              label: c.translations[0]?.name, 
+              value: c.id 
+            }))} 
+            required 
           />
-        </div>
-      )}
+          <FormField 
+            label="Order" 
+            name="order" 
+            type="number" 
+            defaultValue="0" 
+          />
+        </FormRow>
+        
+        {/* ✅ ADD THIS ROW */}
+        <FormRow>
+          <FormField 
+            label="Active" 
+            name="isActive" 
+            type="checkbox" 
+            defaultValue={true}
+            helpText="FAQ will be visible to users"
+          />
+        </FormRow>
+        
+        <FormRow>
+          <FormField 
+            label="Question (EN)" 
+            name="question_en" 
+            required 
+          />
+          <FormField 
+            label="Question (AR)" 
+            name="question_ar" 
+            required 
+            dir="rtl" 
+          />
+        </FormRow>
+        
+        <FormField 
+          label="Answer (EN)" 
+          name="answer_en" 
+          type="textarea" 
+          required 
+        />
+        <FormField 
+          label="Answer (AR)" 
+          name="answer_ar" 
+          type="textarea" 
+          required 
+          dir="rtl" 
+        />
+        
+        <button 
+          type="submit" 
+          className={styles.btnPrimary} 
+          disabled={isPending}
+        >
+          Add FAQ
+        </button>
+      </FormSection>
+    </form>
+    
+    <DataTable
+      data={store.faqs || []}
+      columns={[
+        { 
+          key: 'country.code', 
+          label: 'Country',
+          render: (code, row) => (
+            <span>
+              {row.country?.translations?.[0]?.name || code}
+            </span>
+          )
+        },
+        { 
+          key: 'translations', 
+          label: 'Question', 
+          render: (t) => t?.[0]?.question || '—' 
+        },
+        { 
+          key: 'order', 
+          label: 'Order' 
+        },
+        { 
+          key: 'isActive', 
+          label: 'Status', 
+          render: (val) => (
+            <span className={val ? styles.badgeSuccess : styles.badgeDanger}>
+              {val ? 'Active' : 'Inactive'}
+            </span>
+          )
+        }
+      ]}
+      onDelete={async (faqId) => {
+        const fd = new FormData();
+        fd.append('id', faqId);
+        fd.append('storeId', store.id);
+        await deleteFAQ(fd);
+        router.refresh();
+      }}
+    />
+  </div>
+)}
     </div>
   );
            }
