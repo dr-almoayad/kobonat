@@ -866,6 +866,7 @@
     "save": "Save",
     "freeDelivery": "FREE delivery",
     "checkPrice": "Check price",
-    "opening": "Opening..."
+    "opening": "Opening...",
+    "soldBy": "Sold by"
   }
 }
