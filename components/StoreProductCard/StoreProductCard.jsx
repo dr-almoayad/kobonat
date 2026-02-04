@@ -72,6 +72,19 @@ const StoreProductCard = ({ product, storeName, storeLogo }) => {
 
   return (
     <article className="store-product-card" onClick={handleClick}>
+      {/* Store Badge - Top Right (Sponsored style) */}
+      {storeLogo && (
+        <div className="store-badge">
+          <Image
+            src={storeLogo}
+            alt={storeName || 'Store'}
+            width={100}
+            height={80}
+            className="store-logo-mini"
+          />
+        </div>
+      )}
+
       {/* Product Image Container */}
       <div className="product-image-wrapper">
         {/* Discount Badge - Top Left (Amazon style) */}
@@ -91,19 +104,7 @@ const StoreProductCard = ({ product, storeName, storeLogo }) => {
         />
       </div>
 
-      {/* Store Badge - Top Right (Sponsored style) */}
-      {storeLogo && (
-        <div className="store-badge">
-          <Image
-            src={storeLogo}
-            alt={storeName || 'Store'}
-            width={100}
-            height={80}
-            className="store-logo-mini"
-          />
-        </div>
-      )}
-
+      
       {/* Product Info Section */}
       <div className="product-info">
         {/* Product Title */}
