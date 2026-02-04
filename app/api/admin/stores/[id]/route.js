@@ -196,6 +196,7 @@ export async function PUT(req, { params }) {
 }
 
 
+
 export async function DELETE(req, { params }) {
   try {
     const session = await getServerSession(authOptions);
@@ -203,28 +204,69 @@ export async function DELETE(req, { params }) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // FIX: Await params here
+    // FIX: Await params
     const { id } = await params; 
+    const storeId = parseInt(id);
     
-    // Check if store has vouchers
-    const voucherCount = await prisma.voucher.count({
-      where: { storeId: parseInt(id) }
+    // Check if store exists
+    const store = await prisma.store.findUnique({
+      where: { id: storeId },
+      include: {
+        _count: {
+          select: {
+            vouchers: true,
+            products: true,
+            faqs: true,
+            otherPromos: true
+          }
+        }
+      }
     });
 
-    if (voucherCount > 0) {
+    if (!store) {
       return NextResponse.json(
-        { error: `Cannot delete store with ${voucherCount} active vouchers` },
+        { error: "Store not found" },
+        { status: 404 }
+      );
+    }
+    
+    // Check if store has any dependencies
+    const totalDependencies = 
+      store._count.vouchers + 
+      store._count.products + 
+      store._count.faqs + 
+      store._count.otherPromos;
+    
+    if (totalDependencies > 0) {
+      return NextResponse.json(
+        { 
+          error: `Cannot delete store. It has ${store._count.vouchers} vouchers, ${store._count.products} products, ${store._count.faqs} FAQs, and ${store._count.otherPromos} promos. Please delete these first.`,
+          details: {
+            vouchers: store._count.vouchers,
+            products: store._count.products,
+            faqs: store._count.faqs,
+            otherPromos: store._count.otherPromos
+          }
+        },
         { status: 400 }
       );
     }
 
+    // Safe to delete - no dependencies
     await prisma.store.delete({
-      where: { id: parseInt(id) }
+      where: { id: storeId }
     });
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ 
+      success: true,
+      message: "Store deleted successfully"
+    });
+    
   } catch (error) {
     console.error('Admin store DELETE error:', error);
-    return NextResponse.json({ error: "Failed to delete store" }, { status: 500 });
+    return NextResponse.json({ 
+      error: "Failed to delete store",
+      details: error.message 
+    }, { status: 500 });
   }
 }
