@@ -127,10 +127,10 @@
 
 .product-store{
     font-family: 'Alexandria', 'Open Sans', sans-serif;
-    font-size: 0.85rem; 
+    font-size: 0.82rem; 
     font-weight: 500;
     line-height: 1.2;
-    color: #c1bdc5;
+    color: #918f94;
     margin: 0;
     display: -webkit-box;
 }
@@ -153,23 +153,9 @@
   color: #470ae2; /* Success Green - indicates value/saving */
 }
 
-@media (hover: hover) {
-  .store-product-card:hover .savings-text::after {
-    transform: translateX(4px);
-    opacity: 1;
-  }
-}
 
 /* RTL Support */
 [dir="rtl"] .store-badge {
   left: auto;
   right: 10px;
-}
-
-[dir="rtl"] .savings-text::after {
-  content: '←'; /* Flip arrow for RTL */
-}
-
-[dir="rtl"] .store-product-card:hover .savings-text::after {
-  transform: translateX(-4px);
 }
