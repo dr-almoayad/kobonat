@@ -857,7 +857,10 @@ export async function upsertFAQ(formData) {
       storeId: parseInt(storeId),
       countryId: parseInt(formData.get('countryId')),
       order: parseInt(formData.get('order') || '0'),
-      isActive: formData.get('isActive') === 'on'
+      // ✅ FIX: Default to true if not explicitly set
+      isActive: formData.has('isActive') 
+        ? formData.get('isActive') === 'on' 
+        : true  // Default to active for new FAQs
     };
 
     let faq;
@@ -895,6 +898,7 @@ export async function upsertFAQ(formData) {
     revalidatePath(`/admin/stores/${storeId}`);
     return { success: true, id: faq.id };
   } catch (error) {
+    console.error('FAQ upsert error:', error);
     return { error: error.message };
   }
 }
