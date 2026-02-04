@@ -149,24 +149,43 @@ export async function updateStore(id, formData) {
 
 export async function deleteStore(id) {
   try {
-    const voucherCount = await prisma.voucher.count({
-      where: { storeId: parseInt(id) }
-    });
+    const storeId = parseInt(id);
+    
+    // Check all dependencies
+    const [voucherCount, productCount, faqCount, promoCount] = await Promise.all([
+      prisma.voucher.count({ where: { storeId } }),
+      prisma.storeProduct.count({ where: { storeId } }),
+      prisma.storeFAQ.count({ where: { storeId } }),
+      prisma.otherPromo.count({ where: { storeId } })
+    ]);
 
-    if (voucherCount > 0) {
-      return { error: `Cannot delete store with ${voucherCount} vouchers` };
+    const totalDeps = voucherCount + productCount + faqCount + promoCount;
+    
+    if (totalDeps > 0) {
+      const deps = [];
+      if (voucherCount) deps.push(`${voucherCount} voucher(s)`);
+      if (productCount) deps.push(`${productCount} product(s)`);
+      if (faqCount) deps.push(`${faqCount} FAQ(s)`);
+      if (promoCount) deps.push(`${promoCount} promo(s)`);
+      
+      return { 
+        error: `Cannot delete store. Please delete its ${deps.join(', ')} first.`
+      };
     }
 
     await prisma.store.delete({
-      where: { id: parseInt(id) }
+      where: { id: storeId }
     });
 
     revalidatePath('/admin/stores');
     return { success: true };
+    
   } catch (error) {
-    return { error: error.message };
+    console.error('Delete store error:', error);
+    return { error: error.message || 'Failed to delete store' };
   }
-}
+    }
+
 
 export async function updateStoreCountries(id, formData) {
   try {
