@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useTranslations, useLocale } from 'next-intl';
-import './store-product-card.css';
+import './StoreProductCard.css';
 
 const StoreProductCard = ({ product, storeName, storeLogo }) => {
   const t = useTranslations('StoreProductCard');
