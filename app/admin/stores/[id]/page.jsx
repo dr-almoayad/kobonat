@@ -527,124 +527,249 @@ const handleApplyCountries = async () => {
         />
       )}
 
-      {/* FAQS */}
+     
+// REPLACE THE ENTIRE FAQs TAB SECTION WITH THIS:
+{/* FAQS */}
 {tab === 'faqs' && (
   <div className={styles.section}>
-    <form action={(formData) => startTransition(async () => {
-      const result = await upsertFAQ(formData);
-      if (result.success) router.refresh();
-    })} className={styles.form}>
-      <FormSection title="Add FAQ">
-        <input type="hidden" name="storeId" value={store.id} />
-        <FormRow>
-          <FormField 
-            label="Country" 
-            name="countryId" 
-            type="select" 
-            options={allCountries.map(c => ({ 
-              label: c.translations[0]?.name, 
-              value: c.id 
-            }))} 
-            required 
-          />
-          <FormField 
-            label="Order" 
-            name="order" 
-            type="number" 
-            defaultValue="0" 
-          />
-        </FormRow>
-        
-        {/* ✅ ADD THIS ROW */}
-        <FormRow>
+    <div className={styles.sectionHeader}>
+      <h2>Store FAQs ({store.faqs?.length || 0})</h2>
+      {!showFAQForm && (
+        <button 
+          onClick={() => {
+            setShowFAQForm(true);
+            setEditingFAQ(null);
+          }} 
+          className={styles.btnPrimary}
+        >
+          + Add FAQ
+        </button>
+      )}
+    </div>
+
+    {/* FAQ FORM - CREATE/EDIT */}
+    {showFAQForm && (
+      <form 
+        action={(formData) => startTransition(async () => {
+          // Add FAQ ID if editing
+          if (editingFAQ) {
+            formData.append('faqId', editingFAQ.id);
+          }
+          
+          const result = await upsertFAQ(formData);
+          
+          if (result.success) {
+            setShowFAQForm(false);
+            setEditingFAQ(null);
+            router.refresh();
+            alert(editingFAQ ? 'FAQ updated successfully!' : 'FAQ created successfully!');
+          } else {
+            alert(result.error || 'Failed to save FAQ');
+          }
+        })} 
+        className={styles.form}
+      >
+        <FormSection title={editingFAQ ? "Edit FAQ" : "Add New FAQ"}>
+          <input type="hidden" name="storeId" value={store.id} />
+          
+          {/* Country and Order */}
+          <FormRow>
+            <FormField 
+              label="Country" 
+              name="countryId" 
+              type="select" 
+              defaultValue={editingFAQ?.countryId}
+              options={allCountries.map(c => ({ 
+                label: `${c.flag || ''} ${c.translations[0]?.name || c.code}`, 
+                value: c.id 
+              }))} 
+              required 
+            />
+            <FormField 
+              label="Display Order" 
+              name="order" 
+              type="number" 
+              defaultValue={editingFAQ?.order || 0}
+              helpText="Lower numbers appear first"
+            />
+          </FormRow>
+          
+          {/* Active Status */}
           <FormField 
             label="Active" 
             name="isActive" 
             type="checkbox" 
-            defaultValue={true}
-            helpText="FAQ will be visible to users"
+            defaultValue={editingFAQ?.isActive ?? true}
+            helpText="FAQ will be visible to users on the store page"
           />
-        </FormRow>
-        
-        <FormRow>
+          
+          {/* Questions */}
+          <FormRow>
+            <FormField 
+              label="Question (English)" 
+              name="question_en" 
+              defaultValue={editingFAQ?.translations?.find(t => t.locale === 'en')?.question}
+              required 
+              placeholder="How do I use the coupon code?"
+            />
+            <FormField 
+              label="Question (Arabic)" 
+              name="question_ar" 
+              defaultValue={editingFAQ?.translations?.find(t => t.locale === 'ar')?.question}
+              required 
+              dir="rtl"
+              placeholder="كيف أستخدم كود الخصم؟"
+            />
+          </FormRow>
+          
+          {/* Answers */}
           <FormField 
-            label="Question (EN)" 
-            name="question_en" 
+            label="Answer (English)" 
+            name="answer_en" 
+            type="textarea"
+            rows={5}
+            defaultValue={editingFAQ?.translations?.find(t => t.locale === 'en')?.answer}
             required 
+            placeholder="Copy the code and paste it at checkout before completing your purchase..."
           />
+          
           <FormField 
-            label="Question (AR)" 
-            name="question_ar" 
+            label="Answer (Arabic)" 
+            name="answer_ar" 
+            type="textarea"
+            rows={5}
+            defaultValue={editingFAQ?.translations?.find(t => t.locale === 'ar')?.answer}
             required 
-            dir="rtl" 
+            dir="rtl"
+            placeholder="انسخ الكود والصقه عند الدفع قبل إتمام الشراء..."
           />
-        </FormRow>
-        
-        <FormField 
-          label="Answer (EN)" 
-          name="answer_en" 
-          type="textarea" 
-          required 
-        />
-        <FormField 
-          label="Answer (AR)" 
-          name="answer_ar" 
-          type="textarea" 
-          required 
-          dir="rtl" 
-        />
-        
-        <button 
-          type="submit" 
-          className={styles.btnPrimary} 
-          disabled={isPending}
-        >
-          Add FAQ
-        </button>
-      </FormSection>
-    </form>
-    
-    <DataTable
-      data={store.faqs || []}
-      columns={[
-        { 
-          key: 'country.code', 
-          label: 'Country',
-          render: (code, row) => (
-            <span>
-              {row.country?.translations?.[0]?.name || code}
-            </span>
-          )
-        },
-        { 
-          key: 'translations', 
-          label: 'Question', 
-          render: (t) => t?.[0]?.question || '—' 
-        },
-        { 
-          key: 'order', 
-          label: 'Order' 
-        },
-        { 
-          key: 'isActive', 
-          label: 'Status', 
-          render: (val) => (
-            <span className={val ? styles.badgeSuccess : styles.badgeDanger}>
-              {val ? 'Active' : 'Inactive'}
-            </span>
-          )
-        }
-      ]}
-      onDelete={async (faqId) => {
-        const fd = new FormData();
-        fd.append('id', faqId);
-        fd.append('storeId', store.id);
-        await deleteFAQ(fd);
-        router.refresh();
-      }}
-    />
+          
+          {/* Action Buttons */}
+          <div className={styles.formActions}>
+            <button 
+              type="submit" 
+              className={styles.btnPrimary} 
+              disabled={isPending}
+            >
+              {isPending ? 'Saving...' : (editingFAQ ? 'Update FAQ' : 'Create FAQ')}
+            </button>
+            <button 
+              type="button"
+              onClick={() => {
+                setShowFAQForm(false);
+                setEditingFAQ(null);
+              }}
+              className={styles.btnSecondary}
+              disabled={isPending}
+            >
+              Cancel
+            </button>
+          </div>
+        </FormSection>
+      </form>
+    )}
+
+    {/* FAQ LIST TABLE */}
+    {!showFAQForm && store.faqs && store.faqs.length > 0 ? (
+      <DataTable
+        data={store.faqs || []}
+        columns={[
+          { 
+            key: 'id', 
+            label: 'ID',
+            sortable: true
+          },
+          { 
+            key: 'country', 
+            label: 'Country',
+            sortable: false,
+            render: (country) => (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '20px' }}>{country?.flag || '🌍'}</span>
+                <span>{country?.translations?.[0]?.name || country?.code || '—'}</span>
+              </div>
+            )
+          },
+          { 
+            key: 'translations', 
+            label: 'Question', 
+            sortable: false,
+            render: (trans) => {
+              const enQuestion = trans?.find(t => t.locale === 'en')?.question;
+              const arQuestion = trans?.find(t => t.locale === 'ar')?.question;
+              return (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  <div style={{ fontWeight: 500 }}>{enQuestion || '—'}</div>
+                  {arQuestion && (
+                    <div style={{ fontSize: '12px', color: '#666', direction: 'rtl' }}>
+                      {arQuestion}
+                    </div>
+                  )}
+                </div>
+              );
+            }
+          },
+          { 
+            key: 'order', 
+            label: 'Order',
+            sortable: true,
+            render: (order) => (
+              <span className={styles.badge}>#{order}</span>
+            )
+          },
+          { 
+            key: 'isActive', 
+            label: 'Status',
+            sortable: true,
+            render: (val) => (
+              <span className={val ? styles.badgeSuccess : styles.badgeDanger}>
+                {val ? 'Active' : 'Inactive'}
+              </span>
+            )
+          }
+        ]}
+        onEdit={(faqId) => {
+          const faq = store.faqs.find(f => f.id === faqId);
+          if (faq) {
+            setEditingFAQ(faq);
+            setShowFAQForm(true);
+            // Scroll to top to show form
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }
+        }}
+        onDelete={async (faqId) => {
+          if (!confirm('Are you sure you want to delete this FAQ? This action cannot be undone.')) {
+            return;
+          }
+          
+          startTransition(async () => {
+            const fd = new FormData();
+            fd.append('id', faqId);
+            fd.append('storeId', store.id);
+            
+            const result = await deleteFAQ(fd);
+            
+            if (result.success) {
+              router.refresh();
+              alert('FAQ deleted successfully!');
+            } else {
+              alert(result.error || 'Failed to delete FAQ');
+            }
+          });
+        }}
+      />
+    ) : !showFAQForm ? (
+      <div className={styles.emptyState}>
+        <span className="material-symbols-sharp" style={{ fontSize: '48px', color: '#ccc' }}>
+          help_outline
+        </span>
+        <p>No FAQs yet. Click "Add FAQ" to create your first one.</p>
+      </div>
+    ) : null}
   </div>
 )}
+
+      
     </div>
   );
            }
