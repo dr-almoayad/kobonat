@@ -30,7 +30,9 @@ export default function StoreEditPage({ params }) {
   const [allCategories, setAllCategories] = useState([]);
   const [allPaymentMethods, setAllPaymentMethods] = useState([]);
   const [otherPromos, setOtherPromos] = useState([]);
-  
+  const [editingFAQ, setEditingFAQ] = useState(null);
+  const [showFAQForm, setShowFAQForm] = useState(false);
+
   // UI States
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
