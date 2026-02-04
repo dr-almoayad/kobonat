@@ -86,15 +86,11 @@
   max-width: 80px;
   
   /* Glassmorphism subtle background for readability */
-  background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(4px);
-  border-radius: 6px;
-  padding: 2px 6px;
-  border: 1px solid rgba(0, 0, 0, 0.05);
-  
+  background: none;
+  padding: 0;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
 }
 
 .store-logo-mini {
@@ -108,7 +104,7 @@
   padding: 12px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 0.3rem;
   flex-grow: 1; /* Pushes content to fill height */
 }
 
@@ -159,15 +155,6 @@
   display: flex;
   align-items: center;
   gap: 4px;
-  margin-top: auto; /* Pushes this to the bottom of the card */
-}
-
-/* Add a subtle icon or indicator for clickability */
-.savings-text::after {
-  content: '→';
-  font-size: 1.1em;
-  transition: transform 0.2s ease;
-  opacity: 0.7;
 }
 
 @media (hover: hover) {
