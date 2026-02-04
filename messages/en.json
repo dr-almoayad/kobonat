@@ -852,9 +852,7 @@
   "FeaturedProducts": {
     "title": "Featured Products",
     "subtitle": "Check out our top picks for you"
-  },
-   "FeaturedProducts": {
-    "title": "Today's Top Deals",
+    "topOffersFrom": "Best Offers From",
     "presentedBy": "PRESENTED BY",
     "viewAllDeals": "View all exclusive deals",
     "viewMoreDeals": "View more deals",
