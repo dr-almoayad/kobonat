@@ -4,14 +4,15 @@ import React, { useCallback, useEffect, useState } from "react";
 import useEmblaCarousel from 'embla-carousel-react';
 import StoreProductCard from '../StoreProductCard/StoreProductCard';
 import { useTranslations, useLocale } from 'next-intl';
-import Link from 'next/link';
+import Image from 'next/image';
 import "./featured-products-carousel.css";
 
 const FeaturedProductsCarousel = ({ 
   products = [], 
   storeName, 
   storeLogo,
-  storeSlug 
+  storeWebsiteUrl,
+  lastUpdated 
 }) => {
   const t = useTranslations('FeaturedProducts');
   const locale = useLocale();
@@ -61,6 +62,24 @@ const FeaturedProductsCarousel = ({
     };
   }, [emblaApi, onSelect]);
 
+  // Format last updated date
+  const formatLastUpdated = () => {
+    if (!lastUpdated) return null;
+    
+    const date = new Date(lastUpdated);
+    const now = new Date();
+    const diffHours = Math.floor((now - date) / (1000 * 60 * 60));
+    
+    if (diffHours < 1) {
+      return t('updatedJustNow', { default: 'Updated just now' });
+    } else if (diffHours < 24) {
+      return t('updatedHoursAgo', { default: 'Updated {hours}h ago', hours: diffHours });
+    } else {
+      const diffDays = Math.floor(diffHours / 24);
+      return t('updatedDaysAgo', { default: 'Updated {days}d ago', days: diffDays });
+    }
+  };
+
   // Don't render if no products
   if (!products || products.length === 0) {
     return null;
@@ -69,32 +88,43 @@ const FeaturedProductsCarousel = ({
   return (
     <section className="featured-products-carousel" dir={isRtl ? 'rtl' : 'ltr'}>
       <div className="carousel-header">
-        <h2 className="carousel-title">
-          <span className="material-symbols-sharp">local_offer</span>
-          {t('title', { default: "Today's Top Deals" })}
-        </h2>
-        <p className="carousel-subtitle">
-          {t('presentedBy', { default: 'PRESENTED BY' })} {storeName.toUpperCase()}
-        </p>
-        
-        {/* Featured Banner Link - Similar to Amazon's "10% CASH BACK" */}
-        {storeSlug && (
-          <Link href={`/${locale}/stores/${storeSlug}`} className="featured-banner-link">
-            <span className="material-symbols-sharp">bolt</span>
-            {t('viewAllDeals', { default: 'View all exclusive deals' })}
-            <span className="material-symbols-sharp">arrow_forward</span>
-          </Link>
+        <div className="carousel-header-top">
+          {storeLogo && (
+            <Image
+              src={storeLogo}
+              alt={`${storeName} logo`}
+              width={64}
+              height={64}
+              className="carousel-store-logo"
+            />
+          )}
+          <div className="carousel-title-wrapper">
+            <h2 className="carousel-title">
+              {t('topOffersFrom', { default: 'Top offers from' })}{' '}
+              <span className="carousel-store-name">{storeName}</span>
+            </h2>
+            {lastUpdated && (
+              <p className="carousel-last-updated">
+                {formatLastUpdated()}
+              </p>
+            )}
+          </div>
+        </div>
+
+        {storeWebsiteUrl && (
+          <a 
+            href={storeWebsiteUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="view-more-btn"
+          >
+            {t('viewMoreOffers', { default: 'View more offers' })}
+            <span className="material-symbols-sharp">
+              {isRtl ? 'arrow_back' : 'arrow_forward'}
+            </span>
+          </a>
         )}
       </div>
-
-      {/* View More Button */}
-      {storeSlug && (
-        <div className="view-more-container">
-          <Link href={`/${locale}/stores/${storeSlug}`} className="view-more-btn">
-            {t('viewMoreDeals', { default: 'View more deals' })}
-          </Link>
-        </div>
-      )}
       
       <div className="embla">
         <div className="embla__viewport" ref={emblaRef}>
@@ -111,7 +141,7 @@ const FeaturedProductsCarousel = ({
           </div>
         </div>
 
-        {/* Navigation Buttons */}
+        {/* Navigation Buttons - Desktop Only */}
         {canScrollPrev && (
           <button 
             className="embla__button embla__button--prev" 
@@ -137,7 +167,7 @@ const FeaturedProductsCarousel = ({
         )}
       </div>
 
-      {/* Dot Indicators - Amazon style */}
+      {/* Dot Indicators */}
       {scrollSnaps.length > 1 && (
         <div className="carousel-dots">
           {scrollSnaps.map((_, index) => (
@@ -145,7 +175,7 @@ const FeaturedProductsCarousel = ({
               key={index}
               className={`carousel-dot ${index === selectedIndex ? 'active' : ''}`}
               onClick={() => scrollTo(index)}
-              aria-label={`Go to slide ${index + 1}`}
+              aria-label={`${t('goToSlide', { default: 'Go to slide' })} ${index + 1}`}
             />
           ))}
         </div>
@@ -154,4 +184,4 @@ const FeaturedProductsCarousel = ({
   );
 };
 
-export default FeaturedProductsCarousel;
+export default FeaturedProductsCarousel
