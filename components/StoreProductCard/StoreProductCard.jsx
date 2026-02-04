@@ -83,6 +83,12 @@ const StoreProductCard = ({ product, storeName, storeLogo }) => {
           height={280}
           className="product-image"
         />
+        {/* Discount Badge - Top Left (Amazon style) */}
+        {discountDisplay && (
+          <div className="discount-badge">
+            {t('off', { default: 'OFF' })} {discountDisplay}
+          </div>
+        )}
       </div>
       
       {/* Product Info Section */}
@@ -109,12 +115,6 @@ const StoreProductCard = ({ product, storeName, storeLogo }) => {
           </div>
         )}
       </div>
-      {/* Discount Badge - Top Left (Amazon style) */}
-      {discountDisplay && (
-        <div className="discount-badge">
-          {t('off', { default: 'OFF' })} {discountDisplay}
-        </div>
-      )}
     </article>
   );
 };
