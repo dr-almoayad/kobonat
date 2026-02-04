@@ -875,9 +875,8 @@
   },
   "FeaturedProducts": {
     "title": "منتجات مميزة",
-    "subtitle": "تصفح أفضل المنتجات المختارة لك"
-  },
-   "FeaturedProducts": {
+    "subtitle": "تصفح أفضل المنتجات المختارة لك",
+    "topOffersFrom": "أفضل العروض من",
     "title": "أفضل العروض اليوم",
     "presentedBy": "مقدم من",
     "viewAllDeals": "عرض جميع العروض الحصرية",
