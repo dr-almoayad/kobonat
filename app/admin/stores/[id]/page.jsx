@@ -262,30 +262,69 @@ const handleApplyCountries = async () => {
         </form>
       )}
 
-      {/* TRANSLATIONS */}
-      {tab === 'translations' && (
-        <form action={(formData) => startTransition(async () => {
-          await updateStore(store.id, formData);
-          router.refresh();
-        })} className={styles.form}>
-          <FormRow>
-            <FormSection title="English (EN)">
-              <FormField label="Name" name="name_en" defaultValue={enTranslation.name} required />
-              <FormField label="Slug" name="slug_en" defaultValue={enTranslation.slug} required />
-              <FormField label="Description" name="description_en" type="textarea" defaultValue={enTranslation.description} />
-            </FormSection>
-            <FormSection title="Arabic (AR)">
-              <FormField label="Name" name="name_ar" defaultValue={arTranslation.name} required dir="rtl" />
-              <FormField label="Slug" name="slug_ar" defaultValue={arTranslation.slug} required dir="rtl" />
-              <FormField label="Description" name="description_ar" type="textarea" defaultValue={arTranslation.description} dir="rtl" />
-            </FormSection>
-          </FormRow>
-          <div className={styles.formActions}>
-            <button type="submit" className={styles.btnPrimary}>Update Translations</button>
-          </div>
-        </form>
-      )}
 
+{/* TRANSLATIONS */}
+{tab === 'translations' && (
+  <form action={(formData) => startTransition(async () => {
+    await updateStore(store.id, formData);
+    router.refresh();
+  })} className={styles.form}>
+    <FormRow>
+      <FormSection title="English (EN)">
+        <FormField label="Name" name="name_en" defaultValue={enTranslation.name} required />
+        <FormField label="Slug" name="slug_en" defaultValue={enTranslation.slug} required />
+        <FormField label="Description" name="description_en" type="textarea" defaultValue={enTranslation.description} />
+        
+        {/* ADD THESE SEO FIELDS */}
+        <FormField 
+          label="SEO Title" 
+          name="seoTitle_en" 
+          defaultValue={enTranslation.seoTitle}
+          placeholder="Store Name - Coupons & Deals"
+          helpText="Recommended: 50-60 characters"
+        />
+        <FormField 
+          label="SEO Description" 
+          name="seoDescription_en" 
+          type="textarea"
+          rows={3}
+          defaultValue={enTranslation.seoDescription}
+          placeholder="Get the best deals and coupons for Store Name..."
+          helpText="Recommended: 150-160 characters"
+        />
+      </FormSection>
+      
+      <FormSection title="Arabic (AR)">
+        <FormField label="Name" name="name_ar" defaultValue={arTranslation.name} required dir="rtl" />
+        <FormField label="Slug" name="slug_ar" defaultValue={arTranslation.slug} required dir="rtl" />
+        <FormField label="Description" name="description_ar" type="textarea" defaultValue={arTranslation.description} dir="rtl" />
+        
+        {/* ADD THESE SEO FIELDS */}
+        <FormField 
+          label="SEO Title" 
+          name="seoTitle_ar" 
+          defaultValue={arTranslation.seoTitle}
+          dir="rtl"
+          placeholder="اسم المتجر - كوبونات وعروض"
+          helpText="موصى به: 50-60 حرف"
+        />
+        <FormField 
+          label="SEO Description" 
+          name="seoDescription_ar" 
+          type="textarea"
+          rows={3}
+          defaultValue={arTranslation.seoDescription}
+          dir="rtl"
+          placeholder="احصل على أفضل الصفقات والكوبونات لـ اسم المتجر..."
+          helpText="موصى به: 150-160 حرف"
+        />
+      </FormSection>
+    </FormRow>
+    <div className={styles.formActions}>
+      <button type="submit" className={styles.btnPrimary}>Update Translations</button>
+    </div>
+  </form>
+)}
       {/* COUNTRIES */}
       {tab === 'countries' && (
         <div className={styles.section}>
