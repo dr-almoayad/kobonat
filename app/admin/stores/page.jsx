@@ -58,20 +58,31 @@ export default function StoresPage() {
     }
   }
 
-  async function handleDelete(formData) {
-    const id = formData.get('id');
-    if (!confirm('Are you sure you want to delete this store?')) return;
-    
+async function handleDelete(formData) {
+  const id = formData.get('id');
+  
+  if (!confirm('Are you sure you want to delete this store? This action cannot be undone.')) {
+    return;
+  }
+  
+  try {
     const result = await deleteStore(id);
+    
     if (result.success) {
       // Refresh data
       const res = await fetch('/api/admin/stores?locale=en');
-      setStores(await res.json());
+      const newStores = await res.json();
+      setStores(newStores);
+      alert('Store deleted successfully!');
     } else {
       alert(result.error || 'Failed to delete store');
     }
+  } catch (error) {
+    console.error('Delete error:', error);
+    alert('An error occurred while deleting the store. Please try again.');
   }
-
+}
+  
   function handleEdit(id) {
     router.push(`/admin/stores/${id}`);
   }
