@@ -115,7 +115,7 @@
   font-size: 0.95rem; /* ~15px */
   font-weight: 500;
   line-height: 1.4;
-  color: #1f2937; /* Dark gray, softer than pure black */
+  color: #0f172a;
   margin: 0;
   
   /* Clamp text to 2 lines */
@@ -125,6 +125,15 @@
   overflow: hidden;
 }
 
+.product-store{
+    font-family: 'Alexandria', 'Open Sans', sans-serif;
+    font-size: 0.85rem; 
+    font-weight: 500;
+    line-height: 1.2;
+    color: #c1bdc5;
+    margin: 0;
+    display: -webkit-box;
+}
 
 /* Savings Text (Primary Call to Action since no Price) */
 .savings-text {
@@ -140,7 +149,7 @@
 .savings-text h6 {
   font-family: 'Alexandria','Open Sans','Arial',sans-serif;
   font-size: 0.9rem;
-  font-weight: 700;
+  font-weight: 600;
   color: #470ae2; /* Success Green - indicates value/saving */
 }
 
