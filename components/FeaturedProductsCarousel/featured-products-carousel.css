@@ -1,116 +1,100 @@
 /* ============================================
-   FEATURED PRODUCTS CAROUSEL - AMAZON STYLE
+   FEATURED PRODUCTS CAROUSEL - MOBILE FIRST
    ============================================ */
 
+/* Base Mobile Styles (320px+) */
 .featured-products-carousel {
     width: 100%;
-    background: linear-gradient(180deg, #f8f9fa 0%, #ffffff 100%);
-    padding: 2rem 0;
-    margin: 2rem 0;
+    background: #ffffff;
+    padding: 1.5rem 0;
+    margin: 1.5rem 0;
     position: relative;
+    border-top: 1px solid #e3e6e6;
+    border-bottom: 1px solid #e3e6e6;
 }
 
-/* Header Section - Similar to Amazon's "Today's Top Deals" */
+/* Header Section */
 .carousel-header {
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 0 2.5rem 1.5rem;
+    padding: 0 1rem 1rem;
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 0.75rem;
 }
 
-.carousel-title {
-    font-size: clamp(1.75rem, 3vw, 2.25rem);
-    font-weight: 700;
-    color: #0f1111;
-    margin: 0;
+.carousel-header-top {
     display: flex;
     align-items: center;
     gap: 0.75rem;
+}
+
+.carousel-store-logo {
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+    flex-shrink: 0;
+}
+
+.carousel-title-wrapper {
+    flex: 1;
+    min-width: 0;
+}
+
+.carousel-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #0f1111;
+    margin: 0 0 0.25rem 0;
+    line-height: 1.3;
     font-family: 'Alexandria', 'Open Sans', Arial, sans-serif;
 }
 
-.carousel-title .material-symbols-sharp {
-    font-size: 2rem;
-    color: #470ae2;
+.carousel-store-name {
+    color: #007185;
+    font-weight: 700;
 }
 
-.carousel-subtitle {
-    font-size: 0.95rem;
+.carousel-last-updated {
+    font-size: 0.75rem;
     color: #565959;
     margin: 0;
     font-weight: 400;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
     font-family: 'Open Sans', Arial, sans-serif;
 }
 
-/* Featured Banner Link */
-.featured-banner-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    color: #007185;
-    text-decoration: none;
-    font-size: 0.95rem;
-    font-weight: 500;
-    margin-top: 0.25rem;
-    transition: all 0.2s ease;
-}
-
-.featured-banner-link:hover {
-    color: #C7511F;
-    text-decoration: underline;
-}
-
-.featured-banner-link .material-symbols-sharp {
-    font-size: 1.2rem;
-    transition: transform 0.2s ease;
-}
-
-.featured-banner-link:hover .material-symbols-sharp {
-    transform: translateX(3px);
-}
-
-[dir="rtl"] .featured-banner-link:hover .material-symbols-sharp {
-    transform: translateX(-3px);
-}
-
-/* View More Button - Amazon Style */
-.view-more-container {
-    position: absolute;
-    top: 1.5rem;
-    right: 2.5rem;
-}
-
 .view-more-btn {
-    background: white;
+    background: #ffffff;
     border: 1px solid #d5d9d9;
     border-radius: 8px;
-    padding: 0.5rem 1.25rem;
+    padding: 0.625rem 1rem;
     color: #0f1111;
-    font-size: 0.95rem;
+    font-size: 0.875rem;
     font-weight: 500;
     cursor: pointer;
-    transition: all 0.2s ease;
     text-decoration: none;
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 0.5rem;
-    box-shadow: 0 2px 5px rgba(15, 17, 17, 0.05);
+    align-self: flex-start;
+    white-space: nowrap;
 }
 
 .view-more-btn:hover {
     background: #f7fafa;
-    border-color: #470ae2;
+    border-color: #007185;
+}
+
+.view-more-btn:active {
+    background: #edfdff;
+}
+
+.view-more-btn .material-symbols-sharp {
+    font-size: 1.125rem;
 }
 
 /* Embla Container */
 .embla {
     position: relative;
-    max-width: 1400px;
-    margin: 0 auto;
     overflow: hidden;
 }
 
@@ -121,295 +105,280 @@
 
 .embla__container {
     display: flex;
-    gap: 1rem;
-    padding: 1rem 2.5rem;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
     touch-action: pan-y pinch-zoom;
 }
 
 .embla__slide {
-    flex: 0 0 280px;
-    min-width: 240px;
+    flex: 0 0 160px;
+    min-width: 0;
 }
 
-/* Navigation Buttons - Amazon Style */
+/* Navigation Buttons - Hidden on Mobile */
 .embla__button {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    z-index: 10;
-    width: 48px;
-    height: 48px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: white;
-    border: 1px solid #d5d9d9;
-    border-radius: 50%;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    box-shadow: 0 2px 5px rgba(15, 17, 17, 0.15);
+    display: none;
 }
 
-.embla__button:hover {
-    background: #f7fafa;
-    border-color: #470ae2;
-    box-shadow: 0 4px 12px rgba(71, 10, 226, 0.2);
-}
-
-.embla__button:active {
-    transform: translateY(-50%) scale(0.95);
-}
-
-.embla__button--prev {
-    left: 1rem;
-}
-
-.embla__button--next {
-    right: 1rem;
-}
-
-.embla__button .material-symbols-sharp {
-    font-size: 1.5rem;
-    color: #0f1111;
-}
-
-.embla__button:disabled {
-    opacity: 0.3;
-    cursor: not-allowed;
-    pointer-events: none;
-}
-
-/* Dot Indicators - Amazon Style */
+/* Dot Indicators */
 .carousel-dots {
     display: flex;
     justify-content: center;
     gap: 0.5rem;
-    margin-top: 1.5rem;
-    padding: 0 2.5rem;
+    margin-top: 1rem;
+    padding: 0 1rem;
 }
 
 .carousel-dot {
-    width: 8px;
-    height: 8px;
+    width: 6px;
+    height: 6px;
     border-radius: 50%;
     background: #d5d9d9;
     border: none;
     cursor: pointer;
-    transition: all 0.2s ease;
     padding: 0;
 }
 
 .carousel-dot.active {
-    background: #470ae2;
-    transform: scale(1.2);
-}
-
-.carousel-dot:hover {
-    background: #a0a0a0;
-}
-
-/* Loading State */
-.carousel-skeleton {
-    padding: 2rem 2.5rem;
-}
-
-.skeleton-header {
-    max-width: 1400px;
-    margin: 0 auto;
-    margin-bottom: 1.5rem;
-}
-
-.skeleton-title {
-    width: 300px;
-    height: 2.25rem;
-    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-    background-size: 200% 100%;
-    animation: shimmer 1.5s infinite;
-    border-radius: 8px;
-    margin-bottom: 0.5rem;
-}
-
-.skeleton-subtitle {
-    width: 200px;
-    height: 1rem;
-    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-    background-size: 200% 100%;
-    animation: shimmer 1.5s infinite;
-    border-radius: 4px;
-}
-
-.skeleton-products {
-    display: flex;
-    gap: 1rem;
-    overflow: hidden;
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 0 2.5rem;
-}
-
-.skeleton-card {
-    flex: 0 0 280px;
-    height: 420px;
-    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-    background-size: 200% 100%;
-    animation: shimmer 1.5s infinite;
-    border-radius: 12px;
-}
-
-@keyframes shimmer {
-    0% {
-        background-position: 200% 0;
-    }
-    100% {
-        background-position: -200% 0;
-    }
+    background: #007185;
+    width: 8px;
+    height: 8px;
 }
 
 /* Empty State */
 .carousel-empty {
-    padding: 4rem 2rem;
+    padding: 3rem 1rem;
     text-align: center;
-    max-width: 1400px;
-    margin: 0 auto;
 }
 
 .carousel-empty .material-symbols-sharp {
-    font-size: 4rem;
+    font-size: 3rem;
     color: #d5d9d9;
-    margin-bottom: 1rem;
+    margin-bottom: 0.75rem;
 }
 
 .carousel-empty p {
     color: #565959;
-    font-size: 1rem;
+    font-size: 0.875rem;
+    margin: 0;
 }
 
 /* ============================================
-   RESPONSIVE DESIGN
+   TABLET: 480px+
    ============================================ */
 
-/* Tablet: 1024px and below */
-@media (max-width: 1024px) {
-    .carousel-header {
-        padding: 0 1.5rem 1.25rem;
-    }
-    
-    .view-more-container {
-        right: 1.5rem;
-    }
-    
-    .embla__container {
-        padding: 1rem 1.5rem;
-        gap: 0.75rem;
-    }
-    
-    .embla__slide {
-        flex: 0 0 260px;
-        min-width: 220px;
-    }
-    
-    .embla__button {
-        display: none;
-    }
-}
-
-/* Tablet: 768px and below */
-@media (max-width: 768px) {
-    .featured-products-carousel {
-        padding: 1.5rem 0;
-        margin: 1.5rem 0;
-    }
-    
+@media (min-width: 480px) {
     .carousel-header {
         padding: 0 1.25rem 1rem;
     }
-    
+
+    .carousel-store-logo {
+        width: 48px;
+        height: 48px;
+    }
+
     .carousel-title {
-        font-size: 1.5rem;
+        font-size: 1.25rem;
     }
-    
-    .carousel-subtitle {
-        font-size: 0.85rem;
+
+    .carousel-last-updated {
+        font-size: 0.8125rem;
     }
-    
-    .view-more-container {
-        position: static;
-        margin-top: 0.75rem;
+
+    .embla__container {
+        padding: 0.75rem 1.25rem;
+        gap: 0.875rem;
     }
-    
+
+    .embla__slide {
+        flex: 0 0 200px;
+    }
+
     .view-more-btn {
-        width: 100%;
-        justify-content: center;
-    }
-    
-    .embla__container {
-        padding: 1rem 1.25rem;
-        gap: 0.6rem;
-    }
-    
-    .embla__slide {
-        flex: 0 0 220px;
-        min-width: 200px;
+        padding: 0.75rem 1.25rem;
+        font-size: 0.9375rem;
     }
 }
 
-/* Mobile: 480px and below */
-@media (max-width: 480px) {
+/* ============================================
+   TABLET: 768px+
+   ============================================ */
+
+@media (min-width: 768px) {
     .featured-products-carousel {
-        padding: 1rem 0;
-        margin: 1rem 0;
+        padding: 2rem 0;
+        margin: 2rem 0;
     }
-    
+
     .carousel-header {
-        padding: 0 1rem 0.75rem;
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 0 1.5rem 1.25rem;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
     }
-    
+
+    .carousel-header-top {
+        gap: 1rem;
+    }
+
+    .carousel-store-logo {
+        width: 56px;
+        height: 56px;
+    }
+
     .carousel-title {
-        font-size: 1.3rem;
-    }
-    
-    .carousel-title .material-symbols-sharp {
         font-size: 1.5rem;
     }
-    
-    .carousel-subtitle {
-        font-size: 0.8rem;
+
+    .view-more-btn {
+        align-self: auto;
     }
-    
+
+    .embla {
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
     .embla__container {
-        padding: 0.75rem 1rem;
-        gap: 0.5rem;
+        padding: 1rem 1.5rem;
+        gap: 1rem;
     }
-    
+
     .embla__slide {
-        flex: 0 0 180px;
-        min-width: 160px;
+        flex: 0 0 240px;
     }
-    
+
     .carousel-dots {
-        gap: 0.4rem;
-        margin-top: 1rem;
-    }
-    
-    .carousel-dot {
-        width: 6px;
-        height: 6px;
+        padding: 0 1.5rem;
     }
 }
 
-/* Small Mobile: 375px and below */
-@media (max-width: 375px) {
+/* ============================================
+   DESKTOP: 1024px+
+   ============================================ */
+
+@media (min-width: 1024px) {
     .carousel-header {
-        padding: 0 0.75rem 0.5rem;
+        padding: 0 2rem 1.5rem;
     }
-    
+
+    .carousel-store-logo {
+        width: 64px;
+        height: 64px;
+    }
+
+    .carousel-title {
+        font-size: 1.75rem;
+    }
+
+    .carousel-last-updated {
+        font-size: 0.875rem;
+    }
+
     .embla__container {
-        padding: 0.5rem 0.75rem;
+        padding: 1rem 2rem;
+        gap: 1.125rem;
     }
-    
+
     .embla__slide {
-        flex: 0 0 165px;
-        min-width: 150px;
+        flex: 0 0 260px;
+    }
+
+    .view-more-btn {
+        padding: 0.75rem 1.5rem;
+    }
+
+    /* Show Navigation Buttons on Desktop */
+    .embla__button {
+        display: flex;
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 10;
+        width: 44px;
+        height: 44px;
+        align-items: center;
+        justify-content: center;
+        background: #ffffff;
+        border: 1px solid #d5d9d9;
+        border-radius: 50%;
+        cursor: pointer;
+        box-shadow: 0 2px 4px rgba(15, 17, 17, 0.1);
+    }
+
+    .embla__button:hover {
+        background: #f7fafa;
+        border-color: #007185;
+    }
+
+    .embla__button:active {
+        transform: translateY(-50%) scale(0.96);
+    }
+
+    .embla__button--prev {
+        left: 0.5rem;
+    }
+
+    .embla__button--next {
+        right: 0.5rem;
+    }
+
+    .embla__button .material-symbols-sharp {
+        font-size: 1.5rem;
+        color: #0f1111;
+    }
+
+    .embla__button:disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
+        pointer-events: none;
+    }
+
+    .carousel-dots {
+        padding: 0 2rem;
+    }
+
+    .carousel-dot {
+        width: 8px;
+        height: 8px;
+    }
+
+    .carousel-dot.active {
+        width: 10px;
+        height: 10px;
+    }
+}
+
+/* ============================================
+   LARGE DESKTOP: 1280px+
+   ============================================ */
+
+@media (min-width: 1280px) {
+    .carousel-header {
+        padding: 0 2.5rem 1.5rem;
+    }
+
+    .embla__container {
+        padding: 1rem 2.5rem;
+        gap: 1.25rem;
+    }
+
+    .embla__slide {
+        flex: 0 0 280px;
+    }
+
+    .embla__button--prev {
+        left: 1rem;
+    }
+
+    .embla__button--next {
+        right: 1rem;
+    }
+
+    .carousel-dots {
+        padding: 0 2.5rem;
     }
 }
 
@@ -417,38 +386,38 @@
    RTL SUPPORT
    ============================================ */
 
-[dir="rtl"] .carousel-header {
-    text-align: right;
+[dir="rtl"] .carousel-header-top {
+    direction: rtl;
 }
 
-[dir="rtl"] .view-more-container {
-    right: auto;
-    left: 2.5rem;
+[dir="rtl"] .view-more-btn .material-symbols-sharp {
+    transform: scaleX(-1);
 }
 
 [dir="rtl"] .embla__button--prev {
     left: auto;
-    right: 1rem;
 }
 
 [dir="rtl"] .embla__button--next {
     right: auto;
-    left: 1rem;
 }
 
-[dir="rtl"] .featured-banner-link .material-symbols-sharp {
-    transform: scaleX(-1);
-}
+@media (min-width: 1024px) {
+    [dir="rtl"] .embla__button--prev {
+        right: 0.5rem;
+    }
 
-/* RTL Mobile */
-@media (max-width: 1024px) {
-    [dir="rtl"] .view-more-container {
-        left: 1.5rem;
+    [dir="rtl"] .embla__button--next {
+        left: 0.5rem;
     }
 }
 
-@media (max-width: 768px) {
-    [dir="rtl"] .view-more-container {
-        left: auto;
+@media (min-width: 1280px) {
+    [dir="rtl"] .embla__button--prev {
+        right: 1rem;
+    }
+
+    [dir="rtl"] .embla__button--next {
+        left: 1rem;
     }
 }
