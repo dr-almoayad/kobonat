@@ -44,7 +44,6 @@
 }
 
 .sh-banner-overlay {
-  display: none;
   position: absolute;
   inset: 0;
   background: linear-gradient(
