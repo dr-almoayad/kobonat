@@ -8,7 +8,7 @@ import { useTranslations, useLocale } from "next-intl";
 import { useRouter, usePathname } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
-import coubonatLogo from '../../public/cobonat-light.png';
+import coubonatLogo from '../../public/cobonat.webp';
 import coubonatCompactLogo from '../../public/cobonat-compact.webp';
 import AnimatedSearchInput from '../SmartSearchInput/AnimatedSearchInput';
 import './header.css';
