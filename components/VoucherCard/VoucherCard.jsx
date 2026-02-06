@@ -147,8 +147,8 @@ const VoucherCard = ({ voucher, featured = false }) => {
     return voucher.store?.logo || '/placeholder_store.png';
   };
 
-  // Count interested users (placeholder - can be dynamic)
-  const interestedUsers = voucher._count?.clicks || Math.floor(Math.random() * 1000) + 100;
+  // Count times used (clicks)
+  const timesUsed = voucher._count?.clicks || 0;
 
   return (
     <div className={`voucher-card-new ${isExpired ? 'expired' : ''} ${featured ? 'featured' : ''}`}>
@@ -187,8 +187,8 @@ const VoucherCard = ({ voucher, featured = false }) => {
           
           <div className="voucher-title-section">
             <h3 className="voucher-title-new">{title}</h3>
-            <div className="interested-users">
-              {interestedUsers} {t('meta.interestedUsers')}
+            <div className="times-used">
+              {timesUsed} {t('meta.timesUsed')}
             </div>
           </div>
         </div>
@@ -215,7 +215,7 @@ const VoucherCard = ({ voucher, featured = false }) => {
                 </>
               ) : (
                 <>
-                  {t('buttons.showCode')}
+                  {t('buttons.copyShort')}
                   <span className="code-preview">{voucher.code || 'CODE'}</span>
                 </>
               )}
