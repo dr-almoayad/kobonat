@@ -60,6 +60,7 @@ model Store {
   
   // Images
   logo              String?
+  bigLogo           String?
   backgroundImage   String?   
   coverImage        String?  // ✅ Already exists - hero banner for store page
   color             String?  // Brand color for UI theming
