@@ -15,7 +15,7 @@
   position: relative;
   width: 100%;
   max-width: 1280px;
-  margin: 0 auto;
+  margin: 0 0.75rem;
   background: transparent;
   font-family: var(--sh-font);
   z-index: 0;
@@ -30,9 +30,7 @@
   height: var(--sh-banner-height);
   z-index: 0;
   overflow: hidden;
-  border-radius: 32px;
-  border-bottom-left-radius: 32px;
-  border-bottom-right-radius: 32px;
+  border-radius: 22px;
 }
 
 .sh-banner-img {
@@ -304,6 +302,10 @@
 @media (min-width: 768px) {
   :root {
     --sh-banner-height: 360px;
+  }
+
+  .sh-container {
+    margin: 0 auto;
   }
 
   .sh-content-wrapper {
