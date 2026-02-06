@@ -178,8 +178,8 @@ const VoucherCard = ({ voucher, featured = false }) => {
               <Image
                 src={getStoreLogo()}
                 alt={storeName}
-                width={40}
-                height={40}
+                width={120}
+                height={120}
                 className="store-logo-new"
               />
             </Link>
