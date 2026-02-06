@@ -1,4 +1,4 @@
-// components/VoucherCard/VoucherCard.jsx - FIXED FOR MULTI-LANGUAGE
+// components/VoucherCard/VoucherCard.jsx - REDESIGNED
 'use client';
 import React, { useState } from 'react';
 import Image from 'next/image';
@@ -10,6 +10,7 @@ const VoucherCard = ({ voucher, featured = false }) => {
   const locale = useLocale();
   const t = useTranslations('VoucherCard');
   const [copied, setCopied] = useState(false);
+  const [showDetails, setShowDetails] = useState(false);
   
   // Get current language from locale
   const currentLanguage = locale.split('-')[0];
@@ -146,129 +147,133 @@ const VoucherCard = ({ voucher, featured = false }) => {
     return voucher.store?.logo || '/placeholder_store.png';
   };
 
+  // Count interested users (placeholder - can be dynamic)
+  const interestedUsers = voucher._count?.clicks || Math.floor(Math.random() * 1000) + 100;
+
   return (
-    <div className={`ticket-card ${isExpired ? 'expired' : ''} ${featured ? 'featured' : ''}`}>
+    <div className={`voucher-card-new ${isExpired ? 'expired' : ''} ${featured ? 'featured' : ''}`}>
       
-      {/* LEFT SECTION */}
-      <div className="ticket-left">
-        {/* Store Link */}
-        {voucher.store && (
-          <Link 
-            href={`/${locale}/stores/${storeSlug}`} 
-            className="ticket-store-link"
-          >
-            <Image
-              src={getStoreLogo()}
-              alt={storeName}
-              width={200}
-              height={200}
-              className="ticket-logo"
-            />
-          </Link>
-        )}
-        
-        {/* Discount Value */}
-        <div className="discount-container">
-          <h2 className={`discount-amount ${!voucher.discount ? 'generic' : ''}`}>
-            {getDiscountText()}
-          </h2>
+      {/* LEFT SECTION - Discount Badge */}
+      <div className="voucher-left-new">
+        <div className="discount-badge-new">
+          <div className="discount-value-new">{getDiscountText()}</div>
+          <div className="discount-label-new">{t('labels.off')}</div>
         </div>
         
-        {/* <div className="discount-bg"></div>*/}
-        
-        {/* Badges */}
-        {featured && (
-          <div className="ticket-badge featured">
-            <span className="material-symbols-sharp">star</span>
-            {t('badges.featuredFull')}
-          </div>
+        {voucher.type === 'CODE' && (
+          <div className="voucher-type-label">{t('labels.code')}</div>
         )}
       </div>
 
-      {/* DIVIDER 
-      <div className="ticket-divider-vertical">
-        <div className="notch-vertical notch-top"></div>
-        <div className="dashed-line-vertical"></div>
-        <div className="notch-vertical notch-bottom"></div>
-      </div>*/}
-
-      {/* RIGHT SECTION */}
-      <div className="ticket-right">
-        <div className="ticket-content">
-          <h3 className="ticket-title">{title}</h3>
-          {description && <p className="ticket-desc">{description}</p>}
+      {/* RIGHT SECTION - Content & Actions */}
+      <div className="voucher-right-new">
+        
+        {/* Header with Store Logo */}
+        <div className="voucher-header-new">
+          {voucher.store && (
+            <Link 
+              href={`/${locale}/stores/${storeSlug}`} 
+              className="store-link-new"
+            >
+              <Image
+                src={getStoreLogo()}
+                alt={storeName}
+                width={40}
+                height={40}
+                className="store-logo-new"
+              />
+            </Link>
+          )}
+          
+          <div className="voucher-title-section">
+            <h3 className="voucher-title-new">{title}</h3>
+            <div className="interested-users">
+              {interestedUsers} {t('meta.interestedUsers')}
+            </div>
+          </div>
         </div>
 
-        {/* Actions */}
-        <div className="ticket-actions">
+        {/* Description (Collapsible) */}
+        {description && (
+          <div className={`voucher-description-new ${showDetails ? 'expanded' : ''}`}>
+            <p>{description}</p>
+          </div>
+        )}
+
+        {/* Action Button */}
+        <div className="voucher-actions-new">
           {voucher.type === 'CODE' ? (
-            <div className="code-display-container">
-              <div className="full-code-display">
-                {voucher.code || t('labels.code')}
-              </div>
-              <button 
-                className={`copy-btn-small ${copied ? 'success' : ''}`}
-                onClick={handleCodeCopy}
-                disabled={isExpired}
-              >
-                {copied ? (
-                  <>
-                    <span className="material-symbols-sharp">check_circle</span>
-                    {t('buttons.copied')}
-                  </>
-                ) : (
-                  <>
-                    <span className="material-symbols-sharp">content_copy</span>
-                    {t('buttons.copyShort')}
-                  </>
-                )}
-              </button>
-            </div>
+            <button 
+              className={`show-code-btn ${copied ? 'copied' : ''}`}
+              onClick={handleCodeCopy}
+              disabled={isExpired}
+            >
+              {copied ? (
+                <>
+                  <span className="material-symbols-sharp">check_circle</span>
+                  {t('buttons.copied')}
+                </>
+              ) : (
+                <>
+                  {t('buttons.showCode')}
+                  <span className="code-preview">{voucher.code || 'CODE'}</span>
+                </>
+              )}
+            </button>
           ) : (
             <button 
-              className="deal-btn"
+              className="get-deal-btn"
               onClick={handleDealActivate}
               disabled={isExpired}
             >
-              <span className="material-symbols-sharp">arrow_outward</span>
               {t('buttons.getDeal')}
+              <span className="material-symbols-sharp">arrow_forward</span>
+            </button>
+          )}
+
+          {description && (
+            <button 
+              className="details-toggle"
+              onClick={() => setShowDetails(!showDetails)}
+            >
+              {showDetails ? t('buttons.hideDetails') : t('buttons.seeDetails')}
+              <span className="material-symbols-sharp">
+                {showDetails ? 'expand_less' : 'expand_more'}
+              </span>
             </button>
           )}
         </div>
 
-        {/* Footer */}
-        <div className="ticket-footer">
+        {/* Footer Meta */}
+        <div className="voucher-footer-new">
           {isExpiringSoon && !isExpired && (
-            <span className="meta-tag urgent">
-              <span className="material-symbols-sharp">timer</span>
+            <span className="meta-badge urgent">
+              <span className="material-symbols-sharp">schedule</span>
               {t('meta.endingSoon')}
             </span>
           )}
           
           {isExpired && (
-            <span className="meta-tag expired">
-              <span className="material-symbols-sharp">timer_off</span>
+            <span className="meta-badge expired">
+              <span className="material-symbols-sharp">block</span>
               {t('meta.expired')}
             </span>
           )}
           
-          {voucher.expiryDate && !isExpired && (
-            <span className="meta-tag date">
-              <span className="material-symbols-sharp">calendar_month</span>
-              {`${t('meta.until')} ${formatExpiryDate(voucher.expiryDate)}`}
+          {voucher.isVerified && (
+            <span className="meta-badge verified">
+              <span className="material-symbols-sharp">verified</span>
+              {t('badges.verified')}
             </span>
           )}
 
-          {/* Days Counter 
-          {daysRemaining > 0 && daysRemaining <= 7 && (
-            <div className="meta-tag days-counter">
-              <span className="material-symbols-sharp">schedule</span>
-              {daysRemaining} {t('meta.days')}
-            </div>
-          )}*/}
+          {voucher.isExclusive && (
+            <span className="meta-badge exclusive">
+              <span className="material-symbols-sharp">star</span>
+              {t('badges.exclusive')}
+            </span>
+          )}
         </div>
-        
-        
       </div>
     </div>
   );
