@@ -791,26 +791,29 @@
       "percentage": "OFF",
       "fixed": "OFF",
       "delivery": "Delivery",
-      "bogo": "FREE",
+      "bogo": "+ 1 FREE",
       "special": "Special"
     },
     "buttons": {
       "copy": "Copy Code",
       "copied": "Copied",
       "getDeal": "Get Deal",
-      "copyShort": "Copy"
+      "copyShort": "Copy",
+      "seeDetails": "show details"
     },
     "badges": {
       "featured": "FEATURED",
       "verified": "Verified",
-      "featuredFull": "FEATURED"
+      "featuredFull": "FEATURED",
+      "active": "Active"
     },
     "meta": {
       "endingSoon": "Ending Soon",
       "expired": "Expired",
       "until": "Until",
       "minPurchase": "Min",
-      "days": "days"
+      "days": "days",
+      "timesUsed": "times used"
     },
     "labels": {
       "code": "Code",
