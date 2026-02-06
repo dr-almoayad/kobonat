@@ -117,7 +117,7 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 0.65rem;
+  gap: 0.75rem;
 }
 
 .store-link-new {
@@ -126,8 +126,8 @@
 
 .store-logo-new {
   width: auto;
-  max-width: 110px;
-  height: 40px;
+  max-width: 120px;
+  height: 44px;
   object-fit: contain;
   background: white;
   padding: 4px;
@@ -180,14 +180,20 @@
 /* Actions */
 .voucher-actions-new {
   display: flex;
-  align-items: center;
+  flex-direction: column;
   gap: 0.5rem;
   margin-top: auto;
 }
 
+.action-button-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
 .show-code-btn,
 .get-deal-btn {
-  flex: 1;
+  width: 100%;
   background: var(--color-primary);
   color: white;
   border: none;
@@ -235,30 +241,33 @@
   letter-spacing: 0.5px;
 }
 
-.details-toggle {
+.details-link {
   background: transparent;
-  border: 1px solid var(--voucher-border);
+  border: none;
   color: var(--color-text-muted);
-  padding: 0.5rem 0.75rem;
-  border-radius: 8px;
+  padding: 0;
   font-size: 0.8125rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 0.25rem;
-  white-space: nowrap;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+  align-self: center;
 }
 
-.details-toggle:hover {
-  background: var(--color-bg-light);
-  border-color: var(--color-primary);
+.details-link:hover {
   color: var(--color-primary);
+  text-decoration-thickness: 2px;
 }
 
-.details-toggle .material-symbols-sharp {
-  font-size: 1.125rem;
+.details-link .caret {
+  font-size: 1rem;
+  transition: transform 0.2s ease;
 }
 
 /* Footer Meta */
@@ -282,6 +291,16 @@
 
 .meta-badge .material-symbols-sharp {
   font-size: 0.875rem;
+}
+
+.meta-badge.active {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.meta-badge.last-used {
+  background: #f3f4f6;
+  color: #4b5563;
 }
 
 .meta-badge.urgent {
@@ -345,15 +364,14 @@
     -webkit-line-clamp: 1;
   }
   
+  .store-logo-new {
+    height: 36px;
+  }
+  
   .show-code-btn,
   .get-deal-btn {
     padding: 0.625rem 0.875rem;
     font-size: 0.875rem;
-  }
-  
-  .details-toggle {
-    padding: 0.5rem 0.625rem;
-    font-size: 0.75rem;
   }
 }
 
@@ -391,10 +409,6 @@
     gap: 0.5rem;
   }
   
-  .store-logo-new {
-    height: 36px;
-  }
-  
   .voucher-title-new {
     font-size: 0.875rem;
     -webkit-line-clamp: 2;
@@ -415,12 +429,12 @@
     font-size: 0.75rem;
   }
   
-  .details-toggle {
-    display: none; /* Hide on very small screens */
+  .details-link {
+    font-size: 0.75rem;
   }
   
-  .voucher-description-new {
-    display: none; /* Hide description on mobile for cleaner look */
+  .voucher-description-new.expanded {
+    max-height: 150px; /* Shorter on mobile */
   }
   
   .meta-badge {
@@ -460,7 +474,7 @@
   .voucher-card-new *,
   .show-code-btn,
   .get-deal-btn,
-  .details-toggle {
+  .details-link {
     animation: none;
     transition: none;
   }
