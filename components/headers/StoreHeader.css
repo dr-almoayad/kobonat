@@ -152,7 +152,7 @@
 
 .sh-description {
   margin: 0;
-  font-size: 0.9375rem;
+  font-size: 0.8rem;
   line-height: 1.6;
   color: var(--sh-text-secondary);
   display: -webkit-box;
@@ -199,11 +199,11 @@
 .sh-cat-pill {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 8px 16px;
+  gap: 0.25rem;
+  padding: 0.2rem 0.4rem;
   background: #f8fafc;
   border-radius: 99px;
-  font-size: 0.8125rem;
+  font-size: 0.7rem;
   font-weight: 600;
   color: var(--sh-text-secondary);
   text-decoration: none;
@@ -220,7 +220,7 @@
 }
 
 .sh-cat-pill .material-symbols-sharp {
-  font-size: 16px;
+  font-size: 14px;
 }
 
 .sh-payments-row {
@@ -232,8 +232,8 @@
 }
 
 .sh-pay-icon {
-  width: 56px;
-  height: 36px;
+  width: 44px;
+  height: 30px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -246,7 +246,7 @@
 }
 
 .sh-pay-icon.bnpl {
-  width: 72px;
+  width: 56px;
 }
 
 .sh-pay-icon .material-symbols-sharp {
