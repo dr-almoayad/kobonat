@@ -828,7 +828,7 @@
       "featured": "مميز",
       "verified": "موثق",
       "featuredFull": "مميز",
-      "active": "نشط",
+      "active": "نشط"
     },
     "meta": {
       "endingSoon": "ينتهي قريباً",
@@ -845,7 +845,7 @@
       "sale": "تخفيض",
       "off": "خصم",
       "freeDelivery": "توصيل مجاني",
-      "bogo": "واحد مجاناً +",
+      "bogo": "1 مجاناً +",
       "specialDeal": "عرض خاص"
     },
     "messages": {
