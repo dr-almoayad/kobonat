@@ -821,12 +821,14 @@
       "copy": "نسخ",
       "copied": "تم النسخ",
       "getDeal": "تفعيل العرض",
-      "copyShort": "نسخ"
+      "copyShort": "نسخ",
+      "seeDetails": "عرض التفاصيل"
     },
     "badges": {
       "featured": "مميز",
       "verified": "موثق",
-      "featuredFull": "مميز"
+      "featuredFull": "مميز",
+      "active": "نشط",
     },
     "meta": {
       "endingSoon": "ينتهي قريباً",
