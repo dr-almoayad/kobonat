@@ -149,6 +149,38 @@ const VoucherCard = ({ voucher, featured = false }) => {
 
   // Count times used (clicks)
   const timesUsed = voucher._count?.clicks || 0;
+  
+  // Get last used time (from most recent click)
+  const getLastUsedTime = () => {
+    // If voucher has clicks array with clickedAt timestamps
+    if (voucher.clicks && voucher.clicks.length > 0) {
+      const lastClick = new Date(voucher.clicks[0].clickedAt);
+      const now = new Date();
+      const diffHours = Math.floor((now - lastClick) / (1000 * 60 * 60));
+      
+      if (diffHours < 1) {
+        return t('meta.justNow');
+      } else if (diffHours < 24) {
+        return t('meta.hoursAgo', { hours: diffHours });
+      } else {
+        const diffDays = Math.floor(diffHours / 24);
+        if (diffDays === 1) {
+          return t('meta.yesterday');
+        } else if (diffDays < 7) {
+          return t('meta.daysAgo', { days: diffDays });
+        } else {
+          return t('meta.weeksAgo', { weeks: Math.floor(diffDays / 7) });
+        }
+      }
+    }
+    return null;
+  };
+  
+  const lastUsed = getLastUsedTime();
+  
+  // Check if voucher is currently active (not expired and within valid date range)
+  const isActive = !isExpired && 
+    (!voucher.startDate || new Date(voucher.startDate) <= new Date());
 
   return (
     <div className={`voucher-card-new ${isExpired ? 'expired' : ''} ${featured ? 'featured' : ''}`}>
@@ -178,8 +210,8 @@ const VoucherCard = ({ voucher, featured = false }) => {
               <Image
                 src={getStoreLogo()}
                 alt={storeName}
-                width={120}
-                height={120}
+                width={40}
+                height={40}
                 className="store-logo-new"
               />
             </Link>
@@ -202,53 +234,69 @@ const VoucherCard = ({ voucher, featured = false }) => {
 
         {/* Action Button */}
         <div className="voucher-actions-new">
-          {voucher.type === 'CODE' ? (
-            <button 
-              className={`show-code-btn ${copied ? 'copied' : ''}`}
-              onClick={handleCodeCopy}
-              disabled={isExpired}
-            >
-              {copied ? (
-                <>
-                  <span className="material-symbols-sharp">check_circle</span>
-                  {t('buttons.copied')}
-                </>
-              ) : (
-                <>
-                  {t('buttons.copyShort')}
-                  <span className="code-preview">{voucher.code || 'CODE'}</span>
-                </>
-              )}
-            </button>
-          ) : (
-            <button 
-              className="get-deal-btn"
-              onClick={handleDealActivate}
-              disabled={isExpired}
-            >
-              {t('buttons.getDeal')}
-              <span className="material-symbols-sharp">arrow_forward</span>
-            </button>
-          )}
+          <div className="action-button-wrapper">
+            {voucher.type === 'CODE' ? (
+              <button 
+                className={`show-code-btn ${copied ? 'copied' : ''}`}
+                onClick={handleCodeCopy}
+                disabled={isExpired}
+              >
+                {copied ? (
+                  <>
+                    <span className="material-symbols-sharp">check_circle</span>
+                    {t('buttons.copied')}
+                  </>
+                ) : (
+                  <>
+                    {t('buttons.copyShort')}
+                    <span className="code-preview">{voucher.code || 'CODE'}</span>
+                  </>
+                )}
+              </button>
+            ) : (
+              <button 
+                className="get-deal-btn"
+                onClick={handleDealActivate}
+                disabled={isExpired}
+              >
+                {t('buttons.getDeal')}
+                <span className="material-symbols-sharp">arrow_forward</span>
+              </button>
+            )}
 
-          {description && (
-            <button 
-              className="details-toggle"
-              onClick={() => setShowDetails(!showDetails)}
-            >
-              {showDetails ? t('buttons.hideDetails') : t('buttons.seeDetails')}
-              <span className="material-symbols-sharp">
-                {showDetails ? 'expand_less' : 'expand_more'}
-              </span>
-            </button>
-          )}
+            {description && (
+              <button 
+                className="details-link"
+                onClick={() => setShowDetails(!showDetails)}
+              >
+                {showDetails ? t('buttons.hideDetails') : t('buttons.seeDetails')}
+                <span className="material-symbols-sharp caret">
+                  {showDetails ? 'expand_less' : 'expand_more'}
+                </span>
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Footer Meta */}
         <div className="voucher-footer-new">
+          {isActive && !isExpired && (
+            <span className="meta-badge active">
+              <span className="material-symbols-sharp">check_circle</span>
+              {t('badges.active')}
+            </span>
+          )}
+          
+          {lastUsed && (
+            <span className="meta-badge last-used">
+              <span className="material-symbols-sharp">schedule</span>
+              {t('meta.lastUsed')}: {lastUsed}
+            </span>
+          )}
+          
           {isExpiringSoon && !isExpired && (
             <span className="meta-badge urgent">
-              <span className="material-symbols-sharp">schedule</span>
+              <span className="material-symbols-sharp">timer</span>
               {t('meta.endingSoon')}
             </span>
           )}
