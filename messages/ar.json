@@ -809,7 +809,7 @@
     "previousProducts": "المنتجات السابقة",
     "nextProducts": "المنتجات التالية"
   },
-    "VoucherCard": {
+  "VoucherCard": {
     "discount": {
       "percentage": "خصم",
       "fixed": "تخفيض",
@@ -833,15 +833,17 @@
       "expired": "منتهي",
       "until": "حتى",
       "minPurchase": "الحد الأدنى",
-      "days": "أيام"
+      "days": "أيام",
+      "timesUsed": "عدد المستخدمين"
     },
     "labels": {
-      "code": "الكود",
+      "code": "كود خصم",
       "terms": "الشروط",
       "deal": "عرض",
+      "sale": "تخفيض",
       "off": "خصم",
       "freeDelivery": "توصيل مجاني",
-      "bogo": "واحد مجاناً",
+      "bogo": "واحد مجاناً +",
       "specialDeal": "عرض خاص"
     },
     "messages": {
