@@ -210,8 +210,8 @@ const VoucherCard = ({ voucher, featured = false }) => {
               <Image
                 src={getStoreLogo()}
                 alt={storeName}
-                width={40}
-                height={40}
+                width={120}
+                height={120}
                 className="store-logo-new"
               />
             </Link>
@@ -264,7 +264,7 @@ const VoucherCard = ({ voucher, featured = false }) => {
               </button>
             )}
 
-            {description && (
+            {/*{description && (
               <button 
                 className="details-link"
                 onClick={() => setShowDetails(!showDetails)}
@@ -274,7 +274,7 @@ const VoucherCard = ({ voucher, featured = false }) => {
                   {showDetails ? 'expand_less' : 'expand_more'}
                 </span>
               </button>
-            )}
+            )}*/}
           </div>
         </div>
 
