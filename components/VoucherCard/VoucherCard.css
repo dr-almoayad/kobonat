@@ -309,10 +309,6 @@
   flex-direction: row-reverse;
 }
 
-[dir="rtl"] .voucher-header-new {
-  flex-direction: row;
-}
-
 [dir="rtl"] .get-deal-btn .material-symbols-sharp {
   transform: scaleX(-1);
 }
