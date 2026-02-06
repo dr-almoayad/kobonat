@@ -14,6 +14,8 @@
 .sh-container {
   position: relative;
   width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
   background: transparent;
   font-family: var(--sh-font);
   z-index: 0;
@@ -28,6 +30,7 @@
   height: var(--sh-banner-height);
   z-index: 0;
   overflow: hidden;
+  border-radius: 32px;
   border-bottom-left-radius: 32px;
   border-bottom-right-radius: 32px;
 }
