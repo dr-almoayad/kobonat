@@ -228,6 +228,7 @@ const handleApplyCountries = async () => {
           <FormSection title="Store Visuals">
             <FormRow>
               <FormField label="Logo URL" name="logo" defaultValue={store.logo} />
+              <FormField label="Big Logo URL" name="bigLogo" defaultValue={store.bigLogo} />
               <FormField label="Brand Color" name="color" type="color" defaultValue={store.color} />
             </FormRow>
             <FormRow>
