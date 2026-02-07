@@ -1,4 +1,4 @@
-// app/[locale]/page.js - FIXED: Added Curated Offers Fetching
+// app/[locale]/page.js - FIXED: Removed invalid 'slug' selection from Store model
 import { prisma } from "@/lib/prisma";
 import { getTranslations } from 'next-intl/server';
 import Link from "next/link";
@@ -9,7 +9,7 @@ import VoucherCard from "@/components/VoucherCard/VoucherCard";
 import StoreCard from "@/components/StoreCard/StoreCard";
 import HeroCarousel from "@/components/HeroCarousel/HeroCarousel";
 import BrandsCarousel from "@/components/BrandsCarousel/BrandsCarousel";
-import FeaturedOffersCarousel from "@/components/FeaturedOffersCarousel/FeaturedOffersCarousel"; // Import the carousel
+import FeaturedOffersCarousel from "@/components/FeaturedOffersCarousel/FeaturedOffersCarousel";
 import HelpBox from "@/components/help/HelpBox";
 
 import { 
@@ -178,7 +178,7 @@ export default async function Home({ params }) {
       take: 20
     }),
 
-    // 5. Curated Offers (NEW)
+    // 5. Curated Offers (FIXED)
     prisma.curatedOffer.findMany({
       where: {
         isActive: true,
@@ -195,7 +195,7 @@ export default async function Home({ params }) {
           select: {
             id: true,
             logo: true,
-            slug: true,
+            // REMOVED `slug: true` here because it doesn't exist on Store model
             translations: {
               where: { locale: language },
               select: { name: true, slug: true }
@@ -221,7 +221,7 @@ export default async function Home({ params }) {
     const translation = store.translations?.[0] || {};
     return {
       ...store,
-      name: translation.name || store.slug || '',
+      name: translation.name || store.slug || '', // Fallback safely if slug existed (it doesn't on root, but safe to access undefined)
       slug: translation.slug || '',
       translations: undefined
     };
@@ -236,7 +236,7 @@ export default async function Home({ params }) {
       description: voucherTranslation.description || null,
       store: voucher.store ? {
         ...voucher.store,
-        name: storeTranslation.name || voucher.store.slug || '',
+        name: storeTranslation.name || '',
         slug: storeTranslation.slug || '',
         translations: undefined
       } : null,
@@ -255,8 +255,8 @@ export default async function Home({ params }) {
       ctaText: translation.ctaText || '',
       store: offer.store ? {
         ...offer.store,
-        name: storeTranslation.name || offer.store.slug || '',
-        slug: storeTranslation.slug || offer.store.slug || '',
+        name: storeTranslation.name || '',
+        slug: storeTranslation.slug || '',
         translations: undefined
       } : null,
       translations: undefined
@@ -310,7 +310,7 @@ export default async function Home({ params }) {
           <BrandsCarousel brands={transformedBrands} />
         )}
         
-        {/* NEW: Featured/Curated Offers Carousel */}
+        {/* Featured/Curated Offers Carousel */}
         {transformedCuratedOffers.length > 0 && (
           <FeaturedOffersCarousel 
             title={t('featuredOffersTitle', { defaultMessage: 'Exclusive Offers' })}
