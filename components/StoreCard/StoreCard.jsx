@@ -1,4 +1,4 @@
-// components/StoreCard/StoreCard.jsx - PROFESSIONAL POLISHED DESIGN
+// components/StoreCard/StoreCard.jsx - Full-bleed logo, arrow in offer text
 'use client';
 import React from 'react';
 import Image from 'next/image';
@@ -11,7 +11,7 @@ const StoreCard = ({ store }) => {
   const t = useTranslations('StoreCard');
   const currentLanguage = locale.split('-')[0];
   
-  // Extract store name (for accessibility)
+  // Extract store name
   const getStoreName = () => {
     if (store.name) return store.name;
     if (store.translations?.[0]?.name) return store.translations[0].name;
@@ -30,9 +30,9 @@ const StoreCard = ({ store }) => {
     return store.bigLogo || store.logo || null;
   };
   
-  // Get store brand color with fallback
+  // Get store brand color
   const getBrandColor = () => {
-    return store.color || '#470ae2'; // Purple from your site's theme
+    return store.color || '#470ae2';
   };
   
   // Get the show offer text
@@ -60,11 +60,11 @@ const StoreCard = ({ store }) => {
     }
     
     return currentLanguage === 'ar' 
-      ? 'عروض حصرية' 
+      ? 'عروض حصرية متاحة' 
       : 'Exclusive deals available';
   };
   
-  // Get offer type display with Material Icons
+  // Get offer type display
   const getOfferTypeDisplay = () => {
     const offerType = store.showOfferType?.toUpperCase();
     
@@ -135,7 +135,7 @@ const StoreCard = ({ store }) => {
       className={`store-card-modern ${store.isFeatured ? 'featured' : ''}`}
       aria-label={`${storeName} - ${showOffer}`}
     >
-      {/* Main Card Container with Brand Color Background */}
+      {/* Main Card Container - Full Bleed Logo */}
       <div 
         className="card-container"
         style={{ 
@@ -144,33 +144,19 @@ const StoreCard = ({ store }) => {
             : `linear-gradient(135deg, ${brandColor} 0%, ${brandColor}dd 100%)`
         }}
       >
-        {/* Store Logo */}
-        <div className="logo-container">
-          {storeLogo ? (
-            <Image
-              src={storeLogo}
-              alt={storeName}
-              width={200}
-              height={80}
-              className="store-logo"
-              priority={false}
-            />
-          ) : (
-            <div className="store-name-fallback">
-              {storeName}
-            </div>
-          )}
-        </div>
-
-        {/* Get Code Button (Top Right) */}
-        <div className="action-button">
-          <span className="button-text">
-            {currentLanguage === 'ar' ? 'احصل على كود' : 'Get Code'}
-          </span>
-          <span className="material-symbols-sharp button-icon">
-            arrow_forward
-          </span>
-        </div>
+        {storeLogo ? (
+          <Image
+            src={storeLogo}
+            alt={storeName}
+            fill
+            className="store-logo"
+            priority={false}
+          />
+        ) : (
+          <div className="store-name-fallback">
+            {storeName}
+          </div>
+        )}
       </div>
 
       {/* Offer Type Badge */}
@@ -186,9 +172,14 @@ const StoreCard = ({ store }) => {
         </div>
       )}
 
-      {/* Main Offer Text */}
+      {/* Main Offer Text with Arrow */}
       <div className="main-offer">
-        <p className="offer-text">{showOffer}</p>
+        <p className="offer-text">
+          {showOffer}
+          <span className="material-symbols-sharp offer-arrow">
+            arrow_forward
+          </span>
+        </p>
       </div>
     </Link>
   );
