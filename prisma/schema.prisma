@@ -13,6 +13,17 @@ enum Locale {
   en
 }
 
+enum CuratedOfferType {
+  CODE           // Requires coupon code
+  DEAL           // Auto-applied deal
+  PRODUCT        // Specific product discount
+  SEASONAL       // Seasonal offer (Ramadan, Black Friday, etc)
+  FREE_SHIPPING  // Free shipping offer
+  CASHBACK       // Cashback reward
+  BUNDLE         // Buy X Get Y
+  FLASH_SALE     // Limited time flash sale
+}
+
 // ============================================================================
 // CORE MODELS
 // ============================================================================
@@ -95,6 +106,7 @@ model Store {
   paymentMethods StorePaymentMethod[]
   otherPromos    OtherPromo[]  // Bank offers, card promos
   products       StoreProduct[] // ← NEW: Featured products
+  curatedOffers  CuratedOffer[]
   
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
@@ -354,6 +366,59 @@ enum PromoType {
   SEASONAL        // "Ramadan Special"
   BUNDLE          // "Buy 2 Get 1 Free"
   OTHER
+}
+
+// ============================================================================
+// CuratedOffer - NEW MODEL FOR BANK/CARD OFFERS
+// ============================================================================
+
+model CuratedOffer {
+  id        Int     @id @default(autoincrement())
+  storeId   Int
+  
+  // Offer Details
+  offerImage String  // Squircle image URL (right side)
+  code       String? // Optional coupon code
+  type       CuratedOfferType
+  
+  // CTA
+  ctaUrl     String  // Where clicking leads
+  
+  // Validity
+  startDate  DateTime?
+  expiryDate DateTime?
+  
+  // Display
+  isFeatured Boolean @default(false)
+  isActive   Boolean @default(true)
+  order      Int     @default(0)
+  
+  // Relations
+  translations CuratedOfferTranslation[]
+  store        Store   @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@index([storeId])
+  @@index([isFeatured])
+  @@index([isActive])
+  @@index([expiryDate])
+}
+
+model CuratedOfferTranslation {
+  id      Int    @id @default(autoincrement())
+  offerId Int
+  locale  Locale
+  
+  title       String        // "€25 BYOD Plan! Customers Get UNL 5G for €25/Month"
+  description String? @db.Text // Optional additional details
+  ctaText     String        // "SHOP NOW", "GET OFFER", etc.
+  
+  offer CuratedOffer @relation(fields: [offerId], references: [id], onDelete: Cascade)
+  
+  @@unique([offerId, locale])
+  @@index([locale])
 }
 
 // ============================================================================
