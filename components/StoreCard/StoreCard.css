@@ -66,11 +66,11 @@
    LOGO - FULL COVERAGE
    ============================================ */
 
-.store-logo {
+.card-container  .store-logo {
   object-fit: cover; /* Covers entire container */
   transition: var(--transition-smooth);
-   width: 100%;
-   height: 100%;
+   width: 100% !important;
+   height: 100% !important;
 }
 
 .store-card-modern:hover .store-logo {
@@ -100,18 +100,19 @@
 
 .offer-type-badge {
   display: inline-flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 0.15rem;
   padding: 0;
   color: #470ae2;
-  font-size: 0.75rem;
+   background: none !important;
+  font-size: 0.9rem;
   font-weight: 500;
   align-self: flex-start;
 }
 
 .badge-icon {
-  font-size: 0.85rem;
-  line-height: 1;
+  font-size: 1.2rem !important;
+  line-height: 1 !important;
 }
 
 .badge-label {
@@ -130,7 +131,7 @@
 }
 
 .offer-text {
-  font-size: 1rem;
+  font-size: 1.1rem;
   font-weight: 600;
   color: var(--offer-text-color);
   line-height: 1.4;
@@ -147,7 +148,7 @@
 
 /* Arrow Icon in Offer Text */
 .offer-arrow {
-  font-size: 1rem;
+  font-size: 1.2rem !important;
   color: var(--offer-arrow-color);
   line-height: 1;
   transition: var(--transition-smooth);
@@ -169,11 +170,11 @@
   }
   
   .offer-text {
-    font-size: 1.0625rem;
+    font-size: 1.1rem;
   }
   
   .offer-arrow {
-    font-size: 1.175rem;
+    font-size: 1.2rem;
   }
 }
 
@@ -241,7 +242,13 @@
 /* ============================================
    RTL SUPPORT
    ============================================ */
+[dir="rtl"] .offer-arrow {
+  transform: scaleX(-1);
+}
 
+[dir="rtl"] .store-card-modern:hover .offer-arrow {
+  transform: scaleX(-1) translateX(4px);
+}
 
 
 /* ============================================
