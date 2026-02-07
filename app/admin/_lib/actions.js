@@ -77,23 +77,32 @@ export async function updateStore(id, formData) {
     }
 
     // Build update data object with fallbacks to current values
+   export async function updateStore(id, formData) {
+  try {
+    // First, get the current store to preserve missing fields
+    const currentStore = await prisma.store.findUnique({
+      where: { id: parseInt(id) }
+    });
+
+    if (!currentStore) {
+      return { error: `Store with ID ${id} not found` };
+    }
+
+    // Build update data object with fallbacks to current values
     const updateData = {
       logo: formData.get('logo') || currentStore.logo,
       bigLogo: formData.get('bigLogo') || currentStore.bigLogo,
-      coverImage: formData.get('coverImage') || currentStore.coverImage,    // NEW
-      backgroundImage: formData.get('backgroundImage') || currentStore.backgroundImage, // NEW
+      coverImage: formData.get('coverImage') || currentStore.coverImage,
+      backgroundImage: formData.get('backgroundImage') || currentStore.backgroundImage,
       color: formData.get('color') || currentStore.color,
-      showOffer: formData.has('showOffer') 
-        ? formData.get('showOffer') || null 
-        : currentStore.showOffer,
-      showOfferType: formData.has('showOfferType') 
-        ? formData.get('showOfferType') || null 
-        : currentStore.showOfferType,
       websiteUrl: formData.get('websiteUrl') || currentStore.websiteUrl,
       affiliateNetwork: formData.get('affiliateNetwork') || currentStore.affiliateNetwork,
       trackingUrl: formData.get('trackingUrl') || currentStore.trackingUrl,
       isActive: formData.has('isActive') ? formData.get('isActive') === 'on' : currentStore.isActive,
       isFeatured: formData.has('isFeatured') ? formData.get('isFeatured') === 'on' : currentStore.isFeatured,
+      
+      // ✅ UPDATED: showOfferType now uses ENUM
+      showOfferType: formData.get('showOfferType') || null, // Can be null
     };
 
     // Validate required fields
@@ -101,7 +110,6 @@ export async function updateStore(id, formData) {
       return { error: 'Website URL is required' };
     }
 
-    // Debug log
     console.log('Updating store data:', updateData);
 
     await prisma.store.update({
@@ -109,10 +117,11 @@ export async function updateStore(id, formData) {
       data: updateData
     });
 
-    // Update translations only if they exist in formData
+    // ✅ UPDATED: Update translations including showOffer
     for (const locale of ['en', 'ar']) {
       const name = formData.get(`name_${locale}`);
       const slug = formData.get(`slug_${locale}`);
+      const showOffer = formData.get(`showOffer_${locale}`); // ✅ NEW
       
       // Only update translation if at least name or slug is provided
       if (name !== null || slug !== null) {
@@ -130,14 +139,16 @@ export async function updateStore(id, formData) {
             slug: slug || '',
             description: formData.get(`description_${locale}`) || null,
             seoTitle: formData.get(`seoTitle_${locale}`) || null,
-            seoDescription: formData.get(`seoDescription_${locale}`) || null
+            seoDescription: formData.get(`seoDescription_${locale}`) || null,
+            showOffer: showOffer || null // ✅ NEW
           },
           update: {
             name: name !== null ? name : undefined,
             slug: slug !== null ? slug : undefined,
             description: formData.has(`description_${locale}`) ? formData.get(`description_${locale}`) : undefined,
             seoTitle: formData.has(`seoTitle_${locale}`) ? formData.get(`seoTitle_${locale}`) : undefined,
-            seoDescription: formData.has(`seoDescription_${locale}`) ? formData.get(`seoDescription_${locale}`) : undefined
+            seoDescription: formData.has(`seoDescription_${locale}`) ? formData.get(`seoDescription_${locale}`) : undefined,
+            showOffer: formData.has(`showOffer_${locale}`) ? formData.get(`showOffer_${locale}`) : undefined // ✅ NEW
           }
         });
       }
