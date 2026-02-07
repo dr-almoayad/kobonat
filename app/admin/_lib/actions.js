@@ -67,20 +67,9 @@ export async function createStore(formData) {
     return { error: error.message };
   }
 }
-// FIXED updateStore function with proper handling of partial updates
+
+
 export async function updateStore(id, formData) {
-  try {
-    // First, get the current store to preserve missing fields
-    const currentStore = await prisma.store.findUnique({
-      where: { id: parseInt(id) }
-    });
-
-    if (!currentStore) {
-      return { error: `Store with ID ${id} not found` };
-    }
-
-    // Build update data object with fallbacks to current values
-   export async function updateStore(id, formData) {
   try {
     // First, get the current store to preserve missing fields
     const currentStore = await prisma.store.findUnique({
@@ -170,6 +159,7 @@ export async function updateStore(id, formData) {
     return { error: error.message };
   }
 }
+
 
 export async function deleteStore(id) {
   try {
