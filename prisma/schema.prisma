@@ -17,14 +17,7 @@ enum Locale {
   en
 }
 
-enum Currency {
-  SAR
-  EGP
-  AED
-  USD
-  EUR
-  GBP
-}
+// REMOVED Currency enum to avoid migration issues
 
 enum ShowOfferType {
   CODE
@@ -88,7 +81,7 @@ enum AdminRole {
 model Country {
   id        Int      @id @default(autoincrement())
   code      String   @unique // SA, EG, AE
-  currency  Currency // Changed from String to Currency enum
+  currency  String   // SAR, EGP, AED - KEPT AS STRING to avoid migration
   flag      String?  // 🇸🇦
   isActive  Boolean  @default(true)
   isDefault Boolean  @default(false)
@@ -99,6 +92,7 @@ model Country {
   faqs           StoreFAQ[]
   storePayments  StorePaymentMethod[]
   voucherClicks  VoucherClick[]
+  storeProductClicks StoreProductClick[]  // ← ADDED for relation
   otherPromos    OtherPromo[]
   curatedOffers  CuratedOfferCountry[]  // ← ADDED
   storeProducts  StoreProductCountry[]  // ← ADDED
@@ -107,7 +101,7 @@ model Country {
   updatedAt DateTime @updatedAt
   
   @@index([isActive])
-  @@index([currency])
+  // Removed currency index since it's now a string
 }
 
 model CountryTranslation {
