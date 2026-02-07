@@ -369,6 +369,125 @@ export async function deleteStoreProduct(id) {
 }
 
 
+// app/admin/_lib/actions.js - ADD THESE TO YOUR EXISTING FILE
+
+// ============================================================================
+// CURATED OFFERS
+// ============================================================================
+
+export async function createCuratedOffer(formData) {
+  try {
+    const storeId = parseInt(formData.get('storeId'));
+    const startDate = formData.get('startDate') ? new Date(formData.get('startDate')) : null;
+    const expiryDate = formData.get('expiryDate') ? new Date(formData.get('expiryDate')) : null;
+
+    const offer = await prisma.curatedOffer.create({
+      data: {
+        storeId,
+        offerImage: formData.get('offerImage'),
+        code: formData.get('code') || null,
+        type: formData.get('type'),
+        ctaUrl: formData.get('ctaUrl'),
+        startDate,
+        expiryDate,
+        isFeatured: formData.get('isFeatured') === 'on',
+        isActive: formData.get('isActive') === 'on',
+        order: parseInt(formData.get('order') || '0'),
+        translations: {
+          create: [
+            {
+              locale: 'en',
+              title: formData.get('title_en'),
+              description: formData.get('description_en'),
+              ctaText: formData.get('ctaText_en')
+            },
+            {
+              locale: 'ar',
+              title: formData.get('title_ar'),
+              description: formData.get('description_ar'),
+              ctaText: formData.get('ctaText_ar')
+            }
+          ]
+        }
+      }
+    });
+
+    revalidatePath('/admin/curated-offers');
+    return { success: true, id: offer.id };
+  } catch (error) {
+    console.error('Create curated offer error:', error);
+    return { error: error.message };
+  }
+}
+
+export async function updateCuratedOffer(id, formData) {
+  try {
+    const startDate = formData.get('startDate') ? new Date(formData.get('startDate')) : null;
+    const expiryDate = formData.get('expiryDate') ? new Date(formData.get('expiryDate')) : null;
+
+    const offer = await prisma.curatedOffer.update({
+      where: { id: parseInt(id) },
+      data: {
+        storeId: parseInt(formData.get('storeId')),
+        offerImage: formData.get('offerImage'),
+        code: formData.get('code') || null,
+        type: formData.get('type'),
+        ctaUrl: formData.get('ctaUrl'),
+        startDate,
+        expiryDate,
+        isFeatured: formData.get('isFeatured') === 'on',
+        isActive: formData.get('isActive') === 'on',
+        order: parseInt(formData.get('order') || '0')
+      }
+    });
+
+    // Update translations
+    for (const locale of ['en', 'ar']) {
+      await prisma.curatedOfferTranslation.upsert({
+        where: {
+          offerId_locale: {
+            offerId: parseInt(id),
+            locale
+          }
+        },
+        create: {
+          offerId: parseInt(id),
+          locale,
+          title: formData.get(`title_${locale}`),
+          description: formData.get(`description_${locale}`),
+          ctaText: formData.get(`ctaText_${locale}`)
+        },
+        update: {
+          title: formData.get(`title_${locale}`),
+          description: formData.get(`description_${locale}`),
+          ctaText: formData.get(`ctaText_${locale}`)
+        }
+      });
+    }
+
+    revalidatePath('/admin/curated-offers');
+    return { success: true };
+  } catch (error) {
+    console.error('Update curated offer error:', error);
+    return { error: error.message };
+  }
+}
+
+export async function deleteCuratedOffer(id) {
+  try {
+    await prisma.curatedOffer.delete({
+      where: { id: parseInt(id) }
+    });
+
+    revalidatePath('/admin/curated-offers');
+    return { success: true };
+  } catch (error) {
+    console.error('Delete curated offer error:', error);
+    return { error: error.message };
+  }
+}
+
+
 // ============================================================================
 // VOUCHERS
 // ============================================================================
