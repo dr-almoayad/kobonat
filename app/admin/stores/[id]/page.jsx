@@ -42,6 +42,19 @@ export default function StoreEditPage({ params }) {
   const [selectedCountries, setSelectedCountries] = useState([]);
   const [selectedCategories, setSelectedCategories] = useState([]);
 
+   function getOfferTypeIcon(type) {
+    const icons = {
+      CODE: 'confirmation_number',
+      DEAL: 'local_fire_department',
+      DISCOUNT: 'sell',
+      FREE_DELIVERY: 'local_shipping',
+      FREE_SHIPPING: 'inventory_2',
+      CASHBACK: 'attach_money',
+      OFFER: 'redeem'
+    };
+    return icons[type?.toUpperCase()] || 'redeem';
+  }
+
   useEffect(() => {
     async function fetchData() {
       try {
