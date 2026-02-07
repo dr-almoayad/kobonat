@@ -65,6 +65,7 @@ model CountryTranslation {
 // ============================================================================
 // STORE - ENHANCED WITH COVER IMAGE
 // ============================================================================
+
 enum ShowOfferType {
   CODE
   DEAL
@@ -81,17 +82,16 @@ model Store {
   // Images
   logo              String?
   bigLogo           String?
-  backgroundImage   String?   
-  coverImage        String?  // ✅ Already exists - hero banner for store page
+  backgroundImage   String?
+  coverImage        String?  // Hero banner for store page
   color             String?  // Brand color for UI theming
-
-  showOffer          String? 
-  showOfferType          String? 
+  
+  showOfferType     ShowOfferType? // ✅ Changed from String to ENUM
   
   // URLs
-  websiteUrl  String
-  affiliateNetwork String?
-  trackingUrl      String?
+  websiteUrl        String
+  affiliateNetwork  String?
+  trackingUrl       String?
   
   // Status
   isActive    Boolean @default(true)
@@ -104,8 +104,8 @@ model Store {
   categories     StoreCategory[]
   faqs           StoreFAQ[]
   paymentMethods StorePaymentMethod[]
-  otherPromos    OtherPromo[]  // Bank offers, card promos
-  products       StoreProduct[] // ← NEW: Featured products
+  otherPromos    OtherPromo[]
+  products       StoreProduct[]
   curatedOffers  CuratedOffer[]
   
   createdAt  DateTime @default(now())
@@ -118,7 +118,7 @@ model Store {
 model StoreTranslation {
   id          Int     @id @default(autoincrement())
   storeId     Int
-  locale      Locale  
+  locale      Locale
   
   name        String
   slug        String
@@ -127,6 +127,8 @@ model StoreTranslation {
   // SEO
   seoTitle       String?
   seoDescription String? @db.Text
+  
+  showOffer      String?  // "Get 15% off all orders" / "خصم 15% على جميع الطلبات"
   
   store Store @relation(fields: [storeId], references: [id], onDelete: Cascade)
   
