@@ -1,4 +1,4 @@
-/* components/StoreCard/StoreCard.css - PROFESSIONAL POLISHED DESIGN */
+/* components/StoreCard/StoreCard.css - Full-bleed logo, arrow in offer */
 
 /* ============================================
    VARIABLES & THEME
@@ -8,21 +8,15 @@
   --card-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   --card-shadow-hover: 0 8px 24px rgba(0, 0, 0, 0.12);
   
-  --button-bg: #ffffff;
-  --button-text: #1e293b;
-  --button-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-  
   --badge-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   
   --offer-text-color: #0f172a;
-  --offer-text-muted: #475569;
+  --offer-arrow-color: #470ae2;
   
   --border-radius-card: 16px;
-  --border-radius-button: 24px;
   --border-radius-badge: 20px;
   
   --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-bounce: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
 
 /* ============================================
@@ -49,7 +43,7 @@
 }
 
 /* ============================================
-   MAIN CARD CONTAINER
+   CARD CONTAINER - FULL BLEED LOGO
    ============================================ */
 
 .card-container {
@@ -60,17 +54,14 @@
   box-shadow: var(--card-shadow);
   transition: var(--transition-smooth);
   overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 1.5rem;
+  /* NO PADDING - Logo fills entire space */
 }
 
 .store-card-modern:hover .card-container {
   box-shadow: var(--card-shadow-hover);
 }
 
-/* Featured stores get special treatment */
+/* Featured stores */
 .store-card-modern.featured .card-container {
   box-shadow: 0 4px 20px rgba(71, 10, 226, 0.2);
 }
@@ -80,26 +71,11 @@
 }
 
 /* ============================================
-   LOGO CONTAINER
+   LOGO - FULL COVERAGE
    ============================================ */
 
-.logo-container {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1;
-}
-
 .store-logo {
-  width: auto;
-  max-width: 85%;
-  max-height: 100%;
-  height: auto;
-  object-fit: contain;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+  object-fit: cover; /* Covers entire container */
   transition: var(--transition-smooth);
 }
 
@@ -109,6 +85,11 @@
 
 /* Fallback when no logo exists */
 .store-name-fallback {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-size: 1.5rem;
   font-weight: 800;
   color: #ffffff;
@@ -116,53 +97,7 @@
   text-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   line-height: 1.2;
   letter-spacing: -0.02em;
-}
-
-/* ============================================
-   ACTION BUTTON (Get Code)
-   ============================================ */
-
-.action-button {
-  position: absolute;
-  bottom: 1rem;
-  right: 1rem;
-  background: var(--button-bg);
-  color: var(--button-text);
-  padding: 0.625rem 1.25rem;
-  border-radius: var(--border-radius-button);
-  box-shadow: var(--button-shadow);
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.875rem;
-  font-weight: 600;
-  z-index: 2;
-  transition: var(--transition-bounce);
-  backdrop-filter: blur(8px);
-}
-
-.store-card-modern:hover .action-button {
-  transform: translateX(-4px) scale(1.05);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-.store-card-modern:active .action-button {
-  transform: translateX(-2px) scale(1.02);
-}
-
-.button-text {
-  line-height: 1;
-  white-space: nowrap;
-}
-
-.button-icon {
-  font-size: 1.125rem;
-  line-height: 1;
-  transition: var(--transition-smooth);
-}
-
-.store-card-modern:hover .button-icon {
-  transform: translateX(3px);
+  padding: 1.5rem;
 }
 
 /* ============================================
@@ -200,13 +135,12 @@
 }
 
 /* ============================================
-   MAIN OFFER TEXT
+   MAIN OFFER TEXT WITH ARROW
    ============================================ */
 
 .main-offer {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
 }
 
 .offer-text {
@@ -215,15 +149,27 @@
   color: var(--offer-text-color);
   line-height: 1.4;
   margin: 0;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   transition: var(--transition-smooth);
 }
 
 .store-card-modern:hover .offer-text {
   color: #470ae2; /* Brand purple */
+}
+
+/* Arrow Icon in Offer Text */
+.offer-arrow {
+  font-size: 1.25rem;
+  color: var(--offer-arrow-color);
+  line-height: 1;
+  transition: var(--transition-smooth);
+  flex-shrink: 0;
+}
+
+.store-card-modern:hover .offer-arrow {
+  transform: translateX(4px);
 }
 
 /* ============================================
@@ -234,16 +180,14 @@
 @media (min-width: 1024px) {
   .card-container {
     aspect-ratio: 2.3 / 1;
-    padding: 1.75rem;
   }
   
   .offer-text {
     font-size: 1.0625rem;
   }
   
-  .action-button {
-    padding: 0.75rem 1.5rem;
-    font-size: 0.9375rem;
+  .offer-arrow {
+    font-size: 1.375rem;
   }
 }
 
@@ -251,20 +195,11 @@
 @media (max-width: 1023px) {
   .card-container {
     aspect-ratio: 2.1 / 1;
-    padding: 1.25rem;
-  }
-  
-  .store-logo {
-    max-width: 80%;
   }
   
   .store-name-fallback {
     font-size: 1.25rem;
-  }
-  
-  .action-button {
-    padding: 0.5rem 1rem;
-    font-size: 0.8125rem;
+    padding: 1.25rem;
   }
   
   .offer-type-badge {
@@ -274,6 +209,10 @@
   
   .offer-text {
     font-size: 0.9375rem;
+  }
+  
+  .offer-arrow {
+    font-size: 1.125rem;
   }
 }
 
@@ -285,28 +224,12 @@
   
   .card-container {
     aspect-ratio: 2 / 1;
-    padding: 1rem;
     border-radius: 12px;
-  }
-  
-  .store-logo {
-    max-width: 75%;
   }
   
   .store-name-fallback {
     font-size: 1.125rem;
-  }
-  
-  .action-button {
-    bottom: 0.75rem;
-    right: 0.75rem;
-    padding: 0.5rem 0.875rem;
-    font-size: 0.75rem;
-    gap: 0.375rem;
-  }
-  
-  .button-icon {
-    font-size: 1rem;
+    padding: 1rem;
   }
   
   .offer-type-badge {
@@ -321,6 +244,11 @@
   
   .offer-text {
     font-size: 0.875rem;
+    gap: 0.375rem;
+  }
+  
+  .offer-arrow {
+    font-size: 1rem;
   }
 }
 
@@ -332,28 +260,12 @@
   
   .card-container {
     aspect-ratio: 1.8 / 1;
-    padding: 0.875rem;
     border-radius: 10px;
-  }
-  
-  .store-logo {
-    max-width: 70%;
   }
   
   .store-name-fallback {
     font-size: 1rem;
-  }
-  
-  .action-button {
-    bottom: 0.625rem;
-    right: 0.625rem;
-    padding: 0.4rem 0.75rem;
-    font-size: 0.6875rem;
-    gap: 0.3rem;
-  }
-  
-  .button-icon {
-    font-size: 0.9375rem;
+    padding: 0.875rem;
   }
   
   .offer-type-badge {
@@ -369,7 +281,11 @@
   
   .offer-text {
     font-size: 0.8125rem;
-    -webkit-line-clamp: 2;
+    gap: 0.3rem;
+  }
+  
+  .offer-arrow {
+    font-size: 0.9375rem;
   }
 }
 
@@ -377,29 +293,24 @@
    RTL SUPPORT
    ============================================ */
 
-[dir="rtl"] .action-button {
-  right: auto;
-  left: 1rem;
-}
-
-[dir="rtl"] .store-card-modern:hover .action-button {
-  transform: translateX(4px) scale(1.05);
-}
-
-[dir="rtl"] .button-icon {
-  transform: scaleX(-1);
-}
-
-[dir="rtl"] .store-card-modern:hover .button-icon {
-  transform: scaleX(-1) translateX(3px);
-}
-
 [dir="rtl"] .offer-type-badge {
   align-self: flex-end;
 }
 
 [dir="rtl"] .store-card-modern:hover .offer-type-badge {
   transform: translateX(-4px);
+}
+
+[dir="rtl"] .offer-text {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .offer-arrow {
+  transform: scaleX(-1);
+}
+
+[dir="rtl"] .store-card-modern:hover .offer-arrow {
+  transform: scaleX(-1) translateX(4px);
 }
 
 /* ============================================
@@ -424,19 +335,17 @@
   .store-card-modern,
   .card-container,
   .store-logo,
-  .action-button,
-  .button-icon,
   .offer-type-badge,
-  .offer-text {
+  .offer-text,
+  .offer-arrow {
     transition: none;
   }
   
   .store-card-modern:hover,
   .store-card-modern:hover .card-container,
   .store-card-modern:hover .store-logo,
-  .store-card-modern:hover .action-button,
-  .store-card-modern:hover .button-icon,
-  .store-card-modern:hover .offer-type-badge {
+  .store-card-modern:hover .offer-type-badge,
+  .store-card-modern:hover .offer-arrow {
     transform: none;
   }
 }
@@ -473,10 +382,6 @@
   .store-card-modern {
     break-inside: avoid;
     page-break-inside: avoid;
-  }
-  
-  .action-button {
-    display: none;
   }
   
   .card-container,
