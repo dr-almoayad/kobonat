@@ -1,4 +1,4 @@
-// app/[locale]/page.js - FIXED: Proper canonical URLs without redirects
+// app/[locale]/page.js - FIXED: Added Curated Offers Fetching
 import { prisma } from "@/lib/prisma";
 import { getTranslations } from 'next-intl/server';
 import Link from "next/link";
@@ -9,6 +9,7 @@ import VoucherCard from "@/components/VoucherCard/VoucherCard";
 import StoreCard from "@/components/StoreCard/StoreCard";
 import HeroCarousel from "@/components/HeroCarousel/HeroCarousel";
 import BrandsCarousel from "@/components/BrandsCarousel/BrandsCarousel";
+import FeaturedOffersCarousel from "@/components/FeaturedOffersCarousel/FeaturedOffersCarousel"; // Import the carousel
 import HelpBox from "@/components/help/HelpBox";
 
 import { 
@@ -22,7 +23,6 @@ export const revalidate = 60;
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://cobonat.me';
 
-// ✅ FIXED: Generate metadata with proper canonical (NO TRAILING SLASH)
 export async function generateMetadata({ params }) {
   const { locale } = await params;
   const [language, countryCode] = locale.split('-');
@@ -36,7 +36,6 @@ export async function generateMetadata({ params }) {
     description: isArabic
       ? "منصتك الأولى لأكواد الخصم والعروض في السعودية 🇸🇦. وفر فلوسك مع كوبونات فعالة وموثقة لأشهر المتاجر العالمية والمحلية. مقاضيك، لبسك، وسفرياتك صارت أوفر!"
       : "Your #1 source for verified discount codes in Saudi 🇸🇦. Save more on fashion, electronics, and groceries with verified and active coupons for top local and global stores.",
-    // ✅ CRITICAL: No trailing slash, exact locale match
     alternates: {
       canonical: `${BASE_URL}/${locale}`,
       languages: {
@@ -55,7 +54,6 @@ export async function generateMetadata({ params }) {
         'x-default': `${BASE_URL}/ar-SA`,
       }
     },
-    
     openGraph: {
       url: `${BASE_URL}/${locale}`,
       locale: locale,
@@ -63,7 +61,6 @@ export async function generateMetadata({ params }) {
       title: isArabic ? "Cobonat | كوبونات" : 'Cobonat - Coupons',
       description: isArabic ? "وفر فلوسك مع كوبونات فعالة وموثقة" : "Save more with verified coupons",
     },
-    
     robots: {
       index: true,
       follow: true,
@@ -81,7 +78,6 @@ export async function generateMetadata({ params }) {
 export default async function Home({ params }) {
   const { locale } = await params;
 
-  // FAIL-SAFE: If the locale is not in your allowed list, trigger 404 immediately.
   if (!allLocaleCodes.includes(locale)) {
     notFound();
   }
@@ -89,9 +85,9 @@ export default async function Home({ params }) {
   const t = await getTranslations('HomePage');
   const [language, countryCode] = locale.split('-');
 
-  // Fetch data with proper joins for translations
-  const [featuredStoresWithCovers, topVouchers, featuredStores, allActiveBrands] = await Promise.all([
-    // Featured stores WITH cover images
+  // Fetch data
+  const [featuredStoresWithCovers, topVouchers, featuredStores, allActiveBrands, curatedOffers] = await Promise.all([
+    // 1. Hero Carousel Stores
     prisma.store.findMany({
       where: { 
         isActive: true,
@@ -109,27 +105,23 @@ export default async function Home({ params }) {
       take: 10,
     }),
     
+    // 2. Top Vouchers
     prisma.voucher.findMany({
       where: {
         expiryDate: { gte: new Date() },
-        store: { isActive: true }
+        store: { isActive: true },
+        countries: { some: { country: { code: countryCode || 'SA' } } }
       },
       include: {
         translations: {
           where: { locale: language },
-          select: {
-            title: true,
-            description: true,
-          }
+          select: { title: true, description: true }
         },
         store: {
           include: {
             translations: {
               where: { locale: language },
-              select: { 
-                name: true, 
-                slug: true 
-              }
+              select: { name: true, slug: true }
             }
           }
         }
@@ -141,6 +133,7 @@ export default async function Home({ params }) {
       take: 21
     }),
     
+    // 3. Featured Stores List
     prisma.store.findMany({
       where: { 
         isActive: true, 
@@ -149,17 +142,12 @@ export default async function Home({ params }) {
       include: {
         translations: {
           where: { locale: language },
-          select: {
-            name: true,
-            slug: true,
-          }
+          select: { name: true, slug: true }
         },
         _count: {
           select: { 
             vouchers: { 
-              where: { 
-                expiryDate: { gte: new Date() } 
-              } 
+              where: { expiryDate: { gte: new Date() } } 
             } 
           }
         }
@@ -167,47 +155,67 @@ export default async function Home({ params }) {
       take: 16
     }),
 
+    // 4. Brands Carousel
     prisma.store.findMany({
       where: { 
         isActive: true,
-        countries: {
-          some: {
-            country: { code: countryCode || 'SA' }
-          }
-        }
+        countries: { some: { country: { code: countryCode || 'SA' } } }
       },
       include: {
         translations: {
           where: { locale: language },
-          select: {
-            name: true,
-            slug: true,
-          }
+          select: { name: true, slug: true }
         },
         _count: {
           select: {
             vouchers: {
-              where: {
-                expiryDate: { gte: new Date() },
-                countries: {
-                  some: {
-                    country: {
-                      code: countryCode || 'SA'
-                    }
-                  }
-                }
-              }
+              where: { expiryDate: { gte: new Date() } }
             }
           }
         }
       },
+      orderBy: [ { isFeatured: 'desc' }, { id: 'asc' } ],
+      take: 20
+    }),
+
+    // 5. Curated Offers (NEW)
+    prisma.curatedOffer.findMany({
+      where: {
+        isActive: true,
+        OR: [
+          { expiryDate: { gte: new Date() } },
+          { expiryDate: null }
+        ],
+        countries: {
+          some: { country: { code: countryCode || 'SA' } }
+        }
+      },
+      include: {
+        store: {
+          select: {
+            id: true,
+            logo: true,
+            slug: true,
+            translations: {
+              where: { locale: language },
+              select: { name: true, slug: true }
+            }
+          }
+        },
+        translations: {
+          where: { locale: language },
+          select: { title: true, description: true, ctaText: true }
+        }
+      },
       orderBy: [
         { isFeatured: 'desc' },
-        { id: 'asc' }
+        { order: 'asc' }
       ],
-      take: 20
+      take: 10
     })
   ]);
+
+  // --- Data Transformation Helpers ---
 
   const transformStoreWithTranslation = (store) => {
     const translation = store.translations?.[0] || {};
@@ -222,7 +230,6 @@ export default async function Home({ params }) {
   const transformVoucherWithTranslation = (voucher) => {
     const voucherTranslation = voucher.translations?.[0] || {};
     const storeTranslation = voucher.store?.translations?.[0] || {};
-    
     return {
       ...voucher,
       title: voucherTranslation.title || 'Special Offer',
@@ -237,9 +244,29 @@ export default async function Home({ params }) {
     };
   };
 
+  const transformCuratedOffer = (offer) => {
+    const translation = offer.translations?.[0] || {};
+    const storeTranslation = offer.store?.translations?.[0] || {};
+    
+    return {
+      ...offer,
+      title: translation.title || '',
+      description: translation.description || '',
+      ctaText: translation.ctaText || '',
+      store: offer.store ? {
+        ...offer.store,
+        name: storeTranslation.name || offer.store.slug || '',
+        slug: storeTranslation.slug || offer.store.slug || '',
+        translations: undefined
+      } : null,
+      translations: undefined
+    };
+  };
+
   const transformedCarouselStores = featuredStoresWithCovers.map(transformStoreWithTranslation);
   const transformedFeaturedStores = featuredStores.map(transformStoreWithTranslation);
   const transformedTopVouchers = topVouchers.map(transformVoucherWithTranslation);
+  const transformedCuratedOffers = curatedOffers.map(transformCuratedOffer);
 
   const transformedBrands = allActiveBrands.map(brand => ({
     id: brand.id,
@@ -260,6 +287,7 @@ export default async function Home({ params }) {
       <MultipleSchemas schemas={schemas} />
       
       <main className="homepage-wrapper">
+        {/* Hero Section */}
         {transformedCarouselStores.length > 0 && (
           <div className="hero-section">
             <HeroCarousel 
@@ -277,10 +305,21 @@ export default async function Home({ params }) {
           </div>
         )}
 
+        {/* Brands Ticker */}
         {transformedBrands.length > 0 && (
           <BrandsCarousel brands={transformedBrands} />
         )}
         
+        {/* NEW: Featured/Curated Offers Carousel */}
+        {transformedCuratedOffers.length > 0 && (
+          <FeaturedOffersCarousel 
+            title={t('featuredOffersTitle', { defaultMessage: 'Exclusive Offers' })}
+            offers={transformedCuratedOffers}
+            locale={locale}
+          />
+        )}
+        
+        {/* Top Deals Grid */}
         <section className="home-section">
           <div className="section-header">
             <div className="header-content">
@@ -306,6 +345,7 @@ export default async function Home({ params }) {
           </Link>
         </section>
 
+        {/* Featured Stores Grid */}
         <section className="home-section alt-bg">
           <div className="section-header">
             <div className="header-content">
