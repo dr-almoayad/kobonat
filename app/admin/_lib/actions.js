@@ -13,16 +13,18 @@ export async function createStore(formData) {
       data: {
         logo: formData.get('logo'),
         bigLogo: formData.get('bigLogo'),
-        coverImage: formData.get('coverImage'),      // NEW
-        backgroundImage: formData.get('backgroundImage'), // NEW
-        color: formData.get('color') || '#2563eb',
-        showOffer: formData.get('showOffer') || null,
-        showOfferType: formData.get('showOfferType') || null,
+        coverImage: formData.get('coverImage'),
+        backgroundImage: formData.get('backgroundImage'),
+        color: formData.get('color') || '#470ae2',
         websiteUrl: formData.get('websiteUrl'),
         affiliateNetwork: formData.get('affiliateNetwork'),
         trackingUrl: formData.get('trackingUrl'),
         isActive: formData.get('isActive') === 'on',
         isFeatured: formData.get('isFeatured') === 'on',
+        
+        // ✅ UPDATED: showOfferType as ENUM
+        showOfferType: formData.get('showOfferType') || null,
+        
         translations: {
           create: [
             {
@@ -31,7 +33,8 @@ export async function createStore(formData) {
               slug: formData.get('slug_en'),
               description: formData.get('description_en'),
               seoTitle: formData.get('seoTitle_en'),
-              seoDescription: formData.get('seoDescription_en')
+              seoDescription: formData.get('seoDescription_en'),
+              showOffer: formData.get('showOffer_en') // ✅ NEW
             },
             {
               locale: 'ar',
@@ -39,7 +42,8 @@ export async function createStore(formData) {
               slug: formData.get('slug_ar'),
               description: formData.get('description_ar'),
               seoTitle: formData.get('seoTitle_ar'),
-              seoDescription: formData.get('seoDescription_ar')
+              seoDescription: formData.get('seoDescription_ar'),
+              showOffer: formData.get('showOffer_ar') // ✅ NEW
             }
           ]
         },
@@ -63,7 +67,6 @@ export async function createStore(formData) {
     return { error: error.message };
   }
 }
-
 // FIXED updateStore function with proper handling of partial updates
 export async function updateStore(id, formData) {
   try {
