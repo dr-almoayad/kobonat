@@ -1,4 +1,4 @@
-// components/StoreCard/StoreCard.jsx - UPDATED WITH showOffer & showOfferType
+// components/StoreCard/StoreCard.jsx - WITH MATERIAL ICONS
 'use client';
 import React from 'react';
 import Image from 'next/image';
@@ -57,44 +57,44 @@ const StoreCard = ({ store }) => {
     return currentLanguage === 'ar' ? 'عروض حصرية' : 'Exclusive Deals';
   };
   
-  // Get offer type label and icon
+  // Get offer type label and Material Icon
   const getOfferTypeDisplay = () => {
     const offerType = store.showOfferType?.toUpperCase();
     
-    // Define offer type configurations
+    // Define offer type configurations with Material Icons
     const offerTypes = {
       CODE: {
-        icon: '🎟️',
+        icon: 'confirmation_number',
         labelEn: 'Code',
         labelAr: 'كود'
       },
       DEAL: {
-        icon: '🔥',
+        icon: 'local_fire_department',
         labelEn: 'Deal',
         labelAr: 'عرض'
       },
       DISCOUNT: {
-        icon: '💰',
+        icon: 'sell',
         labelEn: 'Discount',
         labelAr: 'خصم'
       },
       FREE_DELIVERY: {
-        icon: '🚚',
+        icon: 'local_shipping',
         labelEn: 'Free Delivery',
         labelAr: 'توصيل مجاني'
       },
       FREE_SHIPPING: {
-        icon: '📦',
+        icon: 'inventory_2',
         labelEn: 'Free Shipping',
         labelAr: 'شحن مجاني'
       },
       CASHBACK: {
-        icon: '💵',
+        icon: 'attach_money',
         labelEn: 'Cash Back',
         labelAr: 'استرداد نقدي'
       },
       OFFER: {
-        icon: '🎁',
+        icon: 'redeem',
         labelEn: 'Special Offer',
         labelAr: 'عرض خاص'
       }
@@ -141,13 +141,16 @@ const StoreCard = ({ store }) => {
 
       {/* Show Offer (Main Discount/Offer Text) */}
       <div className="show-offer">
+        <span className="material-symbols-sharp offer-icon">redeem</span>
         <span className="offer-text">{showOffer}</span>
       </div>
 
       {/* Offer Type Badge (Bottom - Code/Deal/etc) */}
       {store.showOfferType && (
         <div className="offer-type-badge">
-          <span className="type-icon">{offerTypeDisplay.icon}</span>
+          <span className="material-symbols-sharp type-icon">
+            {offerTypeDisplay.icon}
+          </span>
           <span className="type-label">{offerTypeDisplay.label}</span>
         </div>
       )}
