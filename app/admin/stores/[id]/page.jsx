@@ -247,6 +247,87 @@ const handleApplyCountries = async () => {
             </FormRow>
           </FormSection>
 
+          <FormSection title="Display Offer">
+            <FormRow>
+              <FormField 
+                label="Show Offer Text" 
+                name="showOffer" 
+                defaultValue={store.showOffer}
+                placeholder="Up to 15%, Buy 1 Get 1, 50% Off"
+                helpText="The main offer text displayed below the logo on the store card"
+              />
+              <FormField 
+                label="Offer Type" 
+                name="showOfferType" 
+                type="select"
+                defaultValue={store.showOfferType}
+                options={[
+                  { value: '', label: 'None' },
+                  { value: 'CODE', label: '🎟️ Code' },
+                  { value: 'DEAL', label: '🔥 Deal' },
+                  { value: 'DISCOUNT', label: '💰 Discount' },
+                  { value: 'FREE_DELIVERY', label: '🚚 Free Delivery' },
+                  { value: 'FREE_SHIPPING', label: '📦 Free Shipping' },
+                  { value: 'CASHBACK', label: '💵 Cash Back' },
+                  { value: 'OFFER', label: '🎁 Special Offer' }
+                ]}
+                helpText="Badge type shown at the bottom of the store card"
+              />
+            </FormRow>
+            
+            {/* Preview Section */}
+            {(store.showOffer || store.showOfferType) && (
+              <div style={{ 
+                marginTop: '1rem', 
+                padding: '1rem', 
+                background: '#f8fafc', 
+                borderRadius: '8px',
+                border: '1px solid #e2e8f0'
+              }}>
+                <h4 style={{ fontSize: '0.875rem', marginBottom: '0.5rem', color: '#64748b' }}>
+                  Card Preview:
+                </h4>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
+                  {/* Logo placeholder */}
+                  <div style={{ 
+                    width: '80px', 
+                    height: '80px', 
+                    borderRadius: '50%', 
+                    background: '#e63946',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: 'white',
+                    fontWeight: 'bold'
+                  }}>
+                    LOGO
+                  </div>
+                  
+                  {/* Show Offer */}
+                  {store.showOffer && (
+                    <div style={{ fontSize: '0.875rem', fontWeight: 600, color: '#0891b2' }}>
+                      🎁 {store.showOffer}
+                    </div>
+                  )}
+                  
+                  {/* Offer Type */}
+                  {store.showOfferType && (
+                    <div style={{ 
+                      padding: '0.35rem 0.75rem', 
+                      background: '#f0f9ff',
+                      borderRadius: '20px',
+                      fontSize: '0.75rem',
+                      fontWeight: 600,
+                      color: '#0369a1'
+                    }}>
+                      {getOfferTypeIcon(store.showOfferType)} {store.showOfferType}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </FormSection>
+
           <FormSection title="Core Details">
             <FormField label="Website URL" name="websiteUrl" type="url" defaultValue={store.websiteUrl} required />
             <FormRow>
