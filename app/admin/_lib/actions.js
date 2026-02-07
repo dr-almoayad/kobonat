@@ -12,9 +12,12 @@ export async function createStore(formData) {
     const store = await prisma.store.create({
       data: {
         logo: formData.get('logo'),
+        bigLogo: formData.get('bigLogo'),
         coverImage: formData.get('coverImage'),      // NEW
         backgroundImage: formData.get('backgroundImage'), // NEW
         color: formData.get('color') || '#2563eb',
+        showOffer: formData.get('showOffer') || null,
+        showOfferType: formData.get('showOfferType') || null,
         websiteUrl: formData.get('websiteUrl'),
         affiliateNetwork: formData.get('affiliateNetwork'),
         trackingUrl: formData.get('trackingUrl'),
@@ -76,9 +79,16 @@ export async function updateStore(id, formData) {
     // Build update data object with fallbacks to current values
     const updateData = {
       logo: formData.get('logo') || currentStore.logo,
+      bigLogo: formData.get('bigLogo') || currentStore.bigLogo,
       coverImage: formData.get('coverImage') || currentStore.coverImage,    // NEW
       backgroundImage: formData.get('backgroundImage') || currentStore.backgroundImage, // NEW
       color: formData.get('color') || currentStore.color,
+      showOffer: formData.has('showOffer') 
+        ? formData.get('showOffer') || null 
+        : currentStore.showOffer,
+      showOfferType: formData.has('showOfferType') 
+        ? formData.get('showOfferType') || null 
+        : currentStore.showOfferType,
       websiteUrl: formData.get('websiteUrl') || currentStore.websiteUrl,
       affiliateNetwork: formData.get('affiliateNetwork') || currentStore.affiliateNetwork,
       trackingUrl: formData.get('trackingUrl') || currentStore.trackingUrl,
