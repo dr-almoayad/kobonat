@@ -141,19 +141,13 @@ const StoreCard = ({ store }) => {
 
       {/* Show Offer (Main Discount/Offer Text) */}
       <div className="show-offer">
-        <span className="material-symbols-sharp offer-icon">redeem</span>
-        <span className="offer-text">{showOffer}</span>
+        <span className="offer-text">{storeName}</span>
       </div>
 
       {/* Offer Type Badge (Bottom - Code/Deal/etc) */}
-      {store.showOfferType && (
-        <div className="offer-type-badge">
-          <span className="material-symbols-sharp type-icon">
-            {offerTypeDisplay.icon}
-          </span>
-          <span className="type-label">{offerTypeDisplay.label}</span>
-        </div>
-      )}
+      <div className="offer-type-badge">
+        <span className="type-label">{showOffer}</span>
+      </div>
     </Link>
   );
 };
