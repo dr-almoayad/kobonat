@@ -1,4 +1,4 @@
-// components/StoreCard/StoreCard.jsx - Full-bleed logo, arrow in offer text
+// components/StoreCard/StoreCard.jsx - UPDATED for multilingual showOffer
 'use client';
 import React from 'react';
 import Image from 'next/image';
@@ -35,8 +35,14 @@ const StoreCard = ({ store }) => {
     return store.color || '#470ae2';
   };
   
-  // Get the show offer text
+  // ✅ UPDATED: Get the show offer text (now from translations)
   const getShowOffer = () => {
+    // First, check if showOffer exists in current translation
+    if (store.translations?.[0]?.showOffer) {
+      return store.translations[0].showOffer;
+    }
+    
+    // Fallback: Old format (for backwards compatibility during migration)
     if (store.showOffer) {
       return store.showOffer;
     }
@@ -59,6 +65,7 @@ const StoreCard = ({ store }) => {
       }
     }
     
+    // Final fallback
     return currentLanguage === 'ar' 
       ? 'عروض حصرية متاحة' 
       : 'Exclusive deals available';
