@@ -54,6 +54,15 @@ model CountryTranslation {
 // ============================================================================
 // STORE - ENHANCED WITH COVER IMAGE
 // ============================================================================
+enum ShowOfferType {
+  CODE
+  DEAL
+  DISCOUNT
+  FREE_DELIVERY
+  FREE_SHIPPING
+  CASHBACK
+  OFFER
+}
 
 model Store {
   id          Int      @id @default(autoincrement())
@@ -64,6 +73,9 @@ model Store {
   backgroundImage   String?   
   coverImage        String?  // ✅ Already exists - hero banner for store page
   color             String?  // Brand color for UI theming
+
+  showOffer          String? 
+  showOfferType          String? 
   
   // URLs
   websiteUrl  String
