@@ -1,4 +1,4 @@
-// prisma/schema.prisma - UPDATED FOR VOUCHERS PLATFORM
+// prisma/schema.prisma - CORRECTED VOUCHERS PLATFORM SCHEMA
 generator client {
   provider = "prisma-client-js"
 }
@@ -8,9 +8,51 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ============================================================================
+// ENUMS
+// ============================================================================
+
 enum Locale {
   ar 
   en
+}
+
+enum Currency {
+  SAR
+  EGP
+  AED
+  USD
+  EUR
+  GBP
+}
+
+enum ShowOfferType {
+  CODE
+  DEAL
+  DISCOUNT
+  FREE_SHIPPING  // Changed from FREE_DELIVERY
+  CASHBACK
+  OFFER
+}
+
+enum VoucherType {
+  CODE           // Requires coupon code
+  DEAL           // Auto-applied deal
+  FREE_SHIPPING  // Free shipping offer
+}
+
+enum PromoType {
+  BANK_OFFER      // "15% off with SABB"
+  CARD_OFFER      // "Extra 10% with Visa"
+  PAYMENT_OFFER   // "5% cashback via STC Pay"
+  SEASONAL        // "Ramadan Special"
+  BUNDLE          // "Buy 2 Get 1 Free"
+  OTHER
+}
+
+enum DiscountType {
+  PERCENTAGE
+  ABSOLUTE
 }
 
 enum CuratedOfferType {
@@ -24,6 +66,21 @@ enum CuratedOfferType {
   FLASH_SALE     // Limited time flash sale
 }
 
+enum PaymentType {
+  CARD
+  BNPL
+  COD
+  WALLET
+  BANK_TRANSFER
+}
+
+enum AdminRole {
+  SUPER_ADMIN
+  ADMIN
+  EDITOR
+  VIEWER
+}
+
 // ============================================================================
 // CORE MODELS
 // ============================================================================
@@ -31,7 +88,7 @@ enum CuratedOfferType {
 model Country {
   id        Int      @id @default(autoincrement())
   code      String   @unique // SA, EG, AE
-  currency  String   // SAR, EGP, AED
+  currency  Currency // Changed from String to Currency enum
   flag      String?  // 🇸🇦
   isActive  Boolean  @default(true)
   isDefault Boolean  @default(false)
@@ -42,12 +99,15 @@ model Country {
   faqs           StoreFAQ[]
   storePayments  StorePaymentMethod[]
   voucherClicks  VoucherClick[]
-  otherPromos    OtherPromo[]  // ← NEW
+  otherPromos    OtherPromo[]
+  curatedOffers  CuratedOfferCountry[]  // ← ADDED
+  storeProducts  StoreProductCountry[]  // ← ADDED
   
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   
   @@index([isActive])
+  @@index([currency])
 }
 
 model CountryTranslation {
@@ -66,16 +126,6 @@ model CountryTranslation {
 // STORE - ENHANCED WITH COVER IMAGE
 // ============================================================================
 
-enum ShowOfferType {
-  CODE
-  DEAL
-  DISCOUNT
-  FREE_DELIVERY
-  FREE_SHIPPING
-  CASHBACK
-  OFFER
-}
-
 model Store {
   id          Int      @id @default(autoincrement())
   
@@ -86,7 +136,7 @@ model Store {
   coverImage        String?  // Hero banner for store page
   color             String?  // Brand color for UI theming
   
-  showOfferType     ShowOfferType? // ✅ Changed from String to ENUM
+  showOfferType     ShowOfferType @default(CODE) // ✅ Made non-nullable with default
   
   // URLs
   websiteUrl        String
@@ -113,6 +163,7 @@ model Store {
   
   @@index([isActive])
   @@index([isFeatured])
+  @@index([showOfferType])
 }
 
 model StoreTranslation {
@@ -145,7 +196,7 @@ model StoreTranslation {
 model Category {
   id    Int     @id @default(autoincrement())
   icon  String? // Material icon name (e.g., "checkroom", "devices")
-  image String? // ✅ Already exists - category banner/thumbnail
+  image String? // Category banner/thumbnail
   color String? // Category accent color
   
   translations CategoryTranslation[]
@@ -153,6 +204,8 @@ model Category {
   
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  
+  @@index([color])
 }
 
 model CategoryTranslation {
@@ -204,6 +257,7 @@ model Voucher {
   
   // Analytics
   popularityScore Int @default(0)
+  clickCount      Int @default(0) // ← ADDED for better naming consistency
   
   // Relations
   translations VoucherTranslation[]
@@ -219,6 +273,8 @@ model Voucher {
   @@index([isExclusive])
   @@index([isVerified])
   @@index([popularityScore])
+  @@index([clickCount]) // ← ADDED
+  @@index([type])
 }
 
 model VoucherTranslation {
@@ -235,51 +291,42 @@ model VoucherTranslation {
   @@index([locale])
 }
 
-enum VoucherType {
-  CODE           // Requires coupon code
-  DEAL           // Auto-applied deal
-  FREE_SHIPPING  // Free shipping offer
-}
-
 // ============================================================================
 // STORE PRODUCTS - FEATURED ITEMS
 // ============================================================================
 
- model StoreProduct {
-   id          Int     @id @default(autoincrement())
-   storeId     Int
-   
-   // Product Details
-   image       String  // Product image (required)
+model StoreProduct {
+  id          Int     @id @default(autoincrement())
+  storeId     Int
+  
+  // Product Details
+  image       String  // Product image (required)
   discountValue Float?        // Discount amount (percentage or absolute)
   discountType  DiscountType @default(PERCENTAGE) // PERCENTAGE or ABSOLUTE
-   
-   // Links
-   productUrl  String  // Direct link to product on store website
-   
-   // Display
-   isFeatured  Boolean @default(true)  // Show on store page
-   order       Int     @default(0)     // Display order
-   
-   // Analytics
-   clickCount  Int     @default(0)
-   
-   // Relations
-   translations StoreProductTranslation[]
-   store        Store   @relation(fields: [storeId], references: [id], onDelete: Cascade)
-   clicks       StoreProductClick[]
-   
-   createdAt   DateTime @default(now())
-   updatedAt   DateTime @updatedAt
-   
-   @@index([storeId])
-   @@index([isFeatured])
-   @@index([order])
- }
-
-enum DiscountType {
-  PERCENTAGE
-  ABSOLUTE
+  
+  // Links
+  productUrl  String  // Direct link to product on store website
+  
+  // Display
+  isFeatured  Boolean @default(true)  // Show on store page
+  order       Int     @default(0)     // Display order
+  
+  // Analytics
+  clickCount  Int     @default(0)
+  
+  // Relations
+  translations StoreProductTranslation[]
+  store        Store   @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  clicks       StoreProductClick[]
+  countries    StoreProductCountry[] // ← ADDED for country-specific products
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([storeId])
+  @@index([isFeatured])
+  @@index([order])
+  @@index([discountType])
 }
 
 model StoreProductTranslation {
@@ -287,7 +334,7 @@ model StoreProductTranslation {
   productId Int
   locale    Locale
   
-  title       String        // "iPhone 15 Pro Max 256GB"
+  title       String  // ← Changed from optional to required
   description String? @db.Text // Optional product description
   
   product StoreProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
@@ -299,6 +346,7 @@ model StoreProductTranslation {
 model StoreProductClick {
   id          Int      @id @default(autoincrement())
   productId   Int
+  countryId   Int?     // ← ADDED for country analytics
   
   ipHash      String?
   userAgent   String?
@@ -306,9 +354,11 @@ model StoreProductClick {
   clickedAt   DateTime @default(now())
   
   product StoreProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
+  country Country? @relation(fields: [countryId], references: [id], onDelete: SetNull)
   
   @@index([productId])
   @@index([clickedAt])
+  @@index([countryId])
 }
 
 // ============================================================================
@@ -344,6 +394,9 @@ model OtherPromo {
   
   @@index([storeId, countryId])
   @@index([isActive])
+  @@index([expiryDate]) // ← ADDED
+  @@index([order])
+  @@index([type])
 }
 
 model OtherPromoTranslation {
@@ -361,17 +414,8 @@ model OtherPromoTranslation {
   @@index([locale])
 }
 
-enum PromoType {
-  BANK_OFFER      // "15% off with SABB"
-  CARD_OFFER      // "Extra 10% with Visa"
-  PAYMENT_OFFER   // "5% cashback via STC Pay"
-  SEASONAL        // "Ramadan Special"
-  BUNDLE          // "Buy 2 Get 1 Free"
-  OTHER
-}
-
 // ============================================================================
-// CuratedOffer - NEW MODEL FOR BANK/CARD OFFERS
+// CURATED OFFERS - ENHANCED WITH COUNTRY RELATION
 // ============================================================================
 
 model CuratedOffer {
@@ -398,6 +442,7 @@ model CuratedOffer {
   // Relations
   translations CuratedOfferTranslation[]
   store        Store   @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  countries    CuratedOfferCountry[] // ← ADDED for country-specific offers
   
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -406,6 +451,8 @@ model CuratedOffer {
   @@index([isFeatured])
   @@index([isActive])
   @@index([expiryDate])
+  @@index([type])
+  @@index([order])
 }
 
 model CuratedOfferTranslation {
@@ -442,6 +489,7 @@ model PaymentMethod {
   
   @@index([type])
   @@index([isBnpl])
+  @@index([slug])
 }
 
 model PaymentMethodTranslation {
@@ -456,14 +504,6 @@ model PaymentMethodTranslation {
   
   @@unique([paymentMethodId, locale])
   @@index([locale])
-}
-
-enum PaymentType {
-  CARD
-  BNPL
-  COD
-  WALLET
-  BANK_TRANSFER
 }
 
 model StorePaymentMethod {
@@ -487,6 +527,7 @@ model StorePaymentMethod {
   
   @@unique([storeId, countryId, paymentMethodId])
   @@index([storeId, countryId])
+  @@index([isActive])
 }
 
 model StorePaymentMethodTranslation {
@@ -523,6 +564,7 @@ model StoreFAQ {
   @@unique([storeId, countryId, order])
   @@index([storeId, countryId])
   @@index([isActive])
+  @@index([order])
 }
 
 model StoreFAQTranslation {
@@ -573,6 +615,26 @@ model StoreCategory {
   @@id([storeId, categoryId])
 }
 
+model CuratedOfferCountry {
+  offerId   Int
+  countryId Int
+  
+  offer   CuratedOffer @relation(fields: [offerId], references: [id], onDelete: Cascade)
+  country Country      @relation(fields: [countryId], references: [id], onDelete: Cascade)
+  
+  @@id([offerId, countryId])
+}
+
+model StoreProductCountry {
+  productId Int
+  countryId Int
+  
+  product StoreProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
+  country Country      @relation(fields: [countryId], references: [id], onDelete: Cascade)
+  
+  @@id([productId, countryId])
+}
+
 // ============================================================================
 // ANALYTICS
 // ============================================================================
@@ -617,11 +679,4 @@ model Admin {
   @@index([email])
   @@index([role])
   @@index([isActive])
-}
-
-enum AdminRole {
-  SUPER_ADMIN
-  ADMIN
-  EDITOR
-  VIEWER
 }
