@@ -112,7 +112,10 @@ export async function PUT(req, { params }) {
     const data = await req.json();
     const {
       logo,
+      bigLogo,
       color,
+      showOffer,
+      showOfferType,
       websiteUrl,
       affiliateNetwork,
       trackingUrl,
@@ -128,7 +131,10 @@ export async function PUT(req, { params }) {
       where: { id: parseInt(id) },
       data: {
         logo,
+        bigLogo,
         color,
+        showOffer,
+        showOfferType,
         websiteUrl,
         affiliateNetwork,
         trackingUrl,
