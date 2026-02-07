@@ -1,4 +1,4 @@
-// components/StoreCard/StoreCard.jsx - WITH MATERIAL ICONS
+// components/StoreCard/StoreCard.jsx - MODERN SQUIRCLE UPDATE
 'use client';
 import React from 'react';
 import Image from 'next/image';
@@ -11,7 +11,7 @@ const StoreCard = ({ store }) => {
   const t = useTranslations('StoreCard');
   const currentLanguage = locale.split('-')[0];
   
-  // Safely extract store name (for accessibility/alt text only)
+  // Safely extract store name
   const getStoreName = () => {
     if (store.name) return store.name;
     if (store.translations?.[0]?.name) return store.translations[0].name;
@@ -121,7 +121,7 @@ const StoreCard = ({ store }) => {
       className={`store-ticket-card ${store.isFeatured ? 'featured' : ''}`}
       aria-label={`${storeName} - ${showOffer} - ${offerTypeDisplay.label}`}
     >
-      {/* Circular Logo Container */}
+      {/* Squircle Logo Container */}
       <div className="logo-circle">
         {storeLogo ? (
           <Image
