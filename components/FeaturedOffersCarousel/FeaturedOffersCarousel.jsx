@@ -1,82 +1,47 @@
 // components/FeaturedOffersCarousel.jsx
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useLocale } from 'next-intl';
+import { useState } from 'react';
+import OfferCard from '../OfferCard/OfferCard'; // Adjust path if needed based on your folder structure
 import './FeaturedOffersCarousel.css';
 
-export default function FeaturedOffersCarousel({ title, countryCode = 'SA' }) {
-  const locale = useLocale();
-  const [offers, setOffers] = useState([]);
-  const [loading, setLoading] = useState(true);
+export default function FeaturedOffersCarousel({ title, offers = [], locale }) {
   const [currentSlide, setCurrentSlide] = useState(0);
 
-  useEffect(() => {
-    async function fetchOffers() {
-      try {
-        const res = await fetch(`/api/featured-offers?locale=${locale}&country=${countryCode}`);
-        const data = await res.json();
-        setOffers(data.offers || []);
-      } catch (error) {
-        console.error('Error fetching featured offers:', error);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchOffers();
-  }, [locale, countryCode]);
-
-  const handlePrev = () => {
-    setCurrentSlide((prev) => (prev === 0 ? Math.max(0, offers.length - 4) : prev - 1));
-  };
-
-  const handleNext = () => {
-    setCurrentSlide((prev) => (prev >= offers.length - 4 ? 0 : prev + 1));
-  };
-
-  const handleOfferClick = async (offer) => {
-    // Track click
-    try {
-      await fetch('/api/featured-offers/track', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ offerId: offer.id })
-      });
-    } catch (error) {
-      console.error('Error tracking offer click:', error);
-    }
-
-    // Open URL
-    if (offer.url) {
-      window.open(offer.url, '_blank', 'noopener,noreferrer');
-    }
-  };
-
-  const calculateDiscount = (price, originalPrice) => {
-    if (!originalPrice || originalPrice <= price) return null;
-    const discount = originalPrice - price;
-    const percentage = Math.round((discount / originalPrice) * 100);
-    return { percentage, absolute: discount };
-  };
-
-  if (loading) {
-    return (
-      <div className="featured-offers-loading">
-        <div className="spinner"></div>
-      </div>
-    );
-  }
-
-  if (!offers.length) {
+  // If no offers, don't render
+  if (!offers || offers.length === 0) {
     return null;
   }
 
+  // Determine items per view logic for navigation boundaries
+  // Note: CSS controls visual width, this controls logic
+  const itemsPerView = 2; // Matches CSS calc (50% on desktop)
+  const maxSlideIndex = Math.max(0, offers.length - 1); 
+  // Simplified navigation: Scroll one by one, but clamp at end based on view
+
+  const handlePrev = () => {
+    setCurrentSlide((prev) => (prev === 0 ? 0 : prev - 1));
+  };
+
+  const handleNext = () => {
+    setCurrentSlide((prev) => {
+      // If we are at the end (taking into account visible items)
+      // Mobile sees 1 item, Desktop sees 2. 
+      // Simple logic: Allow scrolling until the last item is fully visible.
+      // Since CSS handles overflow, we just increment index.
+      return prev >= offers.length - 1 ? 0 : prev + 1;
+    });
+  };
+
   return (
     <section className="featured-offers-carousel">
-      <div className="container">
+      <div className="carousel-container home-section"> {/* Added home-section class to align with page layout */}
         <div className="carousel-header">
-          <h2 className="carousel-title">{title}</h2>
+          <h2 className="carousel-title">
+             <span className="material-symbols-sharp">verified</span>
+             {title}
+          </h2>
+          
           <div className="carousel-controls">
             <button 
               className="control-btn prev" 
@@ -84,15 +49,15 @@ export default function FeaturedOffersCarousel({ title, countryCode = 'SA' }) {
               disabled={currentSlide === 0}
               aria-label="Previous"
             >
-              <span className="material-symbols-sharp">chevron_left</span>
+              <span className="material-symbols-sharp">arrow_back</span>
             </button>
             <button 
               className="control-btn next" 
               onClick={handleNext}
-              disabled={currentSlide >= offers.length - 4}
+              disabled={currentSlide >= offers.length - 1}
               aria-label="Next"
             >
-              <span className="material-symbols-sharp">chevron_right</span>
+              <span className="material-symbols-sharp">arrow_forward</span>
             </button>
           </div>
         </div>
@@ -100,65 +65,33 @@ export default function FeaturedOffersCarousel({ title, countryCode = 'SA' }) {
         <div className="carousel-track-container">
           <div 
             className="carousel-track" 
-            style={{ transform: `translateX(-${currentSlide * 25}%)` }}
-          >
-            {offers.map((offer) => {
-              const discount = calculateDiscount(offer.price, offer.originalPrice);
+            style={{ 
+              // Logic: Shift by percentage based on item width.
+              // We rely on CSS variables or fixed percentages. 
+              // Let's assume on desktop (min-width 1024px) items are 50% width.
+              // On mobile they are 100%.
+              // To make this responsive in JS without ResizeObserver is tricky.
+              // Better approach: Use a scroll container or simple transform based on 100% of ITEM width.
+              // However, the simplest way given the previous code is to translate by percentage of the TRACK.
               
-              return (
-                <div 
-                  key={offer.id} 
-                  className="offer-card"
-                  onClick={() => handleOfferClick(offer)}
-                >
-                  <div className="offer-image-container">
-                    <img 
-                      src={offer.image} 
-                      alt={offer.title}
-                      className="offer-image"
-                      loading="lazy"
-                    />
-                    
-                    {discount && (
-                      <div className="discount-badge">
-                        {discount.percentage}%
-                      </div>
-                    )}
-
-                    <div className="offer-overlay">
-                      <div className="offer-info">
-                        <h3 className="offer-title">{offer.title}</h3>
-                        
-                        <div className="offer-pricing">
-                          <div className="current-price">
-                            {offer.currency} {offer.price.toFixed(2)}
-                          </div>
-                          
-                          {offer.originalPrice && offer.originalPrice > offer.price && (
-                            <div className="original-price">
-                              {offer.currency} {offer.originalPrice.toFixed(2)}
-                            </div>
-                          )}
-                        </div>
-
-                        {discount && discount.absolute > 0 && (
-                          <div className="savings-badge">
-                            {locale.startsWith('ar') ? 'وفر' : 'Save'} {offer.currency} {discount.absolute.toFixed(2)}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  {offer.expiryDate && (
-                    <div className="offer-expiry">
-                      <span className="material-symbols-sharp">schedule</span>
-                      {locale.startsWith('ar') ? 'ينتهي' : 'Expires'}: {new Date(offer.expiryDate).toLocaleDateString(locale)}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
+              // Let's use CSS scroll snap instead for native feel, or keep the transform logic simple:
+              // Mobile: -100% * currentSlide
+              // Desktop: -50% * currentSlide
+              
+              // We will handle this via a CSS variable set by media query, but JS doesn't see CSS vars easily.
+              // Let's use a class-based modifier or just standard scrolling.
+              
+              // FALLBACK: Simple Transform
+               transform: `translateX(${locale.startsWith('ar') ? '' : '-'}${currentSlide * 100}%)` 
+               // Note: This assumes 1 item scroll at a time. 
+               // We need to adjust the CSS to ensure the track moves correctly.
+            }}
+          >
+            {offers.map((offer) => (
+              <div key={offer.id} className="carousel-slide">
+                <OfferCard offer={offer} />
+              </div>
+            ))}
           </div>
         </div>
 
@@ -168,6 +101,7 @@ export default function FeaturedOffersCarousel({ title, countryCode = 'SA' }) {
             <div 
               key={index}
               className={`indicator-dot ${index === currentSlide ? 'active' : ''}`}
+              onClick={() => setCurrentSlide(index)}
             />
           ))}
         </div>
