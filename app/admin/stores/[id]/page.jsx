@@ -43,18 +43,30 @@ export default function StoreEditPage({ params }) {
   const [selectedCategories, setSelectedCategories] = useState([]);
 
    function getOfferTypeIcon(type) {
-    const icons = {
-      CODE: 'confirmation_number',
-      DEAL: 'local_fire_department',
-      DISCOUNT: 'sell',
-      FREE_DELIVERY: 'local_shipping',
-      FREE_SHIPPING: 'inventory_2',
-      CASHBACK: 'attach_money',
-      OFFER: 'redeem'
-    };
-    return icons[type?.toUpperCase()] || 'redeem';
-  }
+  const icons = {
+    CODE: 'confirmation_number',
+    DEAL: 'local_fire_department',
+    DISCOUNT: 'sell',
+    FREE_DELIVERY: 'local_shipping',
+    FREE_SHIPPING: 'inventory_2',
+    CASHBACK: 'attach_money',
+    OFFER: 'redeem'
+  };
+  return icons[type] || 'redeem';
+}
 
+function getOfferTypeGradient(type) {
+  const gradients = {
+    CODE: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    DEAL: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+    DISCOUNT: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+    FREE_DELIVERY: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
+    FREE_SHIPPING: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
+    CASHBACK: 'linear-gradient(135deg, #30cfd0 0%, #330867 100%)',
+    OFFER: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)'
+  };
+  return gradients[type] || gradients.OFFER;
+}
   useEffect(() => {
     async function fetchData() {
       try {
@@ -233,134 +245,111 @@ const handleApplyCountries = async () => {
       </div>
 
       {/* BASIC INFO */}
-      {tab === 'basic' && (
-        <form action={(formData) => startTransition(async () => {
-          const result = await updateStore(store.id, formData);
-          if (result.success) router.refresh();
-        })} className={styles.form}>
-          <FormSection title="Store Visuals">
-            <FormRow>
-              <FormField label="Logo URL" name="logo" defaultValue={store.logo} />
-              <FormField label="Big Logo URL" name="bigLogo" defaultValue={store.bigLogo} />
-              <FormField label="Brand Color" name="color" type="color" defaultValue={store.color} />
-            </FormRow>
-            <FormRow>
-              <FormField 
-                label="Cover Image URL" 
-                name="coverImage" 
-                defaultValue={store.coverImage} 
-                helpText="Main banner image for the store page"
-              />
-              <FormField 
-                label="Background Image URL" 
-                name="backgroundImage" 
-                defaultValue={store.backgroundImage} 
-                helpText="Background pattern or image"
-              />
-            </FormRow>
-          </FormSection>
+      
+{tab === 'basic' && (
+  <form action={(formData) => startTransition(async () => {
+    const result = await updateStore(store.id, formData);
+    if (result.success) router.refresh();
+  })} className={styles.form}>
+    <FormSection title="Store Visuals">
+      <FormRow>
+        <FormField label="Logo URL" name="logo" defaultValue={store.logo} />
+        <FormField label="Big Logo URL" name="bigLogo" defaultValue={store.bigLogo} />
+        <FormField label="Brand Color" name="color" type="color" defaultValue={store.color} />
+      </FormRow>
+      <FormRow>
+        <FormField 
+          label="Cover Image URL" 
+          name="coverImage" 
+          defaultValue={store.coverImage} 
+          helpText="Main banner image for the store page"
+        />
+        <FormField 
+          label="Background Image URL" 
+          name="backgroundImage" 
+          defaultValue={store.backgroundImage} 
+          helpText="Background pattern or image"
+        />
+      </FormRow>
+    </FormSection>
 
-          <FormSection title="Display Offer">
-            <FormRow>
-              <FormField 
-                label="Show Offer Text" 
-                name="showOffer" 
-                defaultValue={store.showOffer}
-                placeholder="Up to 15%, Buy 1 Get 1, 50% Off"
-                helpText="The main offer text displayed below the logo on the store card"
-              />
-              <FormField 
-                label="Offer Type" 
-                name="showOfferType" 
-                type="select"
-                defaultValue={store.showOfferType}
-                options={[
-                  { value: '', label: 'None' },
-                  { value: 'CODE', label: '🎟️ Code' },
-                  { value: 'DEAL', label: '🔥 Deal' },
-                  { value: 'DISCOUNT', label: '💰 Discount' },
-                  { value: 'FREE_DELIVERY', label: '🚚 Free Delivery' },
-                  { value: 'FREE_SHIPPING', label: '📦 Free Shipping' },
-                  { value: 'CASHBACK', label: '💵 Cash Back' },
-                  { value: 'OFFER', label: '🎁 Special Offer' }
-                ]}
-                helpText="Badge type shown at the bottom of the store card"
-              />
-            </FormRow>
-            
-            {/* Preview Section */}
-            {(store.showOffer || store.showOfferType) && (
-              <div style={{ 
-                marginTop: '1rem', 
-                padding: '1rem', 
-                background: '#f8fafc', 
-                borderRadius: '8px',
-                border: '1px solid #e2e8f0'
-              }}>
-                <h4 style={{ fontSize: '0.875rem', marginBottom: '0.5rem', color: '#64748b' }}>
-                  Card Preview:
-                </h4>
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
-                  {/* Logo placeholder */}
-                  <div style={{ 
-                    width: '80px', 
-                    height: '80px', 
-                    borderRadius: '50%', 
-                    background: '#e63946',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: 'white',
-                    fontWeight: 'bold'
-                  }}>
-                    LOGO
-                  </div>
-                  
-                  {/* Show Offer */}
-                  {store.showOffer && (
-                    <div style={{ fontSize: '0.875rem', fontWeight: 600, color: '#0891b2' }}>
-                      🎁 {store.showOffer}
-                    </div>
-                  )}
-                  
-                  {/* Offer Type */}
-                  {store.showOfferType && (
-                    <div style={{ 
-                      padding: '0.35rem 0.75rem', 
-                      background: '#f0f9ff',
-                      borderRadius: '20px',
-                      fontSize: '0.75rem',
-                      fontWeight: 600,
-                      color: '#0369a1'
-                    }}>
-                      {getOfferTypeIcon(store.showOfferType)} {store.showOfferType}
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-          </FormSection>
+    <FormSection title="Core Details">
+      <FormField label="Website URL" name="websiteUrl" type="url" defaultValue={store.websiteUrl} required />
+      <FormRow>
+        <FormField label="Affiliate Network" name="affiliateNetwork" defaultValue={store.affiliateNetwork} />
+        <FormField label="Tracking URL" name="trackingUrl" defaultValue={store.trackingUrl} />
+      </FormRow>
+      <FormRow>
+        <FormField label="Active" name="isActive" type="checkbox" defaultValue={store.isActive} />
+        <FormField label="Featured" name="isFeatured" type="checkbox" defaultValue={store.isFeatured} />
+      </FormRow>
+    </FormSection>
 
-          <FormSection title="Core Details">
-            <FormField label="Website URL" name="websiteUrl" type="url" defaultValue={store.websiteUrl} required />
-            <FormRow>
-              <FormField label="Affiliate Network" name="affiliateNetwork" defaultValue={store.affiliateNetwork} />
-              <FormField label="Tracking URL" name="trackingUrl" defaultValue={store.trackingUrl} />
-            </FormRow>
-            <FormRow>
-              <FormField label="Active" name="isActive" type="checkbox" defaultValue={store.isActive} />
-              <FormField label="Featured" name="isFeatured" type="checkbox" defaultValue={store.isFeatured} />
-            </FormRow>
-          </FormSection>
-          
-          <div className={styles.formActions}>
-            <button type="submit" className={styles.btnPrimary} disabled={isPending}>Save Changes</button>
+    {/* ✅ UPDATED: Show Offer Type (single, not translated) */}
+    <FormSection title="Show Offer Badge">
+      <FormField
+        label="Show Offer Type"
+        name="showOfferType"
+        type="select"
+        defaultValue={store.showOfferType}
+        options={[
+          { value: '', label: '-- None --' },
+          { value: 'CODE', label: '💳 Code' },
+          { value: 'DEAL', label: '🔥 Deal' },
+          { value: 'DISCOUNT', label: '💰 Discount' },
+          { value: 'FREE_DELIVERY', label: '🚚 Free Delivery' },
+          { value: 'FREE_SHIPPING', label: '📦 Free Shipping' },
+          { value: 'CASHBACK', label: '💵 Cashback' },
+          { value: 'OFFER', label: '🎁 Special Offer' }
+        ]}
+        helpText="Badge type shown on store card. The offer text is set in Translations tab."
+      />
+      
+      {/* Preview */}
+      {store.showOfferType && (
+        <div style={{ 
+          marginTop: '1rem', 
+          padding: '1rem', 
+          background: '#f8fafc', 
+          borderRadius: '8px',
+          border: '1px solid #e2e8f0'
+        }}>
+          <p style={{ fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.5rem', color: '#64748b' }}>
+            Preview:
+          </p>
+          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+            <div 
+              style={{ 
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                padding: '0.5rem 1rem',
+                borderRadius: '20px',
+                color: '#ffffff',
+                fontSize: '0.875rem',
+                fontWeight: 600,
+                background: getOfferTypeGradient(store.showOfferType)
+              }}
+            >
+              <span className="material-symbols-sharp" style={{ fontSize: '1.125rem' }}>
+                {getOfferTypeIcon(store.showOfferType)}
+              </span>
+              <span>{store.showOfferType}</span>
+            </div>
           </div>
-        </form>
+        </div>
       )}
+    </FormSection>
+    
+    <div className={styles.formActions}>
+      <button type="submit" className={styles.btnPrimary} disabled={isPending}>Save Changes</button>
+    </div>
+  </form>
+)}
 
 
 {/* TRANSLATIONS */}
+
 {tab === 'translations' && (
   <form action={(formData) => startTransition(async () => {
     await updateStore(store.id, formData);
@@ -372,7 +361,16 @@ const handleApplyCountries = async () => {
         <FormField label="Slug" name="slug_en" defaultValue={enTranslation.slug} required />
         <FormField label="Description" name="description_en" type="textarea" defaultValue={enTranslation.description} />
         
-        {/* ADD THESE SEO FIELDS */}
+        {/* ✅ NEW: Show Offer in English */}
+        <FormField 
+          label="Show Offer Text (English)" 
+          name="showOffer_en" 
+          defaultValue={enTranslation.showOffer}
+          placeholder="Get 15% off all orders + free shipping"
+          helpText="Appears below the store logo on cards. Leave empty to auto-calculate from vouchers."
+        />
+        
+        {/* SEO Fields */}
         <FormField 
           label="SEO Title" 
           name="seoTitle_en" 
@@ -396,7 +394,17 @@ const handleApplyCountries = async () => {
         <FormField label="Slug" name="slug_ar" defaultValue={arTranslation.slug} required dir="rtl" />
         <FormField label="Description" name="description_ar" type="textarea" defaultValue={arTranslation.description} dir="rtl" />
         
-        {/* ADD THESE SEO FIELDS */}
+        {/* ✅ NEW: Show Offer in Arabic */}
+        <FormField 
+          label="Show Offer Text (Arabic)" 
+          name="showOffer_ar" 
+          defaultValue={arTranslation.showOffer}
+          dir="rtl"
+          placeholder="احصل على خصم 15% على جميع الطلبات + شحن مجاني"
+          helpText="يظهر أسفل شعار المتجر على البطاقات. اتركه فارغًا للحساب التلقائي من القسائم."
+        />
+        
+        {/* SEO Fields */}
         <FormField 
           label="SEO Title" 
           name="seoTitle_ar" 
@@ -422,6 +430,8 @@ const handleApplyCountries = async () => {
     </div>
   </form>
 )}
+
+      
       {/* COUNTRIES */}
       {tab === 'countries' && (
         <div className={styles.section}>
