@@ -245,10 +245,31 @@ export default function StoreEditPage({ params }) {
 
       {/* BASIC INFO */}
       {tab === 'basic' && (
-        <form action={(formData) => startTransition(async () => {
-          const result = await updateStore(store.id, formData);
-          if (result.success) router.refresh();
-        })} className={styles.form}>
+         <form action={(formData) => startTransition(async () => {
+    const result = await updateStore(store.id, formData);
+    if (result.success) {
+      // Update local state
+      const updatedStore = {
+        ...store,
+        logo: formData.get('logo') || store.logo,
+        bigLogo: formData.get('bigLogo') || store.bigLogo,
+        coverImage: formData.get('coverImage') || store.coverImage,
+        backgroundImage: formData.get('backgroundImage') || store.backgroundImage,
+        color: formData.get('color') || store.color,
+        websiteUrl: formData.get('websiteUrl') || store.websiteUrl,
+        affiliateNetwork: formData.get('affiliateNetwork') || store.affiliateNetwork,
+        trackingUrl: formData.get('trackingUrl') || store.trackingUrl,
+        isActive: formData.has('isActive') ? formData.get('isActive') === 'on' : store.isActive,
+        isFeatured: formData.has('isFeatured') ? formData.get('isFeatured') === 'on' : store.isFeatured,
+        showOfferType: formData.get('showOfferType') || store.showOfferType,
+      };
+      setStore(updatedStore);
+      router.refresh();
+      alert('Store updated successfully!');
+    } else {
+      alert('Failed to update store: ' + result.error);
+    }
+  })} className={styles.form}>
           <FormSection title="Store Visuals">
             <FormRow>
               <FormField label="Logo URL" name="logo" defaultValue={store.logo} />
@@ -346,10 +367,34 @@ export default function StoreEditPage({ params }) {
 
       {/* TRANSLATIONS */}
       {tab === 'translations' && (
-        <form action={(formData) => startTransition(async () => {
-          await updateStore(store.id, formData);
-          router.refresh();
-        })} className={styles.form}>
+          <form action={(formData) => startTransition(async () => {
+    const result = await updateStore(store.id, formData);
+    if (result.success) {
+      // Update local state for translations
+      const updatedTranslations = store.translations?.map(trans => {
+        const locale = trans.locale;
+        return {
+          ...trans,
+          name: formData.get(`name_${locale}`) || trans.name,
+          slug: formData.get(`slug_${locale}`) || trans.slug,
+          description: formData.get(`description_${locale}`) || trans.description,
+          seoTitle: formData.get(`seoTitle_${locale}`) || trans.seoTitle,
+          seoDescription: formData.get(`seoDescription_${locale}`) || trans.seoDescription,
+          showOffer: formData.get(`showOffer_${locale}`) || trans.showOffer,
+        };
+      }) || [];
+      
+      setStore(prev => ({
+        ...prev,
+        translations: updatedTranslations
+      }));
+      
+      router.refresh();
+      alert('Translations updated successfully!');
+    } else {
+      alert('Failed to update translations: ' + result.error);
+    }
+  })} className={styles.form}>
           <FormRow>
             <FormSection title="English (EN)">
               <FormField label="Name" name="name_en" defaultValue={enTranslation.name} required />
