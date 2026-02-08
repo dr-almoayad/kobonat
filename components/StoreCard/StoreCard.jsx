@@ -66,9 +66,9 @@ const StoreCard = ({ store }) => {
     }
     
     // Final fallback
-    return currentLanguage === 'ar' 
+    {/*return currentLanguage === 'ar' 
       ? 'عروض حصرية متاحة' 
-      : 'Exclusive deals available';
+      : 'Exclusive deals available';*/}
   };
   
   // Get offer type display
