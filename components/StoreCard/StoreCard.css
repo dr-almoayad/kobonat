@@ -116,18 +116,18 @@
   display: inline-flex;
   align-items: center;
   gap: 0.15rem;
-  padding: 0.25rem 0.5rem;
+  padding: 0.15rem 0.25rem;
    border: 0.1rem solid #470ae2;
-   border-radius: 0.2rem;
+   border-radius: 0.35rem;
   color: #470ae2;
    background: none !important;
-  font-size: 1rem;
+  font-size: 0.8rem;
   font-weight: 500;
   align-self: flex-start;
 }
 
 .badge-icon {
-  font-size: 1.3rem !important;
+  font-size: 1rem !important;
   line-height: 1 !important;
 }
 
