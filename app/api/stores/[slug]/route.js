@@ -188,6 +188,7 @@ export async function GET(req, { params }) {
       name: storeTranslation.name,
       slug: storeTranslation.slug,
       description: storeTranslation.description,
+      showOffer: storeTranslation.showOffer,
       countries: store.countries.map(sc => ({
         ...sc,
         country: {
@@ -213,6 +214,7 @@ export async function GET(req, { params }) {
       ...store,
       name: store.translations[0]?.name || '',
       slug: store.translations[0]?.slug || '',
+      showOffer: store.translations[0]?.showOffer || '',
       description: store.translations[0]?.description || null
     }));
 
