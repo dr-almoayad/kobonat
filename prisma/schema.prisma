@@ -130,7 +130,7 @@ model Store {
   coverImage        String?  // Hero banner for store page
   color             String?  // Brand color for UI theming
   
-  showOfferType     ShowOfferType @default(CODE) // ✅ Made non-nullable with default
+  showOfferType     ShowOfferType?
   
   // URLs
   websiteUrl        String
