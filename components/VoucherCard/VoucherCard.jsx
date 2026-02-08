@@ -1,4 +1,4 @@
-// components/VoucherCard/VoucherCard.jsx - REDESIGNED
+// components/VoucherCard/VoucherCard.jsx - WITH LAST UPDATED
 'use client';
 import React, { useState } from 'react';
 import Image from 'next/image';
@@ -45,11 +45,43 @@ const VoucherCard = ({ voucher, featured = false }) => {
     if (voucher.store?.translations?.[0]?.slug) return voucher.store.translations[0].slug;
     return 'store';
   };
+
+  // ✅ Format last updated time
+  const getLastUpdatedTime = () => {
+    if (!voucher.updatedAt) return null;
+    
+    const updated = new Date(voucher.updatedAt);
+    const now = new Date();
+    const diffHours = Math.floor((now - updated) / (1000 * 60 * 60));
+    
+    if (diffHours < 1) {
+      return currentLanguage === 'ar' ? 'محدث للتو' : 'Updated just now';
+    } else if (diffHours < 24) {
+      return currentLanguage === 'ar' 
+        ? `محدث قبل ${diffHours} ساعة`
+        : `Updated ${diffHours}h ago`;
+    } else {
+      const diffDays = Math.floor(diffHours / 24);
+      if (diffDays === 1) {
+        return currentLanguage === 'ar' ? 'محدث أمس' : 'Updated yesterday';
+      } else if (diffDays < 7) {
+        return currentLanguage === 'ar'
+          ? `محدث قبل ${diffDays} أيام`
+          : `Updated ${diffDays}d ago`;
+      } else {
+        const diffWeeks = Math.floor(diffDays / 7);
+        return currentLanguage === 'ar'
+          ? `محدث قبل ${diffWeeks} ${diffWeeks === 1 ? 'أسبوع' : 'أسابيع'}`
+          : `Updated ${diffWeeks}w ago`;
+      }
+    }
+  };
   
   const title = getVoucherTitle();
   const description = getVoucherDescription();
   const storeName = getStoreName();
   const storeSlug = getStoreSlug();
+  const lastUpdated = getLastUpdatedTime();
   
   // Date handling
   const isExpired = voucher.expiryDate && new Date(voucher.expiryDate) < new Date();
@@ -219,8 +251,19 @@ const VoucherCard = ({ voucher, featured = false }) => {
           
           <div className="voucher-title-section">
             <h3 className="voucher-title-new">{title}</h3>
-            <div className="times-used">
-              {timesUsed} {t('meta.timesUsed')}
+            <div className="voucher-meta-line">
+              <span className="times-used">
+                {timesUsed} {t('meta.timesUsed')}
+              </span>
+              {/* ✅ LAST UPDATED TAG */}
+              {lastUpdated && (
+                <>
+                  <span className="meta-divider">•</span>
+                  <span className="last-updated">
+                    {lastUpdated}
+                  </span>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -263,18 +306,6 @@ const VoucherCard = ({ voucher, featured = false }) => {
                 <span className="material-symbols-sharp">arrow_forward</span>
               </button>
             )}
-
-            {/*{description && (
-              <button 
-                className="details-link"
-                onClick={() => setShowDetails(!showDetails)}
-              >
-                {showDetails ? t('buttons.hideDetails') : t('buttons.seeDetails')}
-                <span className="material-symbols-sharp caret">
-                  {showDetails ? 'expand_less' : 'expand_more'}
-                </span>
-              </button>
-            )}*/}
           </div>
         </div>
 
