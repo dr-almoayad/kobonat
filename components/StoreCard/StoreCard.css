@@ -96,6 +96,14 @@
 }
 
 
+.offer-head {
+   display: flex;
+   flex-direction: row;
+   justify-content: flex-start;
+   align-items: center;
+   gap: 0.5rem;
+}
+
 .offer-store-name{
   display: inline-flex;
   align-items: center;
