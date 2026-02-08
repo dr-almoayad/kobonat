@@ -142,7 +142,7 @@ export default async function Home({ params }) {
       include: {
         translations: {
           where: { locale: language },
-          select: { name: true, slug: true }
+          select: { name: true, slug: true, showOffer: true }
         },
         _count: {
           select: { 
