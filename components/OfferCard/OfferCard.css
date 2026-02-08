@@ -303,17 +303,17 @@
     min-height: auto;
   }
   
-  .store-logo {
+  .offer-card .store-logo {
     max-width: 100px;
     max-height: 32px;
   }
   
-  .type-badge {
+  .offer-card .type-badge {
     font-size: 0.6875rem;
     padding: 0.3rem 0.625rem;
   }
   
-  .badge-icon {
+  .offer-card .badge-icon {
     font-size: 0.875rem;
   }
   
@@ -322,7 +322,7 @@
     -webkit-line-clamp: 2;
   }
   
-  .cta-button {
+  .offer-card .cta-button {
     padding: 0.625rem 1.125rem;
     font-size: 0.75rem;
   }
@@ -351,16 +351,16 @@
     gap: 0.875rem;
   }
   
-  .store-logo {
+  .offer-card .store-logo {
     max-width: 90px;
     max-height: 28px;
   }
   
-  .offer-title {
+  .offer-card .offer-title {
     font-size: 0.9375rem;
   }
   
-  .cta-button {
+  .offer-card .cta-button {
     padding: 0.5rem 1rem;
     font-size: 0.6875rem;
   }
