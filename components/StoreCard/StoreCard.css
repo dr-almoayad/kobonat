@@ -116,7 +116,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.15rem;
-  padding: 0.15rem 0.25rem;
+  padding: 0 0.25rem;
    border: 0.1rem solid #470ae2;
    border-radius: 0.35rem;
   color: #470ae2;
@@ -128,11 +128,11 @@
 
 .badge-icon {
   font-size: 1rem !important;
-  line-height: 1 !important;
+  line-height: 1.4 !important;
 }
 
 .badge-label {
-  line-height: 1;
+  line-height: 1.4;
   text-transform: capitalize;
   letter-spacing: 0.02em;
 }
@@ -144,7 +144,9 @@
 .main-offer {
   display: flex;
   flex-direction: row;
-   gap: 0.25rem;
+   justify-content: flex-start;
+   align-items: center;
+   gap: 0.5rem;
 }
 
 .offer-text {
