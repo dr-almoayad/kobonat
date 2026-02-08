@@ -42,10 +42,10 @@ const StoreCard = ({ store }) => {
       return store.translations[0].showOffer;
     }
     
-    // Fallback: Old format (for backwards compatibility during migration)
+    {/*// Fallback: Old format (for backwards compatibility during migration)
     if (store.showOffer) {
       return store.showOffer;
-    }
+    }*/}
     
     // Fallback: Calculate from vouchers
     if (store.vouchers && store.vouchers.length > 0) {
