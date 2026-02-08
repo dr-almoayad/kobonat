@@ -4,6 +4,7 @@ import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useLocale, useTranslations } from 'next-intl';
+import { useEffect } from 'react';
 import "./StoreCard.css";
 
 const StoreCard = ({ store }) => {
