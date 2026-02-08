@@ -96,7 +96,7 @@
 }
 
 
-.offer-store{
+.offer-store-name{
   display: inline-flex;
   align-items: center;
   gap: 0.15rem;
@@ -116,16 +116,18 @@
   display: inline-flex;
   align-items: center;
   gap: 0.15rem;
-  padding: 0;
+  padding: 0.25rem 0.5rem;
+   border: 0.1rem solid #470ae2;
+   border-radius: 0.2rem;
   color: #470ae2;
    background: none !important;
-  font-size: 0.9rem;
+  font-size: 1rem;
   font-weight: 500;
   align-self: flex-start;
 }
 
 .badge-icon {
-  font-size: 1.2rem !important;
+  font-size: 1.3rem !important;
   line-height: 1 !important;
 }
 
@@ -146,7 +148,7 @@
 
 .offer-text {
   font-size: 1.1rem;
-  font-weight: 600;
+  font-weight: 400;
   color: var(--offer-text-color);
   line-height: 1.4;
   margin: 0;
