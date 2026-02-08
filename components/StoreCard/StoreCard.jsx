@@ -182,7 +182,7 @@ const StoreCard = ({ store }) => {
       {/* Main Offer Text with Arrow */}
       <div className="main-offer">
         <p className="offer-text">
-          {showOffer}
+          {storeName}
           <span className="material-symbols-sharp offer-arrow">
             arrow_forward
           </span>
