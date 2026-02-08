@@ -1,4 +1,4 @@
-// app/sitemap.js - FIXED: Generate proper URLs to avoid redirects
+// app/sitemap.js - FIXED: Only generate valid URLs to prevent 404s
 import { prisma } from '@/lib/prisma';
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://cobonat.me';
@@ -15,7 +15,7 @@ const LOCALES = [
 export default async function sitemap() {
   const urls = [];
   
-  // ✅ 1. Homepage for each locale (NO TRAILING SLASH)
+  // ✅ 1. Homepage for each locale
   LOCALES.forEach(locale => {
     urls.push({
       url: `${BASE_URL}/${locale}`,
@@ -30,7 +30,7 @@ export default async function sitemap() {
     });
   });
   
-  // ✅ 2. All Stores page for each locale (NO TRAILING SLASH)
+  // ✅ 2. All Stores page for each locale
   LOCALES.forEach(locale => {
     urls.push({
       url: `${BASE_URL}/${locale}/stores`,
@@ -60,7 +60,7 @@ export default async function sitemap() {
     });
   });
   
-  // ✅ 4. Static pages for each locale
+  // ✅ 4. Static pages
   const staticPages = ['about', 'contact', 'privacy', 'terms', 'cookies', 'help'];
   staticPages.forEach(page => {
     LOCALES.forEach(locale => {
@@ -78,7 +78,7 @@ export default async function sitemap() {
     });
   });
   
-  // ✅ 5. Category pages for each locale
+  // ✅ 5. Category pages - Only for categories with active stores
   const categories = await prisma.category.findMany({
     include: {
       translations: true,
@@ -91,38 +91,40 @@ export default async function sitemap() {
   });
   
   for (const category of categories) {
-    // Skip categories with no active stores
     if (category.stores.length === 0) continue;
+    
+    // Build map of valid URLs for this category
+    const validUrls = new Map();
     
     for (const locale of LOCALES) {
       const [language] = locale.split('-');
       const translation = category.translations.find(t => t.locale === language);
       
       if (translation && translation.slug) {
-        // Get all alternate URLs for this category
-        const alternates = {};
-        for (const altLocale of LOCALES) {
-          const [altLang] = altLocale.split('-');
-          const altTranslation = category.translations.find(t => t.locale === altLang);
-          if (altTranslation && altTranslation.slug) {
-            alternates[altLocale] = `${BASE_URL}/${altLocale}/stores/${altTranslation.slug}`;
-          }
-        }
-        
-        urls.push({
-          url: `${BASE_URL}/${locale}/stores/${translation.slug}`,
-          lastModified: category.updatedAt || new Date(),
-          changeFrequency: 'daily',
-          priority: 0.8,
-          alternates: {
-            languages: alternates,
-          },
-        });
+        validUrls.set(locale, `${BASE_URL}/${locale}/stores/${translation.slug}`);
       }
+    }
+    
+    // Generate entries with proper alternates
+    for (const [locale, url] of validUrls.entries()) {
+      const alternates = {};
+      for (const [altLocale, altUrl] of validUrls.entries()) {
+        alternates[altLocale] = altUrl;
+      }
+      
+      urls.push({
+        url: url,
+        lastModified: category.updatedAt || new Date(),
+        changeFrequency: 'daily',
+        priority: 0.8,
+        alternates: {
+          languages: alternates,
+        },
+      });
     }
   }
   
-  // ✅ 6. Store pages for each locale
+  // ✅ 6. Store pages - CRITICAL FIX: Only valid store-country-locale combinations
   const stores = await prisma.store.findMany({
     where: { isActive: true },
     include: {
@@ -136,46 +138,50 @@ export default async function sitemap() {
   });
   
   for (const store of stores) {
-    // Get country codes for this store
+    // Get valid country codes for this store
     const countryCodes = store.countries.map(sc => sc.country.code);
+    
+    // Build map of ONLY valid locale-URL combinations
+    const validUrls = new Map();
     
     for (const locale of LOCALES) {
       const [language, region] = locale.split('-');
       
-      // Only include if store is available in this country
+      // ✅ CRITICAL: Skip if store not available in this country
       if (!countryCodes.includes(region)) continue;
       
       const translation = store.translations.find(t => t.locale === language);
       
-      if (translation && translation.slug) {
-        // Get all alternate URLs for this store
-        const alternates = {};
-        for (const altLocale of LOCALES) {
-          const [altLang, altRegion] = altLocale.split('-');
-          
-          // Only add alternate if store is available in that country
-          if (!countryCodes.includes(altRegion)) continue;
-          
-          const altTranslation = store.translations.find(t => t.locale === altLang);
-          if (altTranslation && altTranslation.slug) {
-            alternates[altLocale] = `${BASE_URL}/${altLocale}/stores/${altTranslation.slug}`;
-          }
-        }
-        
-        urls.push({
-          url: `${BASE_URL}/${locale}/stores/${translation.slug}`,
-          lastModified: store.updatedAt || new Date(),
-          changeFrequency: 'daily',
-          priority: 0.7,
-          alternates: {
-            languages: alternates,
-          },
-        });
+      // ✅ CRITICAL: Skip if no translation for this language
+      if (!translation || !translation.slug) continue;
+      
+      validUrls.set(locale, `${BASE_URL}/${locale}/stores/${translation.slug}`);
+    }
+    
+    // Skip store entirely if no valid URLs
+    if (validUrls.size === 0) continue;
+    
+    // Generate sitemap entry for each valid locale
+    for (const [locale, url] of validUrls.entries()) {
+      // Build alternates ONLY from other valid URLs
+      const alternates = {};
+      for (const [altLocale, altUrl] of validUrls.entries()) {
+        alternates[altLocale] = altUrl;
       }
+      
+      urls.push({
+        url: url,
+        lastModified: store.updatedAt || new Date(),
+        changeFrequency: 'daily',
+        priority: store.isFeatured ? 0.8 : 0.7,
+        alternates: {
+          languages: alternates,
+        },
+      });
     }
   }
   
-  console.log(`✅ Sitemap generated: ${urls.length} URLs`);
+  console.log(`✅ Sitemap generated: ${urls.length} URLs (404-safe)`);
   
   return urls;
 }
