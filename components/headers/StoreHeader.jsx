@@ -23,7 +23,7 @@ const StoreHeader = ({
   const dir = isArabic ? 'rtl' : 'ltr';
 
   const storeName = store?.name || 'Store';
-  const storeLogo = store?.logo;
+  const storeLogo = store?.bigLogo;
   const storeCover = store?.coverImage;
   const storeDescription = store?.description;
   const categories = store?.categories || [];
