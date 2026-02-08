@@ -218,7 +218,7 @@ useEffect(() => {
       {/* Main Offer Text with Arrow */}
       <div className="main-offer">
         <p className="offer-text">
-          {storeName}
+          {showOffer}
           <span className="material-symbols-sharp offer-arrow">
             arrow_forward
           </span>
