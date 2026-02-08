@@ -1,4 +1,4 @@
-// components/OtherPromosSection/OtherPromosSection.jsx - WITH SEO ANCHOR LINKS
+// components/OtherPromosSection/OtherPromosSection.jsx - WITH LAST UPDATED
 'use client';
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
@@ -9,6 +9,7 @@ const OtherPromosSection = ({ storeSlug, storeName }) => {
   const t = useTranslations('OtherPromos');
   const locale = useLocale();
   const [language, countryCode] = locale.split('-');
+  const isArabic = language === 'ar';
   
   const [promos, setPromos] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -35,19 +36,50 @@ const OtherPromosSection = ({ storeSlug, storeName }) => {
     fetchPromos();
   }, [storeSlug, language, countryCode]);
 
-  // ✅ Generate SEO-friendly anchor ID
+  // ✅ Format last updated time
+  const getLastUpdatedTime = (updatedAt) => {
+    if (!updatedAt) return null;
+    
+    const updated = new Date(updatedAt);
+    const now = new Date();
+    const diffHours = Math.floor((now - updated) / (1000 * 60 * 60));
+    
+    if (diffHours < 1) {
+      return isArabic ? 'محدث للتو' : 'Updated just now';
+    } else if (diffHours < 24) {
+      return isArabic 
+        ? `محدث قبل ${diffHours} ساعة`
+        : `Updated ${diffHours}h ago`;
+    } else {
+      const diffDays = Math.floor(diffHours / 24);
+      if (diffDays === 1) {
+        return isArabic ? 'محدث أمس' : 'Updated yesterday';
+      } else if (diffDays < 7) {
+        return isArabic
+          ? `محدث قبل ${diffDays} أيام`
+          : `Updated ${diffDays}d ago`;
+      } else {
+        const diffWeeks = Math.floor(diffDays / 7);
+        return isArabic
+          ? `محدث قبل ${diffWeeks} ${diffWeeks === 1 ? 'أسبوع' : 'أسابيع'}`
+          : `Updated ${diffWeeks}w ago`;
+      }
+    }
+  };
+
+  // Generate SEO-friendly anchor ID
   const generatePromoId = (promo) => {
     const title = promo.title
       .toLowerCase()
-      .replace(/[^\w\s-]/g, '') // Remove special characters
-      .replace(/\s+/g, '-')      // Replace spaces with hyphens
-      .replace(/-+/g, '-')       // Replace multiple hyphens with single
+      .replace(/[^\w\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
       .trim();
     
-    return `promo-${promo.id}-${title.substring(0, 50)}`; // Limit length
+    return `promo-${promo.id}-${title.substring(0, 50)}`;
   };
 
-  // ✅ Copy anchor link to clipboard
+  // Copy anchor link to clipboard
   const copyPromoLink = async (promoId) => {
     const url = `${window.location.origin}${window.location.pathname}#${promoId}`;
     
@@ -77,14 +109,14 @@ const OtherPromosSection = ({ storeSlug, storeName }) => {
 
   return (
     <section className="other-promos-section" id="other-offers">
-      {/* ✅ Section Header with Anchor */}
+      {/* Section Header */}
       <div className="section-header">
         <h2 className="section-title">
           <span className="material-symbols-sharp">local_activity</span>
           {t('title')}
         </h2>
         
-        {/* Optional: Quick Navigation */}
+        {/* Quick Navigation */}
         {promos.length > 3 && (
           <div className="promo-quick-nav">
             {promos.map((promo) => {
@@ -107,16 +139,17 @@ const OtherPromosSection = ({ storeSlug, storeName }) => {
       <div className="promos-grid">
         {promos.map((promo) => {
           const promoId = generatePromoId(promo);
+          const lastUpdated = getLastUpdatedTime(promo.updatedAt);
           
           return (
             <article 
               key={promo.id} 
-              id={promoId}  // ✅ Anchor ID
+              id={promoId}
               className={`promo-card ${promo.type.toLowerCase()}`}
               itemScope 
               itemType="https://schema.org/Offer"
             >
-              {/* ✅ Share Button */}
+              {/* Share Button */}
               <button
                 className="share-promo-btn"
                 onClick={() => copyPromoLink(promoId)}
@@ -147,6 +180,14 @@ const OtherPromosSection = ({ storeSlug, storeName }) => {
                 <h3 className="promo-title" itemProp="name">
                   {promo.title}
                 </h3>
+                
+                {/* ✅ LAST UPDATED TAG */}
+                {lastUpdated && (
+                  <div className="promo-last-updated">
+                    <span className="material-symbols-sharp">update</span>
+                    {lastUpdated}
+                  </div>
+                )}
                 
                 {promo.description && (
                   <p className="promo-description" itemProp="description">
