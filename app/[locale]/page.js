@@ -223,6 +223,7 @@ export default async function Home({ params }) {
       ...store,
       name: translation.name || store.slug || '', // Fallback safely if slug existed (it doesn't on root, but safe to access undefined)
       slug: translation.slug || '',
+      showOffer: translation.showOffer || '',
       translations: undefined
     };
   };
