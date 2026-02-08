@@ -232,21 +232,37 @@
     font-size: 1.125rem;
     padding: 1rem;
   }
+
+
+  .offer-type-badge {
+     padding: 0 0.2rem;
+     border-radius: 0.25rem;
+     font-size: 0.7rem;
+     align-self: flex-start;
+   }
+   
+   .badge-icon {
+     font-size: 0.9rem !important;
+     line-height: 1.2 !important;
+   }
+   
+   .badge-label {
+     line-height: 1.2;
+   }
+
   
   .offer-text {
-    font-size: 0.875rem;
-    gap: 0.175rem;
+    font-size: 0.8rem;
+    gap: 0.15rem;
   }
   
   .offer-arrow {
-    font-size: 0.85rem;
+    font-size: 0.75rem;
   }
 }
 
 /* Small Mobile: < 480px */
 @media (max-width: 479px) {
-
-  
   .card-container {
     aspect-ratio: 1.8 / 1;
     border-radius: 10px;
