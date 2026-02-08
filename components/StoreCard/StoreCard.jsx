@@ -206,21 +206,20 @@ useEffect(() => {
         {storeName}
       </p>
 
-      {/* Offer Type Badge */}
-      {store.showOfferType && (
-        <div 
-          className="offer-type-badge"
-          style={{ background: offerTypeDisplay.gradient }}
-        >
-          <span className="material-symbols-sharp badge-icon">
-            {offerTypeDisplay.icon}
-          </span>
-          <span className="badge-label">{offerTypeDisplay.label}</span>
-        </div>
-      )}
-
       {/* Main Offer Text with Arrow */}
       <div className="main-offer">
+        {/* Offer Type Badge */}
+        {store.showOfferType && (
+          <div 
+            className="offer-type-badge"
+            style={{ background: offerTypeDisplay.gradient }}
+          >
+            <span className="material-symbols-sharp badge-icon">
+              {offerTypeDisplay.icon}
+            </span>
+            <span className="badge-label">{offerTypeDisplay.label}</span>
+          </div>
+        )}
         <p className="offer-text">
           {showOffer}
           <span className="material-symbols-sharp offer-arrow">
