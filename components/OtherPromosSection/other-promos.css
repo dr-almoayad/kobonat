@@ -453,6 +453,34 @@ html {
   }
 }
 
+/* Add to existing other-promos.css */
+
+/* ✅ PROMO LAST UPDATED */
+.promo-last-updated {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.75rem;
+  color: var(--text-muted, #64748b);
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+.promo-last-updated .material-symbols-sharp {
+  font-size: 0.875rem;
+  color: var(--text-muted, #64748b);
+}
+
+@media (max-width: 480px) {
+  .promo-last-updated {
+    font-size: 0.6875rem;
+  }
+  
+  .promo-last-updated .material-symbols-sharp {
+    font-size: 0.8125rem;
+  }
+}
+
 /* Accessibility */
 @media (prefers-reduced-motion: reduce) {
   html {
