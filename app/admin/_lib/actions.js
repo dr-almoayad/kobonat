@@ -69,111 +69,81 @@ export async function createStore(formData) {
 }
 
 
-export async function updateStore(id, formData) {
+export async function updateStore(formData) {
   try {
-    // First, get the current store to preserve missing fields
-    const currentStore = await prisma.store.findUnique({
-      where: { id: parseInt(id) }
-    });
+    const storeId = parseInt(formData.get('id'));
+    if (!storeId) throw new Error("Store ID is required");
 
-    if (!currentStore) {
-      return { error: `Store with ID ${id} not found` };
-    }
+    // 1. Process the Enum value - convert to Uppercase or null
+    const rawShowOfferType = formData.get('showOfferType');
+    const showOfferType = (rawShowOfferType && rawShowOfferType !== "") 
+      ? rawShowOfferType.toUpperCase() 
+      : null;
 
-    // Build update data object with fallbacks to current values
-    const updateData = {
-      logo: formData.get('logo') || currentStore.logo,
-      bigLogo: formData.get('bigLogo') || currentStore.bigLogo,
-      coverImage: formData.get('coverImage') || currentStore.coverImage,
-      backgroundImage: formData.get('backgroundImage') || currentStore.backgroundImage,
-      color: formData.get('color') || currentStore.color,
-      websiteUrl: formData.get('websiteUrl') || currentStore.websiteUrl,
-      affiliateNetwork: formData.get('affiliateNetwork') || currentStore.affiliateNetwork,
-      trackingUrl: formData.get('trackingUrl') || currentStore.trackingUrl,
-      isActive: formData.has('isActive') ? formData.get('isActive') === 'on' : currentStore.isActive,
-      isFeatured: formData.has('isFeatured') ? formData.get('isFeatured') === 'on' : currentStore.isFeatured,
-      showOfferType: formData.get('showOfferType') || null,
+    const data = {
+      logo: formData.get('logo'),
+      bigLogo: formData.get('bigLogo'),
+      coverImage: formData.get('coverImage'),
+      backgroundImage: formData.get('backgroundImage'),
+      color: formData.get('color') || '#470ae2',
+      websiteUrl: formData.get('websiteUrl'),
+      affiliateNetwork: formData.get('affiliateNetwork'),
+      trackingUrl: formData.get('trackingUrl'),
+      isActive: formData.get('isActive') === 'on',
+      isFeatured: formData.get('isFeatured') === 'on',
+      showOfferType: showOfferType, // Using the processed enum
     };
 
-    // Validate required fields
-    if (!updateData.websiteUrl) {
-      return { error: 'Website URL is required' };
-    }
-
-    console.log('Updating store data:', updateData);
-
+    // Update main store data
     await prisma.store.update({
-      where: { id: parseInt(id) },
-      data: updateData
+      where: { id: storeId },
+      data
     });
 
-    // ✅ FIX: Update translations including showOffer
+    // 2. Update translations with fallback for required fields
     for (const locale of ['en', 'ar']) {
-      // Declare ALL variables at the top
       const name = formData.get(`name_${locale}`);
       const slug = formData.get(`slug_${locale}`);
-      const description = formData.get(`description_${locale}`);
-      const seoTitle = formData.get(`seoTitle_${locale}`);
-      const seoDescription = formData.get(`seoDescription_${locale}`);
-      const showOffer = formData.get(`showOffer_${locale}`);
-      
-      // ✅ FIXED: Check if ANY translation field is being submitted
-      const hasAnyField = formData.has(`name_${locale}`) || 
-                          formData.has(`slug_${locale}`) ||
-                          formData.has(`description_${locale}`) ||
-                          formData.has(`seoTitle_${locale}`) ||
-                          formData.has(`seoDescription_${locale}`) ||
-                          formData.has(`showOffer_${locale}`);
-      
-      console.log(`Locale: ${locale}, hasAnyField: ${hasAnyField}, showOffer: "${showOffer}"`);
-      
-      // Only update translation if any field is in the form submission
-      if (hasAnyField) {
-        await prisma.storeTranslation.upsert({
-          where: {
-            storeId_locale: {
-              storeId: parseInt(id),
-              locale
-            }
-          },
-          create: {
-            storeId: parseInt(id),
-            locale,
-            name: name || '',
-            slug: slug || '',
-            description: description || null,
-            seoTitle: seoTitle || null,
-            seoDescription: seoDescription || null,
-            showOffer: showOffer || null
-          },
-          update: {
-            ...(formData.has(`name_${locale}`) && { name: name || '' }),
-            ...(formData.has(`slug_${locale}`) && { slug: slug || '' }),
-            ...(formData.has(`description_${locale}`) && { description: description || null }),
-            ...(formData.has(`seoTitle_${locale}`) && { seoTitle: seoTitle || null }),
-            ...(formData.has(`seoDescription_${locale}`) && { seoDescription: seoDescription || null }),
-            ...(formData.has(`showOffer_${locale}`) && { showOffer: showOffer || null })
+
+      // Skip translation update if required fields are missing
+      if (!name || !slug) continue;
+
+      await prisma.storeTranslation.upsert({
+        where: {
+          storeId_locale: {
+            storeId,
+            locale
           }
-        });
-      }
+        },
+        create: {
+          storeId,
+          locale,
+          name: name,
+          slug: slug,
+          description: formData.get(`description_${locale}`),
+          seoTitle: formData.get(`seoTitle_${locale}`),
+          seoDescription: formData.get(`seoDescription_${locale}`),
+          showOffer: formData.get(`showOffer_${locale}`) || null
+        },
+        update: {
+          name: name,
+          slug: slug,
+          description: formData.get(`description_${locale}`),
+          seoTitle: formData.get(`seoTitle_${locale}`),
+          seoDescription: formData.get(`seoDescription_${locale}`),
+          showOffer: formData.get(`showOffer_${locale}`) || null
+        }
+      });
     }
 
-    revalidatePath(`/admin/stores/${id}`);
-    revalidatePath('/admin/stores');
+    revalidatePath(`/admin/stores/${storeId}`);
+    revalidatePath('/[locale]/stores', 'layout');
     return { success: true };
   } catch (error) {
-    console.error('Update store error:', error);
-    console.error('Full error details:', {
-      message: error.message,
-      code: error.code,
-      meta: error.meta
-    });
+    console.error('Store update error:', error);
     return { error: error.message };
   }
 }
-
-
-
 
 
 export async function deleteStore(id) {
