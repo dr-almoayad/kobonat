@@ -350,10 +350,25 @@ const handleApplyCountries = async () => {
 
 {/* TRANSLATIONS */}
 
+
 {tab === 'translations' && (
   <form action={(formData) => startTransition(async () => {
-    await updateStore(store.id, formData);
-    router.refresh();
+    console.log('📝 Submitting translations form...');
+    
+    // Log what's being sent
+    console.log('showOffer_en:', formData.get('showOffer_en'));
+    console.log('showOffer_ar:', formData.get('showOffer_ar'));
+    
+    const result = await updateStore(store.id, formData);
+    
+    if (result.success) {
+      console.log('✅ Update successful!');
+      alert('Translations updated successfully!');
+      router.refresh();
+    } else {
+      console.error('❌ Update failed:', result.error);
+      alert('Error: ' + (result.error || 'Failed to update translations'));
+    }
   })} className={styles.form}>
     <FormRow>
       <FormSection title="English (EN)">
@@ -361,7 +376,7 @@ const handleApplyCountries = async () => {
         <FormField label="Slug" name="slug_en" defaultValue={enTranslation.slug} required />
         <FormField label="Description" name="description_en" type="textarea" defaultValue={enTranslation.description} />
         
-        {/* ✅ NEW: Show Offer in English */}
+        {/* ✅ Show Offer in English */}
         <FormField 
           label="Show Offer Text (English)" 
           name="showOffer_en" 
@@ -394,7 +409,7 @@ const handleApplyCountries = async () => {
         <FormField label="Slug" name="slug_ar" defaultValue={arTranslation.slug} required dir="rtl" />
         <FormField label="Description" name="description_ar" type="textarea" defaultValue={arTranslation.description} dir="rtl" />
         
-        {/* ✅ NEW: Show Offer in Arabic */}
+        {/* ✅ Show Offer in Arabic */}
         <FormField 
           label="Show Offer Text (Arabic)" 
           name="showOffer_ar" 
@@ -426,7 +441,9 @@ const handleApplyCountries = async () => {
       </FormSection>
     </FormRow>
     <div className={styles.formActions}>
-      <button type="submit" className={styles.btnPrimary}>Update Translations</button>
+      <button type="submit" className={styles.btnPrimary} disabled={isPending}>
+        {isPending ? 'Updating...' : 'Update Translations'}
+      </button>
     </div>
   </form>
 )}
