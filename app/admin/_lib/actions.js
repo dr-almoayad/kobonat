@@ -109,6 +109,7 @@ export async function updateStore(id, formData) {
 
     // ✅ FIX: Update translations including showOffer
     for (const locale of ['en', 'ar']) {
+      // Declare ALL variables at the top
       const name = formData.get(`name_${locale}`);
       const slug = formData.get(`slug_${locale}`);
       const description = formData.get(`description_${locale}`);
@@ -117,7 +118,7 @@ export async function updateStore(id, formData) {
       const showOffer = formData.get(`showOffer_${locale}`);
       
       // Only update translation if at least name or slug is provided
-      if (name !== null || slug !== null) {
+      if (name || slug) {
         await prisma.storeTranslation.upsert({
           where: {
             storeId_locale: {
@@ -133,24 +134,15 @@ export async function updateStore(id, formData) {
             description: description || null,
             seoTitle: seoTitle || null,
             seoDescription: seoDescription || null,
-            showOffer: showOffer || null // ✅ Convert empty string to null
+            showOffer: showOffer || null
           },
           update: {
-            ...(name !== null && { name }),
-            ...(slug !== null && { slug }),
-            ...(formData.has(`description_${locale}`) && { 
-              description: description || null 
-            }),
-            ...(formData.has(`seoTitle_${locale}`) && { 
-              seoTitle: seoTitle || null 
-            }),
-            ...(formData.has(`seoDescription_${locale}`) && { 
-              seoDescription: seoDescription || null 
-            }),
-            // ✅ FIX: Always update showOffer when the field is present
-            ...(formData.has(`showOffer_${locale}`) && { 
-              showOffer: showOffer || null // Convert empty string to null
-            })
+            name: name || undefined,
+            slug: slug || undefined,
+            description: description || null,
+            seoTitle: seoTitle || null,
+            seoDescription: seoDescription || null,
+            showOffer: showOffer || null
           }
         });
       }
