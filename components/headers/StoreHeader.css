@@ -348,6 +348,34 @@
   }
 }
 
+/* Add to existing StoreHeader.css */
+
+/* ✅ LAST UPDATED TAG */
+.sh-last-updated {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  color: var(--sh-text-secondary);
+  font-weight: 500;
+  margin-top: 0.25rem;
+  margin-bottom: 0.35rem;
+}
+
+.sh-last-updated .material-symbols-sharp {
+  font-size: 0.875rem;
+  color: var(--sh-text-secondary);
+}
+
+@media (max-width: 767px) {
+  .sh-last-updated {
+    font-size: 0.6875rem;
+  }
+  
+  .sh-last-updated .material-symbols-sharp {
+    font-size: 0.8125rem;
+  }
+}
 
 /* ─── ACCESSIBILITY ─────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
