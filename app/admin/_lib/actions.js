@@ -92,9 +92,7 @@ export async function updateStore(id, formData) {
       trackingUrl: formData.get('trackingUrl') || currentStore.trackingUrl,
       isActive: formData.has('isActive') ? formData.get('isActive') === 'on' : currentStore.isActive,
       isFeatured: formData.has('isFeatured') ? formData.get('isFeatured') === 'on' : currentStore.isFeatured,
-      
-      // ✅ UPDATED: showOfferType now uses ENUM
-      showOfferType: formData.get('showOfferType') || null, // Can be null
+      showOfferType: formData.get('showOfferType') || null,
     };
 
     // Validate required fields
@@ -109,11 +107,14 @@ export async function updateStore(id, formData) {
       data: updateData
     });
 
-    // ✅ UPDATED: Update translations including showOffer
+    // ✅ FIX: Update translations including showOffer
     for (const locale of ['en', 'ar']) {
       const name = formData.get(`name_${locale}`);
       const slug = formData.get(`slug_${locale}`);
-      const showOffer = formData.get(`showOffer_${locale}`); // ✅ NEW
+      const description = formData.get(`description_${locale}`);
+      const seoTitle = formData.get(`seoTitle_${locale}`);
+      const seoDescription = formData.get(`seoDescription_${locale}`);
+      const showOffer = formData.get(`showOffer_${locale}`);
       
       // Only update translation if at least name or slug is provided
       if (name !== null || slug !== null) {
@@ -129,18 +130,27 @@ export async function updateStore(id, formData) {
             locale,
             name: name || '',
             slug: slug || '',
-            description: formData.get(`description_${locale}`) || null,
-            seoTitle: formData.get(`seoTitle_${locale}`) || null,
-            seoDescription: formData.get(`seoDescription_${locale}`) || null,
-            showOffer: showOffer || null // ✅ NEW
+            description: description || null,
+            seoTitle: seoTitle || null,
+            seoDescription: seoDescription || null,
+            showOffer: showOffer || null // ✅ Convert empty string to null
           },
           update: {
-            name: name !== null ? name : undefined,
-            slug: slug !== null ? slug : undefined,
-            description: formData.has(`description_${locale}`) ? formData.get(`description_${locale}`) : undefined,
-            seoTitle: formData.has(`seoTitle_${locale}`) ? formData.get(`seoTitle_${locale}`) : undefined,
-            seoDescription: formData.has(`seoDescription_${locale}`) ? formData.get(`seoDescription_${locale}`) : undefined,
-            showOffer: formData.has(`showOffer_${locale}`) ? formData.get(`showOffer_${locale}`) : undefined // ✅ NEW
+            ...(name !== null && { name }),
+            ...(slug !== null && { slug }),
+            ...(formData.has(`description_${locale}`) && { 
+              description: description || null 
+            }),
+            ...(formData.has(`seoTitle_${locale}`) && { 
+              seoTitle: seoTitle || null 
+            }),
+            ...(formData.has(`seoDescription_${locale}`) && { 
+              seoDescription: seoDescription || null 
+            }),
+            // ✅ FIX: Always update showOffer when the field is present
+            ...(formData.has(`showOffer_${locale}`) && { 
+              showOffer: showOffer || null // Convert empty string to null
+            })
           }
         });
       }
