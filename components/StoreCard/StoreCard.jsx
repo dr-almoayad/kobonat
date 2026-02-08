@@ -202,7 +202,7 @@ useEffect(() => {
         )}
       </div>
 
-      <div classname="offer-head">
+      <div className="offer-head">
         {/* Offer Type Badge */}
         {store.showOfferType && (
           <div 
