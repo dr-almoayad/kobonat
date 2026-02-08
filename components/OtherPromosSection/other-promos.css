@@ -1,9 +1,20 @@
-/* components/OtherPromosSection/other-promos.css */
+/* components/OtherPromosSection/other-promos.css - WITH ANCHOR LINK STYLES */
 
 .other-promos-section {
   max-width: 1280px;
   margin: 1rem auto;
   padding: 1rem 0;
+  scroll-margin-top: 80px; /* ✅ Offset for fixed header */
+}
+
+/* ✅ Section Header with Quick Nav */
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+  gap: 1rem;
+  flex-wrap: wrap;
 }
 
 .other-promos-section .section-title {
@@ -13,13 +24,49 @@
   font-size: 1.5rem;
   font-weight: 700;
   color: var(--text-main, #1e293b);
-  margin-bottom: 0.75rem;
+  margin: 0;
   font-family: 'Alexandria', 'Open Sans', sans-serif;
 }
 
 .other-promos-section .section-title .material-symbols-sharp {
   font-size: 1.75rem;
   color: var(--accent-color, #470ae2);
+}
+
+/* ✅ Quick Navigation Pills */
+.promo-quick-nav {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.quick-nav-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #f1f5f9;
+  color: #64748b;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  border: 2px solid transparent;
+}
+
+.quick-nav-link:hover {
+  background: var(--accent-color, #470ae2);
+  color: white;
+  transform: translateY(-2px);
+}
+
+.quick-nav-link:focus {
+  outline: 2px solid var(--accent-color, #470ae2);
+  outline-offset: 2px;
+}
+
+.quick-nav-link .material-symbols-sharp {
+  font-size: 1.25rem;
 }
 
 /* Grid Layout */
@@ -31,7 +78,7 @@
 
 /* Promo Card */
 .promo-card {
-    position: relative;
+  position: relative;
   background: white;
   border-radius: 16px;
   overflow: hidden;
@@ -39,12 +86,74 @@
   transition: all 0.3s ease;
   display: flex;
   flex-direction: column;
+  scroll-margin-top: 100px; /* ✅ Offset when jumping to anchor */
+}
+
+/* ✅ Highlight effect when jumping to anchor */
+.promo-card:target {
+  animation: highlight-pulse 2s ease-in-out;
+  border-color: var(--accent-color, #470ae2);
+  box-shadow: 0 0 0 4px rgba(71, 10, 226, 0.1);
+}
+
+@keyframes highlight-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 4px rgba(71, 10, 226, 0.1);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(71, 10, 226, 0.15);
+  }
 }
 
 .promo-card:hover {
   transform: translateY(-4px);
   box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
   border-color: var(--accent-color, #470ae2);
+}
+
+/* ✅ Share Button */
+.share-promo-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 10;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+[dir="rtl"] .share-promo-btn {
+  right: auto;
+  left: 12px;
+}
+
+.share-promo-btn:hover {
+  background: var(--accent-color, #470ae2);
+  border-color: var(--accent-color, #470ae2);
+  transform: scale(1.1);
+}
+
+.share-promo-btn:hover .material-symbols-sharp {
+  color: white;
+}
+
+.share-promo-btn:active {
+  transform: scale(0.95);
+}
+
+.share-promo-btn .material-symbols-sharp {
+  font-size: 1.25rem;
+  color: var(--accent-color, #470ae2);
+  transition: color 0.2s ease;
 }
 
 /* Promo Image */
@@ -71,7 +180,7 @@
 .promo-type {
   position: absolute;
   top: 12px;
-  right: 12px;
+  left: 12px;
   background: linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.9));
   backdrop-filter: blur(10px);
   padding: 0.5rem 1rem;
@@ -83,11 +192,12 @@
   font-weight: 600;
   color: var(--text-main, #1e293b);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  z-index: 5;
 }
 
 [dir="rtl"] .promo-type {
-  right: auto;
-  left: 12px;
+  left: auto;
+  right: 12px;
 }
 
 .promo-type .material-symbols-sharp {
@@ -264,6 +374,16 @@
     margin: 1rem auto;
   }
 
+  .section-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .promo-quick-nav {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
   .promos-grid {
     grid-template-columns: 1fr;
     gap: 1rem;
@@ -280,6 +400,15 @@
   .promo-title {
     font-size: 1rem;
   }
+
+  .share-promo-btn {
+    width: 36px;
+    height: 36px;
+  }
+
+  .share-promo-btn .material-symbols-sharp {
+    font-size: 1.125rem;
+  }
 }
 
 @media (max-width: 480px) {
@@ -295,5 +424,49 @@
   .promo-link {
     padding: 0.625rem 1.25rem;
     font-size: 0.875rem;
+  }
+
+  .quick-nav-link {
+    width: 32px;
+    height: 32px;
+  }
+
+  .quick-nav-link .material-symbols-sharp {
+    font-size: 1.125rem;
+  }
+}
+
+/* ✅ Smooth scroll behavior for anchor links */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Print Styles */
+@media print {
+  .share-promo-btn,
+  .promo-quick-nav {
+    display: none;
+  }
+
+  .promo-card {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .promo-card,
+  .share-promo-btn,
+  .quick-nav-link {
+    transition: none;
+  }
+
+  .promo-card:target {
+    animation: none;
   }
 }
