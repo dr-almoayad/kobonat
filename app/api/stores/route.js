@@ -127,6 +127,7 @@ export async function GET(req) {
         name: storeTranslation.name || '',
         slug: storeTranslation.slug || '',
         description: storeTranslation.description || null,
+        showOffer: storeTranslation.showOffer || null,
         logo: store.logo,
         color: store.color,
         websiteUrl: store.websiteUrl,
