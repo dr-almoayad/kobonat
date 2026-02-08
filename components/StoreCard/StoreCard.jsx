@@ -1,4 +1,4 @@
-// components/StoreCard/StoreCard.jsx - UPDATED for new schema
+// components/StoreCard/StoreCard.jsx - UPDATED for multilingual showOffer
 'use client';
 import React from 'react';
 import Image from 'next/image';
@@ -11,45 +11,18 @@ const StoreCard = ({ store }) => {
   const t = useTranslations('StoreCard');
   const currentLanguage = locale.split('-')[0];
   
-  // Helper to get translation for current locale
-  const getCurrentTranslation = () => {
-    if (!store.translations || !Array.isArray(store.translations)) {
-      return null;
-    }
-    
-    // Try to find exact locale match (e.g., 'en' or 'ar')
-    let translation = store.translations.find(t => t.locale === currentLanguage);
-    
-    // Fallback to any translation
-    if (!translation && store.translations.length > 0) {
-      translation = store.translations[0];
-    }
-    
-    return translation;
-  };
-  
-  // Extract store name from current translation
+  // Extract store name
   const getStoreName = () => {
-    const translation = getCurrentTranslation();
-    if (translation?.name) return translation.name;
-    
-    // Fallback to direct store name (if exists in old schema)
     if (store.name) return store.name;
-    
+    if (store.translations?.[0]?.name) return store.translations[0].name;
     return currentLanguage === 'ar' ? 'متجر' : 'Store';
   };
   
-  // Extract store slug from current translation
+  // Extract store slug
   const getStoreSlug = () => {
-    const translation = getCurrentTranslation();
-    if (translation?.slug) return translation.slug;
-    
-    // Fallback to direct store slug (if exists in old schema)
     if (store.slug) return store.slug;
-    
-    // Generate from name if available
-    const name = getStoreName();
-    return name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') || 'store';
+    if (store.translations?.[0]?.slug) return store.translations[0].slug;
+    return 'store';
   };
   
   // Get store bigLogo (primary) or fallback to regular logo
@@ -62,56 +35,37 @@ const StoreCard = ({ store }) => {
     return store.color || '#470ae2';
   };
   
-  // ✅ UPDATED: Get the show offer text from current translation
+  // ✅ UPDATED: Get the show offer text (now from translations)
   const getShowOffer = () => {
-    const translation = getCurrentTranslation();
-    
-    // 1. First priority: showOffer from current translation (new schema)
-    if (translation?.showOffer) {
-      return translation.showOffer;
+    // First, check if showOffer exists in current translation
+    if (store.translations?.[0]?.showOffer) {
+      return store.translations[0].showOffer;
     }
     
-    // 2. Second priority: Direct store.showOffer (old schema - backwards compatibility)
+    // Fallback: Old format (for backwards compatibility during migration)
     if (store.showOffer) {
       return store.showOffer;
     }
     
-    // 3. Fallback: Calculate from vouchers if available
+    // Fallback: Calculate from vouchers
     if (store.vouchers && store.vouchers.length > 0) {
-      const activeVouchers = store.vouchers.filter(v => {
-        // Check if voucher is still valid
-        if (v.expiryDate) {
-          return new Date(v.expiryDate) > new Date();
-        }
-        return true;
-      });
+      const discounts = store.vouchers
+        .map(v => {
+          if (!v.discount) return 0;
+          const match = String(v.discount).match(/(\d+)%?/);
+          return match ? parseInt(match[1]) : 0;
+        })
+        .filter(d => d > 0);
       
-      if (activeVouchers.length > 0) {
-        const discounts = activeVouchers
-          .map(v => {
-            if (!v.discount) return 0;
-            const match = String(v.discount).match(/(\d+)%?/);
-            return match ? parseInt(match[1]) : 0;
-          })
-          .filter(d => d > 0);
-        
-        if (discounts.length > 0) {
-          const maxDiscount = Math.max(...discounts);
-          return currentLanguage === 'ar' 
-            ? `خصم حتى ${maxDiscount}%`
-            : `Get ${maxDiscount}% off all orders`;
-        }
+      if (discounts.length > 0) {
+        const maxDiscount = Math.max(...discounts);
+        return currentLanguage === 'ar' 
+          ? `خصم حتى ${maxDiscount}%`
+          : `Get ${maxDiscount}% off all orders`;
       }
     }
     
-    // 4. Final fallback based on store type/status
-    if (store.isFeatured) {
-      return currentLanguage === 'ar' 
-        ? 'عروض مميزة' 
-        : 'Featured deals';
-    }
-    
-    // 5. Default fallback
+    // Final fallback
     return currentLanguage === 'ar' 
       ? 'عروض حصرية متاحة' 
       : 'Exclusive deals available';
@@ -140,12 +94,17 @@ const StoreCard = ({ store }) => {
         labelAr: 'خصم',
         gradient: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)'
       },
-      // ✅ REMOVED: FREE_DELIVERY (not in enum)
+      FREE_DELIVERY: {
+        icon: 'local_shipping',
+        labelEn: 'Free Delivery',
+        labelAr: 'توصيل مجاني',
+        gradient: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)'
+      },
       FREE_SHIPPING: {
-        icon: 'local_shipping', // or 'inventory_2' for shipping icon
+        icon: 'inventory_2',
         labelEn: 'Free Shipping',
         labelAr: 'شحن مجاني',
-        gradient: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)'
+        gradient: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)'
       },
       CASHBACK: {
         icon: 'attach_money',
@@ -176,16 +135,12 @@ const StoreCard = ({ store }) => {
   const brandColor = getBrandColor();
   const showOffer = getShowOffer();
   const offerTypeDisplay = getOfferTypeDisplay();
-  
-  // Handle RTL layout for Arabic
-  const isRTL = currentLanguage === 'ar';
 
   return (
     <Link 
       href={`/${locale}/stores/${storeSlug}`}
-      className={`store-card-modern ${store.isFeatured ? 'featured' : ''} ${isRTL ? 'rtl' : ''}`}
+      className={`store-card-modern ${store.isFeatured ? 'featured' : ''}`}
       aria-label={`${storeName} - ${showOffer}`}
-      style={{ direction: isRTL ? 'rtl' : 'ltr' }}
     >
       {/* Main Card Container - Full Bleed Logo */}
       <div 
@@ -197,21 +152,13 @@ const StoreCard = ({ store }) => {
         }}
       >
         {storeLogo ? (
-          <div className="logo-container">
-            <Image
-              src={storeLogo}
-              alt={storeName}
-              width={120}
-              height={120}
-              className="store-logo"
-              style={{ 
-                objectFit: 'contain',
-                width: '100%',
-                height: '100%'
-              }}
-              priority={false}
-            />
-          </div>
+          <Image
+            src={storeLogo}
+            alt={storeName}
+            fill
+            className="store-logo"
+            priority={false}
+          />
         ) : (
           <div className="store-name-fallback">
             {storeName}
@@ -223,10 +170,7 @@ const StoreCard = ({ store }) => {
       {store.showOfferType && (
         <div 
           className="offer-type-badge"
-          style={{ 
-            background: offerTypeDisplay.gradient,
-            direction: 'ltr' // Keep badge LTR even in RTL mode
-          }}
+          style={{ background: offerTypeDisplay.gradient }}
         >
           <span className="material-symbols-sharp badge-icon">
             {offerTypeDisplay.icon}
@@ -240,7 +184,7 @@ const StoreCard = ({ store }) => {
         <p className="offer-text">
           {showOffer}
           <span className="material-symbols-sharp offer-arrow">
-            {isRTL ? 'arrow_back' : 'arrow_forward'}
+            arrow_forward
           </span>
         </p>
       </div>
