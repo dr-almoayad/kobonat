@@ -5,14 +5,15 @@ import { getTranslations } from 'next-intl/server';
 import StoresGrid from "@/components/StoresGrid/StoresGrid";
 import StoreHeader from "@/components/headers/StoreHeader";
 import StickyStoreHeader from "@/components/headers/StickyStoreHeader";
-import StorePageShell from "@/components/headers/StorePageShell";  // thin 'use client' wrapper that owns the ref
+import StorePageShell from "@/components/headers/StorePageShell";
 import VouchersGrid from "@/components/VouchersGrid/VouchersGrid";
 import StoreFAQ from "@/components/StoreFAQ/StoreFAQ";
 import StoreCard from "@/components/StoreCard/StoreCard";
 import HeroCarousel from "@/components/HeroCarousel/HeroCarousel";
 import FeaturedProductsCarousel from "@/components/FeaturedProductsCarousel/FeaturedProductsCarousel";
 import OtherPromosSection from "@/components/OtherPromosSection/OtherPromosSection";
-import { FAQSchema } from "@/lib/seo/faqSchema";
+// ✅ CHANGED: Import the new Structured Data component
+import FAQStructuredData from "@/components/StructuredData/FAQStructuredData"; 
 import { getCategoryData, getCountryCategories } from "@/lib/storeCategories";
 import { getStoresData, getStoreData } from "@/lib/stores";
 import HelpBox from "@/components/help/HelpBox";
@@ -23,7 +24,6 @@ export const revalidate = 300;
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://coubonat.vercel.app';
 
-// ✅ FIXED: Generate proper metadata with canonical URLs
 export async function generateMetadata({ params }) {
   try {
     const { slug, locale } = await params;
@@ -366,12 +366,12 @@ export default async function UnifiedStorePage({ params }) {
           storeId: store.id,
           isFeatured: true
         },
-        select: {  // Use select instead of include for better control
+        select: {
           id: true,
           image: true,
           productUrl: true,
-          discountValue: true,  // ADD THIS
-          discountType: true,   // ADD THIS
+          discountValue: true,
+          discountType: true,
           translations: {
             where: { locale: language },
             select: {
@@ -383,8 +383,6 @@ export default async function UnifiedStorePage({ params }) {
         take: 12
       });
 
-      
-      // Update the transformedProducts mapping to include discount data
       const transformedProducts = storeProducts.map(p => ({
         id: p.id,
         image: p.image,
@@ -392,8 +390,8 @@ export default async function UnifiedStorePage({ params }) {
         price: p.price,
         originalPrice: p.originalPrice,
         productUrl: p.productUrl,
-        discountValue: p.discountValue,  // ADD THIS
-        discountType: p.discountType     // ADD THIS
+        discountValue: p.discountValue,
+        discountType: p.discountType
       }));
 
       const codeVouchers = transformedVouchers.filter(v => v.type === 'CODE');
@@ -401,7 +399,6 @@ export default async function UnifiedStorePage({ params }) {
       const shippingVouchers = transformedVouchers.filter(v => v.type === 'FREE_SHIPPING');
       const countryName = country.translations[0]?.name || country.code;
 
-      // ── Props bundle passed down to the client shell ──
       const headerProps = {
         store: transformedStore,
         mostTrackedVoucher,
@@ -413,85 +410,77 @@ export default async function UnifiedStorePage({ params }) {
 
       return (
         <>
-          <FAQSchema faqs={faqs} locale={locale} />
+          {/* ✅ CHANGED: Use the new component */}
+          <FAQStructuredData faqs={faqs} locale={locale} />
           <div className="store-page-layout">
-
-            {/*
-              StorePageShell is a thin 'use client' wrapper.
-              It creates the shared ref, renders StoreHeader (with the ref
-              as sentinelRef) and StickyStoreHeader (which observes that ref).
-              Everything else on this page stays a Server Component.
-            */}
             <StorePageShell {...headerProps} />
 
             <main className="store-main-content">
               {transformedProducts.length > 0 && (
-                    <FeaturedProductsCarousel
-                      storeSlug={transformedStore.slug}
-                      storeName={transformedStore.name}
-                      storeLogo={transformedStore.logo}
-                      products={transformedProducts}
-                    />
-                  )}
-                  {codeVouchers.length > 0 && (
-                    <section className="vouchers-section">
-                      <h2 className="section-title">
-                        <span className="material-symbols-sharp">local_offer</span>
-                        {tStore('couponCodes')}
-                      </h2>
-                      <VouchersGrid vouchers={codeVouchers} hideStoreBranding={true} />
-                    </section>
-                  )}
+                <FeaturedProductsCarousel
+                  storeSlug={transformedStore.slug}
+                  storeName={transformedStore.name}
+                  storeLogo={transformedStore.logo}
+                  products={transformedProducts}
+                />
+              )}
+              {codeVouchers.length > 0 && (
+                <section className="vouchers-section">
+                  <h2 className="section-title">
+                    <span className="material-symbols-sharp">local_offer</span>
+                    {tStore('couponCodes')}
+                  </h2>
+                  <VouchersGrid vouchers={codeVouchers} hideStoreBranding={true} />
+                </section>
+              )}
 
-                  {dealVouchers.length > 0 && (
-                    <section className="vouchers-section">
-                      <h2 className="section-title">
-                        <span className="material-symbols-sharp">shopping_bag</span>
-                        {tStore('deals')}
-                      </h2>
-                      <VouchersGrid vouchers={dealVouchers} hideStoreBranding={true} />
-                    </section>
-                  )}
+              {dealVouchers.length > 0 && (
+                <section className="vouchers-section">
+                  <h2 className="section-title">
+                    <span className="material-symbols-sharp">shopping_bag</span>
+                    {tStore('deals')}
+                  </h2>
+                  <VouchersGrid vouchers={dealVouchers} hideStoreBranding={true} />
+                </section>
+              )}
 
-                  {shippingVouchers.length > 0 && (
-                    <section className="vouchers-section">
-                      <h2 className="section-title">
-                        <span className="material-symbols-sharp">local_shipping</span>
-                        {tStore('freeShipping')}
-                      </h2>
-                      <VouchersGrid vouchers={shippingVouchers} hideStoreBranding={true} />
-                    </section>
-                  )}
+              {shippingVouchers.length > 0 && (
+                <section className="vouchers-section">
+                  <h2 className="section-title">
+                    <span className="material-symbols-sharp">local_shipping</span>
+                    {tStore('freeShipping')}
+                  </h2>
+                  <VouchersGrid vouchers={shippingVouchers} hideStoreBranding={true} />
+                </section>
+              )}
 
-                  
+              <OtherPromosSection storeSlug={transformedStore.slug} />
 
-                  <OtherPromosSection storeSlug={transformedStore.slug} />
+              {faqs.length > 0 && (
+                <StoreFAQ 
+                  faqs={faqs} 
+                  locale={locale} 
+                  storeName={transformedStore.name}
+                  countryName={countryName}
+                />
+              )}
 
-                  {faqs.length > 0 && (
-                    <StoreFAQ 
-                      faqs={faqs} 
-                      locale={locale} 
-                      storeName={transformedStore.name}
-                      countryName={countryName}
-                    />
-                  )}
-
-                  {transformedRelatedStores.length > 0 && (
-                    <section className="related-stores-section">
-                      <h2 className="section-title">
-                        <span className="material-symbols-sharp">storefront</span>
-                        {tStore('similarStores')}
-                      </h2>
-                      <div className="related-stores-grid">
-                        {transformedRelatedStores.map((relatedStore) => (
-                          <StoreCard
-                            key={relatedStore.id} 
-                            store={relatedStore} 
-                          />
-                        ))}
-                      </div>
-                    </section>
-                  )}
+              {transformedRelatedStores.length > 0 && (
+                <section className="related-stores-section">
+                  <h2 className="section-title">
+                    <span className="material-symbols-sharp">storefront</span>
+                    {tStore('similarStores')}
+                  </h2>
+                  <div className="related-stores-grid">
+                    {transformedRelatedStores.map((relatedStore) => (
+                      <StoreCard
+                        key={relatedStore.id} 
+                        store={relatedStore} 
+                      />
+                    ))}
+                  </div>
+                </section>
+              )}
             </main>
           </div>
           <HelpBox locale={locale}/>
