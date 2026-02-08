@@ -455,8 +455,8 @@ export default async function UnifiedStorePage({ params }) {
               )}
 
               <OtherPromosSection 
-                storeSlug={store.slug}
-                storeName={store.name}
+                storeSlug={transformedStore.slug}
+                storeName={transformedStore.name}
               />
 
               {faqs.length > 0 && (
