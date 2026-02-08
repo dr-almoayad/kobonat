@@ -285,22 +285,22 @@ const handleApplyCountries = async () => {
       </FormRow>
     </FormSection>
 
-    <FormField label="Show Offer Type (Badge Style)">
-      <select 
-        name="showOfferType" 
-        defaultValue={store?.showOfferType || ""}
-        className={styles.input}
-      >
-        <option value="">None / Hidden</option>
-        <option value="CODE">CODE</option>
-        <option value="DEAL">DEAL</option>
-        <option value="DISCOUNT">DISCOUNT</option>
-        <option value="FREE_SHIPPING">FREE SHIPPING</option>
-        <option value="CASHBACK">CASHBACK</option>
-        <option value="OFFER">OFFER</option>
-      </select>
-    </FormField>
-      
+    <FormSection title="Show Offer Type">
+      <FormField label="Show Offer Type (Badge Style)">
+        <select 
+          name="showOfferType" 
+          defaultValue={store?.showOfferType || ""}
+          className={styles.input}
+        >
+          <option value="">None / Hidden</option>
+          <option value="CODE">CODE</option>
+          <option value="DEAL">DEAL</option>
+          <option value="DISCOUNT">DISCOUNT</option>
+          <option value="FREE_SHIPPING">FREE SHIPPING</option>
+          <option value="CASHBACK">CASHBACK</option>
+          <option value="OFFER">OFFER</option>
+        </select>
+      </FormField>
       {/* Preview */}
       {store.showOfferType && (
         <div style={{ 
