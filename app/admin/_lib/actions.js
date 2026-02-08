@@ -74,9 +74,9 @@ export async function updateStore(formData) {
     const storeId = parseInt(formData.get('id'));
     if (!storeId) throw new Error("Store ID is required");
 
-    // 1. Process the Enum value - convert to Uppercase or null
+    // Process Enum: Convert "" to null, otherwise Uppercase it
     const rawShowOfferType = formData.get('showOfferType');
-    const showOfferType = (rawShowOfferType && rawShowOfferType !== "") 
+    const showOfferType = (rawShowOfferType && rawShowOfferType.trim() !== "") 
       ? rawShowOfferType.toUpperCase() 
       : null;
 
@@ -91,7 +91,7 @@ export async function updateStore(formData) {
       trackingUrl: formData.get('trackingUrl'),
       isActive: formData.get('isActive') === 'on',
       isFeatured: formData.get('isFeatured') === 'on',
-      showOfferType: showOfferType, // Using the processed enum
+      showOfferType: showOfferType, // Now sends null or a valid ENUM
     };
 
     // Update main store data
@@ -100,34 +100,30 @@ export async function updateStore(formData) {
       data
     });
 
-    // 2. Update translations with fallback for required fields
+    // Update translations
     for (const locale of ['en', 'ar']) {
       const name = formData.get(`name_${locale}`);
       const slug = formData.get(`slug_${locale}`);
 
-      // Skip translation update if required fields are missing
       if (!name || !slug) continue;
 
       await prisma.storeTranslation.upsert({
         where: {
-          storeId_locale: {
-            storeId,
-            locale
-          }
+          storeId_locale: { storeId, locale }
         },
         create: {
           storeId,
           locale,
-          name: name,
-          slug: slug,
+          name,
+          slug,
           description: formData.get(`description_${locale}`),
           seoTitle: formData.get(`seoTitle_${locale}`),
           seoDescription: formData.get(`seoDescription_${locale}`),
           showOffer: formData.get(`showOffer_${locale}`) || null
         },
         update: {
-          name: name,
-          slug: slug,
+          name,
+          slug,
           description: formData.get(`description_${locale}`),
           seoTitle: formData.get(`seoTitle_${locale}`),
           seoDescription: formData.get(`seoDescription_${locale}`),
