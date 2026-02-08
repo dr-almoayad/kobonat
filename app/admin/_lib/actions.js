@@ -117,8 +117,18 @@ export async function updateStore(id, formData) {
       const seoDescription = formData.get(`seoDescription_${locale}`);
       const showOffer = formData.get(`showOffer_${locale}`);
       
-      // Only update translation if at least name or slug is provided
-      if (name || slug) {
+      // ✅ FIXED: Check if ANY translation field is being submitted
+      const hasAnyField = formData.has(`name_${locale}`) || 
+                          formData.has(`slug_${locale}`) ||
+                          formData.has(`description_${locale}`) ||
+                          formData.has(`seoTitle_${locale}`) ||
+                          formData.has(`seoDescription_${locale}`) ||
+                          formData.has(`showOffer_${locale}`);
+      
+      console.log(`Locale: ${locale}, hasAnyField: ${hasAnyField}, showOffer: "${showOffer}"`);
+      
+      // Only update translation if any field is in the form submission
+      if (hasAnyField) {
         await prisma.storeTranslation.upsert({
           where: {
             storeId_locale: {
@@ -137,12 +147,12 @@ export async function updateStore(id, formData) {
             showOffer: showOffer || null
           },
           update: {
-            name: name || undefined,
-            slug: slug || undefined,
-            description: description || null,
-            seoTitle: seoTitle || null,
-            seoDescription: seoDescription || null,
-            showOffer: showOffer || null
+            ...(formData.has(`name_${locale}`) && { name: name || '' }),
+            ...(formData.has(`slug_${locale}`) && { slug: slug || '' }),
+            ...(formData.has(`description_${locale}`) && { description: description || null }),
+            ...(formData.has(`seoTitle_${locale}`) && { seoTitle: seoTitle || null }),
+            ...(formData.has(`seoDescription_${locale}`) && { seoDescription: seoDescription || null }),
+            ...(formData.has(`showOffer_${locale}`) && { showOffer: showOffer || null })
           }
         });
       }
@@ -161,6 +171,9 @@ export async function updateStore(id, formData) {
     return { error: error.message };
   }
 }
+
+
+
 
 
 export async function deleteStore(id) {
