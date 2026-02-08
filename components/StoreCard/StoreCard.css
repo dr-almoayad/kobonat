@@ -95,6 +95,19 @@
   padding: 1.5rem;
 }
 
+
+.offer-store{
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+  padding: 0;
+  color: #0f172a;
+  background: none !important;
+  font-size: 0.9rem;
+  font-weight: 600;
+  align-self: flex-start;
+}
+
 /* ============================================
    OFFER TYPE BADGE
    ============================================ */
