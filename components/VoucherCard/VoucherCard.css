@@ -44,7 +44,6 @@
 
 .voucher-card-new:hover {
   box-shadow: var(--voucher-shadow-hover);
-  transform: translateY(-2px);
 }
 
 .voucher-card-new.expired {
