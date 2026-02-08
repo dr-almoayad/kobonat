@@ -10,6 +10,19 @@ const StoreCard = ({ store }) => {
   const locale = useLocale();
   const t = useTranslations('StoreCard');
   const currentLanguage = locale.split('-')[0];
+
+useEffect(() => {
+  console.log('FULL STORE DATA FOR DEBUG:', {
+    id: store.id,
+    translations: store.translations,
+    translationsCount: store.translations?.length,
+    firstTranslation: store.translations?.[0],
+    showOfferField: store.translations?.[0]?.showOffer,
+    showOfferType: store.showOfferType,
+    name: store.name,
+    vouchersCount: store.vouchers?.length
+  });
+}, [store]);
   
   // Extract store name
   const getStoreName = () => {
@@ -35,41 +48,63 @@ const StoreCard = ({ store }) => {
     return store.color || '#470ae2';
   };
   
-  // ✅ UPDATED: Get the show offer text (now from translations)
-  const getShowOffer = () => {
-    // First, check if showOffer exists in current translation
-    if (store.translations?.[0]?.showOffer) {
-      return store.translations[0].showOffer;
+ const getShowOffer = () => {
+  console.log('Debug getShowOffer:', {
+    storeId: store.id,
+    translations: store.translations,
+    hasTranslations: store.translations?.length > 0,
+    firstTranslation: store.translations?.[0],
+    showOfferInFirst: store.translations?.[0]?.showOffer
+  });
+
+  // First, check if showOffer exists in current translation
+  if (store.translations?.[0]?.showOffer) {
+    console.log('Found in translation[0]:', store.translations[0].showOffer);
+    return store.translations[0].showOffer;
+  }
+  
+  // Check ALL translations, not just first one
+  if (store.translations?.length > 0) {
+    // Try to find any translation with showOffer
+    const translationWithOffer = store.translations.find(t => t.showOffer && t.showOffer.trim() !== '');
+    if (translationWithOffer?.showOffer) {
+      console.log('Found in other translation:', translationWithOffer.showOffer);
+      return translationWithOffer.showOffer;
     }
+  }
+  
+  // Fallback: Old format (for backwards compatibility during migration)
+  if (store.showOffer) {
+    console.log('Found in legacy store.showOffer:', store.showOffer);
+    return store.showOffer;
+  }
+  
+  // Fallback: Calculate from vouchers
+  if (store.vouchers && store.vouchers.length > 0) {
+    const discounts = store.vouchers
+      .map(v => {
+        if (!v.discount) return 0;
+        const match = String(v.discount).match(/(\d+)%?/);
+        return match ? parseInt(match[1]) : 0;
+      })
+      .filter(d => d > 0);
     
-    {/*// Fallback: Old format (for backwards compatibility during migration)
-    if (store.showOffer) {
-      return store.showOffer;
-    }*/}
-    
-    // Fallback: Calculate from vouchers
-    if (store.vouchers && store.vouchers.length > 0) {
-      const discounts = store.vouchers
-        .map(v => {
-          if (!v.discount) return 0;
-          const match = String(v.discount).match(/(\d+)%?/);
-          return match ? parseInt(match[1]) : 0;
-        })
-        .filter(d => d > 0);
-      
-      if (discounts.length > 0) {
-        const maxDiscount = Math.max(...discounts);
-        return currentLanguage === 'ar' 
-          ? `خصم حتى ${maxDiscount}%`
-          : `Get ${maxDiscount}% off all orders`;
-      }
+    if (discounts.length > 0) {
+      const maxDiscount = Math.max(...discounts);
+      const fallback = currentLanguage === 'ar' 
+        ? `خصم حتى ${maxDiscount}%`
+        : `Get ${maxDiscount}% off all orders`;
+      console.log('Using voucher fallback:', fallback);
+      return fallback;
     }
-    
-    // Final fallback
-    {/*return currentLanguage === 'ar' 
-      ? 'عروض حصرية متاحة' 
-      : 'Exclusive deals available';*/}
-  };
+  }
+  
+  // Final fallback - UNCOMMENT THIS
+  console.log('Using final fallback');
+  return currentLanguage === 'ar' 
+    ? 'عروض حصرية متاحة' 
+    : 'Exclusive deals available';
+};
   
   // Get offer type display
   const getOfferTypeDisplay = () => {
