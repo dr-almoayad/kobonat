@@ -1,3 +1,4 @@
+// components/headers/StoreHeader.jsx - WITH LAST UPDATED
 'use client';
 
 import { useState, useRef, useLayoutEffect } from 'react';
@@ -12,7 +13,7 @@ const StoreHeader = ({
   bnplMethods = [],
   locale,
   country,
-  sentinelRef  // forwarded ref so parent can observe when this header leaves the viewport
+  sentinelRef
 }) => {
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
   const [isDescriptionOverflowing, setIsDescriptionOverflowing] = useState(false);
@@ -28,6 +29,39 @@ const StoreHeader = ({
   const storeDescription = store?.description;
   const categories = store?.categories || [];
   const websiteUrl = store?.websiteUrl;
+
+  // ✅ Format last updated time
+  const getLastUpdatedTime = () => {
+    if (!store?.updatedAt) return null;
+    
+    const updated = new Date(store.updatedAt);
+    const now = new Date();
+    const diffHours = Math.floor((now - updated) / (1000 * 60 * 60));
+    
+    if (diffHours < 1) {
+      return isArabic ? 'محدث للتو' : 'Updated just now';
+    } else if (diffHours < 24) {
+      return isArabic 
+        ? `محدث قبل ${diffHours} ساعة`
+        : `Updated ${diffHours}h ago`;
+    } else {
+      const diffDays = Math.floor(diffHours / 24);
+      if (diffDays === 1) {
+        return isArabic ? 'محدث أمس' : 'Updated yesterday';
+      } else if (diffDays < 7) {
+        return isArabic
+          ? `محدث قبل ${diffDays} أيام`
+          : `Updated ${diffDays}d ago`;
+      } else {
+        const diffWeeks = Math.floor(diffDays / 7);
+        return isArabic
+          ? `محدث قبل ${diffWeeks} ${diffWeeks === 1 ? 'أسبوع' : 'أسابيع'}`
+          : `Updated ${diffWeeks}w ago`;
+      }
+    }
+  };
+
+  const lastUpdated = getLastUpdatedTime();
 
   // Overflow detection for "Read more"
   useLayoutEffect(() => {
@@ -91,6 +125,14 @@ const StoreHeader = ({
             
             <div className="sh-identity-text">
               <h1 className="sh-store-name">{storeName}</h1>
+              
+              {/* ✅ LAST UPDATED TAG */}
+              {lastUpdated && (
+                <div className="sh-last-updated">
+                  <span className="material-symbols-sharp">update</span>
+                  {lastUpdated}
+                </div>
+              )}
               
               <div className="sh-meta-row">
                 {country?.name && (
