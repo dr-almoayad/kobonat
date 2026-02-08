@@ -202,12 +202,7 @@ useEffect(() => {
         )}
       </div>
 
-      <p className="offer-store-name">
-        {storeName}
-      </p>
-
-      {/* Main Offer Text with Arrow */}
-      <div className="main-offer">
+      <div classname="offer-head">
         {/* Offer Type Badge */}
         {store.showOfferType && (
           <div 
@@ -220,6 +215,13 @@ useEffect(() => {
             <span className="badge-label">{offerTypeDisplay.label}</span>
           </div>
         )}
+        <p className="offer-store-name">
+          {storeName}
+        </p>
+      </div>
+
+      {/* Main Offer Text with Arrow */}
+      <div className="main-offer">
         <p className="offer-text">
           {showOffer}
           <span className="material-symbols-sharp offer-arrow">
