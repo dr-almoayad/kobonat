@@ -202,7 +202,7 @@ useEffect(() => {
         )}
       </div>
 
-      <p className="offer-store">
+      <p className="offer-store-name">
         {storeName}
       </p>
 
