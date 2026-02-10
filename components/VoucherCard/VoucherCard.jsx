@@ -221,7 +221,6 @@ const VoucherCard = ({ voucher, featured = false }) => {
       <div className="voucher-left-new">
         <div className="discount-badge-new">
           <div className="discount-value-new">{getDiscountText()}</div>
-          <div className="discount-label-new">{t('labels.off')}</div>
         </div>
         
         {voucher.type === 'CODE' && (
