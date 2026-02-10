@@ -820,8 +820,8 @@
     "buttons": {
       "copy": "نسخ",
       "copied": "تم النسخ",
-      "getDeal": "تفعيل العرض",
-      "copyShort": "نسخ",
+      "getDeal": "احصل على العرض",
+      "copyShort": "نسخ الكود",
       "seeDetails": "عرض التفاصيل"
     },
     "badges": {
