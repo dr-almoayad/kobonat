@@ -98,7 +98,7 @@ export default async function LocaleLayout({ children, params }) {
         <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
         <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#470ae2" />
         <meta name="msapplication-TileColor" content="#470ae2" />
-        <meta name="Takeads-verification" content="ac9f8039-eeff-43ac-8757-df8d658ef91b">
+        <meta name="Takeads-verification" content="ac9f8039-eeff-43ac-8757-df8d658ef91b"/>
         {/* Preconnects for speed */}
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <meta name="verify-admitad" content="95d170f413" />
