@@ -74,12 +74,12 @@ export async function generateMetadata({ params }) {
       
       return {
         title: isArabic 
-          ? `وفر اكثر في ${storeName} - عروض واكواد خصم ${storeName} محدثة يوميا | كوبونات - وفر في كل مكان `,
+          ? `وفر اكثر في ${storeName} - عروض واكواد خصم ${storeName} محدثة يوميا | كوبونات - وفر في كل مكان `
           : `Save More at ${storeName} - Latest ${storeName} Deals & Promo Codes | Cobonat - Save More Everywhere`,
         
           description: store.translations[0]?.description || 
           (isArabic
-            ? `وفر اكثر في ${storeName} - عروض واكواد خصم ${storeName} محدثة يوميا | كوبونات - وفر في كل مكان `,
+            ? `وفر اكثر في ${storeName} - عروض واكواد خصم ${storeName} محدثة يوميا | كوبونات - وفر في كل مكان `
             : `Save More at ${storeName} - Latest ${storeName} Deals & Promo Codes | Cobonat - Save More Everywhere`),
         
         alternates: {
