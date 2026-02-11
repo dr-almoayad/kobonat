@@ -74,12 +74,13 @@ export async function generateMetadata({ params }) {
       
       return {
         title: isArabic 
-          ? `كوبونات ${storeName} - خصومات حصرية`
-          : `${storeName} Coupons & Deals - Save Money`,
-        description: store.translations[0]?.description || 
+          ? `وفر اكثر في ${storeName} - عروض واكواد خصم ${storeName} محدثة يوميا | كوبونات - وفر في كل مكان `,
+          : `Save More at ${storeName} - Latest ${storeName} Deals & Promo Codes | Cobonat - Save More Everywhere`,
+        
+          description: store.translations[0]?.description || 
           (isArabic
-            ? `احصل على أفضل الكوبونات من ${storeName}`
-            : `Get the best deals from ${storeName}`),
+            ? `وفر اكثر في ${storeName} - عروض واكواد خصم ${storeName} محدثة يوميا | كوبونات - وفر في كل مكان `,
+            : `Save More at ${storeName} - Latest ${storeName} Deals & Promo Codes | Cobonat - Save More Everywhere`),
         
         alternates: {
           canonical: `${BASE_URL}/${locale}/stores/${slug}`,
