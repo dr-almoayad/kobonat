@@ -103,8 +103,8 @@ useEffect(() => {
   // Final fallback - UNCOMMENT THIS
   console.log('Using final fallback');
   return currentLanguage === 'ar' 
-    ? 'عروض حصرية متاحة' 
-    : 'Exclusive deals available';
+    ? 'اكتشف العروض' 
+    : 'Deals available';
 };
   
   // Get offer type display
