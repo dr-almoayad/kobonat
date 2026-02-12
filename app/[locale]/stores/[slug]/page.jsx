@@ -38,6 +38,41 @@ export async function generateMetadata({ params }) {
     // Try as category first
     const category = await getCategoryData(slug, language, countryCode);
     if (category) {
+      const categoryTranslation = category.translations[0];
+      
+      // Check if custom SEO fields exist - PRIORITIZE CUSTOM SEO
+      if (categoryTranslation?.seoTitle || categoryTranslation?.seoDescription) {
+        const categoryName = categoryTranslation?.name || 'Category';
+        
+        return {
+          title: categoryTranslation.seoTitle || categoryName,
+          description: categoryTranslation.seoDescription || categoryTranslation?.description || '',
+          openGraph: {
+            title: categoryTranslation.seoTitle || categoryName,
+            description: categoryTranslation.seoDescription || categoryTranslation?.description || '',
+            type: 'website',
+            locale: locale,
+            url: `${BASE_URL}/${locale}/stores/${slug}`,
+            images: category.image ? [{
+              url: category.image,
+              width: 1200,
+              height: 630,
+              alt: categoryName,
+            }] : [],
+          },
+          twitter: {
+            card: 'summary_large_image',
+            title: categoryTranslation.seoTitle || categoryName,
+            description: categoryTranslation.seoDescription || categoryTranslation?.description || '',
+            images: category.image ? [category.image] : [],
+          },
+          alternates: {
+            canonical: `${BASE_URL}/${locale}/stores/${slug}`,
+          }
+        };
+      }
+      
+      // Fallback to generated metadata if no custom SEO
       const stores = await getStoresData({ 
         language, 
         countryCode, 
@@ -49,8 +84,8 @@ export async function generateMetadata({ params }) {
       return generateEnhancedCategoryMetadata({
         category: {
           ...category,
-          name: category.translations[0]?.name || 'Category',
-          description: category.translations[0]?.description || '',
+          name: categoryTranslation?.name || 'Category',
+          description: categoryTranslation?.description || '',
           slug
         },
         locale,
@@ -65,7 +100,49 @@ export async function generateMetadata({ params }) {
     // Try as store
     const store = await getStoreData(slug, language, countryCode);
     if (store) {
-      // Get voucher count
+      const storeTranslation = store.translations[0];
+      
+      // Check if custom SEO fields exist - PRIORITIZE CUSTOM SEO
+      if (storeTranslation?.seoTitle || storeTranslation?.seoDescription) {
+        const storeName = storeTranslation?.name || slug;
+        
+        return {
+          title: storeTranslation.seoTitle || storeName,
+          description: storeTranslation.seoDescription || storeTranslation?.description || `Find the best coupons and deals for ${storeName}`,
+          openGraph: {
+            title: storeTranslation.seoTitle || storeName,
+            description: storeTranslation.seoDescription || storeTranslation?.description || '',
+            type: 'website',
+            locale: locale,
+            url: `${BASE_URL}/${locale}/stores/${slug}`,
+            images: [
+              ...(store.coverImage ? [{
+                url: store.coverImage,
+                width: 1200,
+                height: 630,
+                alt: storeName,
+              }] : []),
+              ...(store.logo ? [{
+                url: store.logo,
+                width: 800,
+                height: 600,
+                alt: `${storeName} logo`,
+              }] : []),
+            ],
+          },
+          twitter: {
+            card: 'summary_large_image',
+            title: storeTranslation.seoTitle || storeName,
+            description: storeTranslation.seoDescription || storeTranslation?.description || '',
+            images: store.coverImage ? [store.coverImage] : (store.logo ? [store.logo] : []),
+          },
+          alternates: {
+            canonical: `${BASE_URL}/${locale}/stores/${slug}`,
+          }
+        };
+      }
+
+      // Fallback to generated metadata if no custom SEO
       const voucherCount = await prisma.voucher.count({
         where: {
           storeId: store.id,
@@ -88,8 +165,8 @@ export async function generateMetadata({ params }) {
       return generateEnhancedStoreMetadata({
         store: {
           ...store,
-          name: store.translations[0]?.name || slug,
-          description: store.translations[0]?.description || '',
+          name: storeTranslation?.name || slug,
+          description: storeTranslation?.description || '',
           slug
         },
         locale,
