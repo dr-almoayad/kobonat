@@ -1,10 +1,8 @@
-// app/[locale]/stores/[slug]/page.jsx - FIXED SEO
+// app/[locale]/stores/[slug]/page.jsx - FULLY SEO OPTIMIZED
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import { getTranslations } from 'next-intl/server';
 import StoresGrid from "@/components/StoresGrid/StoresGrid";
-import StoreHeader from "@/components/headers/StoreHeader";
-import StickyStoreHeader from "@/components/headers/StickyStoreHeader";
 import StorePageShell from "@/components/headers/StorePageShell";
 import VouchersGrid from "@/components/VouchersGrid/VouchersGrid";
 import StoreFAQ from "@/components/StoreFAQ/StoreFAQ";
@@ -12,98 +10,97 @@ import StoreCard from "@/components/StoreCard/StoreCard";
 import HeroCarousel from "@/components/HeroCarousel/HeroCarousel";
 import FeaturedProductsCarousel from "@/components/FeaturedProductsCarousel/FeaturedProductsCarousel";
 import OtherPromosSection from "@/components/OtherPromosSection/OtherPromosSection";
-// ✅ CHANGED: Import the new Structured Data component
-import FAQStructuredData from "@/components/StructuredData/FAQStructuredData"; 
+import FAQStructuredData from "@/components/StructuredData/FAQStructuredData";
+import StoreStructuredData from "@/components/StructuredData/StoreStructuredData";
+import Breadcrumbs from "@/components/Breadcrumbs/Breadcrumbs";
 import { getCategoryData, getCountryCategories } from "@/lib/storeCategories";
 import { getStoresData, getStoreData } from "@/lib/stores";
+import { generateEnhancedStoreMetadata, generateEnhancedCategoryMetadata } from "@/lib/seo/generateStoreMetadata";
 import HelpBox from "@/components/help/HelpBox";
 import "./store-page.css";
 import "./stores-page.css";
 
 export const revalidate = 300;
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://coubonat.vercel.app';
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://cobonat.me';
 
 export async function generateMetadata({ params }) {
   try {
     const { slug, locale } = await params;
     const [language, countryCode] = locale.split('-');
-    const isArabic = language === 'ar';
+
+    // Get country data
+    const country = await prisma.country.findUnique({
+      where: { code: countryCode, isActive: true },
+      include: { translations: { where: { locale: language } } }
+    });
 
     // Try as category first
     const category = await getCategoryData(slug, language, countryCode);
     if (category) {
-      const categoryName = category.translations[0]?.name || 'Category';
+      const stores = await getStoresData({ 
+        language, 
+        countryCode, 
+        categoryId: category.id 
+      });
       
-      return {
-        title: isArabic 
-          ? `كوبونات ${categoryName} - عروض ${countryCode}`
-          : `${categoryName} Coupons - ${countryCode} Deals`,
-        description: category.translations[0]?.description || 
-          (isArabic 
-            ? `أفضل كوبونات ${categoryName} في ${countryCode}`
-            : `Best ${categoryName} coupons in ${countryCode}`),
-        
-        alternates: {
-          canonical: `${BASE_URL}/${locale}/stores/${slug}`,
-          languages: {
-            'ar-SA': `${BASE_URL}/ar-SA/stores/${slug}`,
-            'en-SA': `${BASE_URL}/en-SA/stores/${slug}`,
-            'ar-AE': `${BASE_URL}/ar-AE/stores/${slug}`,
-            'en-AE': `${BASE_URL}/en-AE/stores/${slug}`,
-            'x-default': `${BASE_URL}/ar-SA/stores/${slug}`,
-          }
+      const voucherCount = stores.reduce((sum, s) => sum + s.activeVouchersCount, 0);
+      
+      return generateEnhancedCategoryMetadata({
+        category: {
+          ...category,
+          name: category.translations[0]?.name || 'Category',
+          description: category.translations[0]?.description || '',
+          slug
         },
-        
-        openGraph: {
-          url: `${BASE_URL}/${locale}/stores/${slug}`,
-          locale: locale,
-        },
-        
-        robots: {
-          index: true,
-          follow: true,
-        },
-      };
+        locale,
+        storeCount: stores.length,
+        voucherCount,
+        country: country ? {
+          name: country.translations[0]?.name || country.code
+        } : null
+      });
     }
 
     // Try as store
     const store = await getStoreData(slug, language, countryCode);
     if (store) {
-      const storeName = store.translations[0]?.name || store.slug;
-      
-      return {
-        title: isArabic 
-          ? `وفر اكثر في ${storeName} - عروض واكواد خصم ${storeName} محدثة يوميا | كوبونات - وفر في كل مكان `
-          : `Save More at ${storeName} - Latest ${storeName} Deals & Promo Codes | Cobonat - Save More Everywhere`,
-        
-          description: store.translations[0]?.description || 
-          (isArabic
-            ? `وفر اكثر في ${storeName} - عروض واكواد خصم ${storeName} محدثة يوميا | كوبونات - وفر في كل مكان `
-            : `Save More at ${storeName} - Latest ${storeName} Deals & Promo Codes | Cobonat - Save More Everywhere`),
-        
-        alternates: {
-          canonical: `${BASE_URL}/${locale}/stores/${slug}`,
-          languages: {
-            'ar-SA': `${BASE_URL}/ar-SA/stores/${slug}`,
-            'en-SA': `${BASE_URL}/en-SA/stores/${slug}`,
-            'ar-AE': `${BASE_URL}/ar-AE/stores/${slug}`,
-            'en-AE': `${BASE_URL}/en-AE/stores/${slug}`,
-            'x-default': `${BASE_URL}/ar-SA/stores/${slug}`,
-          }
+      // Get voucher count
+      const voucherCount = await prisma.voucher.count({
+        where: {
+          storeId: store.id,
+          AND: [
+            {
+              OR: [
+                { expiryDate: null },
+                { expiryDate: { gte: new Date() } }
+              ]
+            },
+            {
+              countries: {
+                some: { country: { code: countryCode } }
+              }
+            }
+          ]
+        }
+      });
+
+      return generateEnhancedStoreMetadata({
+        store: {
+          ...store,
+          name: store.translations[0]?.name || slug,
+          description: store.translations[0]?.description || '',
+          slug
         },
-        
-        openGraph: {
-          url: `${BASE_URL}/${locale}/stores/${slug}`,
-          locale: locale,
-          images: store.logo ? [{ url: store.logo }] : [],
-        },
-        
-        robots: {
-          index: true,
-          follow: true,
-        },
-      };
+        locale,
+        voucherCount,
+        categories: store.categories.map(sc => ({
+          name: sc.category.translations[0]?.name || ''
+        })),
+        country: country ? {
+          name: country.translations[0]?.name || country.code
+        } : null
+      });
     }
 
     return { title: "Not Found" };
@@ -144,13 +141,29 @@ export default async function UnifiedStorePage({ params }) {
 
       const featuredStores = stores.filter(s => s.isFeatured);
       const regularStores = stores.filter(s => !s.isFeatured);
-      const allCategories = await getCountryCategories(language, countryCode);
-      
       const translation = categoryData.translations[0];
       const totalVouchers = stores.reduce((sum, s) => sum + s.activeVouchersCount, 0);
 
+      // Build breadcrumbs
+      const breadcrumbs = [
+        {
+          name: language === 'ar' ? 'الرئيسية' : 'Home',
+          url: `${BASE_URL}/${locale}`
+        },
+        {
+          name: language === 'ar' ? 'المتاجر' : 'Stores',
+          url: `${BASE_URL}/${locale}/stores`
+        },
+        {
+          name: translation?.name || 'Category',
+          url: `${BASE_URL}/${locale}/stores/${slug}`
+        }
+      ];
+
       return (
         <div className="stores_page">
+          <Breadcrumbs items={breadcrumbs} locale={locale} />
+
           {carouselStores.length > 0 && (
             <div className="category-hero-section">
               <HeroCarousel 
@@ -400,6 +413,22 @@ export default async function UnifiedStorePage({ params }) {
       const shippingVouchers = transformedVouchers.filter(v => v.type === 'FREE_SHIPPING');
       const countryName = country.translations[0]?.name || country.code;
 
+      // Build breadcrumbs for store page
+      const breadcrumbs = [
+        {
+          name: language === 'ar' ? 'الرئيسية' : 'Home',
+          url: `${BASE_URL}/${locale}`
+        },
+        {
+          name: language === 'ar' ? 'المتاجر' : 'Stores',
+          url: `${BASE_URL}/${locale}/stores`
+        },
+        {
+          name: transformedStore.name,
+          url: `${BASE_URL}/${locale}/stores/${slug}`
+        }
+      ];
+
       const headerProps = {
         store: transformedStore,
         mostTrackedVoucher,
@@ -411,9 +440,18 @@ export default async function UnifiedStorePage({ params }) {
 
       return (
         <>
-          {/* ✅ CHANGED: Use the new component */}
+          {/* Comprehensive Structured Data */}
+          <StoreStructuredData 
+            store={transformedStore}
+            vouchers={transformedVouchers}
+            locale={locale}
+            country={country}
+            breadcrumbs={breadcrumbs}
+          />
           <FAQStructuredData faqs={faqs} locale={locale} />
+          
           <div className="store-page-layout">
+            <Breadcrumbs items={breadcrumbs} locale={locale} />
             <StorePageShell {...headerProps} />
 
             <main className="store-main-content">
@@ -498,4 +536,4 @@ export default async function UnifiedStorePage({ params }) {
     console.error('Page render error:', error);
     throw error;
   }
-}
+  }
