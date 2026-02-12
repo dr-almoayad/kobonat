@@ -1,187 +1,322 @@
-// app/sitemap.js - FIXED: Only generate valid URLs to prevent 404s
+// app/sitemap.js - OPTIMIZED FOR BETTER SEO RESULTS
 import { prisma } from '@/lib/prisma';
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://cobonat.me';
 
-const LOCALES = [
-  'ar-SA', 'en-SA',
-  'ar-AE', 'en-AE',
-  'ar-EG', 'en-EG',
-  'ar-QA', 'en-QA',
-  'ar-KW', 'en-KW',
-  'ar-OM', 'en-OM'
-];
+const LOCALES = ['ar-SA', 'en-SA'];
+
+// Helper to get most recent update date
+function getMostRecentDate(...dates) {
+  const validDates = dates.filter(d => d instanceof Date && !isNaN(d));
+  return validDates.length > 0 
+    ? new Date(Math.max(...validDates.map(d => d.getTime())))
+    : new Date();
+}
 
 export default async function sitemap() {
   const urls = [];
   
-  // ✅ 1. Homepage for each locale
-  LOCALES.forEach(locale => {
-    urls.push({
-      url: `${BASE_URL}/${locale}`,
-      lastModified: new Date(),
-      changeFrequency: 'daily',
-      priority: 1.0,
-      alternates: {
-        languages: Object.fromEntries(
-          LOCALES.map(loc => [loc, `${BASE_URL}/${loc}`])
-        ),
-      },
+  try {
+    // ============================================================================
+    // 1. HOMEPAGE - Highest Priority (Hourly updates with new coupons)
+    // ============================================================================
+    const latestVoucherUpdate = await prisma.voucher.findFirst({
+      orderBy: { updatedAt: 'desc' },
+      select: { updatedAt: true }
     });
-  });
-  
-  // ✅ 2. All Stores page for each locale
-  LOCALES.forEach(locale => {
-    urls.push({
-      url: `${BASE_URL}/${locale}/stores`,
-      lastModified: new Date(),
-      changeFrequency: 'daily',
-      priority: 0.9,
-      alternates: {
-        languages: Object.fromEntries(
-          LOCALES.map(loc => [loc, `${BASE_URL}/${loc}/stores`])
-        ),
-      },
-    });
-  });
-  
-  // ✅ 3. Coupons page for each locale
-  LOCALES.forEach(locale => {
-    urls.push({
-      url: `${BASE_URL}/${locale}/coupons`,
-      lastModified: new Date(),
-      changeFrequency: 'daily',
-      priority: 0.9,
-      alternates: {
-        languages: Object.fromEntries(
-          LOCALES.map(loc => [loc, `${BASE_URL}/${loc}/coupons`])
-        ),
-      },
-    });
-  });
-  
-  // ✅ 4. Static pages
-  const staticPages = ['about', 'contact', 'privacy', 'terms', 'cookies', 'help'];
-  staticPages.forEach(page => {
+    
     LOCALES.forEach(locale => {
       urls.push({
-        url: `${BASE_URL}/${locale}/${page}`,
-        lastModified: new Date(),
-        changeFrequency: 'monthly',
-        priority: 0.5,
+        url: `${BASE_URL}/${locale}`,
+        lastModified: latestVoucherUpdate?.updatedAt || new Date(),
+        changeFrequency: 'hourly',
+        priority: 1.0,
         alternates: {
           languages: Object.fromEntries(
-            LOCALES.map(loc => [loc, `${BASE_URL}/${loc}/${page}`])
+            LOCALES.map(loc => [loc, `${BASE_URL}/${loc}`])
           ),
         },
       });
     });
-  });
-  
-  // ✅ 5. Category pages - Only for categories with active stores
-  const categories = await prisma.category.findMany({
-    include: {
-      translations: true,
-      stores: {
-        where: {
-          store: { isActive: true }
+    
+    // ============================================================================
+    // 2. ALL STORES PAGE - High Priority
+    // ============================================================================
+    const latestStoreUpdate = await prisma.store.findFirst({
+      where: { isActive: true },
+      orderBy: { updatedAt: 'desc' },
+      select: { updatedAt: true }
+    });
+    
+    LOCALES.forEach(locale => {
+      urls.push({
+        url: `${BASE_URL}/${locale}/stores`,
+        lastModified: latestStoreUpdate?.updatedAt || new Date(),
+        changeFrequency: 'daily',
+        priority: 0.9,
+        alternates: {
+          languages: Object.fromEntries(
+            LOCALES.map(loc => [loc, `${BASE_URL}/${loc}/stores`])
+          ),
+        },
+      });
+    });
+    
+    // ============================================================================
+    // 3. COUPONS PAGE - High Priority
+    // ============================================================================
+    LOCALES.forEach(locale => {
+      urls.push({
+        url: `${BASE_URL}/${locale}/coupons`,
+        lastModified: latestVoucherUpdate?.updatedAt || new Date(),
+        changeFrequency: 'hourly',
+        priority: 0.9,
+        alternates: {
+          languages: Object.fromEntries(
+            LOCALES.map(loc => [loc, `${BASE_URL}/${loc}/coupons`])
+          ),
+        },
+      });
+    });
+    
+    // ============================================================================
+    // 4. STATIC PAGES - Lower Priority, Rarely Change
+    // ============================================================================
+    const staticPages = [
+      { slug: 'about', priority: 0.6, changeFreq: 'monthly' },
+      { slug: 'contact', priority: 0.6, changeFreq: 'monthly' },
+      { slug: 'privacy', priority: 0.4, changeFreq: 'yearly' },
+      { slug: 'terms', priority: 0.4, changeFreq: 'yearly' },
+      { slug: 'cookies', priority: 0.3, changeFreq: 'yearly' },
+      { slug: 'help', priority: 0.7, changeFreq: 'monthly' },
+    ];
+    
+    staticPages.forEach(page => {
+      LOCALES.forEach(locale => {
+        urls.push({
+          url: `${BASE_URL}/${locale}/${page.slug}`,
+          lastModified: new Date('2024-01-01'), // Set actual last update date
+          changeFrequency: page.changeFreq,
+          priority: page.priority,
+          alternates: {
+            languages: Object.fromEntries(
+              LOCALES.map(loc => [loc, `${BASE_URL}/${loc}/${page.slug}`])
+            ),
+          },
+        });
+      });
+    });
+    
+    // ============================================================================
+    // 5. CATEGORY PAGES - Only categories with active stores
+    // ============================================================================
+    const categories = await prisma.category.findMany({
+      include: {
+        translations: true,
+        stores: {
+          where: {
+            store: { isActive: true }
+          },
+          include: {
+            store: {
+              select: { updatedAt: true }
+            }
+          }
         }
       }
-    }
-  });
-  
-  for (const category of categories) {
-    if (category.stores.length === 0) continue;
+    });
     
-    // Build map of valid URLs for this category
-    const validUrls = new Map();
-    
-    for (const locale of LOCALES) {
-      const [language] = locale.split('-');
-      const translation = category.translations.find(t => t.locale === language);
+    for (const category of categories) {
+      // Skip categories with no active stores
+      if (category.stores.length === 0) continue;
       
-      if (translation && translation.slug) {
+      // Get most recent update from category or its stores
+      const storeUpdates = category.stores.map(s => s.store.updatedAt);
+      const lastModified = getMostRecentDate(category.updatedAt, ...storeUpdates);
+      
+      const validUrls = new Map();
+      
+      for (const locale of LOCALES) {
+        const [language] = locale.split('-');
+        const translation = category.translations.find(t => t.locale === language);
+        
+        if (translation?.slug) {
+          validUrls.set(locale, `${BASE_URL}/${locale}/stores/${translation.slug}`);
+        }
+      }
+      
+      for (const [locale, url] of validUrls.entries()) {
+        const alternates = Object.fromEntries(validUrls.entries());
+        
+        urls.push({
+          url: url,
+          lastModified: lastModified,
+          changeFrequency: 'daily',
+          priority: 0.8,
+          alternates: {
+            languages: alternates,
+          },
+        });
+      }
+    }
+    
+    // ============================================================================
+    // 6. STORE PAGES - Hourly updates (coupons change frequently)
+    // ============================================================================
+    const stores = await prisma.store.findMany({
+      where: { isActive: true },
+      include: {
+        translations: true,
+        countries: {
+          include: {
+            country: true
+          }
+        },
+        vouchers: {
+          where: {
+            OR: [
+              { expiryDate: null },
+              { expiryDate: { gte: new Date() } }
+            ]
+          },
+          orderBy: { updatedAt: 'desc' },
+          take: 1,
+          select: { updatedAt: true }
+        }
+      }
+    });
+    
+    for (const store of stores) {
+      const countryCodes = store.countries.map(sc => sc.country.code);
+      const validUrls = new Map();
+      
+      // Get most recent update (store or its latest voucher)
+      const latestVoucher = store.vouchers[0];
+      const lastModified = getMostRecentDate(
+        store.updatedAt,
+        latestVoucher?.updatedAt
+      );
+      
+      for (const locale of LOCALES) {
+        const [language, region] = locale.split('-');
+        
+        // Skip if store not available in this country
+        if (!countryCodes.includes(region)) continue;
+        
+        const translation = store.translations.find(t => t.locale === language);
+        
+        // Skip if no translation for this language
+        if (!translation?.slug) continue;
+        
         validUrls.set(locale, `${BASE_URL}/${locale}/stores/${translation.slug}`);
       }
+      
+      // Skip store if no valid URLs
+      if (validUrls.size === 0) continue;
+      
+      for (const [locale, url] of validUrls.entries()) {
+        const alternates = Object.fromEntries(validUrls.entries());
+        
+        urls.push({
+          url: url,
+          lastModified: lastModified,
+          changeFrequency: 'hourly', // ✅ CHANGED: Store pages update hourly with new coupons
+          priority: store.isFeatured ? 0.85 : 0.75,
+          alternates: {
+            languages: alternates,
+          },
+        });
+      }
     }
     
-    // Generate entries with proper alternates
-    for (const [locale, url] of validUrls.entries()) {
-      const alternates = {};
-      for (const [altLocale, altUrl] of validUrls.entries()) {
-        alternates[altLocale] = altUrl;
-      }
-      
-      urls.push({
-        url: url,
-        lastModified: category.updatedAt || new Date(),
-        changeFrequency: 'daily',
-        priority: 0.8,
-        alternates: {
-          languages: alternates,
+    // ============================================================================
+    // 7. INDIVIDUAL COUPON PAGES (if you have detail pages for coupons)
+    // ============================================================================
+    // Uncomment this section if you have individual coupon detail pages
+    /*
+    const featuredVouchers = await prisma.voucher.findMany({
+      where: {
+        isExclusive: true,
+        OR: [
+          { expiryDate: null },
+          { expiryDate: { gte: new Date() } }
+        ]
+      },
+      include: {
+        translations: true,
+        store: {
+          include: {
+            translations: true
+          }
         },
-      });
-    }
-  }
-  
-  // ✅ 6. Store pages - CRITICAL FIX: Only valid store-country-locale combinations
-  const stores = await prisma.store.findMany({
-    where: { isActive: true },
-    include: {
-      translations: true,
-      countries: {
-        include: {
-          country: true
+        countries: {
+          include: {
+            country: true
+          }
         }
-      }
-    }
-  });
-  
-  for (const store of stores) {
-    // Get valid country codes for this store
-    const countryCodes = store.countries.map(sc => sc.country.code);
+      },
+      take: 100 // Limit to top exclusive deals
+    });
     
-    // Build map of ONLY valid locale-URL combinations
-    const validUrls = new Map();
-    
-    for (const locale of LOCALES) {
-      const [language, region] = locale.split('-');
+    for (const voucher of featuredVouchers) {
+      const countryCodes = voucher.countries.map(vc => vc.country.code);
+      const validUrls = new Map();
       
-      // ✅ CRITICAL: Skip if store not available in this country
-      if (!countryCodes.includes(region)) continue;
-      
-      const translation = store.translations.find(t => t.locale === language);
-      
-      // ✅ CRITICAL: Skip if no translation for this language
-      if (!translation || !translation.slug) continue;
-      
-      validUrls.set(locale, `${BASE_URL}/${locale}/stores/${translation.slug}`);
-    }
-    
-    // Skip store entirely if no valid URLs
-    if (validUrls.size === 0) continue;
-    
-    // Generate sitemap entry for each valid locale
-    for (const [locale, url] of validUrls.entries()) {
-      // Build alternates ONLY from other valid URLs
-      const alternates = {};
-      for (const [altLocale, altUrl] of validUrls.entries()) {
-        alternates[altLocale] = altUrl;
+      for (const locale of LOCALES) {
+        const [language, region] = locale.split('-');
+        
+        if (!countryCodes.includes(region)) continue;
+        
+        const voucherTranslation = voucher.translations.find(t => t.locale === language);
+        const storeTranslation = voucher.store.translations.find(t => t.locale === language);
+        
+        if (!voucherTranslation || !storeTranslation?.slug) continue;
+        
+        // Assuming URL structure: /locale/stores/store-slug/voucher-id
+        validUrls.set(
+          locale, 
+          `${BASE_URL}/${locale}/stores/${storeTranslation.slug}/voucher/${voucher.id}`
+        );
       }
       
-      urls.push({
-        url: url,
-        lastModified: store.updatedAt || new Date(),
-        changeFrequency: 'daily',
-        priority: store.isFeatured ? 0.8 : 0.7,
-        alternates: {
-          languages: alternates,
-        },
-      });
+      if (validUrls.size === 0) continue;
+      
+      for (const [locale, url] of validUrls.entries()) {
+        const alternates = Object.fromEntries(validUrls.entries());
+        
+        urls.push({
+          url: url,
+          lastModified: voucher.updatedAt || new Date(),
+          changeFrequency: 'hourly',
+          priority: 0.6,
+          alternates: {
+            languages: alternates,
+          },
+        });
+      }
     }
+    */
+    
+    // Log results
+    const uniqueUrls = new Set(urls.map(u => u.url)).size;
+    console.log(`✅ Sitemap generated: ${urls.length} entries (${uniqueUrls} unique URLs)`);
+    
+    // Warn if approaching sitemap limit
+    if (urls.length > 45000) {
+      console.warn(`⚠️ Sitemap approaching 50k limit. Consider splitting into sitemap index.`);
+    }
+    
+    return urls;
+    
+  } catch (error) {
+    console.error('❌ Sitemap generation error:', error);
+    
+    // Return minimal sitemap on error
+    return LOCALES.map(locale => ({
+      url: `${BASE_URL}/${locale}`,
+      lastModified: new Date(),
+      changeFrequency: 'daily',
+      priority: 1.0,
+    }));
   }
-  
-  console.log(`✅ Sitemap generated: ${urls.length} URLs (404-safe)`);
-  
-  return urls;
-}
+          }
