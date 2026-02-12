@@ -10,9 +10,10 @@ import "@emran-alhaddad/saudi-riyal-font/index.css";
 import MobileFooter from "@/components/footers/MobileFooter";
 import CategoryCarouselSubHeader from "@/components/headers/CategoryCarouselSubHeader";
 import Disclaimer from "@/components/Disclaimer/Disclaimer";
+import WebSiteStructuredData from "@/components/StructuredData/WebSiteStructuredData";
 import Script from 'next/script';
 
-// 1. Optimized Font Loading (Removes need for manual <link> in <head>)
+// Optimized Font Loading
 const alexandria = Alexandria({ subsets: ["arabic"], variable: "--font-alexandria", display: 'swap' });
 const openSans = Open_Sans({ subsets: ["latin"], variable: "--font-open-sans", display: 'swap' });
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"], display: 'swap' });
@@ -26,7 +27,6 @@ export async function generateMetadata({ params }) {
   const [language] = locale.split('-');
   const isArabic = language === 'ar';
 
-  // FIX: keywords must be defined BEFORE the return statement
   const keywords = isArabic
     ? ['كوبونات', 'أكواد خصم', 'عروض', 'خصومات', 'توفير', 'السعودية', 'كود خصم تويتر', 'شحن مجاني', 'كوبونات المشاهير', 'خصم أول طلب', 'أكواد مجربة']
     : ['Coupons', 'Promo Codes', 'Saudi Deals', 'Discount Codes', 'Free Shipping', 'First Order Code', 'Verified Coupons', 'KSA Offers'];
@@ -37,14 +37,16 @@ export async function generateMetadata({ params }) {
       default: isArabic
         ? "Cobonat | كوبونات - أكواد خصم السعودية (محدث باستمرار) - وفر أكثر على مشترياتك ومقاضيك!"
         : 'Cobonat - Save More on Every Purchase',
-      template: isArabic ? '%s | كوبونات' : '%s | Coupons Platform'
+      template: isArabic ? '%s | كوبونات' : '%s | Cobonat'
     },
     description: isArabic
       ? "منصتك الأولى لأكواد الخصم والعروض في السعودية 🇸🇦. وفر فلوسك مع كوبونات فعالة وموثقة لأشهر المتاجر العالمية والمحلية. مقاضيك، لبسك، وسفرياتك صارت أوفر!"
       : "Your #1 source for verified discount codes in Saudi 🇸🇦. Save more on fashion, electronics, and groceries with verified and active coupons for top local and global stores.",
     applicationName: isArabic ? 'كوبونات' : 'Cobonat',
-    keywords: keywords, // Correctly assigned here
+    keywords: keywords,
     authors: [{ name: 'Cobonat' }],
+    creator: 'Cobonat',
+    publisher: 'Cobonat',
     alternates: {
       canonical: `${BASE_URL}/${locale}`,
       languages: {
@@ -58,18 +60,46 @@ export async function generateMetadata({ params }) {
       locale: locale,
       url: `${BASE_URL}/${locale}`,
       siteName: isArabic ? 'كوبونات' : 'Cobonat',
-      title: isArabic ? "Cobonat | كوبونات" : 'Cobonat - Coupons',
-      description: isArabic ? "منصتك الأولى لأكواد الخصم والعروض في السعودية 🇸🇦. وفر فلوسك مع كوبونات فعالة وموثقة لأشهر المتاجر العالمية والمحلية. مقاضيك، لبسك، وسفرياتك صارت أوفر!" : "Your #1 source for verified discount codes in Saudi 🇸🇦. Save more on fashion, electronics, and groceries with verified and active coupons for top local and global stores.",
-      images: [{ url: '/og-image.png', width: 1200, height: 630 }] // Good for social sharing
+      title: isArabic 
+        ? "Cobonat | كوبونات - أكواد خصم السعودية" 
+        : 'Cobonat - Save More on Every Purchase',
+      description: isArabic 
+        ? "منصتك الأولى لأكواد الخصم والعروض في السعودية 🇸🇦. وفر فلوسك مع كوبونات فعالة وموثقة لأشهر المتاجر العالمية والمحلية." 
+        : "Your #1 source for verified discount codes in Saudi 🇸🇦. Save more on fashion, electronics, and groceries with verified and active coupons.",
+      images: [{
+        url: `${BASE_URL}/og-image.png`,
+        width: 1200,
+        height: 630,
+        alt: isArabic ? 'كوبونات - أكواد خصم السعودية' : 'Cobonat - Saudi Coupons Platform'
+      }]
     },
     twitter: {
       card: 'summary_large_image',
       site: '@cobonat',
+      creator: '@cobonat',
+      title: isArabic 
+        ? "Cobonat | كوبونات - أكواد خصم السعودية" 
+        : 'Cobonat - Save More on Every Purchase',
+      description: isArabic 
+        ? "منصتك الأولى لأكواد الخصم والعروض في السعودية 🇸🇦" 
+        : "Your #1 source for verified discount codes in Saudi 🇸🇦",
+      images: [`${BASE_URL}/og-image.png`],
+    },
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: {
+        index: true,
+        follow: true,
+        'max-video-preview': -1,
+        'max-image-preview': 'large',
+        'max-snippet': -1,
+      },
     },
     manifest: isArabic ? '/manifest-ar.webmanifest' : '/manifest-en.webmanifest',
     icons: {
-        icon: '/favicon.ico',
-        apple: '/apple-touch-icon.png',
+      icon: '/favicon.ico',
+      apple: '/apple-touch-icon.png',
     },
   };
 }
@@ -91,6 +121,7 @@ export default async function LocaleLayout({ children, params }) {
   return (
     <html lang={locale} dir={isArabic ? 'rtl' : 'ltr'}>
       <head>
+        {/* Favicons */}
         <link rel="icon" type="image/x-icon" href="/favicon.ico" />
         <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
         <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
@@ -98,12 +129,26 @@ export default async function LocaleLayout({ children, params }) {
         <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
         <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#470ae2" />
         <meta name="msapplication-TileColor" content="#470ae2" />
-        <meta name="Takeads-verification" content="ac9f8039-eeff-43ac-8757-df8d658ef91b"/>
-        {/* Preconnects for speed */}
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        
+        {/* Verification Tags */}
+        <meta name="Takeads-verification" content="ac9f8039-eeff-43ac-8757-df8d658ef91b" />
         <meta name="verify-admitad" content="95d170f413" />
+        
+        {/* Preconnects for Performance */}
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://www.googletagmanager.com" />
+        
+        {/* Material Symbols - Dynamic Icon Font */}
+        <link 
+          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Sharp:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" 
+          rel="stylesheet" 
+        />
+        
         {/* Google Analytics */}
-        <Script src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`} strategy="afterInteractive" />
+        <Script 
+          src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`} 
+          strategy="afterInteractive" 
+        />
         <Script id="google-analytics" strategy="afterInteractive">
           {`
             window.dataLayer = window.dataLayer || [];
@@ -113,27 +158,10 @@ export default async function LocaleLayout({ children, params }) {
           `}
         </Script>
         
-        {/* Material Symbols remains manual as it's a dynamic icon font */}
-        <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Sharp:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
-        
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "WebSite",
-              "name": isArabic ? 'كوبونات' : "Cobonat",
-              "url": BASE_URL,
-              "potentialAction": {
-                "@type": "SearchAction",
-                "target": {
-                  "@type": "EntryPoint",
-                  "urlTemplate": `${BASE_URL}/${locale}/search?q={search_term_string}`
-                },
-                "query-input": "required name=search_term_string"
-              }
-            })
-          }}
+        {/* WebSite Structured Data */}
+        <WebSiteStructuredData 
+          locale={locale} 
+          siteName={isArabic ? 'كوبونات' : 'Cobonat'}
         />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} ${alexandria.variable} ${openSans.variable} antialiased`}>
@@ -141,10 +169,10 @@ export default async function LocaleLayout({ children, params }) {
           <SessionProviderWrapper>
             <Header />
             <CategoryCarouselSubHeader />
-              <main>
-                {children}
-                <Disclaimer locale={locale} />
-              </main>
+            <main>
+              {children}
+              <Disclaimer locale={locale} />
+            </main>
             <Footer />
             <MobileFooter />
           </SessionProviderWrapper>
@@ -152,4 +180,4 @@ export default async function LocaleLayout({ children, params }) {
       </body>
     </html>
   );
-}
+                }
