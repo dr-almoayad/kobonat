@@ -1,0 +1,61 @@
+/* components/Breadcrumbs/breadcrumbs.css */
+.breadcrumbs {
+  margin-bottom: 1.5rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--border-color, #e5e7eb);
+}
+
+.breadcrumbs-list {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 0.875rem;
+}
+
+.breadcrumb-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.breadcrumb-link {
+  color: var(--text-secondary, #6b7280);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.breadcrumb-link:hover {
+  color: var(--primary-color, #470ae2);
+  text-decoration: underline;
+}
+
+.breadcrumb-current {
+  color: var(--text-primary, #111827);
+  font-weight: 500;
+}
+
+.breadcrumb-separator {
+  color: var(--text-secondary, #9ca3af);
+  font-size: 1rem;
+  user-select: none;
+}
+
+/* RTL Support */
+[dir="rtl"] .breadcrumbs-list {
+  direction: rtl;
+}
+
+/* Mobile Optimization */
+@media (max-width: 640px) {
+  .breadcrumbs {
+    padding: 0.5rem 0;
+  }
+  
+  .breadcrumbs-list {
+    font-size: 0.8125rem;
+  }
+}
