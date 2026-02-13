@@ -1,4 +1,4 @@
-// app/[locale]/stores/[slug]/page.jsx - FULLY SEO OPTIMIZED
+// app/[locale]/stores/[slug]/page.jsx - FULLY SEO OPTIMIZED WITH FAQ
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import { getTranslations } from 'next-intl/server';
@@ -13,6 +13,7 @@ import OtherPromosSection from "@/components/OtherPromosSection/OtherPromosSecti
 import FAQStructuredData from "@/components/StructuredData/FAQStructuredData";
 import StoreStructuredData from "@/components/StructuredData/StoreStructuredData";
 import Breadcrumbs from "@/components/Breadcrumbs/Breadcrumbs";
+import PromoCodesFAQ from "@/components/PromoCodesFAQ/PromoCodesFAQ";
 import { getCategoryData, getCountryCategories } from "@/lib/storeCategories";
 import { getStoresData, getStoreData } from "@/lib/stores";
 import { generateEnhancedStoreMetadata, generateEnhancedCategoryMetadata } from "@/lib/seo/generateStoreMetadata";
@@ -313,7 +314,13 @@ export default async function UnifiedStorePage({ params }) {
                 locale={locale} 
               />
             </section>
+
+            {/* Promo Codes FAQ - Category Pages */}
+            <section className="promo-faq-section">
+              <PromoCodesFAQ />
+            </section>
           </main>
+          
           <HelpBox locale={locale}/>
         </div>
       );
@@ -540,6 +547,7 @@ export default async function UnifiedStorePage({ params }) {
                   products={transformedProducts}
                 />
               )}
+              
               {codeVouchers.length > 0 && (
                 <section className="vouchers-section">
                   <h2 className="section-title">
@@ -600,8 +608,14 @@ export default async function UnifiedStorePage({ params }) {
                   </div>
                 </section>
               )}
+
+              {/* Promo Codes FAQ - Store Pages */}
+              <section className="promo-faq-section">
+                <PromoCodesFAQ />
+              </section>
             </main>
           </div>
+          
           <HelpBox locale={locale}/>
         </>
       );
@@ -613,4 +627,4 @@ export default async function UnifiedStorePage({ params }) {
     console.error('Page render error:', error);
     throw error;
   }
-  }
+}
