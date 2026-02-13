@@ -869,5 +869,86 @@
     "checkPrice": "Check price",
     "opening": "Opening...",
     "soldBy": "Sold by"
+  },
+  "faq": {
+    "title": "Frequently Asked Questions",
+    "categories": {
+      "usage": {
+        "title": "How do I use promo codes?",
+        "questions": {
+          "how_to_use": {
+            "question": "How do I use a coupon code from Cobonat?",
+            "answer": "Click the \"Copy Code\" button shown on the coupon card. The code will automatically be copied to your clipboard. Go to the store's website, add items to your cart, and paste the code into the discount or promo-code field at checkout. Make sure your cart meets any minimum spend the coupon requires."
+          },
+          "where_to_enter": {
+            "question": "Where do I enter my promo code at checkout?",
+            "answer": "Look for fields labeled \"Promo Code,\" \"Discount Code,\" \"Coupon Code,\" or \"Voucher\" during the checkout process. This is usually found on the cart page or payment page before you finalize your order. Paste the code you copied from Cobonat and click \"Apply\" to see your discount."
+          },
+          "multiple_codes": {
+            "question": "Can I use more than one promo code per order?",
+            "answer": "Most stores only allow one promo code per order. However, some stores permit stacking certain codes (like a percentage discount with free shipping). Check the store's terms and conditions, or try applying multiple codes to see if they work together."
+          }
+        }
+      },
+      "troubleshooting": {
+        "title": "Why isn't my promo code working?",
+        "questions": {
+          "not_working": {
+            "question": "The coupon code isn't working — what should I do?",
+            "answer": "There are several possible reasons: (1) The coupon has expired — check the expiry date shown on the card. (2) The coupon is valid only for specific products or categories. (3) The minimum spend requirement hasn't been met. (4) The coupon may be a one-time or single-use code that has already been redeemed. If the issue persists, let us know at <a href=\"mailto:contact@cobonat.me\" class=\"contact-link\">contact@cobonat.me</a> and we'll look into it."
+          },
+          "invalid_code": {
+            "question": "I copied the code correctly but it says \"Invalid Code\"",
+            "answer": "Make sure there are no extra spaces before or after the code when pasting. Try typing the code manually instead. Also verify that you're using the code on the correct store's website — some codes are store-specific. Finally, check if the code has any restrictions on first-time customers only or specific product categories."
+          },
+          "expired": {
+            "question": "The promo code expired — can I still use it?",
+            "answer": "Unfortunately, expired codes cannot be redeemed. However, check our website regularly as we constantly update our listings with new active codes and deals. You can also subscribe to our newsletter to receive notifications about fresh offers."
+          }
+        }
+      },
+      "types": {
+        "title": "What types of promo codes are available?",
+        "questions": {
+          "exclusive": {
+            "question": "What does an \"Exclusive\" coupon mean?",
+            "answer": "Exclusive coupons are offers you won't find anywhere else besides Cobonat. They may be available for a limited time or for a limited number of users, so we recommend using them as soon as possible."
+          },
+          "difference": {
+            "question": "What's the difference between a coupon and a deal?",
+            "answer": "A coupon is a text code you type manually into the discount field at checkout. A deal is an offer that is applied automatically when you click the link — no code needed. Both give you real discounts on real stores."
+          },
+          "reuse": {
+            "question": "Can I use a coupon more than once?",
+            "answer": "It depends on the store and the specific coupon. Some coupons are single-use only, while others can be used multiple times until they expire. There may be a small note on the coupon card clarifying this. If it's unclear, check the terms on the store's own website."
+          },
+          "first_time": {
+            "question": "Do you have promo codes for first-time customers?",
+            "answer": "Yes! Many stores offer special discounts for first-time customers. Look for coupons labeled \"New Customer,\" \"First Order,\" or similar tags on our website. These codes typically offer higher discounts but can only be used on your very first purchase from that store."
+          }
+        }
+      },
+      "general": {
+        "title": "Other promo code questions",
+        "questions": {
+          "verified": {
+            "question": "Are all promo codes on Cobonat verified?",
+            "answer": "We strive to keep all our codes active and verified. Our team regularly tests and updates codes to ensure they work. However, some codes may expire faster than expected or have usage limits. If you encounter a code that doesn't work, please report it to us so we can investigate."
+          },
+          "update_frequency": {
+            "question": "How often do you add new promo codes?",
+            "answer": "We update our database daily with new codes and deals from hundreds of stores. Check back frequently, or follow us on social media to stay informed about the latest offers and exclusive deals."
+          },
+          "request": {
+            "question": "Can I request a promo code for a specific store?",
+            "answer": "Absolutely! If you're looking for codes from a store we don't currently have, or if you'd like us to find better deals for a specific store, contact us at <a href=\"mailto:contact@cobonat.me\" class=\"contact-link\">contact@cobonat.me</a>. We'll do our best to source the codes you need."
+          },
+          "account_needed": {
+            "question": "Do I need to create an account to use promo codes?",
+            "answer": "No! You can browse and copy any promo code on Cobonat without creating an account. However, creating an account allows you to save your favorite stores, track your savings, and receive personalized deal recommendations."
+          }
+        }
+      }
+    }
   }
 }
