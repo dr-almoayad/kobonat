@@ -10,13 +10,13 @@ const HelpBox = ({ locale = 'en' }) => {
   const content = {
     en: {
       title: "Need Help?",
-      description: "Can't find what you're looking for? Our help center has answers to common questions about coupons, deals, accounts, and more.",
+      description: "Can't find what you're looking for? Our help center has answers to common questions about coupons, deals, and more.",
       button: "Visit Help Center",
       link: "/help"
     },
     ar: {
       title: "هل تحتاج إلى مساعدة؟",
-      description: "لم تجد ما تبحث عنه؟ يحتوي مركز المساعدة لدينا على إجابات للأسئلة الشائعة حول الكوبونات والعروض والحسابات والمزيد.",
+      description: "لم تجد ما تبحث عنه؟ يحتوي مركز المساعدة لدينا على إجابات للأسئلة الشائعة حول الكوبونات والعروض والمزيد.",
       button: "زيارة مركز المساعدة",
       link: "/help"
     }
@@ -34,13 +34,15 @@ const HelpBox = ({ locale = 'en' }) => {
         <div className="help-box-content">
           <h4 className="help-box-title">{text.title}</h4>
           <p className="help-box-description">{text.description}</p>
-          
+        </div>
+
+        <div className="help-box-actions">
           <Link 
             href={`/${locale}${text.link}`}
             className="help-box-button"
           >
-            <span className="material-symbols-sharp">arrow_forward</span>
             {text.button}
+            <span className="material-symbols-sharp">arrow_forward</span>
           </Link>
         </div>
       </div>
