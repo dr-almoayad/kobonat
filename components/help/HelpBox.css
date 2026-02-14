@@ -1,8 +1,9 @@
 /* components/help/HelpBox.css - CLEAN MINIMAL STYLE */
 
 .site-help-box {
+  background-color: #ffffff;
   width: 100%;
-  margin: 0 auto;
+  margin: 1rem auto;
   font-family: 'Alexandria', 'Open Sans', sans-serif;
 }
 
