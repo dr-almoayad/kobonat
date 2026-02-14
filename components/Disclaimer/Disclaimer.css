@@ -8,10 +8,10 @@
 
 .disclaimer-container {
   max-width: 1280px;
-  background-color: #fff6e1;
-  border: 1px solid #ffc35a;
+  background: none ;
+  border: none;
   border-radius: 16px;
-  padding: 1rem 1rem;
+  padding: 1rem 0;
   margin: 1rem auto;
   display: flex;
   gap: 1rem;
@@ -23,12 +23,12 @@
 .disclaimer-icon {
   flex-shrink: 0;
   padding-top: 2px;
-  color: #94a3b8;
+  color: #64748b;
 }
 
 .disclaimer-icon .material-symbols-sharp {
   font-size: 24px;
-  color: #ffc35a;
+  color: #64748b;
 }
 
 /* Text Styling */
