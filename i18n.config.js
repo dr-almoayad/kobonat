@@ -1,6 +1,6 @@
 // i18n.config.js
 import { defineConfig } from 'next-intl/config';
-import { routing } from './routing';
+import { routing } from './i18n/routing';
 
 export default defineConfig({
   locales: routing.locales,
