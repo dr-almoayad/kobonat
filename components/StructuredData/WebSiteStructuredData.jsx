@@ -27,9 +27,9 @@ export default function WebSiteStructuredData({ locale }) {
       "caption": "Cobonat Logo"
     },
     "image": `${baseUrl}/logo-512x512.png`,  // ✅ ADDED: Alternative image field
-    "description": isArabic 
-      ? "منصة كوبونات الرائدة في السعودية والشرق الأوسط. وفر المال مع أكواد خصم موثقة ومحدثة يومياً"
-      : "Leading coupon and deals platform in Saudi Arabia and the Middle East. Save money with verified and daily-updated discount codes",
+    "description": isArabic
+      ? "منصتك الأولى لأكواد الخصم والعروض في السعودية. وفر فلوسك مع كوبونات فعالة وموثقة لأشهر المتاجر العالمية والمحلية. مقاضيك، لبسك، وسفرياتك صارت أوفر!"
+      : "Your #1 source for verified discount codes in Saudi. Save more on fashion, electronics, and groceries with verified and active coupons for top local and global stores.",
     "sameAs": [
       "https://www.facebook.com/cobonatme",
       "https://t.me/cobonatme",
@@ -59,8 +59,8 @@ export default function WebSiteStructuredData({ locale }) {
     "alternateName": isArabic ? "كوبونات السعودية" : "Saudi Coupons",
     "url": `${baseUrl}/${locale}`,
     "description": isArabic
-      ? "أفضل منصة لأكواد الخصم والكوبونات في السعودية"
-      : "Best discount codes and coupons platform in Saudi Arabia",
+      ? "منصتك الأولى لأكواد الخصم والعروض في السعودية. وفر فلوسك مع كوبونات فعالة وموثقة لأشهر المتاجر العالمية والمحلية. مقاضيك، لبسك، وسفرياتك صارت أوفر!"
+      : "Your #1 source for verified discount codes in Saudi. Save more on fashion, electronics, and groceries with verified and active coupons for top local and global stores.",
     "inLanguage": locale || "ar-SA",
     "publisher": {
       "@type": "Organization",
