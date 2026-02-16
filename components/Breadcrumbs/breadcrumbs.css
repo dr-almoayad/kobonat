@@ -1,7 +1,6 @@
 /* components/Breadcrumbs/breadcrumbs.css */
 .breadcrumbs {
   padding: 0.75rem;
-  border-bottom: 1px solid var(--border-color, #e5e7eb);
   max-width: 1280px;
 }
 
