@@ -4,7 +4,7 @@
 import { usePathname } from 'next/navigation';
 import Head from 'next/head';
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://yourdomain.com';
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://cobonat.me';
 
 /**
  * Generates canonical and alternate hreflang links
@@ -16,12 +16,7 @@ export default function CanonicalUrl({ locale }) {
   const basePath = pathname.replace(/^\/[a-z]{2}-[A-Z]{2}/, '');
   
   const locales = [
-    'ar-SA', 'en-SA',
-    'ar-AE', 'en-AE',
-    'ar-EG', 'en-EG',
-    'ar-QA', 'en-QA',
-    'ar-KW', 'en-KW',
-    'ar-OM', 'en-OM'
+    'ar-SA', 'en-SA'
   ];
   
   return (
