@@ -24,6 +24,7 @@
   border-top-left-radius: 32px;
   padding-top: 4rem;
   padding-bottom: 2rem;
+  margin-top: 1rem;
   color: var(--text-secondary);
   font-family: 'Alexandria', 'Open Sans', sans-serif;
 }
