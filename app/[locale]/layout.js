@@ -132,6 +132,7 @@ export default async function LocaleLayout({ children, params }) {
         
         {/* Verification Tags */}
         <meta name="Takeads-verification" content="ac9f8039-eeff-43ac-8757-df8d658ef91b" />
+        <meta name="tradetracker-site-verification" content="813f3ae64e317d77ca412f3741e5d24b3c977369" />
         <meta name="verify-admitad" content="95d170f413" />
         
         {/* Preconnects for Performance */}
