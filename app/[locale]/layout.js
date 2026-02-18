@@ -158,6 +158,8 @@ export default async function LocaleLayout({ children, params }) {
             gtag('config', '${GA_MEASUREMENT_ID}');
           `}
         </Script>
+
+        <Script type="text/javascript" src="//widget.trustpilot.com/bootstrap/v5/tp.widget.bootstrap.min.js" async></Script>
         
         {/* WebSite Structured Data */}
         <WebSiteStructuredData 
@@ -173,6 +175,10 @@ export default async function LocaleLayout({ children, params }) {
             <main>
               {children}
               <Disclaimer locale={locale} />
+          /*TrustBox widget - Review Collector*/
+<div class="trustpilot-widget" data-locale="en-US" data-template-id="56278e9abfbbba0bdcd568bc" data-businessunit-id="6995d75245c20b813450e6e6" data-style-height="52px" data-style-width="100%" data-token="33c61b23-0f8b-4661-9277-0e2a157bf8ad">
+  <a href="https://www.trustpilot.com/review/cobonat.me" target="_blank" rel="noopener">Trustpilot</a>
+</div>
             </main>
             <Footer />
             <MobileFooter />
