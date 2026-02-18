@@ -43,8 +43,12 @@ export async function generateMetadata({ params }) {
       url: `${BASE_URL}/${locale}`,
       locale: locale,
       type: 'website',
-      title: isArabic ? "كوبونات" : 'Cobonat',
-      description: isArabic ? "وفر فلوسك مع كوبونات فعالة وموثقة" : "Save more with verified coupons",
+      title: isArabic 
+      ? "Cobonat | كوبونات - أكواد خصم السعودية (محدث باستمرار) - وفر أكثر على مشترياتك ومقاضيك!"
+      : "Cobonat | Active & Verified KSA Promo Codes 2026 - Verified Daily for Smart Savings!",
+    description: isArabic
+      ? "منصتك الأولى لأكواد الخصم والعروض في السعودية 🇸🇦. وفر فلوسك مع كوبونات فعالة وموثقة لأشهر المتاجر العالمية والمحلية. مقاضيك، لبسك، وسفرياتك صارت أوفر!"
+      : "Your #1 source for verified discount codes in Saudi 🇸🇦. Save more on fashion, electronics, and groceries with verified and active coupons for top local and global stores.",
     },
     robots: {
       index: true,
