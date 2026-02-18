@@ -1,4 +1,4 @@
-// next.config.js - FIXED: Removed problematic redirects
+// next.config.js - FINAL CORRECTED VERSION
 import createNextIntlPlugin from 'next-intl/plugin';
 
 const withNextIntl = createNextIntlPlugin('./i18n/request.js');
@@ -54,8 +54,33 @@ const nextConfig = {
     ];
   },
   
-  // ✅ REMOVED: All redirects that could cause indexing issues
-  // Let middleware handle all locale routing
+  // ✅ ADDED: Only redirects for old locale formats (if Google has them indexed)
+  // These HELP SEO by preventing 404s on legacy URLs
+  async redirects() {
+    return [
+      // Handle old 2-letter locale format (if you ever used /ar or /en)
+      {
+        source: '/ar',
+        destination: '/ar-SA',
+        permanent: true,  // 301 redirect
+      },
+      {
+        source: '/ar/:path*',
+        destination: '/ar-SA/:path*',
+        permanent: true,
+      },
+      {
+        source: '/en',
+        destination: '/en-SA',
+        permanent: true,
+      },
+      {
+        source: '/en/:path*',
+        destination: '/en-SA/:path*',
+        permanent: true,
+      },
+    ];
+  },
   
   async rewrites() {
     return [
@@ -73,7 +98,7 @@ const nextConfig = {
   
   productionBrowserSourceMaps: false,
   
-  // ✅ CRITICAL: Ensure trailing slash behavior is consistent
+  // ✅ CRITICAL: Consistent trailing slash behavior
   trailingSlash: false,
   
   // ✅ Skip trailing slash redirect to avoid redirect chains
