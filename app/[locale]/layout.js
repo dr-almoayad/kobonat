@@ -67,7 +67,7 @@ export async function generateMetadata({ params }) {
         ? "منصتك الأولى لأكواد الخصم والعروض في السعودية 🇸🇦. وفر فلوسك مع كوبونات فعالة وموثقة لأشهر المتاجر العالمية والمحلية." 
         : "Your #1 source for verified discount codes in Saudi 🇸🇦. Save more on fashion, electronics, and groceries with verified and active coupons.",
       images: [{
-        url: `${BASE_URL}/og-image.png`,
+        url: `${BASE_URL}/logo-512x512.png`,
         width: 1200,
         height: 630,
         alt: isArabic ? 'كوبونات - أكواد خصم السعودية' : 'Cobonat - Saudi Coupons Platform'
@@ -83,7 +83,7 @@ export async function generateMetadata({ params }) {
       description: isArabic 
         ? "منصتك الأولى لأكواد الخصم والعروض في السعودية 🇸🇦" 
         : "Your #1 source for verified discount codes in Saudi 🇸🇦",
-      images: [`${BASE_URL}/og-image.png`],
+      images: [`${BASE_URL}/logo-512x512.png`],
     },
     robots: {
       index: true,
