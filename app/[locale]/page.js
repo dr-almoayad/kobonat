@@ -12,12 +12,7 @@ import BrandsCarousel from "@/components/BrandsCarousel/BrandsCarousel";
 import FeaturedOffersCarousel from "@/components/FeaturedOffersCarousel/FeaturedOffersCarousel";
 import HelpBox from "@/components/help/HelpBox";
 
-import { 
-  generateOrganizationSchema,
-  generateWebsiteSchema,
-  generateStoreListSchema,
-  MultipleSchemas 
-} from "@/lib/seo/structuredData";
+import WebSiteStructuredData from '@/components/StructuredData/WebSiteStructuredData';
 
 export const revalidate = 60;
 
@@ -41,16 +36,6 @@ export async function generateMetadata({ params }) {
       languages: {
         'ar-SA': `${BASE_URL}/ar-SA`,
         'en-SA': `${BASE_URL}/en-SA`,
-        'ar-AE': `${BASE_URL}/ar-AE`,
-        'en-AE': `${BASE_URL}/en-AE`,
-        'ar-EG': `${BASE_URL}/ar-EG`,
-        'en-EG': `${BASE_URL}/en-EG`,
-        'ar-QA': `${BASE_URL}/ar-QA`,
-        'en-QA': `${BASE_URL}/en-QA`,
-        'ar-KW': `${BASE_URL}/ar-KW`,
-        'en-KW': `${BASE_URL}/en-KW`,
-        'ar-OM': `${BASE_URL}/ar-OM`,
-        'en-OM': `${BASE_URL}/en-OM`,
         'x-default': `${BASE_URL}/ar-SA`,
       }
     },
@@ -58,7 +43,7 @@ export async function generateMetadata({ params }) {
       url: `${BASE_URL}/${locale}`,
       locale: locale,
       type: 'website',
-      title: isArabic ? "Cobonat | كوبونات" : 'Cobonat - Coupons',
+      title: isArabic ? "كوبونات" : 'Cobonat',
       description: isArabic ? "وفر فلوسك مع كوبونات فعالة وموثقة" : "Save more with verified coupons",
     },
     robots: {
@@ -277,15 +262,9 @@ export default async function Home({ params }) {
     activeVouchersCount: brand._count?.vouchers || 0
   }));
 
-  const schemas = [
-    generateOrganizationSchema(locale),
-    generateWebsiteSchema(locale),
-    generateStoreListSchema(transformedFeaturedStores, locale)
-  ];
-
   return (
     <>
-      <MultipleSchemas schemas={schemas} />
+      <WebSiteStructuredData locale={locale} />
       
       <main className="homepage-wrapper">
         {/* Hero Section */}
