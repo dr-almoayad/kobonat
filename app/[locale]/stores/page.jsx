@@ -1,4 +1,4 @@
-// app/[locale]/stores/page.jsx - FIXED SEO
+8// app/[locale]/stores/page.jsx - FIXED SEO
 import { getTranslations } from 'next-intl/server';
 import { prisma } from "@/lib/prisma";
 import StoresGrid from "@/components/StoresGrid/StoresGrid";
@@ -8,12 +8,13 @@ import { getStoresData } from "@/lib/stores";
 import { isValidLocale } from "@/i18n/locales"; // Import your validator
 import { notFound } from "next/navigation";
 import HelpBox from "@/components/help/HelpBox";
+import WebSiteStructuredData from '@/components/StructuredData/WebSiteStructuredData';
 
 import "./stores-page.css";
 
 export const revalidate = 60;
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://coubonat.vercel.app';
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://cobonat.me';
 
 export async function generateMetadata({ params }) {
   const { locale } = await params;
@@ -37,8 +38,6 @@ export async function generateMetadata({ params }) {
       languages: {
         'ar-SA': `${BASE_URL}/ar-SA/stores`,
         'en-SA': `${BASE_URL}/en-SA/stores`,
-        'ar-AE': `${BASE_URL}/ar-AE/stores`,
-        'en-AE': `${BASE_URL}/en-AE/stores`,
         'x-default': `${BASE_URL}/ar-SA/stores`,
       }
     },
@@ -125,6 +124,10 @@ export default async function AllStoresPage({ params }) {
   }
 
   return (
+    <>
+
+      <WebSiteStructuredData locale={locale} /> 
+    
     <div className="stores_page">
       {carouselStores.length > 0 && (
         <div className="stores-hero-section">
@@ -194,5 +197,6 @@ export default async function AllStoresPage({ params }) {
       </section>
       <HelpBox locale={locale}/>
     </div>
+      </>
   );
 }
