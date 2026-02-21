@@ -54,12 +54,15 @@ export async function generateMetadata({ params }) {
             type: 'website',
             locale: locale,
             url: `${BASE_URL}/${locale}/stores/${slug}`,
-            images: category.image ? [{
-              url: category.image,
-              width: 1200,
-              height: 630,
-              alt: categoryName,
-            }] : [],
+            siteName: isArabic ? 'كوبونات' : 'Cobonat',
+            images: [
+              {
+                url: `${BASE_URL}/logo-512x512.png`,
+                width: 512,
+                height: 512,
+                alt: 'Cobonat Logo',
+              }
+            ], 
           },
           twitter: {
             card: 'summary_large_image',
