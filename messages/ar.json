@@ -187,14 +187,14 @@
     "activeOffers": "{count} عروض نشطة"
   },
   
-   "StorePage": {
+  "StorePage": {
     "storeNotFound": "المتجر غير موجود",
     "storeDoesNotExist": "المتجر الذي تبحث عنه غير متوفر في منطقتك",
     "backToHome": "العودة للصفحة الرئيسية",
     "couponCodes": "أكواد الخصم",
     "deals": "العروض",
     "freeShipping": "الشحن المجاني",
-    "similarStores": "متاجر مشابهة",
+    "similarStores": "غيرك شيك على هذه العروض",
     "noActiveVouchers": "لا توجد قسائم نشطة",
     "checkBackSoon": "تحقق مرة أخرى قريباً للحصول على عروض جديدة",
     "visitStoreAnyway": "زيارة المتجر على أي حال",
