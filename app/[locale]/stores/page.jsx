@@ -26,6 +26,12 @@ export async function generateMetadata({ params }) {
   const isArabic = lang === 'ar';
   
   return {
+    icons: {
+      icon: `${BASE_URL}/favicon.ico`,
+      apple: `${BASE_URL}/apple-touch-icon.png`,
+    },
+    applicationName: isArabic ? 'كوبونات' : 'Cobonat',
+    siteName: isArabic ? 'كوبونات' : 'Cobonat',
     title: isArabic 
       ? `أكواد خصم وعروض مميزة في أكثر من 50 متجر في  ${region} - كوبونات`
       : `Promo Codes & Deals at 50+ Stores in ${region}`,
