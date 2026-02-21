@@ -56,33 +56,36 @@ export async function generateMetadata({ params }) {
       }
     },
     openGraph: {
-      type: 'website',
-      locale: locale,
-      url: `${BASE_URL}/${locale}`,
+
       siteName: isArabic ? 'كوبونات' : 'Cobonat',
+      images: [
+        {
+          url: `${BASE_URL}/logo-512x512.png`,
+          width: 512,
+          height: 512,
+          alt: 'Cobonat Logo',
+        }
+      ], 
+      url: `${BASE_URL}/${locale}`,
+      locale: locale,
+      type: 'website',
       title: isArabic 
-        ? "Cobonat | كوبونات - أكواد خصم السعودية" 
-        : 'Cobonat - Save More on Every Purchase',
-      description: isArabic 
-        ? "منصتك الأولى لأكواد الخصم والعروض في السعودية 🇸🇦. وفر فلوسك مع كوبونات فعالة وموثقة لأشهر المتاجر العالمية والمحلية." 
-        : "Your #1 source for verified discount codes in Saudi 🇸🇦. Save more on fashion, electronics, and groceries with verified and active coupons.",
-      images: [{
-        url: `${BASE_URL}/logo-512x512.png`,
-        width: 1200,
-        height: 630,
-        alt: isArabic ? 'كوبونات - أكواد خصم السعودية' : 'Cobonat - Saudi Coupons Platform'
-      }]
+      ? "Cobonat | كوبونات - أكواد خصم السعودية (محدث باستمرار) - وفر أكثر على مشترياتك ومقاضيك!"
+      : "Cobonat | Active & Verified KSA Promo Codes 2026 - Verified Daily for Smart Savings!",
+      description: isArabic
+      ? "منصتك الأولى لأكواد الخصم والعروض في السعودية 🇸🇦. وفر فلوسك مع كوبونات فعالة وموثقة لأشهر المتاجر العالمية والمحلية. مقاضيك، لبسك، وسفرياتك صارت أوفر!"
+      : "Your #1 source for verified discount codes in Saudi 🇸🇦. Save more on fashion, electronics, and groceries with verified and active coupons for top local and global stores.",
     },
     twitter: {
       card: 'summary_large_image',
       site: '@cobonat',
       creator: '@cobonat',
-      title: isArabic 
-        ? "Cobonat | كوبونات - أكواد خصم السعودية" 
-        : 'Cobonat - Save More on Every Purchase',
-      description: isArabic 
-        ? "منصتك الأولى لأكواد الخصم والعروض في السعودية 🇸🇦" 
-        : "Your #1 source for verified discount codes in Saudi 🇸🇦",
+     title: isArabic 
+      ? "Cobonat | كوبونات - أكواد خصم السعودية (محدث باستمرار) - وفر أكثر على مشترياتك ومقاضيك!"
+      : "Cobonat | Active & Verified KSA Promo Codes 2026 - Verified Daily for Smart Savings!",
+      description: isArabic
+      ? "منصتك الأولى لأكواد الخصم والعروض في السعودية 🇸🇦. وفر فلوسك مع كوبونات فعالة وموثقة لأشهر المتاجر العالمية والمحلية. مقاضيك، لبسك، وسفرياتك صارت أوفر!"
+      : "Your #1 source for verified discount codes in Saudi 🇸🇦. Save more on fashion, electronics, and groceries with verified and active coupons for top local and global stores.",
       images: [`${BASE_URL}/logo-512x512.png`],
     },
     robots: {
