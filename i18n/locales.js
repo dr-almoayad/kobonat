@@ -3,8 +3,8 @@ export const LOCALES = {
   // Saudi Arabia
   'ar-SA': {
     code: 'ar-SA',
-    name: 'العربية (السعودية)',
-    name_en: 'Arabic (Saudi Arabia)',
+    name: 'المملكة العربية السعودية',
+    name_en: 'Saudi Arabia',
     language: 'ar',
     region: 'SA',
     flag: '🇸🇦',
@@ -13,8 +13,8 @@ export const LOCALES = {
   },
   'en-SA': {
     code: 'en-SA',
-    name: 'English (Saudi Arabia)',
-    name_ar: 'الإنجليزية (السعودية)',
+    name: 'Saudi Arabia',
+    name_ar: 'المملكة العربية السعودية',
     language: 'en',
     region: 'SA',
     flag: '🇸🇦',
