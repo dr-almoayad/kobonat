@@ -33,6 +33,12 @@ export async function generateMetadata({ params }) {
 
   return {
     metadataBase: new URL(BASE_URL),
+    icons: {
+      icon: `${BASE_URL}/favicon.ico`,
+      apple: `${BASE_URL}/apple-touch-icon.png`,
+    },
+    applicationName: isArabic ? 'كوبونات' : 'Cobonat',
+    siteName: isArabic ? 'كوبونات' : 'Cobonat',
     title: {
       default: isArabic
         ? "Cobonat | كوبونات - أكواد خصم السعودية (محدث باستمرار) - وفر أكثر على مشترياتك ومقاضيك!"
