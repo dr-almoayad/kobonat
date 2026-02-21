@@ -15,7 +15,6 @@ export const routing = defineRouting({
   // Pathnames are shared across all locales
   pathnames: {
     '/': '/',
-    '/home': '/home',
     '/coupons': '/coupons',
     '/stores': '/stores',
     '/search': '/search',
