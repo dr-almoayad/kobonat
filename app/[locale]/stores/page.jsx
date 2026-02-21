@@ -42,6 +42,15 @@ export async function generateMetadata({ params }) {
       }
     },
     openGraph: {
+      siteName: isArabic ? 'كوبونات' : 'Cobonat',
+      images: [
+        {
+          url: `${BASE_URL}/logo-512x512.png`,
+          width: 512,
+          height: 512,
+          alt: 'Cobonat Logo',
+        }
+      ], 
       url: `${BASE_URL}/${locale}/stores`,
       locale: locale,
     },
