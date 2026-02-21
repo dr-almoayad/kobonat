@@ -1,9 +1,10 @@
 // app/sitemap.js - OPTIMIZED FOR BETTER SEO RESULTS
 import { prisma } from '@/lib/prisma';
+import { allLocaleCodes } from '@/i18n/locales';
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://cobonat.me';
 
-const LOCALES = ['ar-SA', 'en-SA'];
+const LOCALES = allLocaleCodes;
 
 // Helper to get most recent update date
 function getMostRecentDate(...dates) {
