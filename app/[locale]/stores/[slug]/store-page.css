@@ -37,9 +37,25 @@
    MAIN CONTENT AREA
    ============================================ */
 .store-main-content {
+   display: flex;
+   flex-direction: row;
+   gap: 1.5rem;
   max-width: 1280px;
   margin: 0 auto;
   padding: 1.5rem 1rem 2rem;
+   position: relative;
+}
+
+.storeCampaignImage{
+   width: 200px;
+   height: 720px;
+   position: sticky;
+   top: 120px;
+   left: 0;
+}
+
+.store-content{
+   width: 100%;
 }
 
 /* Breadcrumbs */
