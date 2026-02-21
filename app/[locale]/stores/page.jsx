@@ -27,8 +27,8 @@ export async function generateMetadata({ params }) {
   
   return {
     title: isArabic 
-      ? `جميع المتاجر - كوبونات وعروض ${region}`
-      : `All Stores - Coupons & Deals ${region}`,
+      ? `أكواد خصم وعروض مميزة في أكثر من 50 متجر في  ${region} - كوبونات`
+      : `Promo Codes & Deals at 50+ Stores in ${region}`,
     description: isArabic
       ? `تصفح جميع المتاجر المتاحة في ${region}. احصل على أفضل الكوبونات والعروض من متاجرك المفضلة.`
       : `Browse all available stores in ${region}. Get the best coupons and deals from your favorite stores.`,
