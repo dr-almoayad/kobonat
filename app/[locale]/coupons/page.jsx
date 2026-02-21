@@ -2,7 +2,7 @@
 import { prisma } from "@/lib/prisma";
 import { getTranslations } from 'next-intl/server';
 import VouchersGrid from "@/components/VouchersGrid/VouchersGrid";
-import Breadcrumbs from "@/components/breadcrumbs/Breadcrumbs";
+import Breadcrumbs from "@/components/Breadcrumbs/Breadcrumbs";
 import HelpBox from "@/components/help/HelpBox";
 
 import "./coupons-page.css";
@@ -10,7 +10,8 @@ import "./coupons-page.css";
 export const revalidate = 60; 
 
 const CouponsPage = async ({ params }) => {
-  const { locale = 'en-sa' } = await params;
+  
+  const { locale = 'ar-SA' } = await params;
   const t = await getTranslations('CouponsPage');
   const now = new Date();
 
@@ -102,8 +103,7 @@ const CouponsPage = async ({ params }) => {
   return (
     <main className="coupons_page">
       <div className="coupons_page_header_container">
-        <div className="coupons_page_content">
-          
+        <div className="coupons_page_content">          
           <div className="coupons_title_section">
             <div className="title_left">
               <h1>{t('pageTitle')}</h1>
