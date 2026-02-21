@@ -46,6 +46,12 @@ export async function generateMetadata({ params }) {
         const categoryName = categoryTranslation?.name || 'Category';
         
         return {
+          icons: {
+            icon: `${BASE_URL}/favicon.ico`,
+            apple: `${BASE_URL}/apple-touch-icon.png`,
+          },
+          applicationName: isArabic ? 'كوبونات' : 'Cobonat',
+          siteName: isArabic ? 'كوبونات' : 'Cobonat',
           title: categoryTranslation.seoTitle || categoryName,
           description: categoryTranslation.seoDescription || categoryTranslation?.description || '',
           openGraph: {
@@ -54,7 +60,6 @@ export async function generateMetadata({ params }) {
             type: 'website',
             locale: locale,
             url: `${BASE_URL}/${locale}/stores/${slug}`,
-            siteName: isArabic ? 'كوبونات' : 'Cobonat',
             images: [
               {
                 url: `${BASE_URL}/logo-512x512.png`,
@@ -111,6 +116,11 @@ export async function generateMetadata({ params }) {
         const storeName = storeTranslation?.name || slug;
         
         return {
+          icons: {
+            icon: `${BASE_URL}/favicon.ico`,
+            apple: `${BASE_URL}/apple-touch-icon.png`,
+          },
+          applicationName: isArabic ? 'كوبونات' : 'Cobonat',
           title: storeTranslation.seoTitle || storeName,
           description: storeTranslation.seoDescription || storeTranslation?.description || `Find the best coupons and deals for ${storeName}`,
           openGraph: {
