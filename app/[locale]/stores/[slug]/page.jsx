@@ -30,6 +30,8 @@ export async function generateMetadata({ params }) {
     const { slug, locale } = await params;
     const [language, countryCode] = locale.split('-');
 
+    const isArabic = language === 'ar';
+
     // Get country data
     const country = await prisma.country.findUnique({
       where: { code: countryCode, isActive: true },
