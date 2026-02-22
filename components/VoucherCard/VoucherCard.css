@@ -601,7 +601,6 @@
   .show-code-btn,
   .get-deal-btn      { padding: 0.35rem 0.875rem; font-size: 0.875rem; }
   .stats-row         { flex-wrap: wrap; }
-  .stat-box          { flex: 1 1 45%; }
 }
 
 @media (max-width: 480px) {
@@ -618,9 +617,6 @@
   .code-preview      { padding: 0.15rem 0.5rem; font-size: 0.75rem; }
   .meta-badge        { padding: 0.2rem 0.5rem; font-size: 0.6875rem; }
   .meta-badge .material-symbols-sharp { font-size: 0.75rem; }
-  .stat-box          { flex: 1 1 100%; border-right: none; border-bottom: 1px solid var(--panel-border); }
-  .stat-box:last-child { border-bottom: none; }
-  .stats-row         { flex-direction: column; }
   .activity-section,
   .feedback-section,
   .detail-section,
