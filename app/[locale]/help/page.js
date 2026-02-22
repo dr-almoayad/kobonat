@@ -2,16 +2,25 @@
 import "../../../app/[locale]/static-pages.css";
 import HelpAccordion from "@/components/help/HelpAccordion";
 
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://cobonat.me';
+
 export async function generateMetadata({ params }) {
   const { locale } = await params;
   const isArabic = locale.startsWith("ar");
 
   return {
-    title: isArabic ? "مرکز المساعدة - كوبونات" : "Help Center - Cobonat",
+    title: isArabic ? "مركز المساعدة - كوبونات" : "Help Center - Cobonat",
     description: isArabic
-      ? "اعثر على إجابات لأسئلتك حول الكوبونات والعروض والحسابات والمشاكل الشائعة."
-      : "Find answers to your questions about coupons, deals, accounts, and common issues.",
-    alternates: { canonical: `/${locale}/help` },
+      ? "اعثر على إجابات لأسئلتك حول الكوبونات والعروض والمشاكل الشائعة."
+      : "Find answers to your questions about coupons, deals, and common issues.",
+    alternates: { 
+      canonical: `${BASE_URL}/${locale}/help`,
+      languages: {
+        'ar-SA': `${BASE_URL}/ar-SA/help`,
+        'en-SA': `${BASE_URL}/en-SA/help`,
+        'x-default': `${BASE_URL}/ar-SA/help`,
+      },
+    },
     robots: { index: true, follow: true },
   };
 }
