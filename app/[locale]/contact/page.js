@@ -10,7 +10,13 @@ export async function generateMetadata({ params }) {
     description: isArabic
       ? "تواصل مع فريق كوبونات عبر البريد الإلكتروني أو وسائل التواصل الاجتماعي."
       : "Get in touch with the Cobonat team via email or social media.",
-    alternates: { canonical: `/${locale}/contact` },
+    alternates: { 
+      canonical: `${BASE_URL}/${locale}/contact`,
+      languages: {
+        'ar-SA': `${BASE_URL}/ar-SA/contact`,
+        'en-SA': `${BASE_URL}/en-SA/contact`,
+      },
+    },
     robots: { index: true, follow: true },
   };
 }
