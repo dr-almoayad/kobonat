@@ -23,7 +23,7 @@
 @media (min-width: 812px) {
   .vouchers-grid{
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    grid-template-columns: 1fr;
   }
   .vouchers-grid-container {
     padding: 0 ;
@@ -43,7 +43,7 @@
   /* 2-column grid for desktop */
   .vouchers-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+    grid-template-columns: 1fr;
     gap: 1rem;
   }
 }
