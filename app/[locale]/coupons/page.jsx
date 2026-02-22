@@ -9,6 +9,58 @@ import "./coupons-page.css";
 
 export const revalidate = 60; 
 
+
+
+
+ export async function generateMetadata({ params }) {
+    const { locale = 'ar-SA' } = await params;
+    const [language, countryCode] = locale.split('-');
+    const isArabic = language === 'ar';
+    const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://cobonat.me';
+  
+    const title = isArabic 
+      ? `كل أكواد خصم وكوبونات السعودية | وفر أكثر مع كوبونات` 
+      : `All Promo Codes & Coupons in Saudi Arabia | Save more with Cobonat`;
+      
+    const description = isArabic
+      ? `منصتك الأولى لأكواد الخصم والعروض في السعودية 🇸🇦. وفر فلوسك مع كوبونات فعالة وموثقة لأشهر المتاجر العالمية والمحلية. مقاضيك، لبسك، وسفرياتك صارت أوفر!`
+      : `Your #1 source for verified discount codes in Saudi 🇸🇦. Save more on fashion, electronics, and groceries with verified and active coupons for top local and global stores.`;
+  
+    return {
+      title,
+      description,
+      alternates: {
+        // This tells Google this IS the primary version of the page
+        canonical: `${BASE_URL}/${locale}/coupons`, 
+      },
+      openGraph: {
+        title,
+        description,
+        url: `${BASE_URL}/${locale}/coupons`,
+        siteName: isArabic ? 'كوبونات' : 'Cobonat',
+        images: [
+          {
+            url: `${BASE_URL}/logo-512x512.png`,
+            width: 512,
+            height: 512,
+            alt: 'Cobonat Logo',
+          },
+        ],
+        locale: locale,
+        type: 'website',
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title,
+        description,
+        images: [`${BASE_URL}/logo-512x512.png`],
+      },
+    };
+  }
+
+
+
+
 const CouponsPage = async ({ params }) => {
   
   const { locale = 'ar-SA' } = await params;
@@ -99,56 +151,6 @@ const CouponsPage = async ({ params }) => {
   const activeVouchers = transformedVouchers.length;
   const exclusiveVouchers = transformedVouchers.filter(v => v.isExclusive).length;
   const verifiedVouchers = transformedVouchers.filter(v => v.isVerified).length;
-
-
-
-
-
-  export async function generateMetadata({ params }) {
-    const { locale = 'ar-SA' } = await params;
-    const [language, countryCode] = locale.split('-');
-    const isArabic = language === 'ar';
-    const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://cobonat.me';
-  
-    const title = isArabic 
-      ? `كل أكواد خصم وكوبونات السعودية | وفر أكثر مع كوبونات` 
-      : `All Promo Codes & Coupons in Saudi Arabia | Save more with Cobonat`;
-      
-    const description = isArabic
-      ? `منصتك الأولى لأكواد الخصم والعروض في السعودية 🇸🇦. وفر فلوسك مع كوبونات فعالة وموثقة لأشهر المتاجر العالمية والمحلية. مقاضيك، لبسك، وسفرياتك صارت أوفر!`
-      : `Your #1 source for verified discount codes in Saudi 🇸🇦. Save more on fashion, electronics, and groceries with verified and active coupons for top local and global stores.`;
-  
-    return {
-      title,
-      description,
-      alternates: {
-        // This tells Google this IS the primary version of the page
-        canonical: `${BASE_URL}/${locale}/coupons`, 
-      },
-      openGraph: {
-        title,
-        description,
-        url: `${BASE_URL}/${locale}/coupons`,
-        siteName: isArabic ? 'كوبونات' : 'Cobonat',
-        images: [
-          {
-            url: `${BASE_URL}/logo-512x512.png`,
-            width: 512,
-            height: 512,
-            alt: 'Cobonat Logo',
-          },
-        ],
-        locale: locale,
-        type: 'website',
-      },
-      twitter: {
-        card: 'summary_large_image',
-        title,
-        description,
-        images: [`${BASE_URL}/logo-512x512.png`],
-      },
-    };
-  }
 
 
   
