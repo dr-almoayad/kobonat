@@ -1,6 +1,8 @@
 // app/[locale]/cookies/page.js
 import "../../../app/[locale]/static-pages.css";
 
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://cobonat.me';
+
 export async function generateMetadata({ params }) {
   const { locale } = await params;
   const isArabic = locale.startsWith("ar");
@@ -10,7 +12,13 @@ export async function generateMetadata({ params }) {
     description: isArabic
       ? "اعرف كيف يستخدم كوبونات الكوكيز وكيف يمكنك التحكم بها."
       : "Learn how Cobonat uses cookies and how you can control them.",
-    alternates: { canonical: `/${locale}/cookies` },
+    alternates: { 
+      canonical: `${BASE_URL}/${locale}/cookies`,
+      languages: {
+        'ar-SA': `${BASE_URL}/ar-SA/cookies`,
+        'en-SA': `${BASE_URL}/en-SA/cookies`,
+      },
+    },
     robots: { index: true, follow: true },
   };
 }
