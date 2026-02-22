@@ -1,6 +1,8 @@
 // app/[locale]/about/page.js
 import "../../../app/[locale]/static-pages.css";
 
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://cobonat.me';
+
 export async function generateMetadata({ params }) {
   const { locale } = await params;
   const isArabic = locale.startsWith("ar");
@@ -10,7 +12,16 @@ export async function generateMetadata({ params }) {
     description: isArabic
       ? "تعرّف على كوبونات — المنصة الرائدة للكوبونات والعروض في منطقة الخليج والشرق الأوسط."
       : "Learn about Cobonat — the leading coupon and deals platform across the Gulf and Middle East.",
-    alternates: { canonical: `/${locale}/about` },
+    alternates: { 
+      // ✅ FIX 1: Use absolute URL
+      canonical: `${BASE_URL}/${locale}/about`,
+      // ✅ FIX 2: Add hreflang to prevent "Duplicate" errors
+      languages: {
+        'ar-SA': `${BASE_URL}/ar-SA/about`,
+        'en-SA': `${BASE_URL}/en-SA/about`,
+        'x-default': `${BASE_URL}/ar-SA/about`,
+      },
+    },
     robots: { index: true, follow: true },
   };
 }
