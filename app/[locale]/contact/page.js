@@ -1,6 +1,10 @@
 // app/[locale]/contact/page.js
 import "../../../app/[locale]/static-pages.css";
 
+
+
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://cobonat.me';
+
 export async function generateMetadata({ params }) {
   const { locale } = await params;
   const isArabic = locale.startsWith("ar");
