@@ -552,86 +552,82 @@ export default async function UnifiedStorePage({ params }) {
             <StorePageShell {...headerProps} />
 
             <main className="store-main-content">
-              <div className="storeCampaignImage">
-                {transformedStore.coverImage}
-              </div>
+              
+              {codeVouchers.length > 0 && (
+                <section className="vouchers-section">
+                  <h2 className="section-title">
+                    <span className="material-symbols-sharp">local_offer</span>
+                    {tStore('couponCodes')}
+                  </h2>
+                  <VouchersGrid vouchers={codeVouchers} hideStoreBranding={true} />
+                </section>
+              )}
 
-              <div className="store-content">
-                {codeVouchers.length > 0 && (
-                  <section className="vouchers-section">
-                    <h2 className="section-title">
-                      <span className="material-symbols-sharp">local_offer</span>
-                      {tStore('couponCodes')}
-                    </h2>
-                    <VouchersGrid vouchers={codeVouchers} hideStoreBranding={true} />
-                  </section>
-                )}
-  
-                {dealVouchers.length > 0 && (
-                  <section className="vouchers-section">
-                    <h2 className="section-title">
-                      <span className="material-symbols-sharp">shopping_bag</span>
-                      {tStore('deals')}
-                    </h2>
-                    <VouchersGrid vouchers={dealVouchers} hideStoreBranding={true} />
-                  </section>
-                )}
-  
-                {shippingVouchers.length > 0 && (
-                  <section className="vouchers-section">
-                    <h2 className="section-title">
-                      <span className="material-symbols-sharp">local_shipping</span>
-                      {tStore('freeShipping')}
-                    </h2>
-                    <VouchersGrid vouchers={shippingVouchers} hideStoreBranding={true} />
-                  </section>
-                )}
-  
-                <OtherPromosSection 
+              {dealVouchers.length > 0 && (
+                <section className="vouchers-section">
+                  <h2 className="section-title">
+                    <span className="material-symbols-sharp">shopping_bag</span>
+                    {tStore('deals')}
+                  </h2>
+                  <VouchersGrid vouchers={dealVouchers} hideStoreBranding={true} />
+                </section>
+              )}
+
+              {shippingVouchers.length > 0 && (
+                <section className="vouchers-section">
+                  <h2 className="section-title">
+                    <span className="material-symbols-sharp">local_shipping</span>
+                    {tStore('freeShipping')}
+                  </h2>
+                  <VouchersGrid vouchers={shippingVouchers} hideStoreBranding={true} />
+                </section>
+              )}
+
+              <OtherPromosSection 
+                storeSlug={transformedStore.slug}
+                storeName={transformedStore.name}
+              />
+
+              {transformedProducts.length > 0 && (
+                <FeaturedProductsCarousel
                   storeSlug={transformedStore.slug}
                   storeName={transformedStore.name}
+                  storeLogo={transformedStore.logo}
+                  products={transformedProducts}
                 />
-  
-                {transformedProducts.length > 0 && (
-                  <FeaturedProductsCarousel
-                    storeSlug={transformedStore.slug}
-                    storeName={transformedStore.name}
-                    storeLogo={transformedStore.logo}
-                    products={transformedProducts}
-                  />
-                )}
-  
-                {faqs.length > 0 && (
-                  <StoreFAQ 
-                    faqs={faqs} 
-                    locale={locale} 
-                    storeName={transformedStore.name}
-                    countryName={countryName}
-                  />
-                )}
-              </div>          
-          </main>
-           {transformedRelatedStores.length > 0 && (
-              <section className="related-stores-section">
-                <h2 className="section-title">
-                  <span className="material-symbols-sharp">storefront</span>
-                  {tStore('similarStores')}
-                </h2>
-                <div className="related-stores-grid">
-                  {transformedRelatedStores.map((relatedStore) => (
-                    <StoreCard
-                      key={relatedStore.id} 
-                      store={relatedStore} 
-                    />
-                  ))}
-                </div>
-              </section>
-            )}
+              )}
 
-            {/* Promo Codes FAQ - Store Pages */}
-            <section className="promo-faq-section">
-              <PromoCodesFAQ />
-            </section>
+              {faqs.length > 0 && (
+                <StoreFAQ 
+                  faqs={faqs} 
+                  locale={locale} 
+                  storeName={transformedStore.name}
+                  countryName={countryName}
+                />
+              )}
+
+              {transformedRelatedStores.length > 0 && (
+                <section className="related-stores-section">
+                  <h2 className="section-title">
+                    <span className="material-symbols-sharp">storefront</span>
+                    {tStore('similarStores')}
+                  </h2>
+                  <div className="related-stores-grid">
+                    {transformedRelatedStores.map((relatedStore) => (
+                      <StoreCard
+                        key={relatedStore.id} 
+                        store={relatedStore} 
+                      />
+                    ))}
+                  </div>
+                </section>
+              )}
+
+              {/* Promo Codes FAQ - Store Pages */}
+              <section className="promo-faq-section">
+                <PromoCodesFAQ />
+              </section>
+            </main>
           </div>
           
           <HelpBox locale={locale}/>
