@@ -1,6 +1,8 @@
 // app/[locale]/privacy/page.js
 import "../static-pages.css";
 
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://cobonat.me';
+
 export async function generateMetadata({ params }) {
   const { locale } = await params;
   const isArabic = locale.startsWith("ar");
@@ -10,7 +12,13 @@ export async function generateMetadata({ params }) {
     description: isArabic
       ? "اقرأ سياسة الخصوصية الخاصة بـ كوبونات لفهم كيف نجمع ونستخدم بياناتك."
       : "Read Cobonat's privacy policy to understand how we collect, use, and protect your data.",
-    alternates: { canonical: `/${locale}/privacy` },
+    alternates: { 
+      canonical: `${BASE_URL}/${locale}/privacy`,
+      languages: {
+        'ar-SA': `${BASE_URL}/ar-SA/privacy`,
+        'en-SA': `${BASE_URL}/en-SA/privacy`,
+      },
+    },
     robots: { index: true, follow: true },
   };
 }
