@@ -1,4 +1,4 @@
-// components/VoucherCard/VoucherCard.jsx - WIDE LAYOUT WITH IMAGE STRIP
+// components/VoucherCard/VoucherCard.jsx - WITH EXPANDABLE DETAILS PANEL
 'use client';
 import React, { useState } from 'react';
 import Image from 'next/image';
@@ -12,6 +12,7 @@ const VoucherCard = ({ voucher, featured = false }) => {
   const [copied, setCopied] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [feedbackSent, setFeedbackSent] = useState(false);
+  const [feedbackValue, setFeedbackValue] = useState('');
 
   const currentLanguage = locale.split('-')[0];
   const isRtl = currentLanguage === 'ar';
@@ -44,81 +45,115 @@ const VoucherCard = ({ voucher, featured = false }) => {
     return 'store';
   };
 
-  // ── Store images for vertical strip ─────────────────────────────
-  // Priority order: bigLogo → coverImage → backgroundImage → logo → placeholder
-  const getStoreImages = () => {
-    const imgs = [];
-    if (voucher.store?.bigLogo)          imgs.push({ src: voucher.store.bigLogo,        type: 'bigLogo' });
-    if (voucher.store?.coverImage)       imgs.push({ src: voucher.store.coverImage,      type: 'cover'   });
-    if (voucher.store?.backgroundImage)  imgs.push({ src: voucher.store.backgroundImage, type: 'bg'      });
-    if (voucher.store?.logo)             imgs.push({ src: voucher.store.logo,            type: 'logo'    });
-    if (imgs.length === 0)               imgs.push({ src: '/placeholder_store.png',      type: 'logo'    });
-    return imgs;
-  };
-
-  // ── Time helpers ─────────────────────────────────────────────────
-  const getRelativeTime = (date) => {
-    if (!date) return null;
-    const diffMins = Math.floor((new Date() - new Date(date)) / 60000);
-    if (diffMins < 1)  return isRtl ? 'الآن'                  : 'just now';
-    if (diffMins < 60) return isRtl ? `قبل ${diffMins} د`      : `${diffMins}m ago`;
-    const h = Math.floor(diffMins / 60);
-    if (h < 24) return isRtl ? `قبل ${h} س`                   : `${h}h ago`;
-    const d = Math.floor(h / 24);
-    if (d === 1) return isRtl ? 'أمس'                         : 'yesterday';
-    if (d < 30)  return isRtl ? `قبل ${d} يوم`                : `${d}d ago`;
-    return isRtl ? `قبل ${Math.floor(d / 30)} شهر`            : `${Math.floor(d / 30)}mo ago`;
-  };
-
+  // ── Last updated ────────────────────────────────────────────────
   const getLastUpdatedTime = () => {
     if (!voucher.updatedAt) return null;
-    const h = Math.floor((new Date() - new Date(voucher.updatedAt)) / 3600000);
-    if (h < 1)  return isRtl ? 'محدث للتو'                     : 'Updated just now';
-    if (h < 24) return isRtl ? `محدث قبل ${h} ساعة`            : `Updated ${h}h ago`;
-    const d = Math.floor(h / 24);
-    if (d === 1) return isRtl ? 'محدث أمس'                     : 'Updated yesterday';
-    if (d < 7)   return isRtl ? `محدث قبل ${d} أيام`           : `Updated ${d}d ago`;
-    const w = Math.floor(d / 7);
+    const updated = new Date(voucher.updatedAt);
+    const now = new Date();
+    const diffHours = Math.floor((now - updated) / (1000 * 60 * 60));
+
+    if (diffHours < 1) return isRtl ? 'محدث للتو' : 'Updated just now';
+    if (diffHours < 24) return isRtl ? `محدث قبل ${diffHours} ساعة` : `Updated ${diffHours}h ago`;
+    const diffDays = Math.floor(diffHours / 24);
+    if (diffDays === 1) return isRtl ? 'محدث أمس' : 'Updated yesterday';
+    if (diffDays < 7) return isRtl ? `محدث قبل ${diffDays} أيام` : `Updated ${diffDays}d ago`;
+    const diffWeeks = Math.floor(diffDays / 7);
     return isRtl
-      ? `محدث قبل ${w} ${w === 1 ? 'أسبوع' : 'أسابيع'}`
-      : `Updated ${w}w ago`;
+      ? `محدث قبل ${diffWeeks} ${diffWeeks === 1 ? 'أسبوع' : 'أسابيع'}`
+      : `Updated ${diffWeeks}w ago`;
   };
 
-  const formatDate = (date) => date
-    ? new Date(date).toLocaleDateString(isRtl ? 'ar-EG' : 'en-US', { year: 'numeric', month: 'short', day: 'numeric' })
-    : null;
+  // ── Relative time helper ─────────────────────────────────────────
+  const getRelativeTime = (date) => {
+    if (!date) return null;
+    const d = new Date(date);
+    const now = new Date();
+    const diffMins = Math.floor((now - d) / (1000 * 60));
+    if (diffMins < 1) return isRtl ? 'الآن' : 'just now';
+    if (diffMins < 60) return isRtl ? `قبل ${diffMins} د` : `${diffMins}m ago`;
+    const diffHours = Math.floor(diffMins / 60);
+    if (diffHours < 24) return isRtl ? `قبل ${diffHours} س` : `${diffHours}h ago`;
+    const diffDays = Math.floor(diffHours / 24);
+    if (diffDays === 1) return isRtl ? 'أمس' : 'yesterday';
+    if (diffDays < 30) return isRtl ? `قبل ${diffDays} يوم` : `${diffDays}d ago`;
+    const diffMonths = Math.floor(diffDays / 30);
+    return isRtl ? `قبل ${diffMonths} شهر` : `${diffMonths}mo ago`;
+  };
 
-  // ── Expiry ───────────────────────────────────────────────────────
+  // ── Date / expiry ───────────────────────────────────────────────
   const isExpired = voucher.expiryDate && new Date(voucher.expiryDate) < new Date();
-  const isExpiringSoon = voucher.expiryDate && !isExpired &&
+  const isExpiringSoon = voucher.expiryDate &&
+    !isExpired &&
     new Date(voucher.expiryDate) < new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-  const daysRemaining = (() => {
+
+  const getDaysRemaining = () => {
     if (!voucher.expiryDate) return null;
-    const d = Math.ceil((new Date(voucher.expiryDate) - new Date()) / 86400000);
-    return d > 0 ? d : 0;
-  })();
-  const isActive = !isExpired && (!voucher.startDate || new Date(voucher.startDate) <= new Date());
+    const diff = new Date(voucher.expiryDate) - new Date();
+    const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
+    return days > 0 ? days : 0;
+  };
+
+  const formatDate = (date) => {
+    if (!date) return null;
+    return new Date(date).toLocaleDateString(
+      isRtl ? 'ar-EG' : 'en-US',
+      { year: 'numeric', month: 'short', day: 'numeric' }
+    );
+  };
 
   // ── Discount display ─────────────────────────────────────────────
   const getDiscountText = () => {
-    if (!voucher.discount)
+    if (!voucher.discount) {
       return voucher.type === 'FREE_SHIPPING'
-        ? (isRtl ? 'شحن مجاني' : 'Free Shipping')
-        : (isRtl ? 'عرض خاص' : 'Special Deal');
+        ? (isRtl ? 'شحن\nمجاني' : 'FREE\nSHIP')
+        : (isRtl ? 'عرض\nخاص' : 'DEAL');
+    }
     const s = String(voucher.discount);
-    if (s.includes('%') || !s.match(/^\d+$/)) return s;
-    return `${voucher.discount}%`;
+    if (s.includes('%')) return s;
+    if (s.match(/^\d+$/)) return `${voucher.discount}%`;
+    return s;
+  };
+
+  const getDiscountLabel = () => {
+    if (voucher.type === 'FREE_SHIPPING') return isRtl ? 'شحن مجاني' : 'Free Shipping';
+    if (voucher.discount) return isRtl ? 'خصم' : 'OFF';
+    return isRtl ? 'عرض' : 'Deal';
   };
 
   // ── Analytics ────────────────────────────────────────────────────
-  const timesUsed  = voucher._count?.clicks ?? voucher.clickCount ?? 0;
-  const lastUsed   = voucher.clicks?.length > 0 ? getRelativeTime(voucher.clicks[0].clickedAt) : null;
-  const activityFeed = (voucher.clicks ?? []).slice(0, 5).map((click, i) => ({
-    id:     click.id ?? i,
-    label:  isRtl ? `مستخدم ${click.id ?? i + 1}` : `User #${click.id ?? i + 1}`,
-    action: isRtl ? 'استخدم هذا الكود' : 'used this code',
-    time:   getRelativeTime(click.clickedAt),
-  }));
+  const timesUsed = voucher._count?.clicks ?? voucher.clickCount ?? 0;
+
+  const getLastUsedTime = () => {
+    if (voucher.clicks && voucher.clicks.length > 0) {
+      return getRelativeTime(voucher.clicks[0].clickedAt);
+    }
+    return null;
+  };
+
+  // Build activity feed from clicks (anonymised)
+  const getActivityFeed = () => {
+    if (!voucher.clicks?.length) return [];
+    return voucher.clicks.slice(0, 5).map((click, i) => ({
+      id: click.id ?? i,
+      label: isRtl ? `مستخدم ${click.id ?? i + 1}` : `User #${click.id ?? i + 1}`,
+      action: isRtl ? `استخدم هذا الكود` : `used this code`,
+      time: getRelativeTime(click.clickedAt),
+      avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${click.id ?? i}`,
+    }));
+  };
+
+  const isActive = !isExpired &&
+    (!voucher.startDate || new Date(voucher.startDate) <= new Date());
+
+  const storeName = getStoreName();
+  const storeSlug = getStoreSlug();
+  const title = getVoucherTitle();
+  const description = getVoucherDescription();
+  const lastUpdated = getLastUpdatedTime();
+  const lastUsed = getLastUsedTime();
+  const daysRemaining = getDaysRemaining();
+  const activityFeed = getActivityFeed();
+  const discountText = getDiscountText();
 
   // ── Handlers ─────────────────────────────────────────────────────
   const handleCodeCopy = async () => {
@@ -132,9 +167,13 @@ const VoucherCard = ({ voucher, featured = false }) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ voucherId: voucher.id, countryCode }),
       });
-      setTimeout(() => window.open(voucher.landingUrl || voucher.store?.websiteUrl, '_blank'), 600);
+      setTimeout(() => {
+        window.open(voucher.landingUrl || voucher.store?.websiteUrl, '_blank');
+      }, 600);
       setTimeout(() => setCopied(false), 2500);
-    } catch (err) { console.error('Failed to copy:', err); }
+    } catch (err) {
+      console.error('Failed to copy:', err);
+    }
   };
 
   const handleDealActivate = async () => {
@@ -147,190 +186,153 @@ const VoucherCard = ({ voucher, featured = false }) => {
     window.open(voucher.landingUrl || voucher.store?.websiteUrl, '_blank');
   };
 
+  const handleFeedbackSubmit = async (worked) => {
+    setFeedbackSent(true);
+    // Could call /api/vouchers/feedback here
+  };
+
   // ── Render ────────────────────────────────────────────────────────
-  const title       = getVoucherTitle();
-  const description = getVoucherDescription();
-  const storeName   = getStoreName();
-  const storeSlug   = getStoreSlug();
-  const storeImages = getStoreImages();
-  const lastUpdated = getLastUpdatedTime();
-
   return (
-    <div className={`
-      voucher-card-new
-      ${isExpired ? 'expired' : ''}
-      ${featured ? 'featured' : ''}
-      ${expanded ? 'card-expanded' : ''}
-    `}>
-
-      {/* ══════════════════════════════════════════════════════════
-          MAIN ROW
-      ══════════════════════════════════════════════════════════ */}
+    <div
+      className={`
+        voucher-card-new
+        ${isExpired ? 'expired' : ''}
+        ${featured ? 'featured' : ''}
+        ${expanded ? 'card-expanded' : ''}
+      `}
+    >
+      {/* ═══ MAIN ROW ═══════════════════════════════════════════════ */}
       <div className="voucher-main-row">
 
-        {/* ── LEFT: Vertical Image Strip ─────────────────────── */}
-        <Link
-          href={`/${locale}/stores/${storeSlug}`}
-          className="voucher-image-strip"
-          tabIndex={-1}
-          aria-label={storeName}
-        >
-          {/* Discount badge — overlaid on the strip */}
-          <div className="strip-discount-overlay">
-            <span className="strip-discount-value">{getDiscountText()}</span>
-            {voucher.type === 'CODE' && (
-              <span className="strip-type-pill">
-                {isRtl ? 'كود' : t('labels.code')}
-              </span>
-            )}
+        {/* LEFT — Discount Badge */}
+        <div className="voucher-left-new">
+          <div className="discount-badge-new">
+            <div className="discount-value-new">{discountText}</div>
+            <div className="discount-label-new">{getDiscountLabel()}</div>
           </div>
+          {voucher.type === 'CODE' && (
+            <div className="voucher-type-label">
+              {isRtl ? 'كود' : t('labels.code')}
+            </div>
+          )}
+        </div>
 
-          {/* Images stacked, each slot fills equal share */}
-          <div className="strip-images">
-            {storeImages.map((img, idx) => (
-              <div
-                key={idx}
-                className={`strip-image-slot strip-slot--${img.type}`}
-              >
-                <Image
-                  src={img.src}
-                  alt=""
-                  fill
-                  sizes="180px"
-                  className="strip-img"
-                  style={{
-                    objectFit: (img.type === 'logo' || img.type === 'bigLogo')
-                      ? 'contain'
-                      : 'cover',
-                  }}
-                />
-              </div>
-            ))}
-          </div>
-        </Link>
-
-        {/* ── RIGHT: Content ──────────────────────────────────── */}
+        {/* RIGHT — Content */}
         <div className="voucher-right-new">
 
-          {/* ── Header ── */}
+          {/* Header */}
           <div className="voucher-header-new">
-            {/* Store name + status badges */}
-            <div className="header-top-row">
-              <Link href={`/${locale}/stores/${storeSlug}`} className="store-name-link">
-                {storeName}
+            {voucher.store && (
+              <Link href={`/${locale}/stores/${storeSlug}`} className="store-link-new">
+                <Image
+                  src={voucher.store?.logo || '/placeholder_store.png'}
+                  alt={storeName}
+                  width={120}
+                  height={120}
+                  className="store-logo-new"
+                />
               </Link>
-              <div className="header-badges">
-                {isActive && !isExpired && (
-                  <span className="meta-badge active">
-                    <span className="material-symbols-sharp">check_circle</span>
-                    {t('badges.active')}
-                  </span>
-                )}
-                {voucher.isVerified && (
-                  <span className="meta-badge verified">
-                    <span className="material-symbols-sharp">verified</span>
-                    {t('badges.verified')}
-                  </span>
-                )}
-                {voucher.isExclusive && (
-                  <span className="meta-badge exclusive">
-                    <span className="material-symbols-sharp">star</span>
-                    {t('badges.exclusive')}
-                  </span>
-                )}
-                {isExpired && (
-                  <span className="meta-badge expired">
-                    <span className="material-symbols-sharp">block</span>
-                    {t('meta.expired')}
-                  </span>
+            )}
+
+            <div className="voucher-title-section">
+              <h3 className="voucher-title-new">{title}</h3>
+              <div className="voucher-meta-line">
+                <span className="times-used">
+                  {timesUsed} {t('meta.timesUsed')}
+                </span>
+                {lastUpdated && (
+                  <>
+                    <span className="meta-divider">•</span>
+                    <span className="last-updated">{lastUpdated}</span>
+                  </>
                 )}
               </div>
             </div>
+          </div>
 
-            {/* Title */}
-            <h3 className="voucher-title-new">{title}</h3>
-
-            {/* Meta line */}
-            <div className="voucher-meta-line">
-              <span className="times-used">
-                <span className="material-symbols-sharp">bar_chart</span>
-                {timesUsed.toLocaleString()} {t('meta.timesUsed')}
-              </span>
-
-              {lastUsed && (
-                <>
-                  <span className="meta-divider">·</span>
-                  <span className="last-used-inline">
-                    <span className="material-symbols-sharp">schedule</span>
-                    {t('meta.lastUsed')}: {lastUsed}
-                  </span>
-                </>
-              )}
-
-              {lastUpdated && (
-                <>
-                  <span className="meta-divider">·</span>
-                  <span className="last-updated">{lastUpdated}</span>
-                </>
-              )}
-
-              {isExpiringSoon && !isExpired && (
-                <>
-                  <span className="meta-divider">·</span>
-                  <span className="expiry-inline urgent-text">
-                    <span className="material-symbols-sharp">timer</span>
-                    {daysRemaining !== null
-                      ? (isRtl ? `ينتهي خلال ${daysRemaining} يوم` : `Expires in ${daysRemaining}d`)
-                      : t('meta.endingSoon')}
-                  </span>
-                </>
+          {/* Action Button */}
+          <div className="voucher-actions-new">
+            <div className="action-button-wrapper">
+              {voucher.type === 'CODE' ? (
+                <button
+                  className={`show-code-btn ${copied ? 'copied' : ''}`}
+                  onClick={handleCodeCopy}
+                  disabled={isExpired}
+                >
+                  {copied ? (
+                    <>
+                      <span className="material-symbols-sharp">check_circle</span>
+                      {t('buttons.copied')}
+                    </>
+                  ) : (
+                    <>
+                      {t('buttons.copyShort')}
+                      <span className="code-preview">{voucher.code || 'CODE'}</span>
+                    </>
+                  )}
+                </button>
+              ) : (
+                <button
+                  className="get-deal-btn"
+                  onClick={handleDealActivate}
+                  disabled={isExpired}
+                >
+                  {t('buttons.getDeal')}
+                  <span className="material-symbols-sharp">arrow_forward</span>
+                </button>
               )}
             </div>
           </div>
 
-          {/* ── Action button ── */}
-          <div className="voucher-actions-new">
-            {voucher.type === 'CODE' ? (
-              <button
-                className={`show-code-btn ${copied ? 'copied' : ''}`}
-                onClick={handleCodeCopy}
-                disabled={isExpired}
-              >
-                {copied ? (
-                  <>
-                    <span className="material-symbols-sharp">check_circle</span>
-                    {t('buttons.copied')}
-                  </>
-                ) : (
-                  <>
-                    {t('buttons.copyShort')}
-                    <span className="code-preview">{voucher.code || 'CODE'}</span>
-                    <span className="material-symbols-sharp copy-icon">content_copy</span>
-                  </>
-                )}
-              </button>
-            ) : (
-              <button
-                className="get-deal-btn"
-                onClick={handleDealActivate}
-                disabled={isExpired}
-              >
-                {t('buttons.getDeal')}
-                <span className="material-symbols-sharp">arrow_forward</span>
-              </button>
+          {/* Footer Meta */}
+          <div className="voucher-footer-new">
+            {isActive && !isExpired && (
+              <span className="meta-badge active">
+                <span className="material-symbols-sharp">check_circle</span>
+                {t('badges.active')}
+              </span>
+            )}
+            {lastUsed && (
+              <span className="meta-badge last-used">
+                <span className="material-symbols-sharp">schedule</span>
+                {t('meta.lastUsed')}: {lastUsed}
+              </span>
+            )}
+            {isExpiringSoon && !isExpired && (
+              <span className="meta-badge urgent">
+                <span className="material-symbols-sharp">timer</span>
+                {daysRemaining !== null
+                  ? (isRtl ? `ينتهي خلال ${daysRemaining} يوم` : `Expires in ${daysRemaining}d`)
+                  : t('meta.endingSoon')}
+              </span>
+            )}
+            {isExpired && (
+              <span className="meta-badge expired">
+                <span className="material-symbols-sharp">block</span>
+                {t('meta.expired')}
+              </span>
+            )}
+            {voucher.isVerified && (
+              <span className="meta-badge verified">
+                <span className="material-symbols-sharp">verified</span>
+                {t('badges.verified')}
+              </span>
+            )}
+            {voucher.isExclusive && (
+              <span className="meta-badge exclusive">
+                <span className="material-symbols-sharp">star</span>
+                {t('badges.exclusive')}
+              </span>
             )}
           </div>
 
-          {/* ── Expand toggle ── */}
+          {/* Toggle expand */}
           <button
             className="expand-toggle-btn"
-            onClick={() => setExpanded(v => !v)}
+            onClick={() => setExpanded((v) => !v)}
             aria-expanded={expanded}
           >
-            <span
-              className="material-symbols-sharp expand-icon"
-              style={{ transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)' }}
-            >
+            <span className="material-symbols-sharp expand-icon" style={{ transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)' }}>
               expand_more
             </span>
             <span className="expand-toggle-label">
@@ -342,19 +344,18 @@ const VoucherCard = ({ voucher, featured = false }) => {
         </div>
       </div>
 
-      {/* ══════════════════════════════════════════════════════════
-          EXPANDED PANEL
-      ══════════════════════════════════════════════════════════ */}
+      {/* ═══ EXPANDED PANEL ══════════════════════════════════════════ */}
       <div className={`voucher-expanded-panel ${expanded ? 'panel-open' : ''}`}>
         <div className="expanded-panel-inner">
 
-          {/* Stats */}
+          {/* ── Stats row ──────────────────────────────────────────── */}
           <div className="stats-row">
             <div className="stat-box">
               <span className="stat-icon material-symbols-sharp">bar_chart</span>
               <span className="stat-value">{timesUsed.toLocaleString()}</span>
               <span className="stat-label">{isRtl ? 'إجمالي الاستخدامات' : 'Total Uses'}</span>
             </div>
+
             {lastUsed && (
               <div className="stat-box">
                 <span className="stat-icon material-symbols-sharp">schedule</span>
@@ -362,20 +363,23 @@ const VoucherCard = ({ voucher, featured = false }) => {
                 <span className="stat-label">{isRtl ? 'آخر استخدام' : 'Last Used'}</span>
               </div>
             )}
+
             {voucher.expiryDate && (
               <div className="stat-box">
                 <span className="stat-icon material-symbols-sharp">
                   {isExpired ? 'event_busy' : 'event_available'}
                 </span>
                 <span className="stat-value" style={isExpired ? { color: 'var(--color-danger)' } : {}}>
-                  {isExpired ? (isRtl ? 'منتهي' : 'Expired')
-                    : daysRemaining !== null
+                  {isExpired
+                    ? (isRtl ? 'منتهي' : 'Expired')
+                    : (daysRemaining !== null
                       ? (isRtl ? `${daysRemaining} يوم` : `${daysRemaining}d left`)
-                      : formatDate(voucher.expiryDate)}
+                      : formatDate(voucher.expiryDate))}
                 </span>
                 <span className="stat-label">{isRtl ? 'تاريخ الانتهاء' : 'Expires'}</span>
               </div>
             )}
+
             {voucher.startDate && (
               <div className="stat-box">
                 <span className="stat-icon material-symbols-sharp">event</span>
@@ -385,7 +389,7 @@ const VoucherCard = ({ voucher, featured = false }) => {
             )}
           </div>
 
-          {/* Activity feed */}
+          {/* ── Activity feed ──────────────────────────────────────── */}
           {activityFeed.length > 0 && (
             <div className="activity-section">
               <h4 className="section-title">
@@ -393,7 +397,7 @@ const VoucherCard = ({ voucher, featured = false }) => {
                 {isRtl ? 'سجل الاستخدامات' : 'Usage Activity'}
               </h4>
               <div className="activity-feed">
-                {activityFeed.map(item => (
+                {activityFeed.map((item) => (
                   <div key={item.id} className="activity-item">
                     <div className="activity-avatar">
                       <span className="material-symbols-sharp">person</span>
@@ -409,7 +413,7 @@ const VoucherCard = ({ voucher, featured = false }) => {
             </div>
           )}
 
-          {/* Feedback */}
+          {/* ── Feedback ───────────────────────────────────────────── */}
           {!feedbackSent ? (
             <div className="feedback-section">
               <p className="feedback-prompt">
@@ -417,11 +421,17 @@ const VoucherCard = ({ voucher, featured = false }) => {
                 {isRtl ? 'هل نجح هذا الكود؟' : 'Did this code work for you?'}
               </p>
               <div className="feedback-actions">
-                <button className="feedback-btn feedback-yes" onClick={() => setFeedbackSent(true)}>
+                <button
+                  className="feedback-btn feedback-yes"
+                  onClick={() => handleFeedbackSubmit(true)}
+                >
                   <span className="material-symbols-sharp">thumb_up</span>
                   {isRtl ? 'نعم، نجح' : 'Yes, it worked'}
                 </button>
-                <button className="feedback-btn feedback-no" onClick={() => setFeedbackSent(true)}>
+                <button
+                  className="feedback-btn feedback-no"
+                  onClick={() => handleFeedbackSubmit(false)}
+                >
                   <span className="material-symbols-sharp">thumb_down</span>
                   {isRtl ? 'لا، لم ينجح' : "No, it didn't"}
                 </button>
@@ -434,13 +444,14 @@ const VoucherCard = ({ voucher, featured = false }) => {
             </div>
           )}
 
-          {/* About this offer */}
+          {/* ── Detail section ─────────────────────────────────────── */}
           <div className="detail-section">
             <h4 className="section-title">
               <span className="material-symbols-sharp">info</span>
               {isRtl ? 'تفاصيل العرض' : 'About this offer'}
             </h4>
 
+            {/* Code facts */}
             {voucher.discount && (
               <div className="detail-row fact-row">
                 <span className="detail-icon material-symbols-sharp">sell</span>
@@ -455,6 +466,7 @@ const VoucherCard = ({ voucher, featured = false }) => {
               </div>
             )}
 
+            {/* Description / restrictions */}
             {description && (
               <div className="detail-row restriction-row">
                 <span className="detail-icon material-symbols-sharp">warning_amber</span>
@@ -465,6 +477,7 @@ const VoucherCard = ({ voucher, featured = false }) => {
               </div>
             )}
 
+            {/* Expiry */}
             {voucher.expiryDate && (
               <div className="detail-row">
                 <span className="detail-icon material-symbols-sharp">event</span>
@@ -479,6 +492,7 @@ const VoucherCard = ({ voucher, featured = false }) => {
               </div>
             )}
 
+            {/* How it works */}
             <div className="detail-row">
               <span className="detail-icon material-symbols-sharp">help_outline</span>
               <div className="detail-text">
@@ -487,20 +501,25 @@ const VoucherCard = ({ voucher, featured = false }) => {
                   {voucher.type === 'CODE'
                     ? (isRtl
                       ? 'انقر على "نسخ الكود" ثم الصق الكود في حقل الكوبون عند الدفع على موقع المتجر.'
-                      : 'Click "Copy Code", then paste it in the coupon field at checkout on the store\'s website.')
+                      : 'Click "Copy Code", then paste the code in the coupon field at checkout on the store\'s website.')
                     : (isRtl
-                      ? 'انقر على "الحصول على العرض" للانتقال إلى الصفحة المخصصة حيث سيُطبَّق الخصم تلقائياً.'
+                      ? 'انقر على "الحصول على العرض" للانتقال إلى الصفحة المخصصة للعرض حيث سيُطبَّق الخصم تلقائياً.'
                       : 'Click "Get Deal" to go to the deal page where the discount is applied automatically.')}
                 </span>
               </div>
             </div>
           </div>
 
-          {/* Footer */}
+          {/* ── Store link ─────────────────────────────────────────── */}
           <div className="expanded-footer">
-            <Link href={`/${locale}/stores/${storeSlug}`} className="view-store-link">
+            <Link
+              href={`/${locale}/stores/${storeSlug}`}
+              className="view-store-link"
+            >
               <span className="material-symbols-sharp">storefront</span>
-              {isRtl ? `عرض جميع كوبونات ${storeName}` : `View all ${storeName} coupons`}
+              {isRtl
+                ? `عرض جميع كوبونات ${storeName}`
+                : `View all ${storeName} coupons`}
               <span className="material-symbols-sharp arrow-icon">chevron_right</span>
             </Link>
           </div>
