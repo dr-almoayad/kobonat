@@ -56,6 +56,7 @@ export async function generateMetadata({ params }) {
           title: categoryTranslation.seoTitle || categoryName,
           description: categoryTranslation.seoDescription || categoryTranslation?.description || '',
           openGraph: {
+            siteName: isArabic ? 'كوبونات' : 'Cobonat',
             title: categoryTranslation.seoTitle || categoryName,
             description: categoryTranslation.seoDescription || categoryTranslation?.description || '',
             type: 'website',
@@ -125,6 +126,7 @@ export async function generateMetadata({ params }) {
           title: storeTranslation.seoTitle || storeName,
           description: storeTranslation.seoDescription || storeTranslation?.description || `Find the best coupons and deals for ${storeName}`,
           openGraph: {
+            siteName: isArabic ? 'كوبونات' : 'Cobonat',
             title: storeTranslation.seoTitle || storeName,
             description: storeTranslation.seoDescription || storeTranslation?.description || '',
             type: 'website',
