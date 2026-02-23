@@ -13,12 +13,13 @@ export default function AdminDashboard() {
   useEffect(() => {
     async function fetchStats() {
       try {
-        const [storesRes, vouchersRes, countriesRes, categoriesRes, blogRes] = await Promise.all([
+        const [storesRes, vouchersRes, countriesRes, categoriesRes, blogRes, curatedRes] = await Promise.all([
           fetch('/api/admin/stores?locale=en'),
           fetch('/api/admin/vouchers?locale=en'),
           fetch('/api/admin/countries?locale=en'),
           fetch('/api/admin/categories?locale=en'),
-          fetch('/api/admin/blog?locale=en')
+          fetch('/api/admin/blog?locale=en'),
+          fetch('/api/admin/curated-offers')
         ]);
 
         const stores     = await storesRes.json();
@@ -26,6 +27,7 @@ export default function AdminDashboard() {
         const countries  = await countriesRes.json();
         const categories = await categoriesRes.json();
         const blogPosts  = await blogRes.json();
+        const curated    = await curatedRes.json();
 
         const now = new Date();
         const activeVouchers = Array.isArray(vouchers)
@@ -36,7 +38,8 @@ export default function AdminDashboard() {
           stores:    { total: stores.length, active: stores.filter(s => s.isActive).length },
           vouchers:  { total: vouchers.length, active: activeVouchers.length, expired: vouchers.length - activeVouchers.length },
           countries: countries.countries?.length || 0,
-          categories:categories.length
+          categories:categories.length,
+          curated:   curated.length || 0
         });
 
         // Blog stats from the fetched posts
@@ -74,6 +77,11 @@ export default function AdminDashboard() {
           <div className={styles.statNumber}>{stats?.vouchers.active || 0}</div>
           <div className={styles.statLabel}>Active Vouchers</div>
           <div style={{ fontSize: 12, color: '#999', marginTop: 5 }}>{stats?.vouchers.total || 0} total</div>
+        </div>
+        <div className={styles.statCard}>
+          <div className={styles.statNumber}>{stats?.curated || 0}</div>
+          <div className={styles.statLabel}>Curated Offers</div>
+          <div style={{ fontSize: 12, color: '#999', marginTop: 5 }}>Homepage Featured</div>
         </div>
         <div className={styles.statCard}>
           <div className={styles.statNumber}>{stats?.countries || 0}</div>
@@ -120,6 +128,7 @@ export default function AdminDashboard() {
         <div className={styles.grid}>
 
           {/* Store management */}
+          
           <Link href="/admin/stores" className={styles.card} style={{ textDecoration: 'none' }}>
             <div className={styles.cardHeader}><h3 className={styles.cardTitle}>Manage Stores</h3></div>
             <div className={styles.cardContent}>View and manage all stores</div>
@@ -128,6 +137,11 @@ export default function AdminDashboard() {
           <Link href="/admin/vouchers" className={styles.card} style={{ textDecoration: 'none' }}>
             <div className={styles.cardHeader}><h3 className={styles.cardTitle}>Manage Vouchers</h3></div>
             <div className={styles.cardContent}>Create and edit vouchers</div>
+          </Link>
+
+          <Link href="/admin/curated-offers" className={styles.card} style={{ textDecoration: 'none', borderLeft: '4px solid #f59e0b' }}>
+            <div className={styles.cardHeader}><h3 className={styles.cardTitle}>✨ Curated Offers</h3></div>
+            <div className={styles.cardContent}>Manage the 3 featured offer cards shown on the homepage</div>
           </Link>
 
           <Link href="/admin/categories" className={styles.card} style={{ textDecoration: 'none' }}>
