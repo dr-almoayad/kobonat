@@ -15,6 +15,10 @@ export async function GET(req, { params }) {
     const { searchParams } = new URL(req.url);
     const locale = searchParams.get('locale') || 'en';
 
+    if (!prisma.blogPost) {
+      return NextResponse.json({ error: 'Blog models not available — run prisma generate' }, { status: 503 });
+    }
+
     const post = await prisma.blogPost.findUnique({
       where: { id: parseInt(id) },
       include: {
@@ -52,6 +56,10 @@ export async function DELETE(req, { params }) {
     }
 
     const { id } = await params;
+
+    if (!prisma.blogPost) {
+      return NextResponse.json({ error: 'Blog models not available — run prisma generate' }, { status: 503 });
+    }
 
     await prisma.blogPost.delete({ where: { id: parseInt(id) } });
 
