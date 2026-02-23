@@ -1,0 +1,143 @@
+/* components/CuratedOffersSection/CuratedOffersSection.css */
+
+.co-section {
+  padding: 2.5rem 0;
+}
+
+.co-section-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+/* ── Header ─────────────────────────────────────────────────────────────── */
+.co-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 1.75rem;
+  gap: 1rem;
+}
+
+.co-section-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.co-section-title {
+  margin: 0;
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #1a1a2e;
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  font-family: 'Alexandria', sans-serif;
+}
+
+.co-section-icon {
+  color: #470ae2;
+  font-size: 2rem;
+  /* prevent icon from animating on section enter */
+  flex-shrink: 0;
+}
+
+.co-section-subtitle {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #64748b;
+  font-family: 'Open Sans', sans-serif;
+}
+
+.co-section-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 14px;
+  background: rgba(71, 10, 226, 0.07);
+  color: #470ae2;
+  border: 1px solid rgba(71, 10, 226, 0.2);
+  border-radius: 20px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ── Grid ───────────────────────────────────────────────────────────────── */
+.co-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+}
+
+/* If only 1 or 2 items, don't leave awkward empty columns */
+.co-grid[data-count="1"] {
+  grid-template-columns: minmax(0, 640px);
+}
+
+.co-grid[data-count="2"] {
+  grid-template-columns: repeat(2, 1fr);
+  max-width: 880px;
+}
+
+/* ── Responsive ─────────────────────────────────────────────────────────── */
+@media (max-width: 1100px) {
+  .co-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* On tablet, 3rd card spans full width if odd count */
+  .co-grid[data-count="3"] > *:nth-child(3) {
+    grid-column: 1 / -1;
+    max-width: 600px;
+    margin: 0 auto;
+    width: 100%;
+  }
+}
+
+@media (max-width: 767px) {
+  .co-section {
+    padding: 1.75rem 0;
+  }
+
+  .co-section-title {
+    font-size: 1.4rem;
+  }
+
+  .co-section-icon {
+    font-size: 1.6rem;
+  }
+
+  .co-grid,
+  .co-grid[data-count="2"],
+  .co-grid[data-count="3"] {
+    grid-template-columns: 1fr;
+  }
+
+  .co-grid[data-count="3"] > *:nth-child(3) {
+    grid-column: auto;
+    max-width: none;
+  }
+
+  .co-section-header {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    margin-bottom: 1.25rem;
+  }
+}
+
+@media (max-width: 479px) {
+  .co-section-inner {
+    padding: 0 1rem;
+  }
+
+  .co-section-title {
+    font-size: 1.25rem;
+  }
+
+  .co-grid {
+    gap: 1rem;
+  }
+}
