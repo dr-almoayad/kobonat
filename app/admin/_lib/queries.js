@@ -459,97 +459,142 @@ export async function getStoreProducts(storeId, locale = 'en') {
 
 // ============================================================================
 // BLOG — append these to your existing app/admin/_lib/queries.js
+//
+// IMPORTANT: All functions guard against a stale Prisma client (i.e. when
+// `prisma generate` hasn't been run after adding the blog models to schema.prisma).
+// Run `npx prisma migrate dev --name add_blog_system && npx prisma generate`
+// to permanently resolve any "Cannot read properties of undefined" errors.
 // ============================================================================
 
 export async function getBlogPosts(locale = 'en') {
-  return prisma.blogPost.findMany({
-    include: {
-      translations: { where: { locale } },
-      author: true,
-      category: {
-        include: { translations: { where: { locale } } }
+  try {
+    return await prisma.blogPost.findMany({
+      include: {
+        translations: { where: { locale } },
+        author: true,
+        category: {
+          include: { translations: { where: { locale } } }
+        },
+        tags: {
+          include: { tag: { include: { translations: { where: { locale } } } } }
+        },
+        _count: { select: { relatedProducts: true } }
       },
-      tags: {
-        include: { tag: { include: { translations: { where: { locale } } } } }
-      },
-      _count: { select: { relatedProducts: true } }
-    },
-    orderBy: { createdAt: 'desc' }
-  });
+      orderBy: { createdAt: 'desc' }
+    });
+  } catch (e) {
+    console.error('[getBlogPosts] Prisma error — did you run prisma generate?', e.message);
+    return [];
+  }
 }
 
 export async function getBlogPost(id, locale = 'en') {
-  return prisma.blogPost.findUnique({
-    where: { id: parseInt(id) },
-    include: {
-      translations: true,           // all locales for the edit form
-      author: true,
-      category: {
-        include: { translations: { where: { locale } } }
-      },
-      tags: {
-        include: { tag: { include: { translations: true } } }
-      },
-      relatedProducts: true,
-      relatedPosts: {
-        include: {
-          relatedPost: {
-            include: { translations: { where: { locale } } }
+  try {
+    return await prisma.blogPost.findUnique({
+      where: { id: parseInt(id) },
+      include: {
+        translations: true,
+        author: true,
+        category: {
+          include: { translations: { where: { locale } } }
+        },
+        tags: {
+          include: { tag: { include: { translations: true } } }
+        },
+        relatedProducts: true,
+        relatedPosts: {
+          include: {
+            relatedPost: {
+              include: { translations: { where: { locale } } }
+            }
           }
         }
       }
-    }
-  });
+    });
+  } catch (e) {
+    console.error('[getBlogPost] Prisma error — did you run prisma generate?', e.message);
+    return null;
+  }
 }
 
 export async function getBlogCategories(locale = 'en') {
-  return prisma.blogCategory.findMany({
-    include: {
-      translations: { where: { locale } },
-      _count: { select: { posts: true } }
-    },
-    orderBy: { createdAt: 'desc' }
-  });
+  try {
+    return await prisma.blogCategory.findMany({
+      include: {
+        translations: { where: { locale } },
+        _count: { select: { posts: true } }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+  } catch (e) {
+    console.error('[getBlogCategories] Prisma error — did you run prisma generate?', e.message);
+    return [];
+  }
 }
 
 export async function getBlogCategory(id) {
-  return prisma.blogCategory.findUnique({
-    where: { id: parseInt(id) },
-    include: { translations: true }
-  });
+  try {
+    return await prisma.blogCategory.findUnique({
+      where: { id: parseInt(id) },
+      include: { translations: true }
+    });
+  } catch (e) {
+    console.error('[getBlogCategory] Prisma error — did you run prisma generate?', e.message);
+    return null;
+  }
 }
 
 export async function getBlogAuthors() {
-  return prisma.blogAuthor.findMany({
-    include: { _count: { select: { posts: true } } },
-    orderBy: { createdAt: 'desc' }
-  });
+  try {
+    return await prisma.blogAuthor.findMany({
+      include: { _count: { select: { posts: true } } },
+      orderBy: { createdAt: 'desc' }
+    });
+  } catch (e) {
+    console.error('[getBlogAuthors] Prisma error — did you run prisma generate?', e.message);
+    return [];
+  }
 }
 
 export async function getBlogAuthor(id) {
-  return prisma.blogAuthor.findUnique({
-    where: { id: parseInt(id) }
-  });
+  try {
+    return await prisma.blogAuthor.findUnique({
+      where: { id: parseInt(id) }
+    });
+  } catch (e) {
+    console.error('[getBlogAuthor] Prisma error — did you run prisma generate?', e.message);
+    return null;
+  }
 }
 
 export async function getBlogTags(locale = 'en') {
-  return prisma.blogTag.findMany({
-    include: {
-      translations: { where: { locale } },
-      _count: { select: { posts: true } }
-    },
-    orderBy: { createdAt: 'desc' }
-  });
+  try {
+    return await prisma.blogTag.findMany({
+      include: {
+        translations: { where: { locale } },
+        _count: { select: { posts: true } }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+  } catch (e) {
+    console.error('[getBlogTags] Prisma error — did you run prisma generate?', e.message);
+    return [];
+  }
 }
 
 export async function getBlogDashboardStats() {
-  const now = new Date();
-  const [total, published, draft, totalCategories, totalAuthors] = await Promise.all([
-    prisma.blogPost.count(),
-    prisma.blogPost.count({ where: { status: 'PUBLISHED', publishedAt: { lte: now } } }),
-    prisma.blogPost.count({ where: { status: 'DRAFT' } }),
-    prisma.blogCategory.count(),
-    prisma.blogAuthor.count()
-  ]);
-  return { total, published, draft, categories: totalCategories, authors: totalAuthors };
+  try {
+    const now = new Date();
+    const [total, published, draft, totalCategories, totalAuthors] = await Promise.all([
+      prisma.blogPost.count(),
+      prisma.blogPost.count({ where: { status: 'PUBLISHED', publishedAt: { lte: now } } }),
+      prisma.blogPost.count({ where: { status: 'DRAFT' } }),
+      prisma.blogCategory.count(),
+      prisma.blogAuthor.count()
+    ]);
+    return { total, published, draft, categories: totalCategories, authors: totalAuthors };
+  } catch (e) {
+    console.error('[getBlogDashboardStats] Prisma error — did you run prisma generate?', e.message);
+    return { total: 0, published: 0, draft: 0, categories: 0, authors: 0 };
+  }
 }
