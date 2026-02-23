@@ -233,55 +233,22 @@ const VoucherCard = ({ voucher, featured = false }) => {
                 />
               </Link>
             )}
-
             <div className="voucher-title-section">
               <h3 className="voucher-title-new">{title}</h3>
-              <div className="voucher-meta-line">
-                <span className="times-used">
-                  {timesUsed} {t('meta.timesUsed')}
-                </span>
-                {lastUpdated && (
-                  <>
-                    <span className="meta-divider">•</span>
-                    <span className="last-updated">{lastUpdated}</span>
-                  </>
-                )}
-              </div>
             </div>
           </div>
-
-          {/* Action Button */}
-          <div className="voucher-actions-new">
-            <div className="action-button-wrapper">
-              {voucher.type === 'CODE' ? (
-                <button
-                  className={`show-code-btn ${copied ? 'copied' : ''}`}
-                  onClick={handleCodeCopy}
-                  disabled={isExpired}
-                >
-                  {copied ? (
-                    <>
-                      <span className="material-symbols-sharp">check_circle</span>
-                      {t('buttons.copied')}
-                    </>
-                  ) : (
-                    <>
-                      {t('buttons.copyShort')}
-                      <span className="code-preview">{voucher.code || 'CODE'}</span>
-                    </>
-                  )}
-                </button>
-              ) : (
-                <button
-                  className="get-deal-btn"
-                  onClick={handleDealActivate}
-                  disabled={isExpired}
-                >
-                  {t('buttons.getDeal')}
-                  <span className="material-symbols-sharp">arrow_forward</span>
-                </button>
-              )}
-            </div>
+          
+          {/* Meta */}
+          <div className="voucher-meta-line">
+            <span className="times-used">
+              {timesUsed} {t('meta.timesUsed')}
+            </span>
+            {lastUpdated && (
+              <>
+                <span className="meta-divider">•</span>
+                <span className="last-updated">{lastUpdated}</span>
+              </>
+            )}
           </div>
 
           {/* Footer Meta */}
@@ -341,6 +308,40 @@ const VoucherCard = ({ voucher, featured = false }) => {
                 : (isRtl ? 'عرض التفاصيل' : 'Show details')}
             </span>
           </button>
+        </div>
+      </div>
+
+      {/* Action Button */}
+      <div className="voucher-actions-new">
+        <div className="action-button-wrapper">
+          {voucher.type === 'CODE' ? (
+            <button
+              className={`show-code-btn ${copied ? 'copied' : ''}`}
+              onClick={handleCodeCopy}
+              disabled={isExpired}
+            >
+              {copied ? (
+                <>
+                  <span className="material-symbols-sharp">check_circle</span>
+                  {t('buttons.copied')}
+                </>
+              ) : (
+                <>
+                  {t('buttons.copyShort')}
+                  <span className="code-preview">{voucher.code || 'CODE'}</span>
+                </>
+              )}
+            </button>
+          ) : (
+            <button
+              className="get-deal-btn"
+              onClick={handleDealActivate}
+              disabled={isExpired}
+            >
+              {t('buttons.getDeal')}
+              <span className="material-symbols-sharp">arrow_forward</span>
+            </button>
+          )}
         </div>
       </div>
 
