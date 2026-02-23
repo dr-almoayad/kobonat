@@ -598,8 +598,14 @@
   .voucher-left-new  { flex: 0 0 120px; padding: 1rem 0.5rem; }
   .discount-value-new { font-size: 1.75rem; }
   .voucher-right-new { padding: 0.875rem 1rem 0.625rem; gap: 0.5rem; }
+  .voucher-header-new {
+    flex-wrap: wrap;
+  }
   .voucher-title-new { font-size: 0.9375rem; -webkit-line-clamp: 1; }
-  .store-logo-new    { height: 36px; }
+  .store-logo-new    { 
+    height: 36px; 
+    width: 100px;
+  }
   .show-code-btn,
   .get-deal-btn      { padding: 0.35rem 0.875rem; font-size: 0.875rem; }
   .stats-row         { flex-wrap: wrap; }
