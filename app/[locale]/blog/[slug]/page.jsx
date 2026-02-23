@@ -9,16 +9,26 @@ import BlogPostStructuredData from '@/components/StructuredData/BlogPostStructur
 // ============================================================================
 // Static params for SSG (optional but good for performance)
 // ============================================================================
+// Allow on-demand rendering for posts not pre-generated at build time
+export const dynamicParams = true;
+
 export async function generateStaticParams() {
-  const posts = await prisma.blogPost.findMany({
-    where: { status: 'PUBLISHED' },
-    select: { slug: true }
-  });
-  // Generate for both locales
-  return posts.flatMap(post => [
-    { locale: 'ar-SA', slug: post.slug },
-    { locale: 'en-SA', slug: post.slug }
-  ]);
+  try {
+    const posts = await prisma.blogPost.findMany({
+      where: { status: 'PUBLISHED' },
+      select: { slug: true }
+    });
+    // Generate for both locales
+    return posts.flatMap(post => [
+      { locale: 'ar-SA', slug: post.slug },
+      { locale: 'en-SA', slug: post.slug }
+    ]);
+  } catch (error) {
+    // Return empty array if the table doesn't exist yet (pre-migration build)
+    // or if the DB is unreachable at build time
+    console.warn('[blog/[slug]] generateStaticParams skipped:', error.message);
+    return [];
+  }
 }
 
 // ============================================================================
