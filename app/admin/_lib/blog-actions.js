@@ -26,7 +26,8 @@ function assertBlogModels() {
 export async function createBlogPost(formData) {
   try {
     assertBlogModels();
-    const publishedAtRaw
+    // ✅ FIX: Added the missing assignment
+    const publishedAtRaw = formData.get('publishedAt');
     const status = formData.get('status') || 'DRAFT';
     const tagSlugs = formData.getAll('tagSlugs');   // array of existing tag slugs
     const tagNamesEn = formData.getAll('tagNamesEn'); // parallel: new tag names EN
@@ -83,7 +84,6 @@ export async function createBlogPost(formData) {
     return { error: error.message };
   }
 }
-
 
 export async function updateBlogPost(id, formData) {
   try {
