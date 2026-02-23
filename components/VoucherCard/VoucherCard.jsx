@@ -292,22 +292,6 @@ const VoucherCard = ({ voucher, featured = false }) => {
               </span>
             )}
           </div>
-
-          {/* Toggle expand */}
-          <button
-            className="expand-toggle-btn"
-            onClick={() => setExpanded((v) => !v)}
-            aria-expanded={expanded}
-          >
-            <span className="material-symbols-sharp expand-icon" style={{ transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)' }}>
-              expand_more
-            </span>
-            <span className="expand-toggle-label">
-              {expanded
-                ? (isRtl ? 'إخفاء التفاصيل' : 'Hide details')
-                : (isRtl ? 'عرض التفاصيل' : 'Show details')}
-            </span>
-          </button>
         </div>
       </div>
 
@@ -344,6 +328,22 @@ const VoucherCard = ({ voucher, featured = false }) => {
           )}
         </div>
       </div>
+
+      {/* Toggle expand */}
+      <button
+        className="expand-toggle-btn"
+        onClick={() => setExpanded((v) => !v)}
+        aria-expanded={expanded}
+      >
+        <span className="material-symbols-sharp expand-icon" style={{ transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)' }}>
+          expand_more
+        </span>
+        <span className="expand-toggle-label">
+          {expanded
+            ? (isRtl ? 'إخفاء التفاصيل' : 'Hide details')
+            : (isRtl ? 'عرض التفاصيل' : 'Show details')}
+        </span>
+      </button>
 
       {/* ═══ EXPANDED PANEL ══════════════════════════════════════════ */}
       <div className={`voucher-expanded-panel ${expanded ? 'panel-open' : ''}`}>
