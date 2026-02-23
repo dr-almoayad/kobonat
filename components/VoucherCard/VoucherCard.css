@@ -78,7 +78,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 1.25rem 0.75rem;
+  padding: 1rem;
   gap: 0.5rem;
   position: relative;
 }
@@ -89,31 +89,30 @@
 }
 
 .discount-value-new {
-  font-size: 2rem;
+  font-size: 2.5rem;
   font-weight: 800;
-  line-height: 1;
-  margin-bottom: 0.2rem;
+  line-height: 0.8;
   letter-spacing: -0.02em;
   white-space: pre-line;
 }
 
 .discount-label-new {
-  font-size: 0.75rem;
-  font-weight: 600;
+  font-size: 1.75rem;
+  font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  opacity: 0.9;
+  line-height: 0.8;
 }
 
 .voucher-type-label {
-  background: rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, .25);
   color: #470ae2;
-  padding: 0.25rem 0.75rem;
+  padding: .15rem .35rem;
   border-radius: 20px;
-  font-size: 0.6875rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  font-size: .85rem;
+  border: 1px solid #470ae2;
+  line-height: 1;
+  font-weight: 500;
 }
 
 /* ── Right Section ──────────────────────────────────────────────── */
@@ -203,7 +202,7 @@
   color: white;
   border: none;
   padding: 0.45rem 1rem;
-  margin: 0 1rem 0.5rem;
+  margin: 0 1rem;
   border-radius: 6px;
   font-weight: 600;
   font-size: 0.9375rem;
@@ -274,18 +273,20 @@
 /* ── Expand toggle ──────────────────────────────────────────────── */
 .expand-toggle-btn {
   display: flex;
+  width: 100%;
   align-items: center;
-  gap: 0.25rem;
+  justify-content: center;
+  gap: .25rem;
   background: none;
   border: none;
   cursor: pointer;
   color: var(--color-text-muted);
-  font-size: 0.8125rem;
+  font-size: .8125rem;
   font-weight: 500;
-  padding: 0.25rem 0;
-  transition: color 0.2s ease;
+  padding: .5rem 0;
+  transition: color .2s ease;
   align-self: flex-start;
-  font-family: 'Alexandria', 'Open Sans', sans-serif;
+  font-family: Alexandria, Open Sans, sans-serif;
 }
 
 .expand-toggle-btn:hover { color: var(--color-primary); }
