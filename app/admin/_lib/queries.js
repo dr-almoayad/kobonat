@@ -598,3 +598,22 @@ export async function getBlogDashboardStats() {
     return { total: 0, published: 0, draft: 0, categories: 0, authors: 0 };
   }
 }
+
+
+
+
+// ============================================================================
+// STEP 1: Append to app/admin/_lib/queries.js
+// ============================================================================
+
+export async function getCuratedOffers(locale = 'en') {
+  return prisma.curatedOffer.findMany({
+    include: {
+      translations: { where: { locale } },
+      store:        { include: { translations: { where: { locale } } } },
+      countries:    { include: { country: { include: { translations: { where: { locale } } } } } },
+      _count:       { select: { countries: true } }
+    },
+    orderBy: [{ isFeatured: 'desc' }, { order: 'asc' }, { createdAt: 'desc' }]
+  });
+}
