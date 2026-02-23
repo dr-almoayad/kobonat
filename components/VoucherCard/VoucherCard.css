@@ -606,8 +606,8 @@
   }
   .voucher-title-new { font-size: 0.95rem; }
   .store-logo-new    { 
-    max-height: 40px; 
-    width: 100px;
+    max-height: 40px;
+    width: fit-content;
   }
   .show-code-btn,
   .get-deal-btn      { padding: 0.35rem 0.875rem; font-size: 0.875rem; }
