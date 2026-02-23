@@ -22,33 +22,67 @@ export default function AdminNav({ user }) {
     },
     {
       label: 'Stores',
-      icon: 'storefront', // Good! Alternative: 'store' or 'shopping_bag'
+      icon: 'storefront',
       href: '/admin/stores'
     },
     {
       label: 'Vouchers',
-      icon: 'local_offer', // Good! Alternative: 'coupon' or 'confirmation_number'
+      icon: 'local_offer', 
       href: '/admin/vouchers'
     },
     {
+      label: 'Curated Offers',
+      icon: 'auto_awesome',
+      href: '/admin/curated-offers'
+    },
+    {
       label: 'Categories',
-      icon: 'category', // Good! Alternative: 'list' or 'folder'
+      icon: 'category',
       href: '/admin/categories'
     },
     {
       label: 'Countries',
-      icon: 'public', // Good! Alternative: 'language' or 'map'
+      icon: 'public', 
       href: '/admin/countries'
     },
     {
       label: 'Payment Methods',
-      icon: 'payments', // Better: 'payments' (plural) is more specific
+      icon: 'payments',
       href: '/admin/payment-methods'
     },
+    // --- BLOG SECTION ---
+    {
+      label: 'Blog Posts',
+      icon: 'edit_note',
+      href: '/admin/blog'
+    },
+    {
+      label: 'Categories & Tags',
+      icon: 'sell',
+      href: '/admin/blog/categories'
+    },
+    {
+      label: 'Authors',
+      icon: 'manage_accounts',
+      href: '/admin/blog/authors'
+    },
+    {
+      label: 'New Post',
+      icon: 'add_circle',
+      href: '/admin/blog/new'
+    }
   ];
 
   const handleSignOut = async () => {
     await signOut({ callbackUrl: '/admin/login' });
+  };
+
+  // Smart active state handler (keeps "Blog Posts" active when editing a post)
+  const isItemActive = (href) => {
+    if (href === '/admin/blog') {
+      return pathname === href || pathname.startsWith('/admin/blog/edit');
+    }
+    return pathname === href || pathname.startsWith(`${href}/`);
   };
 
   return (
@@ -67,8 +101,10 @@ export default function AdminNav({ user }) {
             <Link
               key={item.href}
               href={item.href}
-              className={`nav-item ${pathname === item.href ? 'active' : ''}`}
+              className={`nav-item ${isItemActive(item.href) ? 'active' : ''}`}
             >
+              {/* Added the missing icon rendering for desktop */}
+              <span className="material-symbols-sharp">{item.icon}</span>
               <span>{item.label}</span>
             </Link>
           ))}
@@ -77,11 +113,11 @@ export default function AdminNav({ user }) {
         <div className="sidebar-footer">
           <div className="user-info">
             <div className="user-avatar">
-              <span class="material-symbols-sharp">person</span>
+              <span className="material-symbols-sharp">person</span>
             </div>
             <div className="user-details">
-              <div className="user-name">{user.name || 'Admin'}</div>
-              <div className="user-role">{user.role}</div>
+              <div className="user-name">{user?.name || 'Admin'}</div>
+              <div className="user-role">{user?.role || 'ADMIN'}</div>
             </div>
           </div>
           <button onClick={handleSignOut} className="logout-btn">
@@ -113,7 +149,7 @@ export default function AdminNav({ user }) {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`mobile-nav-item ${pathname === item.href ? 'active' : ''}`}
+                className={`mobile-nav-item ${isItemActive(item.href) ? 'active' : ''}`}
                 onClick={() => setMobileMenuOpen(false)}
               >
                 <span className="material-symbols-sharp">{item.icon}</span>
