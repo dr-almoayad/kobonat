@@ -455,3 +455,101 @@ export async function getStoreProducts(storeId, locale = 'en') {
     ]
   });
 }
+
+
+// ============================================================================
+// BLOG — append these to your existing app/admin/_lib/queries.js
+// ============================================================================
+
+export async function getBlogPosts(locale = 'en') {
+  return prisma.blogPost.findMany({
+    include: {
+      translations: { where: { locale } },
+      author: true,
+      category: {
+        include: { translations: { where: { locale } } }
+      },
+      tags: {
+        include: { tag: { include: { translations: { where: { locale } } } } }
+      },
+      _count: { select: { relatedProducts: true } }
+    },
+    orderBy: { createdAt: 'desc' }
+  });
+}
+
+export async function getBlogPost(id, locale = 'en') {
+  return prisma.blogPost.findUnique({
+    where: { id: parseInt(id) },
+    include: {
+      translations: true,           // all locales for the edit form
+      author: true,
+      category: {
+        include: { translations: { where: { locale } } }
+      },
+      tags: {
+        include: { tag: { include: { translations: true } } }
+      },
+      relatedProducts: true,
+      relatedPosts: {
+        include: {
+          relatedPost: {
+            include: { translations: { where: { locale } } }
+          }
+        }
+      }
+    }
+  });
+}
+
+export async function getBlogCategories(locale = 'en') {
+  return prisma.blogCategory.findMany({
+    include: {
+      translations: { where: { locale } },
+      _count: { select: { posts: true } }
+    },
+    orderBy: { createdAt: 'desc' }
+  });
+}
+
+export async function getBlogCategory(id) {
+  return prisma.blogCategory.findUnique({
+    where: { id: parseInt(id) },
+    include: { translations: true }
+  });
+}
+
+export async function getBlogAuthors() {
+  return prisma.blogAuthor.findMany({
+    include: { _count: { select: { posts: true } } },
+    orderBy: { createdAt: 'desc' }
+  });
+}
+
+export async function getBlogAuthor(id) {
+  return prisma.blogAuthor.findUnique({
+    where: { id: parseInt(id) }
+  });
+}
+
+export async function getBlogTags(locale = 'en') {
+  return prisma.blogTag.findMany({
+    include: {
+      translations: { where: { locale } },
+      _count: { select: { posts: true } }
+    },
+    orderBy: { createdAt: 'desc' }
+  });
+}
+
+export async function getBlogDashboardStats() {
+  const now = new Date();
+  const [total, published, draft, totalCategories, totalAuthors] = await Promise.all([
+    prisma.blogPost.count(),
+    prisma.blogPost.count({ where: { status: 'PUBLISHED', publishedAt: { lte: now } } }),
+    prisma.blogPost.count({ where: { status: 'DRAFT' } }),
+    prisma.blogCategory.count(),
+    prisma.blogAuthor.count()
+  ]);
+  return { total, published, draft, categories: totalCategories, authors: totalAuthors };
+}
