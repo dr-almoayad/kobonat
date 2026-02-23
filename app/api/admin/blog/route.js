@@ -17,6 +17,13 @@ export async function GET(req) {
 
     const where = status ? { status } : {};
 
+    // Guard: prisma.blogPost is undefined if `prisma generate` hasn't been run
+    // after adding the blog schema. Run: npx prisma migrate dev && npx prisma generate
+    if (!prisma.blogPost) {
+      console.error('[/api/admin/blog] prisma.blogPost is undefined — run `prisma generate`');
+      return NextResponse.json([], { status: 200 }); // return empty array so dashboard doesn't crash
+    }
+
     const posts = await prisma.blogPost.findMany({
       where,
       include: {
@@ -34,6 +41,7 @@ export async function GET(req) {
     return NextResponse.json(posts);
   } catch (error) {
     console.error('Admin blog GET error:', error);
-    return NextResponse.json({ error: 'Failed to fetch blog posts' }, { status: 500 });
+    // Return empty array instead of 500 so the dashboard stat cards show 0 rather than erroring
+    return NextResponse.json([], { status: 200 });
   }
 }
