@@ -1,10 +1,8 @@
 // app/admin/blog/categories/page.jsx
-// Manages both BlogCategories and BlogTags on one page (same pattern as existing admin)
-
 import { getBlogCategories, getBlogTags } from '@/app/admin/_lib/queries';
 import { upsertBlogCategory, deleteBlogCategory, upsertBlogTag, deleteBlogTag } from '@/app/admin/_lib/blog-actions';
 import { DataTable } from '@/app/admin/_components/DataTable';
-import { FormField, FormRow, FormSection } from '@/app/admin/_components/FormField';
+import { FormField, FormRow } from '@/app/admin/_components/FormField';
 import Link from 'next/link';
 import styles from '../../admin.module.css';
 
@@ -18,69 +16,41 @@ export default async function BlogCategoriesPage({ searchParams }) {
     getBlogTags('en')
   ]);
 
-  // Editing state
-  const editingCategory = editCat
-    ? categories.find(c => c.id === parseInt(editCat))
-    : null;
-  const editingTag = editTag
-    ? tags.find(t => t.id === parseInt(editTag))
-    : null;
+  const editingCategory = editCat ? categories.find(c => c.id === parseInt(editCat)) : null;
+  const editingTag      = editTag  ? tags.find(t => t.id === parseInt(editTag))       : null;
 
-  // ── Category columns ──────────────────────────────────────────────────────
+  // ── Category table data — plain primitives only, no JSX ──────────────────
   const catData = categories.map(c => ({
     id:    c.id,
     name:  c.translations?.[0]?.name || '—',
     slug:  c.slug,
-    color: c.color,
-    posts: c._count?.posts || 0
+    color: c.color || '—',
+    posts: c._count?.posts ?? 0,
   }));
 
   const catColumns = [
-    {
-      key: 'name',
-      label: 'Name',
-      render: (val, row) => (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          {row.color && (
-            <span style={{ width: 14, height: 14, borderRadius: '50%', background: row.color, flexShrink: 0 }} />
-          )}
-          <strong>{val}</strong>
-        </div>
-      )
-    },
-    {
-      key: 'slug',
-      label: 'Slug',
-      render: (val) => (
-        <code style={{ fontSize: 11, background: '#f5f5f5', padding: '2px 6px', borderRadius: 4 }}>{val}</code>
-      )
-    },
-    { key: 'posts', label: 'Posts' }
+    { key: 'name',  label: 'Name'  },
+    { key: 'slug',  label: 'Slug'  },
+    { key: 'color', label: 'Color' },
+    { key: 'posts', label: 'Posts' },
   ];
 
-  // ── Tag columns ───────────────────────────────────────────────────────────
+  // ── Tag table data — plain primitives only, no JSX ───────────────────────
   const tagData = tags.map(t => ({
     id:    t.id,
     name:  t.translations?.[0]?.name || '—',
     slug:  t.slug,
-    posts: t._count?.posts || 0
+    posts: t._count?.posts ?? 0,
   }));
 
   const tagColumns = [
-    { key: 'name', label: 'Name' },
-    {
-      key: 'slug',
-      label: 'Slug',
-      render: (val) => (
-        <code style={{ fontSize: 11, background: '#f5f5f5', padding: '2px 6px', borderRadius: 4 }}>{val}</code>
-      )
-    },
-    { key: 'posts', label: 'Used in Posts' }
+    { key: 'name',  label: 'Name'          },
+    { key: 'slug',  label: 'Slug'          },
+    { key: 'posts', label: 'Used in Posts' },
   ];
 
   return (
     <div className={styles.page}>
-      {/* ── Header ── */}
       <div className={styles.pageHeader}>
         <div>
           <h1>Blog Categories & Tags</h1>
@@ -95,17 +65,16 @@ export default async function BlogCategoriesPage({ searchParams }) {
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 32, alignItems: 'start' }}>
 
-        {/* ════════════════════════════════════════════════════════════════
-            LEFT: CATEGORIES
-        ════════════════════════════════════════════════════════════════ */}
+        {/* ── CATEGORIES ─────────────────────────────────────────────── */}
         <div>
           <h2 style={{ marginBottom: 16 }}>Categories</h2>
 
-          {/* Create / Edit form */}
           <div className={styles.card} style={{ marginBottom: 24 }}>
             <div className={styles.cardHeader}>
               <h3 className={styles.cardTitle}>
-                {editingCategory ? `Edit: ${editingCategory.translations?.[0]?.name || editingCategory.slug}` : 'New Category'}
+                {editingCategory
+                  ? `Edit: ${editingCategory.translations?.find(t => t.locale === 'en')?.name || editingCategory.slug}`
+                  : 'New Category'}
               </h3>
               {editingCategory && (
                 <Link href="/admin/blog/categories" style={{ fontSize: 12, color: '#888' }}>Cancel</Link>
@@ -117,54 +86,42 @@ export default async function BlogCategoriesPage({ searchParams }) {
                   <input type="hidden" name="categoryId" value={editingCategory.id} />
                 )}
                 <FormField
-                  label="Slug"
-                  name="slug"
-                  required
+                  label="Slug" name="slug" required
                   defaultValue={editingCategory?.slug || ''}
                   placeholder="shopping-tips"
-                  helpText="URL-safe identifier shared across locales"
+                  helpText="URL-safe, shared across locales"
                 />
                 <FormRow>
                   <FormField
-                    label="Name (EN)"
-                    name="name_en"
-                    required
+                    label="Name (EN)" name="name_en" required
                     defaultValue={editingCategory?.translations?.find(t => t.locale === 'en')?.name || ''}
                     placeholder="Shopping Tips"
                   />
                   <FormField
-                    label="Name (AR)"
-                    name="name_ar"
-                    dir="rtl"
+                    label="Name (AR)" name="name_ar" dir="rtl"
                     defaultValue={editingCategory?.translations?.find(t => t.locale === 'ar')?.name || ''}
                     placeholder="نصائح التسوق"
                   />
                 </FormRow>
                 <FormRow>
                   <FormField
-                    label="Description (EN)"
-                    name="description_en"
+                    label="Description (EN)" name="description_en"
                     defaultValue={editingCategory?.translations?.find(t => t.locale === 'en')?.description || ''}
                   />
                   <FormField
-                    label="Description (AR)"
-                    name="description_ar"
-                    dir="rtl"
+                    label="Description (AR)" name="description_ar" dir="rtl"
                     defaultValue={editingCategory?.translations?.find(t => t.locale === 'ar')?.description || ''}
                   />
                 </FormRow>
                 <FormRow>
                   <FormField
-                    label="Color"
-                    name="color"
-                    type="color"
+                    label="Color" name="color" type="color"
                     defaultValue={editingCategory?.color || '#470ae2'}
                   />
                   <FormField
-                    label="Icon"
-                    name="icon"
+                    label="Icon" name="icon"
                     defaultValue={editingCategory?.icon || ''}
-                    placeholder="tag, star, shopping-bag…"
+                    placeholder="tag, star…"
                     helpText="Optional icon name"
                   />
                 </FormRow>
@@ -175,7 +132,6 @@ export default async function BlogCategoriesPage({ searchParams }) {
             </div>
           </div>
 
-          {/* Categories table */}
           <DataTable
             data={catData}
             columns={catColumns}
@@ -185,17 +141,16 @@ export default async function BlogCategoriesPage({ searchParams }) {
           />
         </div>
 
-        {/* ════════════════════════════════════════════════════════════════
-            RIGHT: TAGS
-        ════════════════════════════════════════════════════════════════ */}
+        {/* ── TAGS ───────────────────────────────────────────────────── */}
         <div>
           <h2 style={{ marginBottom: 16 }}>Tags</h2>
 
-          {/* Create / Edit form */}
           <div className={styles.card} style={{ marginBottom: 24 }}>
             <div className={styles.cardHeader}>
               <h3 className={styles.cardTitle}>
-                {editingTag ? `Edit: ${editingTag.translations?.[0]?.name || editingTag.slug}` : 'New Tag'}
+                {editingTag
+                  ? `Edit: ${editingTag.translations?.find(t => t.locale === 'en')?.name || editingTag.slug}`
+                  : 'New Tag'}
               </h3>
               {editingTag && (
                 <Link href="/admin/blog/categories" style={{ fontSize: 12, color: '#888' }}>Cancel</Link>
@@ -207,25 +162,19 @@ export default async function BlogCategoriesPage({ searchParams }) {
                   <input type="hidden" name="tagId" value={editingTag.id} />
                 )}
                 <FormField
-                  label="Slug"
-                  name="slug"
-                  required
+                  label="Slug" name="slug" required
                   defaultValue={editingTag?.slug || ''}
                   placeholder="noon, electronics, fashion…"
                   helpText="URL-safe, lowercase, hyphens only"
                 />
                 <FormRow>
                   <FormField
-                    label="Name (EN)"
-                    name="name_en"
-                    required
+                    label="Name (EN)" name="name_en" required
                     defaultValue={editingTag?.translations?.find(t => t.locale === 'en')?.name || ''}
                     placeholder="Noon"
                   />
                   <FormField
-                    label="Name (AR)"
-                    name="name_ar"
-                    dir="rtl"
+                    label="Name (AR)" name="name_ar" dir="rtl"
                     defaultValue={editingTag?.translations?.find(t => t.locale === 'ar')?.name || ''}
                     placeholder="نون"
                   />
@@ -237,7 +186,6 @@ export default async function BlogCategoriesPage({ searchParams }) {
             </div>
           </div>
 
-          {/* Tags table */}
           <DataTable
             data={tagData}
             columns={tagColumns}
