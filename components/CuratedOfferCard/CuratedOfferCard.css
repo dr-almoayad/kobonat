@@ -1,376 +1,239 @@
 /* components/CuratedOfferCard/CuratedOfferCard.css */
 
-/* ─────────────────────────────────────────────
-   TOKEN MAP
-───────────────────────────────────────────── */
-.co-card {
-  --co-radius:        18px;
-  --co-radius-sq:     22px;
-  --co-brand:         #470ae2;
-  --co-dark:          #0a0a12;
-  --co-text:          #1a1a2e;
-  --co-muted:         #64748b;
-  --co-surface:       #ffffff;
-  --co-border:        rgba(0,0,0,0.07);
-  --co-shadow:        0 2px 16px rgba(0,0,0,0.08);
-  --co-shadow-hover:  0 12px 36px rgba(0,0,0,0.14);
-  --co-ease:          cubic-bezier(0.4, 0, 0.2, 1);
-
-  display: block;
+/* ── Minimalist Variables ── */
+.card-wrapper {
+  --radius-lg: 16px;
+  --radius-md: 8px;
+  --border-color: #e5e7eb;
+  --bg-color: #ffffff;
+  --text-main: #111827;
+  --text-muted: #6b7280;
+  --brand-color: #470ae2;
+  --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  display: flex;
+  flex-direction: column;
+  background-color: var(--bg-color);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
   text-decoration: none;
-  color: inherit;
   position: relative;
-  border-radius: var(--co-radius);
-  height: 160px;
+  transition: border-color var(--transition), box-shadow var(--transition);
+  height: 100%; /* Ensures uniform grid height */
 }
 
-/* ─────────────────────────────────────────────
-   FEATURED RIBBON
-───────────────────────────────────────────── */
-.co-ribbon {
+/* Subtle interaction state (No flashy scaling) */
+.card-wrapper:hover {
+  border-color: #d1d5db;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+}
+
+.card-wrapper:focus-visible {
+  outline: 2px solid var(--brand-color);
+  outline-offset: 2px;
+}
+
+/* ── Top: Media Area ── */
+.card-media {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9; /* Modern, cinematic aspect ratio */
+  background-color: #f9fafb;
+  border-bottom: 1px solid var(--border-color);
+  overflow: hidden;
+}
+
+.card-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.card-image-fallback {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+}
+
+/* Badges positioned using CSS Logical Properties */
+.card-featured-badge {
   position: absolute;
-  top: -1px;
-  inset-inline-start: 20px;
+  top: 12px;
+  inset-inline-start: 12px;
+  background-color: var(--brand-color);
+  color: #ffffff;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 4px 10px;
-  background: var(--co-brand);
-  color: #fff;
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  border-radius: 0 0 8px 8px;
-  z-index: 5;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  z-index: 2;
 }
 
-.co-ribbon .material-symbols-sharp {
-  font-size: 0.85rem;
-  color: #ffd700;
+.card-featured-badge .material-symbols-sharp {
+  font-size: 0.875rem;
+  color: #fbbf24;
 }
 
-/* ─────────────────────────────────────────────
-   BODY (card shell)
-───────────────────────────────────────────── */
-.co-body {
-  background: var(--co-surface);
-  border-radius: var(--co-radius);
-  border: 1.5px solid var(--co-border);
-  box-shadow: var(--co-shadow);
-  display: grid;
-  grid-template-columns: 1fr 210px;
-  gap: 0;
-  height: 160px;
-  overflow: visible; /* allow squircle to bleed right */
-  position: relative;
-  transition: box-shadow 0.3s var(--co-ease), transform 0.3s var(--co-ease);
-}
-
-.co-card--featured .co-body {
-  box-shadow: 0 4px 24px rgba(71, 10, 226, 0.12);
-}
-
-.co-card:hover .co-body {
-  box-shadow: var(--co-shadow-hover);
-}
-
-.co-card--expired .co-body {
-  opacity: 0.55;
+/* ── Expired State ── */
+.card-wrapper.is-expired {
+  opacity: 0.6;
   pointer-events: none;
+  filter: grayscale(40%);
 }
 
-/* ─────────────────────────────────────────────
-   LEFT — content
-───────────────────────────────────────────── */
-.co-content {
-  padding: 1.5rem 1rem 1rem 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-  justify-content: space-between;
-  min-width: 0;
-}
-
-/* Store logo / name */
-.co-store-logo {
-  display: flex;
-  align-items: center;
-  height: 40px;
-   max-width: 100px;
-}
-
-.co-store-name {
-  margin: 0;
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: var(--co-muted);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
-/* Type badge */
-.co-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 4px 11px 4px 8px;
-  background: color-mix(in srgb, var(--badge-hue, #470ae2) 12%, white);
-  color: var(--badge-hue, #470ae2);
-  border-radius: 30px;
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  align-self: flex-start;
-  border: 1px solid color-mix(in srgb, var(--badge-hue, #470ae2) 20%, white);
-  transition: transform 0.2s var(--co-ease);
-}
-
-.co-badge .material-symbols-sharp {
-  font-size: 0.95rem;
-  color: var(--badge-hue, #470ae2);
-}
-
-/* Title */
-.co-title {
-  margin: 0;
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--co-text);
-  line-height: 1.2;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  transition: color 0.2s var(--co-ease);
-  font-family: 'Alexandria', sans-serif;
-}
-
-/* Code chip */
-.co-code-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  background: #f5f3ff;
-  border: 1.5px dashed rgba(71, 10, 226, 0.4);
-  border-radius: 8px;
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: var(--co-brand);
-  font-family: 'Courier New', monospace;
-  letter-spacing: 0.08em;
-  align-self: flex-start;
-}
-
-.co-code-chip .material-symbols-sharp {
-  font-size: 0.9rem;
-  opacity: 0.7;
-}
-
-/* CTA */
-.co-cta {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 0.25rem 0.6rem;
-  background: none;
-  color: var(--co-dark);
-  border-radius: 12px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  align-self: flex-start;
-  margin-top: auto;
-  transition: background 0.25s var(--co-ease), transform 0.25s var(--co-ease);
-}
-
-.co-card:hover .co-cta {
-  color: var(--co-brand);
-}
-
-.co-cta-text { 
-   line-height: 1; 
-   text-decoration: underline;
-   text-underline-offset: 4px;
-}
-
-.co-cta-arrow {
-  font-size: 1.05rem;
-  transition: transform 0.25s var(--co-ease);
-}
-
-.co-card:hover .co-cta-arrow {
-  transform: translateX(3px);
-}
-
-/* ─────────────────────────────────────────────
-   RIGHT — squircle image
-───────────────────────────────────────────── */
-.co-image-wrap {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  /* Bleed image outside the card on the end side */
-  margin-inline-end: -1.75rem;
-  margin-top: -1px;
-  margin-bottom: -1px;
-  width: 170px;
-   height:170px;
-}
-
-.co-squircle {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  border-radius: var(--co-radius-sq);
-  overflow: hidden;
-  transition: transform 0.35s var(--co-ease), box-shadow 0.35s var(--co-ease);
-}
-
-.co-image {
-    object-fit: cover;
-    transition: transform .5s var(--co-ease);
-    width: 100%;
-    height: 105%;
-    object-position: center;
-}
-
-.co-card:hover .co-image {
-  transform: scale(1.02);
-}
-
-/* ─────────────────────────────────────────────
-   EXPIRED OVERLAY
-───────────────────────────────────────────── */
-.co-expired {
+.card-expired-overlay {
   position: absolute;
   inset: 0;
-  background: rgba(10, 10, 18, 0.82);
-  border-radius: var(--co-radius);
+  background-color: rgba(17, 24, 39, 0.75);
+  backdrop-filter: blur(2px);
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  color: #fff;
-  font-size: 1rem;
-  font-weight: 700;
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 0.9375rem;
   z-index: 10;
-  backdrop-filter: blur(2px);
 }
 
-.co-expired .material-symbols-sharp {
-  font-size: 1.75rem;
-  color: #f87171;
+/* ── Bottom: Content Area ── */
+.card-content {
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  flex: 1; /* Pushes footer down if titles vary in length */
+  gap: 0.875rem;
 }
 
-/* ─────────────────────────────────────────────
-   RESPONSIVE
-───────────────────────────────────────────── */
-
-/* Large desktop */
-@media (min-width: 1200px) {
-  .co-body {
-    grid-template-columns: 1fr 210px;
-    min-height: 210px;
-  }
-
-  .co-image-wrap { width: 215px; }
-  .co-title      { font-size: 1rem; }
+/* Meta Row */
+.card-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
 }
 
-/* Tablet */
-@media (max-width: 1023px) {
-  .co-body {
-    grid-template-columns: 1fr 210px;
-    height: 210px;
-  }
-
-  .co-image-wrap { width: 210px; margin-inline-end: -1.5rem; }
-  .co-title      { font-size: 1rem; }
+.card-logo {
+  height: 24px;
+  display: flex;
+  align-items: center;
 }
 
-/* Mobile */
-@media (max-width: 767px) {
-  .co-body {
-    grid-template-columns: 1fr;
-    grid-template-rows: auto 148px;
-    min-height: auto;
-  }
-
-  .co-content {
-    padding: 1.5rem 1.5rem 1rem;
-    gap: 0.625rem;
-  }
-
-  .co-store-logo { height: 28px; min-height: 28px; }
-
-  .co-title { font-size: 1rem; -webkit-line-clamp: 2; }
-
-  .co-image-wrap {
-    width: auto;
-    height: 155px;
-    margin-inline-end: 0;
-    margin: 0 0 -1px;
-    align-self: stretch;
-    justify-self: stretch;
-  }
-
-  .co-squircle {
-    border-radius: 0 0 var(--co-radius) var(--co-radius);
-    height: 100%;
-    width: 100%;
-  }
+.card-store-name {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
 }
 
-/* ─────────────────────────────────────────────
-   RTL
-───────────────────────────────────────────── */
-[dir="rtl"] .co-body {
-  grid-template-columns: 210px 1fr;
+.card-type-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  background-color: color-mix(in srgb, var(--type-color) 10%, transparent);
+  color: var(--type-color);
+  border-radius: var(--radius-md);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
 }
 
-
-@media (min-width: 1200px) {
-  [dir="rtl"] .co-body { grid-template-columns: 230px 1fr; }
-  [dir="rtl"] .co-image-wrap { margin-inline-start: -1.75rem; width: 230px; }
+.card-type-badge .material-symbols-sharp {
+  font-size: 0.875rem;
 }
 
-@media (max-width: 1023px) {
-  [dir="rtl"] .co-body { grid-template-columns: 180px 1fr; }
-  [dir="rtl"] .co-image-wrap { margin-inline-start: -1.5rem; width: 180px; }
+/* Title */
+.card-title {
+  margin: 0;
+  font-size: 1.0625rem;
+  font-weight: 700;
+  color: var(--text-main);
+  line-height: 1.4;
+  font-family: var(--font-alexandria), sans-serif;
+  
+  /* Truncate at 2 lines strictly */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
-@media (max-width: 767px) {
-  [dir="rtl"] .co-body { grid-template-columns: 1fr; }
-  [dir="rtl"] .co-image-wrap { margin-inline-start: 0; width: auto; }
+/* Footer / Action Row */
+.card-footer {
+  margin-top: auto; /* Pushes to bottom */
+  padding-top: 0.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 1rem;
 }
 
-/* ─────────────────────────────────────────────
-   ACCESSIBILITY & REDUCED MOTION
-───────────────────────────────────────────── */
-.co-card:focus-visible {
-  outline: 3px solid var(--co-brand);
-  outline-offset: 4px;
-  border-radius: var(--co-radius);
+.card-code {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  background-color: #f3f4f6;
+  border: 1px dashed #d1d5db;
+  border-radius: var(--radius-md);
+  color: var(--text-main);
+  font-size: 0.8125rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .co-card,
-  .co-body,
-  .co-badge,
-  .co-title,
-  .co-cta,
-  .co-cta-arrow,
-  .co-squircle,
-  .co-image { transition: none; }
+.card-code .material-symbols-sharp {
+  font-size: 1rem;
+  color: var(--text-muted);
+}
 
-  .co-card:hover .co-body,
-  .co-card:hover .co-cta,
-  .co-card:hover .co-cta-arrow,
-  .co-card:hover .co-squircle,
-  .co-card:hover .co-image { transform: none; }
+.card-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--text-main);
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition: color var(--transition);
+  /* Align to end if there is no code chip pushing it */
+  margin-inline-start: auto; 
+}
+
+.card-cta-text {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  text-decoration-thickness: 1.5px;
+  text-decoration-color: #d1d5db;
+  transition: text-decoration-color var(--transition);
+}
+
+.card-cta-icon {
+  font-size: 1.125rem;
+  transition: transform var(--transition);
+}
+
+/* Subtle hover states inside the card */
+.card-wrapper:hover .card-cta {
+  color: var(--brand-color);
+}
+
+.card-wrapper:hover .card-cta-text {
+  text-decoration-color: var(--brand-color);
+}
+
+.card-wrapper:hover .card-cta-icon {
+  /* Uses logical property direction for translation! Moves correct way in RTL */
+  transform: translateX(4px); 
+}
+[dir="rtl"] .card-wrapper:hover .card-cta-icon {
+  transform: translateX(-4px); 
 }
