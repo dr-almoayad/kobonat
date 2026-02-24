@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { getBlogPost, getBlogAuthors, getBlogCategories, getBlogTags } from '@/app/admin/_lib/queries';
 import { updateBlogPost, deleteBlogPost } from '@/app/admin/_lib/blog-actions';
 import { FormField, FormRow, FormSection } from '@/app/admin/_components/FormField';
+import BlogDeleteButton from '@/app/admin/blog/_components/BlogDeleteButton';
 import styles from '../../admin.module.css';
 
 export async function generateMetadata({ params }) {
@@ -29,11 +30,14 @@ export default async function EditBlogPostPage({ params }) {
 
   const activeTags = new Set(post.tags?.map(pt => pt.tag.slug) || []);
 
-  // Bind id to action
   async function handleUpdate(formData) {
     'use server';
     const result = await updateBlogPost(id, formData);
-    if (result.success) redirect('/admin/blog');
+    if (result?.error) {
+      console.error('updateBlogPost failed:', result.error);
+      return;
+    }
+    redirect('/admin/blog');
   }
 
   async function handleDelete() {
@@ -80,15 +84,9 @@ export default async function EditBlogPostPage({ params }) {
           >
             Preview →
           </Link>
-          {/* Delete form */}
+          {/* Delete button — client component handles the confirm() dialog */}
           <form action={handleDelete}>
-            <button
-              type="submit"
-              className={styles.btnDelete}
-              onClick={(e) => { if (!confirm('Delete this post permanently?')) e.preventDefault(); }}
-            >
-              Delete Post
-            </button>
+            <BlogDeleteButton label="Delete Post" confirmMessage="Delete this post permanently? This cannot be undone." />
           </form>
         </div>
       </div>
