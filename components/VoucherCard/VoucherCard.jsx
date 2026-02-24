@@ -208,7 +208,7 @@ const VoucherCard = ({ voucher, featured = false }) => {
         <div className="voucher-left-new">
           <div className="discount-badge-new">
             <div className="discount-value-new">{discountText}</div>
-            <div className="discount-label-new">{getDiscountLabel()}</div>
+            {/*<div className="discount-label-new">{getDiscountLabel()}</div>*/}
           </div>
           {voucher.type === 'CODE' && (
             <div className="voucher-type-label">
