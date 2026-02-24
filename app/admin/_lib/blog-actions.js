@@ -26,7 +26,6 @@ function assertBlogModels() {
 export async function createBlogPost(formData) {
   try {
     assertBlogModels();
-    // ✅ FIX: Added the missing assignment
     const publishedAtRaw = formData.get('publishedAt');
     const status = formData.get('status') || 'DRAFT';
     const tagSlugs = formData.getAll('tagSlugs');   // array of existing tag slugs
@@ -84,6 +83,7 @@ export async function createBlogPost(formData) {
     return { error: error.message };
   }
 }
+
 
 export async function updateBlogPost(id, formData) {
   try {
