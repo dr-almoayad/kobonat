@@ -76,7 +76,7 @@ async function getPosts({ locale, categorySlug, tagSlug, page, limit }) {
 }
 
 async function getCategories(lang) {
-  return prisma.blogCategory.findMany({
+  return prisma.BlogCategory.findMany({
     include: {
       translations: { where: { locale: lang } },
       _count: { select: { posts: { where: { status: 'PUBLISHED' } } } }
