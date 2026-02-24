@@ -127,10 +127,10 @@
 
 .voucher-header-new {
   display: flex;
-  flex-direction: row;
-  align-items: center;
+  flex-direction: column;
+  align-items: flex-start;
   justify-content: flex-start;
-  gap: 0.65rem;
+  gap: .15rem;;
 }
 
 .store-link-new { flex-shrink: 0; }
