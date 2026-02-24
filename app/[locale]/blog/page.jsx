@@ -56,32 +56,42 @@ async function getPosts({ locale, categorySlug, tagSlug, page, limit }) {
   if (categorySlug) where.category = { slug: categorySlug };
   if (tagSlug) where.tags = { some: { tag: { slug: tagSlug } } };
 
-  const [posts, total] = await Promise.all([
-    prisma.BlogPost.findMany({
-      where,
-      include: {
-        translations: { where: { locale: lang } },
-        author: true,
-        category: { include: { translations: { where: { locale: lang } } } },
-        tags: { include: { tag: { include: { translations: { where: { locale: lang } } } } } }
-      },
-      orderBy: [{ isFeatured: 'desc' }, { publishedAt: 'desc' }],
-      skip: offset,
-      take: limit
-    }),
-    prisma.BlogPost.count({ where })
-  ]);
+  try {
+    const [posts, total] = await Promise.all([
+      prisma.blogPost.findMany({
+        where,
+        include: {
+          translations: { where: { locale: lang } },
+          author: true,
+          category: { include: { translations: { where: { locale: lang } } } },
+          tags: { include: { tag: { include: { translations: { where: { locale: lang } } } } } }
+        },
+        orderBy: [{ isFeatured: 'desc' }, { publishedAt: 'desc' }],
+        skip: offset,
+        take: limit
+      }),
+      prisma.blogPost.count({ where })
+    ]);
 
-  return { posts, total, pages: Math.ceil(total / limit) };
+    return { posts, total, pages: Math.ceil(total / limit) };
+  } catch (error) {
+    console.error('[blog/page] getPosts error:', error.message);
+    return { posts: [], total: 0, pages: 0 };
+  }
 }
 
 async function getCategories(lang) {
-  return prisma.BlogCategory.findMany({
-    include: {
-      translations: { where: { locale: lang } },
-      _count: { select: { posts: { where: { status: 'PUBLISHED' } } } }
-    }
-  });
+  try {
+    return await prisma.blogCategory.findMany({
+      include: {
+        translations: { where: { locale: lang } },
+        _count: { select: { posts: { where: { status: 'PUBLISHED' } } } }
+      }
+    });
+  } catch (error) {
+    console.error('[blog/page] getCategories error:', error.message);
+    return [];
+  }
 }
 
 // ============================================================================
