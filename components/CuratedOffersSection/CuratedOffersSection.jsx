@@ -13,17 +13,21 @@ async function getCuratedOffers(locale, countryCode) {
   const offers = await prisma.curatedOffer.findMany({
     where: {
       isActive: true,
+      // Expiry: either no expiry date, or not yet expired
       OR: [
         { expiryDate: null },
         { expiryDate: { gte: now } }
       ],
-      // Filter by country if a country code was passed
-      ...(countryCode && {
-        OR: [
-          { countries: { none: {} } },           // no country restrictions = global
-          { countries: { some: { country: { code: countryCode } } } }
-        ]
-      })
+      // Country: if countryCode given, match global offers OR offers for this country
+      // Uses AND to avoid overwriting the OR above
+      AND: countryCode ? [
+        {
+          OR: [
+            { countries: { none: {} } },
+            { countries: { some: { country: { code: countryCode } } } }
+          ]
+        }
+      ] : undefined
     },
     include: {
       translations: { where: { locale: lang } },
