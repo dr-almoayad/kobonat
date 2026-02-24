@@ -11,7 +11,7 @@ import {
 } from '@/app/admin/_lib/curated-offer-actions';
 import styles from '../admin.module.css';
 
-export const metadata = { title: 'Curated Offers | Admin' };
+export const metadata = { title: 'Curated Offers | Admin' }; 
 
 // ── Prisma helpers ────────────────────────────────────────────────────────────
 async function getCuratedOffers() {
