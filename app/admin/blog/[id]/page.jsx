@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { getBlogPost, getBlogAuthors, getBlogCategories, getBlogTags } from '@/app/admin/_lib/queries';
 import { updateBlogPost, deleteBlogPost } from '@/app/admin/_lib/blog-actions';
 import { FormField, FormRow, FormSection } from '@/app/admin/_components/FormField';
-import BlogDeleteButton from '@/app/admin/blog/_components/BlogDeleteButton';
+import BlogDeleteButton from '@/app/admin/_components/BlogDeleteButton';
 import styles from '../../admin.module.css';
 
 export async function generateMetadata({ params }) {
