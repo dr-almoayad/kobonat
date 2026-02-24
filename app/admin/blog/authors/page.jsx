@@ -2,9 +2,8 @@
 import { getBlogAuthors, getBlogAuthor } from '@/app/admin/_lib/queries';
 import { upsertBlogAuthor, deleteBlogAuthor } from '@/app/admin/_lib/blog-actions';
 import { DataTable } from '@/app/admin/_components/DataTable';
-import { FormField, FormRow, FormSection } from '@/app/admin/_components/FormField';
+import { FormField, FormRow } from '@/app/admin/_components/FormField';
 import Link from 'next/link';
-import Image from 'next/image';
 import styles from '../../admin.module.css';
 
 export const metadata = { title: 'Blog Authors | Admin' };
@@ -12,56 +11,29 @@ export const metadata = { title: 'Blog Authors | Admin' };
 export default async function BlogAuthorsPage({ searchParams }) {
   const { edit } = await searchParams;
 
-  const authors = await getBlogAuthors();
+  const authors      = await getBlogAuthors();
   const editingAuthor = edit ? await getBlogAuthor(edit) : null;
 
+  // Pre-compute display values as plain strings — no JSX, no functions.
   const tableData = authors.map(a => ({
-    id:     a.id,
-    name:   a.name,
-    nameAr: a.nameAr || '—',
-    twitter:a.twitterHandle || '—',
-    posts:  a._count?.posts || 0,
-    avatar: a.avatar
+    id:      a.id,
+    initial: a.name?.[0]?.toUpperCase() || '?',   // avatar fallback letter
+    name:    a.name,
+    nameAr:  a.nameAr || '—',
+    twitter: a.twitterHandle ? `@${a.twitterHandle}` : '—',
+    posts:   a._count?.posts ?? 0,
   }));
 
   const columns = [
-    {
-      key: 'avatar',
-      label: '',
-      sortable: false,
-      render: (val, row) => val ? (
-        <img src={val} alt={row.name} width={36} height={36}
-          style={{ borderRadius: '50%', objectFit: 'cover', verticalAlign: 'middle' }}
-        />
-      ) : (
-        <div style={{
-          width: 36, height: 36, borderRadius: '50%',
-          background: '#470ae2', display: 'inline-flex',
-          alignItems: 'center', justifyContent: 'center',
-          color: '#fff', fontWeight: 700, fontSize: 14
-        }}>
-          {row.name?.[0]?.toUpperCase()}
-        </div>
-      )
-    },
-    { key: 'name',   label: 'Name (EN)', render: (val) => <strong>{val}</strong> },
-    { key: 'nameAr', label: 'Name (AR)' },
-    {
-      key: 'twitter',
-      label: 'Twitter',
-      render: (val) => val !== '—' ? (
-        <a href={`https://twitter.com/${val}`} target="_blank" rel="noopener noreferrer"
-          style={{ color: '#470ae2', textDecoration: 'none' }}>
-          @{val}
-        </a>
-      ) : '—'
-    },
-    { key: 'posts', label: 'Posts' }
+    { key: 'initial', label: ''          },  // avatar initial — DataTable just shows the string
+    { key: 'name',    label: 'Name (EN)' },
+    { key: 'nameAr',  label: 'Name (AR)' },
+    { key: 'twitter', label: 'Twitter'   },
+    { key: 'posts',   label: 'Posts'     },
   ];
 
   return (
     <div className={styles.page}>
-      {/* ── Header ── */}
       <div className={styles.pageHeader}>
         <div>
           <h1>Blog Authors</h1>
@@ -92,71 +64,52 @@ export default async function BlogAuthorsPage({ searchParams }) {
                 {editingAuthor && (
                   <input type="hidden" name="authorId" value={editingAuthor.id} />
                 )}
-
-                {/* Avatar preview */}
+                <FormRow>
+                  <FormField
+                    label="Name (EN)" name="name" required
+                    defaultValue={editingAuthor?.name || ''}
+                    placeholder="Ahmed Al-Rashidi"
+                  />
+                  <FormField
+                    label="Name (AR)" name="nameAr" dir="rtl"
+                    defaultValue={editingAuthor?.nameAr || ''}
+                    placeholder="أحمد الراشدي"
+                  />
+                </FormRow>
+                <FormField
+                  label="Avatar URL" name="avatar" type="url"
+                  defaultValue={editingAuthor?.avatar || ''}
+                  placeholder="https://cdn.cobonat.me/authors/ahmed.jpg"
+                  helpText="Square image, at least 100×100px"
+                />
+                {/* Live avatar preview */}
                 {editingAuthor?.avatar && (
-                  <div style={{ textAlign: 'center', marginBottom: 16 }}>
+                  <div style={{ marginBottom: 12 }}>
                     <img
                       src={editingAuthor.avatar}
                       alt={editingAuthor.name}
-                      style={{ width: 72, height: 72, borderRadius: '50%', objectFit: 'cover' }}
+                      width={60} height={60}
+                      style={{ borderRadius: '50%', objectFit: 'cover', border: '2px solid #e5e5e5' }}
                     />
                   </div>
                 )}
-
-                <FormRow>
-                  <FormField
-                    label="Name (EN)"
-                    name="name"
-                    required
-                    defaultValue={editingAuthor?.name || ''}
-                    placeholder="Sara Al-Rashidi"
-                  />
-                  <FormField
-                    label="Name (AR)"
-                    name="nameAr"
-                    dir="rtl"
-                    defaultValue={editingAuthor?.nameAr || ''}
-                    placeholder="سارة الراشدي"
-                  />
-                </FormRow>
-
                 <FormField
-                  label="Avatar URL"
-                  name="avatar"
-                  type="url"
-                  defaultValue={editingAuthor?.avatar || ''}
-                  placeholder="https://cdn.cobonat.me/authors/..."
-                />
-
-                <FormField
-                  label="Twitter Handle"
-                  name="twitterHandle"
+                  label="Twitter Handle" name="twitterHandle"
                   defaultValue={editingAuthor?.twitterHandle || ''}
-                  placeholder="cobonatme"
-                  helpText="Without the @ symbol"
+                  placeholder="username (no @)"
+                  helpText="Used for schema.org sameAs markup"
                 />
-
                 <FormField
-                  label="Bio (EN)"
-                  name="bio"
-                  type="textarea"
-                  rows={3}
+                  label="Bio (EN)" name="bio" type="textarea" rows={3}
                   defaultValue={editingAuthor?.bio || ''}
-                  placeholder="Savings expert covering Middle East e-commerce deals."
+                  placeholder="Short bio shown on the blog post page"
                 />
-
                 <FormField
-                  label="Bio (AR)"
-                  name="bioAr"
-                  type="textarea"
-                  rows={3}
-                  dir="rtl"
+                  label="Bio (AR)" name="bioAr" type="textarea" rows={3} dir="rtl"
                   defaultValue={editingAuthor?.bioAr || ''}
-                  placeholder="خبيرة توفير تغطي عروض التجارة الإلكترونية في الشرق الأوسط."
+                  placeholder="نبذة قصيرة تظهر في صفحة المقال"
                 />
-
-                <button type="submit" className={styles.btnPrimary} style={{ width: '100%', marginTop: 8 }}>
+                <button type="submit" className={styles.btnPrimary}>
                   {editingAuthor ? 'Update Author' : 'Create Author'}
                 </button>
               </form>
