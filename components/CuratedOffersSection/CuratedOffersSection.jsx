@@ -1,6 +1,4 @@
 // components/CuratedOffersSection/CuratedOffersSection.jsx
-// Server Component — fetches 3 active curated offers for the current locale/country
-
 import { prisma } from '@/lib/prisma';
 import CuratedOfferCard from '../CuratedOfferCard/CuratedOfferCard';
 import './CuratedOffersSection.css';
@@ -13,13 +11,10 @@ async function getCuratedOffers(locale, countryCode) {
   const offers = await prisma.curatedOffer.findMany({
     where: {
       isActive: true,
-      // Expiry: either no expiry date, or not yet expired
       OR: [
         { expiryDate: null },
         { expiryDate: { gte: now } }
       ],
-      // Country: if countryCode given, match global offers OR offers for this country
-      // Uses AND to avoid overwriting the OR above
       AND: countryCode ? [
         {
           OR: [
@@ -42,7 +37,7 @@ async function getCuratedOffers(locale, countryCode) {
       { order: 'asc' },
       { createdAt: 'desc' }
     ],
-    take: 3   // ← Hard limit: always exactly 3
+    take: 3
   });
 
   return offers;
@@ -52,44 +47,44 @@ async function getCuratedOffers(locale, countryCode) {
 export default async function CuratedOffersSection({
   locale,
   countryCode,
-  title,    // Optional override — falls back to locale-aware default
-  subtitle, // Optional
+  title,
+  subtitle,
 }) {
   const lang   = locale.split('-')[0];
   const offers = await getCuratedOffers(locale, countryCode);
 
-  // Don't render the section if there are no active offers
   if (!offers.length) return null;
 
-  const sectionTitle   = title   || (lang === 'ar' ? 'العروض المميزة'    : 'Curated Offers');
+  const sectionTitle    = title    || (lang === 'ar' ? 'العروض المميزة' : 'Curated Offers');
   const sectionSubtitle = subtitle || (lang === 'ar' ? 'أفضل الصفقات المختارة بعناية لك' : 'Hand-picked deals, just for you');
 
   return (
     <section className="co-section" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
       <div className="co-section-inner">
-        {/* Header */}
-        <div className="co-section-header">
-          <div className="co-section-text">
-            <h2 className="co-section-title">
-              <span className="material-symbols-sharp co-section-icon">verified</span>
+        
+        {/* ── Header ── */}
+        <header className="co-header">
+          <div className="co-header-content">
+            <h2 className="co-title">
+              <span className="material-symbols-sharp co-title-icon" aria-hidden="true">verified</span>
               {sectionTitle}
             </h2>
             {sectionSubtitle && (
-              <p className="co-section-subtitle">{sectionSubtitle}</p>
+              <p className="co-subtitle">{sectionSubtitle}</p>
             )}
           </div>
-          {/* Count pill */}
-          <span className="co-section-pill">
+          <div className="co-badge-count">
             {offers.length} {lang === 'ar' ? 'عروض' : 'offers'}
-          </span>
-        </div>
+          </div>
+        </header>
 
-        {/* Grid — 1 col mobile, 2 col tablet, 3 col desktop */}
-        <div className="co-grid" data-count={offers.length}>
+        {/* ── Grid ── */}
+        <div className="co-grid">
           {offers.map((offer) => (
             <CuratedOfferCard key={offer.id} offer={offer} />
           ))}
         </div>
+
       </div>
     </section>
   );
