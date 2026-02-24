@@ -1,23 +1,8 @@
 'use server';
 // app/admin/_lib/blog-actions.js
-// Follows the same patterns as actions.js in the existing admin codebase
-//
-// PREREQUISITE: Run `npx prisma migrate dev --name add_blog_system && npx prisma generate`
-// before using any of these actions. If prisma.blogPost is undefined, the Prisma
-// client is stale and needs to be regenerated.
 
 import { prisma } from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
-
-// ── Guard helper ──────────────────────────────────────────────────────────────
-function assertBlogModels() {
-  if (!prisma.blogPost) {
-    throw new Error(
-      'Blog Prisma models are not available. ' +
-      'Run: npx prisma migrate dev --name add_blog_system && npx prisma generate'
-    );
-  }
-}
 
 // ============================================================================
 // BLOG POSTS
@@ -25,7 +10,7 @@ function assertBlogModels() {
 
 export async function createBlogPost(formData) {
   try {
-    assertBlogModels();
+
     const publishedAtRaw = formData.get('publishedAt');
     const status = formData.get('status') || 'DRAFT';
     const tagSlugs = formData.getAll('tagSlugs');   // array of existing tag slugs
@@ -87,7 +72,7 @@ export async function createBlogPost(formData) {
 
 export async function updateBlogPost(id, formData) {
   try {
-    assertBlogModels();
+
     const postId = parseInt(id);
     const publishedAtRaw = formData.get('publishedAt');
     const status = formData.get('status') || 'DRAFT';
@@ -163,7 +148,7 @@ export async function updateBlogPost(id, formData) {
 
 export async function deleteBlogPost(id) {
   try {
-    assertBlogModels();
+
     await prisma.blogPost.delete({ where: { id: parseInt(id) } });
     revalidatePath('/admin/blog');
     return { success: true };
