@@ -52,37 +52,6 @@ async function getCountries() {
   });
 }
 
-// ── Sub-components ────────────────────────────────────────────────────────────
-function StatusBadge({ isActive, expiryDate }) {
-  const now = new Date();
-  const expired = expiryDate && new Date(expiryDate) < now;
-
-  if (expired)   return <span style={badge('#fee2e2','#b91c1c')}>Expired</span>;
-  if (!isActive) return <span style={badge('#f3f4f6','#6b7280')}>Inactive</span>;
-  return <span style={badge('#dcfce7','#166534')}>Active</span>;
-
-  function badge(bg, color) {
-    return { padding: '3px 10px', borderRadius: 12, fontSize: 12, fontWeight: 600, background: bg, color };
-  }
-}
-
-function TypeBadge({ type }) {
-  const colors = {
-    CODE:          '#5b4cff', DEAL:     '#e8445a', PRODUCT:  '#0ea5e9',
-    SEASONAL:      '#f472b6', FREE_SHIPPING: '#10b981', CASHBACK: '#06b6d4',
-    BUNDLE:        '#8b5cf6', FLASH_SALE: '#f97316'
-  };
-  const c = colors[type] || '#64748b';
-  return (
-    <span style={{
-      padding: '2px 10px', borderRadius: 12, fontSize: 11, fontWeight: 700,
-      background: `${c}1a`, color: c, textTransform: 'uppercase', letterSpacing: '0.04em'
-    }}>
-      {type?.replace('_', ' ')}
-    </span>
-  );
-}
-
 // ── Shared offer form ─────────────────────────────────────────────────────────
 function CuratedOfferForm({ stores, countries, editing, action }) {
   const tEn = editing?.translations?.find(t => t.locale === 'en') || {};
@@ -283,57 +252,35 @@ export default async function CuratedOffersPage({ searchParams }) {
 
   const editingOffer = edit ? await getCuratedOffer(edit) : null;
 
-  // Table data
+  // Pre-compute all display values as plain strings — no JSX, no functions.
+  const now = new Date();
   const tableData = offers.map(o => {
-    const t = o.translations?.[0] || {};
+    const t          = o.translations?.[0] || {};
+    const expired    = o.expiryDate && new Date(o.expiryDate) < now;
+    const countryVal = o._count?.countries || 0;
+
     return {
-      id:           o.id,
-      title:        t.title || '—',
-      store:        o.store?.translations?.[0]?.name || `#${o.storeId}`,
-      type:         o.type,
-      isActive:     o.isActive,
-      isFeatured:   o.isFeatured,
-      expiryDate:   o.expiryDate,
-      order:        o.order,
-      countries:    o._count?.countries || 0,
+      id:        o.id,
+      title:     t.title || '—',
+      store:     o.store?.translations?.[0]?.name || `#${o.storeId}`,
+      type:      o.type?.replace('_', ' ') || '—',
+      status:    expired ? 'Expired' : o.isActive ? 'Active' : 'Inactive',
+      featured:  o.isFeatured ? '★' : '—',
+      order:     o.order,
+      countries: countryVal === 0 ? 'All' : countryVal,
+      expires:   o.expiryDate ? new Date(o.expiryDate).toLocaleDateString('en-GB') : 'Never',
     };
   });
 
   const columns = [
-    {
-      key: 'title',
-      label: 'Title',
-      render: (val, row) => <strong>{val}</strong>
-    },
-    { key: 'store', label: 'Store' },
-    {
-      key: 'type',
-      label: 'Type',
-      render: (val) => <TypeBadge type={val} />
-    },
-    {
-      key: 'isActive',
-      label: 'Status',
-      render: (val, row) => <StatusBadge isActive={val} expiryDate={row.expiryDate} />
-    },
-    {
-      key: 'isFeatured',
-      label: 'Featured',
-      render: (val) => val ? <span style={{ color: '#f59e0b', fontWeight: 700 }}>★</span> : '—'
-    },
-    { key: 'order',     label: 'Order' },
-    {
-      key: 'countries',
-      label: 'Countries',
-      render: (val) => val === 0
-        ? <span style={{ color: '#888', fontSize: 12 }}>All</span>
-        : val
-    },
-    {
-      key: 'expiryDate',
-      label: 'Expires',
-      render: (val) => val ? new Date(val).toLocaleDateString('en-GB') : <span style={{ color: '#aaa' }}>Never</span>
-    }
+    { key: 'title',     label: 'Title'     },
+    { key: 'store',     label: 'Store'     },
+    { key: 'type',      label: 'Type'      },
+    { key: 'status',    label: 'Status'    },
+    { key: 'featured',  label: '★'         },
+    { key: 'order',     label: 'Order'     },
+    { key: 'countries', label: 'Countries' },
+    { key: 'expires',   label: 'Expires'   },
   ];
 
   // ── Bound server actions ──────────────────────────────────────────────────
