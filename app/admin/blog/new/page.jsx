@@ -5,8 +5,6 @@ import { createBlogPost } from '@/app/admin/_lib/blog-actions';
 import { FormField, FormRow, FormSection } from '@/app/admin/_components/FormField';
 import styles from '../../admin.module.css';
 
-export const metadata = { title: 'New Blog Post | Admin' };
-
 // ── Slug auto-generator (client utility injected inline) ───────────────────
 const slugScript = `
   function slugify(text) {
@@ -24,7 +22,11 @@ const slugScript = `
   });
 `;
 
-export default async function NewBlogPostPage() {
+export const metadata = { title: 'New Blog Post | Admin' };
+
+export default async function NewBlogPostPage({ searchParams }) {
+  const { error } = await searchParams;
+
   const [authors, categories, tags] = await Promise.all([
     getBlogAuthors(),
     getBlogCategories('en'),
@@ -34,8 +36,11 @@ export default async function NewBlogPostPage() {
   async function handleCreate(formData) {
     'use server';
     const result = await createBlogPost(formData);
-    if (result.success) redirect(`/admin/blog/${result.id}`);
-    // error surface handled by form UX
+    if (result?.error) {
+      console.error('createBlogPost failed:', result.error);
+      redirect('/admin/blog/new?error=1');
+    }
+    redirect(`/admin/blog/${result.id}`);
   }
 
   const authorOptions = [
@@ -60,6 +65,18 @@ export default async function NewBlogPostPage() {
       <div className={styles.pageHeader}>
         <h1>New Blog Post</h1>
       </div>
+
+      {/* ── Error banner ── */}
+      {error && (
+        <div style={{
+          marginBottom: 20, padding: '12px 16px', borderRadius: 8,
+          background: '#fef2f2', border: '1px solid #fecaca', color: '#dc2626',
+          fontSize: 14, display: 'flex', gap: 8, alignItems: 'center'
+        }}>
+          <span>⚠️</span>
+          <span>Post could not be created. Check that the <strong>slug</strong> is unique and all required fields are filled in. Check Vercel logs for the exact error.</span>
+        </div>
+      )}
 
       <form action={handleCreate}>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 24, alignItems: 'start' }}>
