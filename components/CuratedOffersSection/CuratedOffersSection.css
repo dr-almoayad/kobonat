@@ -1,143 +1,103 @@
 /* components/CuratedOffersSection/CuratedOffersSection.css */
 
+/* ── Base Section (Mobile First) ── */
 .co-section {
-  padding: 2.5rem 0;
+  padding: 3rem 1rem;
+  background-color: transparent;
 }
 
 .co-section-inner {
-  max-width: 1280px;
+  max-width: 1200px;
   margin: 0 auto;
-  padding: 0 1.5rem;
 }
 
-/* ── Header ─────────────────────────────────────────────────────────────── */
-.co-section-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  margin-bottom: 1.75rem;
-  gap: 1rem;
-}
-
-.co-section-text {
+/* ── Header ── */
+.co-header {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  align-items: flex-start;
 }
 
-.co-section-title {
+.co-header-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.co-title {
   margin: 0;
-  font-size: 1.75rem;
+  font-size: 1.5rem;
   font-weight: 800;
-  color: #1a1a2e;
+  color: #111827;
   display: flex;
   align-items: center;
-  gap: 0.625rem;
-  font-family: 'Alexandria', sans-serif;
+  gap: 0.5rem;
+  font-family: var(--font-alexandria), sans-serif;
+  line-height: 1.2;
 }
 
-.co-section-icon {
+.co-title-icon {
   color: #470ae2;
-  font-size: 2rem;
-  /* prevent icon from animating on section enter */
-  flex-shrink: 0;
+  font-size: 1.75rem;
 }
 
-.co-section-subtitle {
+.co-subtitle {
   margin: 0;
-  font-size: 0.9rem;
-  color: #64748b;
-  font-family: 'Open Sans', sans-serif;
+  font-size: 0.9375rem;
+  color: #6b7280;
+  font-family: var(--font-open-sans), sans-serif;
 }
 
-.co-section-pill {
+.co-badge-count {
   display: inline-flex;
   align-items: center;
-  padding: 5px 14px;
-  background: rgba(71, 10, 226, 0.07);
+  padding: 0.25rem 0.75rem;
+  background-color: #f3f0ff;
   color: #470ae2;
-  border: 1px solid rgba(71, 10, 226, 0.2);
-  border-radius: 20px;
-  font-size: 0.78rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  white-space: nowrap;
-  flex-shrink: 0;
+  border-radius: 9999px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
 }
 
-/* ── Grid ───────────────────────────────────────────────────────────────── */
+/* ── Grid Layout ── */
 .co-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1.25rem;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
 }
 
-/* If only 1 or 2 items, don't leave awkward empty columns */
-.co-grid[data-count="1"] {
-  grid-template-columns: minmax(0, 640px);
-}
-
-.co-grid[data-count="2"] {
-  grid-template-columns: repeat(2, 1fr);
-  max-width: 880px;
-}
-
-/* ── Responsive ─────────────────────────────────────────────────────────── */
-@media (max-width: 1100px) {
+/* ── Responsive Enhancements ── */
+@media (min-width: 640px) {
+  .co-section {
+    padding: 4rem 1.5rem;
+  }
+  
   .co-grid {
     grid-template-columns: repeat(2, 1fr);
   }
-
-  /* On tablet, 3rd card spans full width if odd count */
-  .co-grid[data-count="3"] > *:nth-child(3) {
-    grid-column: 1 / -1;
-    max-width: 600px;
-    margin: 0 auto;
-    width: 100%;
-  }
 }
 
-@media (max-width: 767px) {
-  .co-section {
-    padding: 1.75rem 0;
+@media (min-width: 1024px) {
+  .co-header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 2.5rem;
   }
 
-  .co-section-title {
-    font-size: 1.4rem;
+  .co-title {
+    font-size: 1.875rem;
   }
 
-  .co-section-icon {
-    font-size: 1.6rem;
-  }
-
-  .co-grid,
-  .co-grid[data-count="2"],
-  .co-grid[data-count="3"] {
-    grid-template-columns: 1fr;
-  }
-
-  .co-grid[data-count="3"] > *:nth-child(3) {
-    grid-column: auto;
-    max-width: none;
-  }
-
-  .co-section-header {
-    align-items: flex-start;
-    flex-wrap: wrap;
-    margin-bottom: 1.25rem;
-  }
-}
-
-@media (max-width: 479px) {
-  .co-section-inner {
-    padding: 0 1rem;
-  }
-
-  .co-section-title {
-    font-size: 1.25rem;
+  .co-badge-count {
+    margin-bottom: 0.25rem; /* Optical alignment with text */
   }
 
   .co-grid {
-    gap: 1rem;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
   }
 }
