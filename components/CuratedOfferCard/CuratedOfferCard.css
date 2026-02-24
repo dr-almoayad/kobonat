@@ -120,9 +120,16 @@
 }
 
 .card-logo {
-  height: 24px;
+  height: 40px;
+  max-width: 100px;
   display: flex;
   align-items: center;
+}
+
+.card-logo img {
+  object-fit: contain;
+  object-position: right center;
+  height: 100%;
 }
 
 .card-store-name {
@@ -138,11 +145,12 @@
   align-items: center;
   gap: 4px;
   padding: 3px 8px;
-  background-color: color-mix(in srgb, var(--type-color) 10%, transparent);
-  color: var(--type-color);
-  border-radius: var(--radius-md);
+  background-color: #fff;
+  color: #470ae2;
+  border-radius: 25px;
+  border: 1px solid #470ae2;
   font-size: 0.6875rem;
-  font-weight: 700;
+  font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   white-space: nowrap;
