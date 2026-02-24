@@ -1,4 +1,4 @@
-// prisma/schema.prisma - CORRECTED VOUCHERS PLATFORM SCHEMA
+// prisma/schema.prisma
 generator client {
   provider = "prisma-client-js"
 }
@@ -13,7 +13,7 @@ datasource db {
 // ============================================================================
 
 enum Locale {
-  ar 
+  ar
   en
 }
 
@@ -74,6 +74,13 @@ enum AdminRole {
   VIEWER
 }
 
+// ─── NEW: Blog status lifecycle ───────────────────────────────────────────────
+enum BlogStatus {
+  DRAFT      // Being written, not visible publicly
+  PUBLISHED  // Live and visible
+  ARCHIVED   // Hidden but preserved
+}
+
 // ============================================================================
 // CORE MODELS
 // ============================================================================
@@ -85,33 +92,33 @@ model Country {
   flag      String?  // 🇸🇦
   isActive  Boolean  @default(true)
   isDefault Boolean  @default(false)
-  
-  translations   CountryTranslation[]
-  stores         StoreCountry[]
-  vouchers       VoucherCountry[]
-  faqs           StoreFAQ[]
-  storePayments  StorePaymentMethod[]
-  voucherClicks  VoucherClick[]
-  storeProductClicks StoreProductClick[]  // ← ADDED for relation
-  otherPromos    OtherPromo[]
-  curatedOffers  CuratedOfferCountry[]  // ← ADDED
-  storeProducts  StoreProductCountry[]  // ← ADDED
-  
+
+  translations        CountryTranslation[]
+  stores              StoreCountry[]
+  vouchers            VoucherCountry[]
+  faqs                StoreFAQ[]
+  storePayments       StorePaymentMethod[]
+  voucherClicks       VoucherClick[]
+  storeProductClicks  StoreProductClick[]
+  otherPromos         OtherPromo[]
+  curatedOffers       CuratedOfferCountry[]
+  storeProducts       StoreProductCountry[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
   @@index([isActive])
-  // Removed currency index since it's now a string
 }
 
 model CountryTranslation {
-  id        Int     @id @default(autoincrement())
+  id        Int    @id @default(autoincrement())
   countryId Int
   locale    Locale
-  name      String  
-  
+
+  name String
+
   country Country @relation(fields: [countryId], references: [id], onDelete: Cascade)
-  
+
   @@unique([countryId, locale])
   @@index([locale])
 }
@@ -121,26 +128,26 @@ model CountryTranslation {
 // ============================================================================
 
 model Store {
-  id          Int      @id @default(autoincrement())
-  
+  id Int @id @default(autoincrement())
+
   // Images
-  logo              String?
-  bigLogo           String?
-  backgroundImage   String?
-  coverImage        String?  // Hero banner for store page
-  color             String?  // Brand color for UI theming
-  
-  showOfferType     ShowOfferType?
-  
+  logo            String?
+  bigLogo         String?
+  backgroundImage String?
+  coverImage      String? // Hero banner for store page
+  color           String? // Brand color for UI theming
+
+  showOfferType ShowOfferType?
+
   // URLs
-  websiteUrl        String
-  affiliateNetwork  String?
-  trackingUrl       String?
-  
+  websiteUrl       String
+  affiliateNetwork String?
+  trackingUrl      String?
+
   // Status
-  isActive    Boolean @default(true)
-  isFeatured  Boolean @default(false)
-  
+  isActive   Boolean @default(true)
+  isFeatured Boolean @default(false)
+
   // Relations
   translations   StoreTranslation[]
   countries      StoreCountry[]
@@ -151,32 +158,32 @@ model Store {
   otherPromos    OtherPromo[]
   products       StoreProduct[]
   curatedOffers  CuratedOffer[]
-  
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   @@index([isActive])
   @@index([isFeatured])
   @@index([showOfferType])
 }
 
 model StoreTranslation {
-  id          Int     @id @default(autoincrement())
-  storeId     Int
-  locale      Locale
-  
+  id      Int    @id @default(autoincrement())
+  storeId Int
+  locale  Locale
+
   name        String
   slug        String
   description String? @db.Text
-  
+
   // SEO
   seoTitle       String?
   seoDescription String? @db.Text
-  
-  showOffer      String?  // "Get 15% off all orders" / "خصم 15% على جميع الطلبات"
-  
+
+  showOffer String? // "Get 15% off all orders" / "خصم 15% على جميع الطلبات"
+
   store Store @relation(fields: [storeId], references: [id], onDelete: Cascade)
-  
+
   @@unique([storeId, locale])
   @@unique([locale, slug])
   @@index([locale])
@@ -192,13 +199,13 @@ model Category {
   icon  String? // Material icon name (e.g., "checkroom", "devices")
   image String? // Category banner/thumbnail
   color String? // Category accent color
-  
+
   translations CategoryTranslation[]
   stores       StoreCategory[]
-  
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
   @@index([color])
 }
 
@@ -206,16 +213,16 @@ model CategoryTranslation {
   id         Int    @id @default(autoincrement())
   categoryId Int
   locale     Locale
-  
+
   name        String
   slug        String
   description String? @db.Text
-  
+
   seoTitle       String?
   seoDescription String? @db.Text
-  
+
   category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-  
+
   @@unique([categoryId, locale])
   @@unique([locale, slug])
   @@index([locale])
@@ -227,47 +234,47 @@ model CategoryTranslation {
 // ============================================================================
 
 model Voucher {
-  id       Int         @id @default(autoincrement())
-  storeId  Int
-  
+  id      Int @id @default(autoincrement())
+  storeId Int
+
   // Voucher Details
   code     String?     // Coupon code (e.g., "SAVE20")
   type     VoucherType
   discount String?     // "20%", "50 SAR off", "Buy 1 Get 1"
-  
+
   // Image for featured deals
-  image    String?     // Hero image for visual deals
-  
+  image String? // Hero image for visual deals
+
   // Links
-  landingUrl String?   // Direct product/deal URL
-  
+  landingUrl String? // Direct product/deal URL
+
   // Validity
   startDate  DateTime?
   expiryDate DateTime?
-  
+
   // Badges
   isExclusive Boolean @default(false)
   isVerified  Boolean @default(false)
-  
+
   // Analytics
   popularityScore Int @default(0)
-  clickCount      Int @default(0) // ← ADDED for better naming consistency
-  
+  clickCount      Int @default(0)
+
   // Relations
   translations VoucherTranslation[]
   countries    VoucherCountry[]
-  store        Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  store        Store        @relation(fields: [storeId], references: [id], onDelete: Cascade)
   clicks       VoucherClick[]
-  
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
   @@index([storeId])
   @@index([expiryDate])
   @@index([isExclusive])
   @@index([isVerified])
   @@index([popularityScore])
-  @@index([clickCount]) // ← ADDED
+  @@index([clickCount])
   @@index([type])
 }
 
@@ -275,12 +282,12 @@ model VoucherTranslation {
   id        Int    @id @default(autoincrement())
   voucherId Int
   locale    Locale
-  
+
   title       String        // "20% Off Everything"
   description String? @db.Text // "Valid on all items. Min spend 200 SAR"
-  
+
   voucher Voucher @relation(fields: [voucherId], references: [id], onDelete: Cascade)
-  
+
   @@unique([voucherId, locale])
   @@index([locale])
 }
@@ -290,33 +297,34 @@ model VoucherTranslation {
 // ============================================================================
 
 model StoreProduct {
-  id          Int     @id @default(autoincrement())
-  storeId     Int
-  
+  id      Int @id @default(autoincrement())
+  storeId Int
+
   // Product Details
-  image       String  // Product image (required)
-  discountValue Float?        // Discount amount (percentage or absolute)
-  discountType  DiscountType @default(PERCENTAGE) // PERCENTAGE or ABSOLUTE
-  
+  image        String       // Product image (required)
+  discountValue Float?       // Discount amount (percentage or absolute)
+  discountType  DiscountType @default(PERCENTAGE)
+
   // Links
-  productUrl  String  // Direct link to product on store website
-  
+  productUrl String // Direct link to product on store website
+
   // Display
-  isFeatured  Boolean @default(true)  // Show on store page
-  order       Int     @default(0)     // Display order
-  
+  isFeatured Boolean @default(true) // Show on store page
+  order      Int     @default(0)    // Display order
+
   // Analytics
-  clickCount  Int     @default(0)
-  
+  clickCount Int @default(0)
+
   // Relations
   translations StoreProductTranslation[]
-  store        Store   @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  store        Store               @relation(fields: [storeId], references: [id], onDelete: Cascade)
   clicks       StoreProductClick[]
-  countries    StoreProductCountry[] // ← ADDED for country-specific products
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
+  countries    StoreProductCountry[]
+  blogProducts BlogPostProduct[]   // ← NEW: reverse relation for blog ↔ product links
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   @@index([storeId])
   @@index([isFeatured])
   @@index([order])
@@ -327,68 +335,68 @@ model StoreProductTranslation {
   id        Int    @id @default(autoincrement())
   productId Int
   locale    Locale
-  
-  title       String  // ← Changed from optional to required
-  description String? @db.Text // Optional product description
-  
+
+  title       String        // Changed from optional to required
+  description String? @db.Text
+
   product StoreProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
-  
+
   @@unique([productId, locale])
   @@index([locale])
 }
 
 model StoreProductClick {
-  id          Int      @id @default(autoincrement())
-  productId   Int
-  countryId   Int?     // ← ADDED for country analytics
-  
-  ipHash      String?
-  userAgent   String?
-  referrer    String?
-  clickedAt   DateTime @default(now())
-  
+  id        Int  @id @default(autoincrement())
+  productId Int
+  countryId Int?
+
+  ipHash    String?
+  userAgent String?
+  referrer  String?
+  clickedAt DateTime @default(now())
+
   product StoreProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
-  country Country? @relation(fields: [countryId], references: [id], onDelete: SetNull)
-  
+  country Country?     @relation(fields: [countryId], references: [id], onDelete: SetNull)
+
   @@index([productId])
   @@index([clickedAt])
   @@index([countryId])
 }
 
 // ============================================================================
-// OTHER PROMOS - NEW MODEL FOR BANK/CARD OFFERS
+// OTHER PROMOS - BANK/CARD OFFERS
 // ============================================================================
 
 model OtherPromo {
-  id        Int     @id @default(autoincrement())
+  id        Int @id @default(autoincrement())
   storeId   Int
   countryId Int
-  
+
   // Promo Details
-  image     String?    // Banner image
-  type      PromoType
-  
+  image String?    // Banner image
+  type  PromoType
+
   // Links
-  url       String?    // External link to T&Cs or signup
-  
+  url String? // External link to T&Cs or signup
+
   // Validity
   startDate  DateTime?
   expiryDate DateTime?
-  
-  isActive   Boolean @default(true)
-  order      Int     @default(0) // Display order
-  
+
+  isActive Boolean @default(true)
+  order    Int     @default(0)
+
   // Relations
   translations OtherPromoTranslation[]
   store        Store   @relation(fields: [storeId], references: [id], onDelete: Cascade)
   country      Country @relation(fields: [countryId], references: [id], onDelete: Cascade)
-  
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
   @@index([storeId, countryId])
   @@index([isActive])
-  @@index([expiryDate]) // ← ADDED
+  @@index([expiryDate])
   @@index([order])
   @@index([type])
 }
@@ -397,13 +405,13 @@ model OtherPromoTranslation {
   id      Int    @id @default(autoincrement())
   promoId Int
   locale  Locale
-  
+
   title       String        // "10% Cashback with Visa"
-  description String? @db.Text // "Get 10% cashback when you pay with Visa cards"
-  terms       String? @db.Text // Full terms & conditions
-  
+  description String? @db.Text
+  terms       String? @db.Text
+
   promo OtherPromo @relation(fields: [promoId], references: [id], onDelete: Cascade)
-  
+
   @@unique([promoId, locale])
   @@index([locale])
 }
@@ -413,34 +421,34 @@ model OtherPromoTranslation {
 // ============================================================================
 
 model CuratedOffer {
-  id        Int     @id @default(autoincrement())
-  storeId   Int
-  
+  id      Int @id @default(autoincrement())
+  storeId Int
+
   // Offer Details
-  offerImage String  // Squircle image URL (right side)
-  code       String? // Optional coupon code
+  offerImage String           // Squircle image URL
+  code       String?          // Optional coupon code
   type       CuratedOfferType
-  
+
   // CTA
-  ctaUrl     String  // Where clicking leads
-  
+  ctaUrl String // Where clicking leads
+
   // Validity
   startDate  DateTime?
   expiryDate DateTime?
-  
+
   // Display
   isFeatured Boolean @default(false)
   isActive   Boolean @default(true)
   order      Int     @default(0)
-  
+
   // Relations
   translations CuratedOfferTranslation[]
-  store        Store   @relation(fields: [storeId], references: [id], onDelete: Cascade)
-  countries    CuratedOfferCountry[] // ← ADDED for country-specific offers
-  
+  store        Store               @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  countries    CuratedOfferCountry[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
   @@index([storeId])
   @@index([isFeatured])
   @@index([isActive])
@@ -453,13 +461,13 @@ model CuratedOfferTranslation {
   id      Int    @id @default(autoincrement())
   offerId Int
   locale  Locale
-  
-  title       String        // "€25 BYOD Plan! Customers Get UNL 5G for €25/Month"
-  description String? @db.Text // Optional additional details
-  ctaText     String        // "SHOP NOW", "GET OFFER", etc.
-  
+
+  title       String        // "€25 BYOD Plan!"
+  description String? @db.Text
+  ctaText     String        // "SHOP NOW", "GET OFFER"
+
   offer CuratedOffer @relation(fields: [offerId], references: [id], onDelete: Cascade)
-  
+
   @@unique([offerId, locale])
   @@index([locale])
 }
@@ -469,70 +477,69 @@ model CuratedOfferTranslation {
 // ============================================================================
 
 model PaymentMethod {
-  id          Int      @id @default(autoincrement())
-  slug        String   @unique
-  type        PaymentType
-  isBnpl      Boolean  @default(false)
-  logo        String?
-  
+  id     Int         @id @default(autoincrement())
+  slug   String      @unique
+  type   PaymentType
+  isBnpl Boolean     @default(false)
+  logo   String?
+
   translations PaymentMethodTranslation[]
   storeLinks   StorePaymentMethod[]
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   @@index([type])
   @@index([isBnpl])
   @@index([slug])
 }
 
 model PaymentMethodTranslation {
-  id              Int     @id @default(autoincrement())
+  id              Int    @id @default(autoincrement())
   paymentMethodId Int
   locale          Locale
-  
+
   name        String
   description String? @db.Text
-  
+
   paymentMethod PaymentMethod @relation(fields: [paymentMethodId], references: [id], onDelete: Cascade)
-  
+
   @@unique([paymentMethodId, locale])
   @@index([locale])
 }
 
 model StorePaymentMethod {
-  id              Int      @id @default(autoincrement())
+  id              Int @id @default(autoincrement())
   storeId         Int
   countryId       Int
   paymentMethodId Int
-  
-  isActive        Boolean  @default(true)
-  minAmount       Float?
-  maxAmount       Float?
-  
-  store           Store         @relation(fields: [storeId], references: [id], onDelete: Cascade)
-  country         Country       @relation(fields: [countryId], references: [id], onDelete: Cascade)
-  paymentMethod   PaymentMethod @relation(fields: [paymentMethodId], references: [id], onDelete: Cascade)
-  
-  translations    StorePaymentMethodTranslation[]
-  
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  
+
+  isActive  Boolean @default(true)
+  minAmount Float?
+  maxAmount Float?
+
+  store         Store         @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  country       Country       @relation(fields: [countryId], references: [id], onDelete: Cascade)
+  paymentMethod PaymentMethod @relation(fields: [paymentMethodId], references: [id], onDelete: Cascade)
+  translations  StorePaymentMethodTranslation[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   @@unique([storeId, countryId, paymentMethodId])
   @@index([storeId, countryId])
   @@index([isActive])
 }
 
 model StorePaymentMethodTranslation {
-  id                  Int     @id @default(autoincrement())
+  id                   Int    @id @default(autoincrement())
   storePaymentMethodId Int
-  locale              Locale
-  
+  locale               Locale
+
   notes String? @db.Text
-  
+
   storePaymentMethod StorePaymentMethod @relation(fields: [storePaymentMethodId], references: [id], onDelete: Cascade)
-  
+
   @@unique([storePaymentMethodId, locale])
   @@index([locale])
 }
@@ -547,14 +554,14 @@ model StoreFAQ {
   countryId Int
   order     Int     @default(0)
   isActive  Boolean @default(true)
-  
+
   translations StoreFAQTranslation[]
   store        Store   @relation(fields: [storeId], references: [id], onDelete: Cascade)
   country      Country @relation(fields: [countryId], references: [id], onDelete: Cascade)
-  
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
   @@unique([storeId, countryId, order])
   @@index([storeId, countryId])
   @@index([isActive])
@@ -562,15 +569,15 @@ model StoreFAQ {
 }
 
 model StoreFAQTranslation {
-  id    Int    @id @default(autoincrement())
-  faqId Int
+  id     Int    @id @default(autoincrement())
+  faqId  Int
   locale Locale
-  
+
   question String
   answer   String @db.Text
-  
+
   faq StoreFAQ @relation(fields: [faqId], references: [id], onDelete: Cascade)
-  
+
   @@unique([faqId, locale])
   @@index([locale])
 }
@@ -582,50 +589,50 @@ model StoreFAQTranslation {
 model StoreCountry {
   storeId   Int
   countryId Int
-  
+
   store   Store   @relation(fields: [storeId], references: [id], onDelete: Cascade)
   country Country @relation(fields: [countryId], references: [id], onDelete: Cascade)
-  
+
   @@id([storeId, countryId])
 }
 
 model VoucherCountry {
   voucherId Int
   countryId Int
-  
+
   voucher Voucher @relation(fields: [voucherId], references: [id], onDelete: Cascade)
   country Country @relation(fields: [countryId], references: [id], onDelete: Cascade)
-  
+
   @@id([voucherId, countryId])
 }
 
 model StoreCategory {
   storeId    Int
   categoryId Int
-  
+
   store    Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
   category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-  
+
   @@id([storeId, categoryId])
 }
 
 model CuratedOfferCountry {
   offerId   Int
   countryId Int
-  
+
   offer   CuratedOffer @relation(fields: [offerId], references: [id], onDelete: Cascade)
   country Country      @relation(fields: [countryId], references: [id], onDelete: Cascade)
-  
+
   @@id([offerId, countryId])
 }
 
 model StoreProductCountry {
   productId Int
   countryId Int
-  
+
   product StoreProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
   country Country      @relation(fields: [countryId], references: [id], onDelete: Cascade)
-  
+
   @@id([productId, countryId])
 }
 
@@ -634,18 +641,18 @@ model StoreProductCountry {
 // ============================================================================
 
 model VoucherClick {
-  id          Int      @id @default(autoincrement())
-  voucherId   Int
-  countryId   Int?
-  
-  ipHash      String?
-  userAgent   String?
-  referrer    String?
-  clickedAt   DateTime @default(now())
-  
-  voucher Voucher @relation(fields: [voucherId], references: [id], onDelete: Cascade)
+  id        Int  @id @default(autoincrement())
+  voucherId Int
+  countryId Int?
+
+  ipHash    String?
+  userAgent String?
+  referrer  String?
+  clickedAt DateTime @default(now())
+
+  voucher Voucher  @relation(fields: [voucherId], references: [id], onDelete: Cascade)
   country Country? @relation(fields: [countryId], references: [id], onDelete: SetNull)
-  
+
   @@index([voucherId])
   @@index([clickedAt])
   @@index([countryId])
@@ -673,4 +680,194 @@ model Admin {
   @@index([email])
   @@index([role])
   @@index([isActive])
+}
+
+// ============================================================================
+// BLOG SYSTEM
+// ============================================================================
+
+// ── Author ───────────────────────────────────────────────────────────────────
+// Separate from Admin because authors may not have login access, and their
+// public profile (bio, avatar, social) belongs on the frontend, not in Admin.
+
+model BlogAuthor {
+  id            Int     @id @default(autoincrement())
+  name          String  // Display name in English
+  nameAr        String? // Display name in Arabic
+  avatar        String? // URL to profile photo
+  bio           String? @db.Text // Short bio in English
+  bioAr         String? @db.Text // Short bio in Arabic
+  twitterHandle String? // Without @, used for schema.org sameAs
+
+  posts BlogPost[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([name])
+}
+
+// ── Blog Category ─────────────────────────────────────────────────────────────
+// Stores have a Category model; blogs get their own to avoid cross-contamination
+// of slugs and translations between store categories and content categories.
+
+model BlogCategory {
+  id    Int     @id @default(autoincrement())
+  slug  String  @unique // e.g. "shopping-tips" — shared across locales
+  color String? // Accent color for UI badges
+  icon  String? // Optional icon name
+
+  translations BlogCategoryTranslation[]
+  posts        BlogPost[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([slug])
+}
+
+model BlogCategoryTranslation {
+  id          Int    @id @default(autoincrement())
+  categoryId  Int
+  locale      Locale // Uses existing Locale enum (ar | en)
+
+  name        String
+  description String? @db.Text
+
+  category BlogCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@unique([categoryId, locale])
+  @@index([locale])
+}
+
+// ── Blog Tag ──────────────────────────────────────────────────────────────────
+// Tags are flat (no hierarchy), many-to-many with posts.
+// Slug is the stable identifier; names are translated.
+
+model BlogTag {
+  id   Int    @id @default(autoincrement())
+  slug String @unique // e.g. "noon", "electronics"
+
+  translations BlogTagTranslation[]
+  posts        BlogPostTag[]
+
+  createdAt DateTime @default(now())
+
+  @@index([slug])
+}
+
+model BlogTagTranslation {
+  id     Int    @id @default(autoincrement())
+  tagId  Int
+  locale Locale
+
+  name String // e.g. "Electronics" / "إلكترونيات"
+
+  tag BlogTag @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@unique([tagId, locale])
+  @@index([locale])
+}
+
+// ── Blog Post ─────────────────────────────────────────────────────────────────
+// Core content record. Slug is language-agnostic (always English) so the same
+// URL pattern works for both locales: /ar-SA/blog/slug and /en-SA/blog/slug.
+
+model BlogPost {
+  id            Int        @id @default(autoincrement())
+  slug          String     @unique // URL slug — English only, shared across locales
+  featuredImage String?    // Hero image URL
+  isFeatured    Boolean    @default(false) // Pins to homepage section
+  status        BlogStatus @default(DRAFT)
+  publishedAt   DateTime?  // Null until explicitly published
+
+  // Optional relations
+  authorId   Int?
+  categoryId Int?
+  author     BlogAuthor?   @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  category   BlogCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  // Content & relations
+  translations     BlogPostTranslation[]
+  tags             BlogPostTag[]
+  relatedProducts  BlogPostProduct[]
+  relatedPosts     BlogPostRelated[] @relation("PostToRelated")
+  relatedTo        BlogPostRelated[] @relation("RelatedToPost")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status, publishedAt]) // Primary query: published posts sorted by date
+  @@index([isFeatured])          // Homepage featured section
+  @@index([categoryId])          // Category filter
+  @@index([authorId])            // Author filter
+  @@index([slug])                // URL lookup
+}
+
+// ── Blog Post Translation ─────────────────────────────────────────────────────
+// All text content is per-locale. Meta fields fall back to title/excerpt
+// if left blank (handled in application layer, not schema).
+
+model BlogPostTranslation {
+  id     Int    @id @default(autoincrement())
+  postId Int
+  locale Locale // Uses existing Locale enum (ar | en)
+
+  // Core content
+  title   String
+  excerpt String  @db.Text // Short summary for cards and meta
+  content String  @db.Text // Full HTML/rich text body
+
+  // SEO overrides (optional — fall back to title/excerpt if null)
+  metaTitle       String?
+  metaDescription String? @db.Text
+
+  post BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, locale])
+  @@index([locale])
+}
+
+// ── Junction: Post ↔ Tag ──────────────────────────────────────────────────────
+
+model BlogPostTag {
+  postId Int
+  tagId  Int
+
+  post BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  tag  BlogTag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([postId, tagId])
+}
+
+// ── Junction: Post ↔ StoreProduct ─────────────────────────────────────────────
+// Links blog posts to specific store products for internal SEO linking.
+// Uses a proper FK to StoreProduct (not bare Int) for referential integrity.
+
+model BlogPostProduct {
+  postId    Int
+  productId Int
+
+  post    BlogPost     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  product StoreProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@id([postId, productId])
+}
+
+// ── Self-join: Related Posts ───────────────────────────────────────────────────
+// Explicit editorial overrides for "Related Articles" sections.
+// When set, these take priority over algorithmic tag/category matching.
+// Named relations ("PostToRelated" / "RelatedToPost") are required by
+// Prisma whenever a model has two relations pointing to the same model.
+
+model BlogPostRelated {
+  postId        Int
+  relatedPostId Int
+  order         Int @default(0) // Controls display sequence
+
+  post        BlogPost @relation("PostToRelated", fields: [postId], references: [id], onDelete: Cascade)
+  relatedPost BlogPost @relation("RelatedToPost", fields: [relatedPostId], references: [id], onDelete: Cascade)
+
+  @@id([postId, relatedPostId])
+  @@index([postId, order]) // Ordered fetch of a post's related articles
 }
