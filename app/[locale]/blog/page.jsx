@@ -57,7 +57,7 @@ async function getPosts({ locale, categorySlug, tagSlug, page, limit }) {
   if (tagSlug) where.tags = { some: { tag: { slug: tagSlug } } };
 
   const [posts, total] = await Promise.all([
-    prisma.blogPost.findMany({
+    prisma.BlogPost.findMany({
       where,
       include: {
         translations: { where: { locale: lang } },
