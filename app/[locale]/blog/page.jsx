@@ -69,7 +69,7 @@ async function getPosts({ locale, categorySlug, tagSlug, page, limit }) {
       skip: offset,
       take: limit
     }),
-    prisma.blogPost.count({ where })
+    prisma.BlogPost.count({ where })
   ]);
 
   return { posts, total, pages: Math.ceil(total / limit) };
