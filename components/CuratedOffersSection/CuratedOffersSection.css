@@ -18,6 +18,7 @@
   gap: 1rem;
   margin-bottom: 2rem;
   align-items: flex-start;
+  z-index: 1;
 }
 
 .co-header-content {
