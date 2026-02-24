@@ -8,36 +8,30 @@ import './CuratedOfferCard.css';
 
 // ── Type config ───────────────────────────────────────────────────────────────
 const TYPE_CONFIG = {
-  CODE:          { icon: 'confirmation_number', en: 'Code',          ar: 'كود',           hue: '#5b4cff' },
-  DEAL:          { icon: 'local_offer',         en: 'Deal',          ar: 'عرض',           hue: '#e8445a' },
-  PRODUCT:       { icon: 'inventory_2',         en: 'Product',       ar: 'منتج',          hue: '#0ea5e9' },
-  SEASONAL:      { icon: 'celebration',         en: 'Seasonal',      ar: 'موسمي',         hue: '#f472b6' },
-  FREE_SHIPPING: { icon: 'local_shipping',      en: 'Free Shipping', ar: 'شحن مجاني',    hue: '#10b981' },
-  CASHBACK:      { icon: 'payments',            en: 'Cashback',      ar: 'استرداد نقدي',  hue: '#06b6d4' },
-  BUNDLE:        { icon: 'redeem',              en: 'Bundle',        ar: 'باقة',          hue: '#8b5cf6' },
-  FLASH_SALE:    { icon: 'bolt',               en: 'Flash Sale',    ar: 'تخفيض سريع',   hue: '#f97316' },
+  CODE:          { icon: 'confirmation_number', en: 'Code',          ar: 'كود',           hue: '#4f46e5' },
+  DEAL:          { icon: 'local_offer',         en: 'Deal',          ar: 'عرض',           hue: '#e11d48' },
+  PRODUCT:       { icon: 'inventory_2',         en: 'Product',       ar: 'منتج',          hue: '#0284c7' },
+  SEASONAL:      { icon: 'celebration',         en: 'Seasonal',      ar: 'موسمي',         hue: '#db2777' },
+  FREE_SHIPPING: { icon: 'local_shipping',      en: 'Free Shipping', ar: 'شحن مجاني',    hue: '#059669' },
+  CASHBACK:      { icon: 'payments',            en: 'Cashback',      ar: 'استرداد نقدي',  hue: '#0891b2' },
+  BUNDLE:        { icon: 'redeem',              en: 'Bundle',        ar: 'باقة',          hue: '#7c3aed' },
+  FLASH_SALE:    { icon: 'bolt',               en: 'Flash Sale',    ar: 'تخفيض سريع',   hue: '#ea580c' },
 };
 
 export default function CuratedOfferCard({ offer }) {
   const locale = useLocale();
-  const lang   = locale.split('-')[0]; // 'ar' | 'en'
+  const lang   = locale.split('-')[0]; 
   const isRtl  = lang === 'ar';
 
   // ── Data extraction ───────────────────────────────────────────────────────
-  const translation = offer.translations?.find(t => t.locale === lang)
-    || offer.translations?.[0]
-    || {};
+  const translation = offer.translations?.find(t => t.locale === lang) || offer.translations?.[0] || {};
 
   const title   = translation.title   || (isRtl ? 'عرض خاص'   : 'Special Offer');
   const ctaText = translation.ctaText || (isRtl ? 'تسوق الآن' : 'SHOP NOW');
 
-  const storeName = offer.store?.translations?.find(t => t.locale === lang)?.name
-    || offer.store?.translations?.[0]?.name
-    || '';
+  const storeName = offer.store?.translations?.find(t => t.locale === lang)?.name || offer.store?.translations?.[0]?.name || '';
   const storeLogo = offer.store?.logo || null;
-  const storeSlug = offer.store?.translations?.find(t => t.locale === lang)?.slug
-    || offer.store?.translations?.[0]?.slug
-    || 'store';
+  const storeSlug = offer.store?.translations?.find(t => t.locale === lang)?.slug || offer.store?.translations?.[0]?.slug || 'store';
 
   const offerImage = offer.offerImage || null;
   const href       = offer.ctaUrl || `/${locale}/stores/${storeSlug}`;
@@ -52,95 +46,83 @@ export default function CuratedOfferCard({ offer }) {
   return (
     <Link
       href={href}
-      className={`co-card${isExpired ? ' co-card--expired' : ''}${offer.isFeatured ? ' co-card--featured' : ''}`}
+      className={`card-wrapper ${isExpired ? 'is-expired' : ''}`}
       aria-label={`${storeName} – ${title}`}
       target={isExternal ? '_blank' : '_self'}
       rel={isExternal ? 'noopener noreferrer' : undefined}
     >
-      {/* Featured ribbon */}
-      {offer.isFeatured && (
-        <div className="co-ribbon">
-          <span className="material-symbols-sharp">star</span>
-          {isRtl ? 'مميز' : 'Featured'}
-        </div>
-      )}
+      {/* ── Top: Image Area ── */}
+      <div className="card-media">
+        {offerImage ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={offerImage}
+            alt=""
+            className="card-image"
+            loading={offer.isFeatured ? 'eager' : 'lazy'}
+            onError={(e) => { e.currentTarget.style.display = 'none'; }}
+          />
+        ) : (
+          <div className="card-image-fallback" />
+        )}
 
-      {/* Body */}
-      <div className="co-body">
-
-        {/* LEFT — content */}
-        <div className="co-content">
-          {/* Store logo */}
-          {storeLogo ? (
-            <div className="co-store-logo">
-              <Image
-                src={storeLogo}
-                alt={storeName}
-                width={110}
-                height={36}
-                style={{ objectFit: 'contain' }}
-              />
-            </div>
-          ) : storeName ? (
-            <p className="co-store-name">{storeName}</p>
-          ) : null}
-
-          {/* Type badge */}
-          <span className="co-badge" style={{ '--badge-hue': typeCfg.hue }}>
-            <span className="material-symbols-sharp">{typeCfg.icon}</span>
-            {badgeLabel}
-          </span>
-
-          {/* Offer title */}
-          <h3 className="co-title">{title}</h3>
-
-          {/* Code chip */}
-          {hasCode && (
-            <div className="co-code-chip">
-              <span className="material-symbols-sharp">content_copy</span>
-              <span className="co-code-value">{offer.code}</span>
-            </div>
-          )}
-
-          {/* CTA */}
-          <div className="co-cta">
-            <span className="co-cta-text">{ctaText}</span>
-            <span className="material-symbols-sharp co-cta-arrow">
-              {isRtl ? 'arrow_back' : 'arrow_forward'}
-            </span>
+        {/* Featured Ribbon overlay */}
+        {offer.isFeatured && (
+          <div className="card-featured-badge">
+            <span className="material-symbols-sharp">star</span>
+            {isRtl ? 'مميز' : 'Featured'}
           </div>
-        </div>
+        )}
 
-        {/* RIGHT — image
-            Using a plain <img> tag instead of next/image fill.
-            next/image fill requires a fully established CSS position chain
-            (positioned ancestor with explicit px height all the way up),
-            which is fragile inside flex/grid layouts.
-            A plain <img> with object-fit: cover on the .co-squircle container
-            is simpler and works unconditionally. */}
-        {offerImage && (
-          <div className="co-image-wrap" aria-hidden="true">
-            <div className="co-squircle">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={offerImage}
-                alt=""
-                className="co-image"
-                loading={offer.isFeatured ? 'eager' : 'lazy'}
-                onError={(e) => { e.currentTarget.style.display = 'none'; }}
-              />
-            </div>
+        {/* Expired Overlay */}
+        {isExpired && (
+          <div className="card-expired-overlay">
+            <span className="material-symbols-sharp">block</span>
+            <span>{isRtl ? 'العرض منتهي' : 'Offer Expired'}</span>
           </div>
         )}
       </div>
 
-      {/* Expired overlay */}
-      {isExpired && (
-        <div className="co-expired" aria-label={isRtl ? 'منتهي' : 'Expired'}>
-          <span className="material-symbols-sharp">block</span>
-          {isRtl ? 'منتهي' : 'Expired'}
+      {/* ── Bottom: Content Area ── */}
+      <div className="card-content">
+        
+        {/* Meta Row (Logo + Type Badge) */}
+        <div className="card-meta">
+          {storeLogo ? (
+             <div className="card-logo">
+               <Image src={storeLogo} alt={storeName} width={80} height={24} style={{ objectFit: 'contain', objectPosition: isRtl ? 'right' : 'left' }} />
+             </div>
+          ) : storeName ? (
+            <span className="card-store-name">{storeName}</span>
+          ) : <span />}
+
+          <span className="card-type-badge" style={{ '--type-color': typeCfg.hue }}>
+            <span className="material-symbols-sharp">{typeCfg.icon}</span>
+            {badgeLabel}
+          </span>
         </div>
-      )}
+
+        {/* Title */}
+        <h3 className="card-title">{title}</h3>
+
+        {/* Code Chip & CTA Row */}
+        <div className="card-footer">
+          {hasCode ? (
+            <div className="card-code">
+              <span className="material-symbols-sharp">content_copy</span>
+              <strong>{offer.code}</strong>
+            </div>
+          ) : <div />}
+
+          <div className="card-cta">
+            <span className="card-cta-text">{ctaText}</span>
+            <span className="material-symbols-sharp card-cta-icon">
+              {isRtl ? 'arrow_left_alt' : 'arrow_right_alt'}
+            </span>
+          </div>
+        </div>
+        
+      </div>
     </Link>
   );
 }
