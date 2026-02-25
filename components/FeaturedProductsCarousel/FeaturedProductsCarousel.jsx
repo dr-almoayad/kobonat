@@ -7,16 +7,20 @@ import { useTranslations, useLocale } from 'next-intl';
 import Image from 'next/image';
 import "./featured-products-carousel.css";
 
-const FeaturedProductsCarousel = ({ 
-  products = [], 
-  storeName, 
+const FeaturedProductsCarousel = ({
+  products = [],
+  // ── Single-store mode (store page) ──
+  storeName,
   storeLogo,
   storeWebsiteUrl,
-  lastUpdated 
+  lastUpdated,
+  // ── Multi-store mode (homepage) ──
+  // When true: header shows a generic title; each card reads its own store data.
+  multiStore = false,
 }) => {
-  const t = useTranslations('FeaturedProducts');
+  const t      = useTranslations('FeaturedProducts');
   const locale = useLocale();
-  const isRtl = locale.startsWith('ar');
+  const isRtl  = locale.startsWith('ar');
 
   const [emblaRef, emblaApi] = useEmblaCarousel({
     align: 'start',
@@ -29,19 +33,11 @@ const FeaturedProductsCarousel = ({
   const [canScrollPrev, setCanScrollPrev] = useState(false);
   const [canScrollNext, setCanScrollNext] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const [scrollSnaps, setScrollSnaps] = useState([]);
+  const [scrollSnaps, setScrollSnaps]     = useState([]);
 
-  const scrollPrev = useCallback(() => {
-    if (emblaApi) emblaApi.scrollPrev();
-  }, [emblaApi]);
-
-  const scrollNext = useCallback(() => {
-    if (emblaApi) emblaApi.scrollNext();
-  }, [emblaApi]);
-
-  const scrollTo = useCallback((index) => {
-    if (emblaApi) emblaApi.scrollTo(index);
-  }, [emblaApi]);
+  const scrollPrev = useCallback(() => emblaApi?.scrollPrev(), [emblaApi]);
+  const scrollNext = useCallback(() => emblaApi?.scrollNext(), [emblaApi]);
+  const scrollTo   = useCallback((i) => emblaApi?.scrollTo(i), [emblaApi]);
 
   const onSelect = useCallback(() => {
     if (!emblaApi) return;
@@ -62,57 +58,67 @@ const FeaturedProductsCarousel = ({
     };
   }, [emblaApi, onSelect]);
 
-  // Format last updated date
+  // ── Last-updated label (single-store mode only) ──────────────────────────
   const formatLastUpdated = () => {
     if (!lastUpdated) return null;
-    
-    const date = new Date(lastUpdated);
-    const now = new Date();
-    const diffHours = Math.floor((now - date) / (1000 * 60 * 60));
-    
-    if (diffHours < 1) {
-      return t('updatedJustNow', { default: 'Updated just now' });
-    } else if (diffHours < 24) {
-      return t('updatedHoursAgo', { default: 'Updated {hours}h ago', hours: diffHours });
-    } else {
-      const diffDays = Math.floor(diffHours / 24);
-      return t('updatedDaysAgo', { default: 'Updated {days}d ago', days: diffDays });
-    }
+    const diff = Math.floor((Date.now() - new Date(lastUpdated)) / 3600000);
+    if (diff < 1)  return t('updatedJustNow',  { default: 'Updated just now' });
+    if (diff < 24) return t('updatedHoursAgo', { default: 'Updated {hours}h ago', hours: diff });
+    return t('updatedDaysAgo', { default: 'Updated {days}d ago', days: Math.floor(diff / 24) });
   };
 
-  // Don't render if no products
-  if (!products || products.length === 0) {
-    return null;
-  }
+  if (!products?.length) return null;
+
+  // ── Header content varies by mode ────────────────────────────────────────
+  const headerContent = multiStore ? (
+    // Multi-store: generic homepage header
+    <div className="carousel-header-top">
+      <span className="material-symbols-sharp carousel-header-icon">
+        auto_awesome
+      </span>
+      <div className="carousel-title-wrapper">
+        <h2 className="carousel-title">
+          {isRtl ? 'منتجات مميزة' : 'Featured Products'}
+        </h2>
+        <p className="carousel-last-updated">
+          {isRtl
+            ? 'أفضل المنتجات المختارة من متاجر متعددة'
+            : 'Hand-picked deals from top stores'}
+        </p>
+      </div>
+    </div>
+  ) : (
+    // Single-store: store logo + name + last updated
+    <div className="carousel-header-top">
+      {storeLogo && (
+        <Image
+          src={storeLogo}
+          alt={`${storeName} logo`}
+          width={64}
+          height={64}
+          className="carousel-store-logo"
+        />
+      )}
+      <div className="carousel-title-wrapper">
+        <h2 className="carousel-title">
+          {t('topOffersFrom', { default: 'Top offers from' })}{' '}
+          <span className="carousel-store-name">{storeName}</span>
+        </h2>
+        {lastUpdated && (
+          <p className="carousel-last-updated">{formatLastUpdated()}</p>
+        )}
+      </div>
+    </div>
+  );
 
   return (
     <section className="featured-products-carousel" dir={isRtl ? 'rtl' : 'ltr'}>
       <div className="carousel-header">
-        <div className="carousel-header-top">
-          {storeLogo && (
-            <Image
-              src={storeLogo}
-              alt={`${storeName} logo`}
-              width={64}
-              height={64}
-              className="carousel-store-logo"
-            />
-          )}
-          <div className="carousel-title-wrapper">
-            <h2 className="carousel-title">
-              {t('topOffersFrom', { default: 'Top offers from' })}{' '}
-              <span className="carousel-store-name">{storeName}</span>
-            </h2>
-            {lastUpdated && (
-              <p className="carousel-last-updated">
-                {formatLastUpdated()}
-              </p>
-            )}
-          </div>
-        </div>
+        {headerContent}
 
-        {storeWebsiteUrl && (
-          <a 
+        {/* CTA button — only in single-store mode */}
+        {!multiStore && storeWebsiteUrl && (
+          <a
             href={storeWebsiteUrl}
             target="_blank"
             rel="noopener noreferrer"
@@ -125,26 +131,27 @@ const FeaturedProductsCarousel = ({
           </a>
         )}
       </div>
-      
+
       <div className="embla">
         <div className="embla__viewport" ref={emblaRef}>
           <div className="embla__container">
             {products.map((product) => (
               <div key={product.id} className="embla__slide">
-                <StoreProductCard 
+                <StoreProductCard
                   product={product}
-                  storeName={storeName}
-                  storeLogo={storeLogo}
+                  // Single-store: pass shared store props.
+                  // Multi-store: pass undefined — card falls back to product.storeName / product.storeLogo.
+                  storeName={multiStore ? undefined : storeName}
+                  storeLogo={multiStore ? undefined : storeLogo}
                 />
               </div>
             ))}
           </div>
         </div>
 
-        {/* Navigation Buttons - Desktop Only */}
         {canScrollPrev && (
-          <button 
-            className="embla__button embla__button--prev" 
+          <button
+            className="embla__button embla__button--prev"
             onClick={scrollPrev}
             aria-label={t('previousSlide', { default: 'Previous' })}
           >
@@ -153,10 +160,10 @@ const FeaturedProductsCarousel = ({
             </span>
           </button>
         )}
-        
+
         {canScrollNext && (
-          <button 
-            className="embla__button embla__button--next" 
+          <button
+            className="embla__button embla__button--next"
             onClick={scrollNext}
             aria-label={t('nextSlide', { default: 'Next' })}
           >
@@ -167,15 +174,14 @@ const FeaturedProductsCarousel = ({
         )}
       </div>
 
-      {/* Dot Indicators */}
       {scrollSnaps.length > 1 && (
         <div className="carousel-dots">
-          {scrollSnaps.map((_, index) => (
+          {scrollSnaps.map((_, i) => (
             <button
-              key={index}
-              className={`carousel-dot ${index === selectedIndex ? 'active' : ''}`}
-              onClick={() => scrollTo(index)}
-              aria-label={`${t('goToSlide', { default: 'Go to slide' })} ${index + 1}`}
+              key={i}
+              className={`carousel-dot ${i === selectedIndex ? 'active' : ''}`}
+              onClick={() => scrollTo(i)}
+              aria-label={`${t('goToSlide', { default: 'Go to slide' })} ${i + 1}`}
             />
           ))}
         </div>
@@ -184,4 +190,4 @@ const FeaturedProductsCarousel = ({
   );
 };
 
-export default FeaturedProductsCarousel
+export default FeaturedProductsCarousel;
