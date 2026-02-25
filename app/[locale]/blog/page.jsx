@@ -23,6 +23,14 @@ export async function generateMetadata({ params, searchParams }) {
     : 'Discover the latest saving tips, store comparisons, and best deals in Saudi Arabia from Cobonat team.';
 
   return {
+    metadataBase: new URL(baseUrl),
+icons: {
+  icon: [
+    { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+    { url: '/favicon-96x96.png', sizes: '96x96', type: 'image/png' },
+  ],
+  apple: [{ url: '/apple-touch-icon.png', sizes: '180x180' }],
+},
     title,
     description,
     alternates: {
@@ -33,11 +41,13 @@ export async function generateMetadata({ params, searchParams }) {
       }
     },
     openGraph: {
+      siteName: lang === 'ar' ? 'كوبونات' : 'Cobonat',
       title,
       description,
       url: `${baseUrl}/${locale}/blog`,
-      type: 'website'
-    }
+      type: 'website',
+      images: [{ url: `${baseUrl}/logo-512x512.png`, width: 512, height: 512 }],
+    },
   };
 }
 
