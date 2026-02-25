@@ -49,6 +49,14 @@ export async function generateMetadata({ params }) {
   const t = post.translations[0] || {};
 
   return {
+    metadataBase: new URL(baseUrl),
+icons: {
+  icon: [
+    { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+    { url: '/favicon-96x96.png', sizes: '96x96', type: 'image/png' },
+  ],
+  apple: [{ url: '/apple-touch-icon.png', sizes: '180x180' }],
+},
     title: t.metaTitle || t.title,
     description: t.metaDescription || t.excerpt,
     alternates: {
@@ -59,6 +67,7 @@ export async function generateMetadata({ params }) {
       }
     },
     openGraph: {
+      siteName: lang === 'ar' ? 'كوبونات' : 'Cobonat',
       title: t.metaTitle || t.title,
       description: t.metaDescription || t.excerpt,
       url: `${baseUrl}/${locale}/blog/${slug}`,
