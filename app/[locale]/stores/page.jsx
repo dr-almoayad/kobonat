@@ -1,4 +1,4 @@
-8// app/[locale]/stores/page.jsx - FIXED SEO
+// app/[locale]/stores/page.jsx - FIXED SEO
 import { getTranslations } from 'next-intl/server';
 import { prisma } from "@/lib/prisma";
 import StoresGrid from "@/components/StoresGrid/StoresGrid";
@@ -26,18 +26,21 @@ export async function generateMetadata({ params }) {
   const isArabic = lang === 'ar';
   
   return {
+    metadataBase: new URL(BASE_URL),
     icons: {
-      icon: `${BASE_URL}/favicon.ico`,
-      apple: `${BASE_URL}/apple-touch-icon.png`,
+      icon: [
+        { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+        { url: '/favicon-96x96.png', sizes: '96x96', type: 'image/png' },
+      ],
+      apple: [{ url: '/apple-touch-icon.png', sizes: '180x180' }],
     },
     applicationName: isArabic ? 'كوبونات' : 'Cobonat',
-    siteName: isArabic ? 'كوبونات' : 'Cobonat',
     title: isArabic 
-      ? `أكواد خصم وعروض مميزة في أكثر من 50 متجر في  ${region} - كوبونات`
-      : `Promo Codes & Deals at 50+ Stores in ${region}`,
+      ? `أكواد خصم وعروض مميزة في أكثر من 50 متجر في السعودية - كوبونات`
+      : `Promo Codes & Deals at 50+ Stores in Saudi Arabia - Cobonat`,
     description: isArabic
-      ? `تصفح جميع المتاجر المتاحة في ${region}. احصل على أفضل الكوبونات والعروض من متاجرك المفضلة.`
-      : `Browse all available stores in ${region}. Get the best coupons and deals from your favorite stores.`,
+      ? `تصفح جميع المتاجر المتاحة في المملكة العربية السعودية. احصل على أحدث العروض وأكواد الخصم من متاجرك المفضلة.`
+      : `Browse all available stores in Saudi Arabia. Get active coupons and discover the latest deals from your favorite stores.`,
     
     alternates: {
       canonical: `${BASE_URL}/${locale}/stores`,
