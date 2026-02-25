@@ -10,6 +10,8 @@ import StoreCard from "@/components/StoreCard/StoreCard";
 import HeroCarousel from "@/components/HeroCarousel/HeroCarousel";
 import BrandsCarousel from "@/components/BrandsCarousel/BrandsCarousel";
 import CuratedOffersSection from '@/components/CuratedOffersSection/CuratedOffersSection';
+import HomeFeaturedProductsSection from '@/components/HomeFeaturedProducts/HomeFeaturedProductsSection';
+import HomepageBlogSection from '@/components/blog/HomepageBlogSection';
 import HelpBox from "@/components/help/HelpBox";
 import WebSiteStructuredData from '@/components/StructuredData/WebSiteStructuredData';
 
@@ -257,6 +259,17 @@ export default async function Home({ params }) {
           locale={locale}
           countryCode={countryCode || 'SA'}
         />
+
+
+        {/* Blog Section — latest/featured articles, returns null if no published posts */}
+        <HomepageBlogSection locale={locale} count={3} />
+
+        {/* Featured Products — hand-picked products from multiple stores */}
+        <HomeFeaturedProductsSection
+          locale={locale}
+          countryCode={countryCode || 'SA'}
+        />
+
 
         {/* Top Deals Grid */}
         <section className="home-section">
