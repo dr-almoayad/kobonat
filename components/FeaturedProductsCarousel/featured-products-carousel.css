@@ -421,3 +421,12 @@
         left: 1rem;
     }
 }
+
+/* ============================================
+   MULTI-STORE MODE — generic header icon
+   ============================================ */
+.carousel-header-icon {
+  font-size: 2rem;
+  color: #470ae2;
+  flex-shrink: 0;
+}
