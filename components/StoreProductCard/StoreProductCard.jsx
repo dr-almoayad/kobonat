@@ -1,93 +1,74 @@
-// components/StoreProductCard/StoreProductCard.jsx - FIXED VERSION
+// components/StoreProductCard/StoreProductCard.jsx
 'use client';
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useTranslations, useLocale } from 'next-intl';
 import './StoreProductCard.css';
 
-const StoreProductCard = ({ product, storeName, storeLogo }) => {
-  const t = useTranslations('StoreProductCard');
+const StoreProductCard = ({ product, storeName: storeNameProp, storeLogo: storeLogoProp }) => {
+  const t      = useTranslations('StoreProductCard');
   const locale = useLocale();
-  const isRtl = locale.startsWith('ar');
-  
-  const [isClicked, setIsClicked] = useState(false);
+  const isRtl  = locale.startsWith('ar');
+
+  const [isClicked,       setIsClicked]       = useState(false);
   const [discountDisplay, setDiscountDisplay] = useState(null);
 
-  // Format discount display
+  // Multi-store mode: fall back to store info embedded on the product object.
+  // This is set by HomeFeaturedProductsSection when products come from multiple stores.
+  const storeName = storeNameProp ?? product?.storeName ?? '';
+  const storeLogo = storeLogoProp ?? product?.storeLogo ?? null;
+
+  // ── Discount display ──────────────────────────────────────────────────────
   useEffect(() => {
-    if (!product) {
-      setDiscountDisplay(null);
-      return;
-    }
-
+    if (!product) { setDiscountDisplay(null); return; }
     const { discountValue, discountType } = product;
-    
-    // Check if discountValue exists and is greater than 0
-    if (discountValue === null || discountValue === undefined || discountValue <= 0) {
-      setDiscountDisplay(null);
-      return;
-    }
-
-    const value = Math.round(discountValue);
-    
-    let display = '';
-    if (discountType === 'PERCENTAGE') {
-      display = `${value}%`;
-    } else if (discountType === 'ABSOLUTE') {
-      display = `${value} SAR`;
-    } else {
-      display = `${value}`;
-    }
-    
-    setDiscountDisplay(display);
+    if (!discountValue || discountValue <= 0) { setDiscountDisplay(null); return; }
+    const v = Math.round(discountValue);
+    setDiscountDisplay(
+      discountType === 'PERCENTAGE' ? `${v}%`      :
+      discountType === 'ABSOLUTE'   ? `${v} SAR`   : `${v}`
+    );
   }, [product]);
 
-  // Track click and redirect
+  // ── Click handler — tracks + opens product URL ────────────────────────────
   const handleClick = async (e) => {
     e.preventDefault();
-    
     if (isClicked || !product?.productUrl) return;
     setIsClicked(true);
 
-    // Track click analytics
     try {
       await fetch('/api/store-products/track', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ productId: product.id })
       });
-    } catch (error) {
-      console.error('Failed to track click:', error);
+    } catch (err) {
+      // Non-fatal — tracking failure shouldn't block navigation
+      console.error('Failed to track click:', err);
     }
 
-    // Redirect to store product page
     window.open(product.productUrl, '_blank', 'noopener,noreferrer');
   };
 
-  // Handle missing data gracefully
-  if (!product) {
-    return null;
-  }
-
   const handleKeyDown = (e) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      handleClick(e);
-    }
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleClick(e); }
   };
 
+  if (!product) return null;
+
   return (
-    <article 
-      className="store-product-card" 
+    <article
+      className="store-product-card"
       onClick={handleClick}
       role="link"
       tabIndex={0}
       onKeyDown={handleKeyDown}
-      aria-label={`${product.title || 'Product'} - ${storeName}`}
+      aria-label={`${product.title || 'Product'}${storeName ? ` - ${storeName}` : ''}`}
     >
-      {/* Product Image Container */}
+      {/* ── Image section ─────────────────────────────────────────────── */}
       <div className="product-image-wrapper">
-        {/* Store Badge - Top Left */}
+
+        {/* Store badge — top corner */}
         {storeLogo && (
           <div className="store-badge">
             <Image
@@ -101,43 +82,42 @@ const StoreProductCard = ({ product, storeName, storeLogo }) => {
           </div>
         )}
 
-        {/* Product Image */}
-        <Image
+        {/* Product image */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
           src={product.image || '/placeholder-product.jpg'}
           alt={product.title || 'Product'}
-          width={280}
-          height={280}
           className="product-image"
-          priority={false}
-          unoptimized
+          loading="lazy"
+          onError={(e) => { e.currentTarget.src = '/placeholder-product.jpg'; }}
         />
 
-        {/* Discount Badge - Bottom (Ribbon Style) */}
+        {/* Discount ribbon — bottom */}
         {discountDisplay && (
-          <div className="discount-badge" aria-label={`${t('discount', { default: 'Discount' })} ${discountDisplay}`}>
+          <div
+            className="discount-badge"
+            aria-label={`${t('discount', { default: 'Discount' })} ${discountDisplay}`}
+          >
             {t('off', { default: 'OFF' })} {discountDisplay}
           </div>
         )}
       </div>
-      
-      {/* Product Info Section */}
+
+      {/* ── Info section ──────────────────────────────────────────────── */}
       <div className="product-info">
-        {/* Product Title */}
         <h3 className="product-title">
           {product.title || t('untitled', { default: 'Product' })}
         </h3>
 
-        {/* Store Name */}
-        <p className="product-store">
-          {t('soldBy', { default: 'Sold by' })} {storeName}
-        </p>
+        {storeName && (
+          <p className="product-store">
+            {t('soldBy', { default: 'Sold by' })} {storeName}
+          </p>
+        )}
 
-        {/* Savings Text (CTA) */}
         {discountDisplay && (
           <div className="savings-text">
-            <span className="material-symbols-sharp" aria-hidden="true">
-              local_offer
-            </span>
+            <span className="material-symbols-sharp" aria-hidden="true">local_offer</span>
             <h6>
               {t('save', { default: 'Save' })} {discountDisplay}
             </h6>
