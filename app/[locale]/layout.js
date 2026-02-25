@@ -164,24 +164,7 @@ export default async function LocaleLayout({ children, params }) {
   />
 </noscript>
 
-        {/* Google Analytics */}
-        <Script
-          src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
-          strategy="lazyOnload"
-        />
-        <Script id="google-analytics" strategy="afterInteractive">
-          {`
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', '${GA_MEASUREMENT_ID}');
-          `}
-        </Script>
 
-        <Script
-  src="https://widget.trustpilot.com/bootstrap/v5/tp.widget.bootstrap.min.js"
-  strategy="lazyOnload"
-/>
 
         {/* WebSite Structured Data */}
         <WebSiteStructuredData
@@ -216,6 +199,27 @@ export default async function LocaleLayout({ children, params }) {
             <MobileFooter />
         
         </NextIntlClientProvider>
+
+
+                          {/* Google Analytics */}
+        <Script
+          src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
+          strategy="lazyOnload"
+        />
+        <Script id="google-analytics" strategy="lazyOnload" >
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', '${GA_MEASUREMENT_ID}');
+          `}
+        </Script>
+
+        <Script
+  src="https://widget.trustpilot.com/bootstrap/v5/tp.widget.bootstrap.min.js"
+  strategy="lazyOnload"
+/>
+    
       </body>
     </html>
   );
