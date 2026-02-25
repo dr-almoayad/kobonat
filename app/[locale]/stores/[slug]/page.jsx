@@ -48,11 +48,14 @@ export async function generateMetadata({ params }) {
         const categoryName = categoryTranslation?.name || 'Category';
         
         return {
-          icons: {
-            icon: `${BASE_URL}/favicon.ico`,
-            apple: `${BASE_URL}/apple-touch-icon.png`,
-          },
-          siteName: isArabic ? 'كوبونات' : 'Cobonat',
+          metadataBase: new URL(BASE_URL),
+icons: {
+  icon: [
+    { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+    { url: '/favicon-96x96.png', sizes: '96x96', type: 'image/png' },
+  ],
+  apple: [{ url: '/apple-touch-icon.png', sizes: '180x180' }],
+},
           title: categoryTranslation.seoTitle || categoryName,
           description: categoryTranslation.seoDescription || categoryTranslation?.description || '',
           openGraph: {
@@ -118,11 +121,14 @@ export async function generateMetadata({ params }) {
         const storeName = storeTranslation?.name || slug;
         
         return {
-          icons: {
-            icon: `${BASE_URL}/favicon.ico`,
-            apple: `${BASE_URL}/apple-touch-icon.png`,
-          },
-          siteName: isArabic ? 'كوبونات' : 'Cobonat',
+          metadataBase: new URL(BASE_URL),
+icons: {
+  icon: [
+    { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+    { url: '/favicon-96x96.png', sizes: '96x96', type: 'image/png' },
+  ],
+  apple: [{ url: '/apple-touch-icon.png', sizes: '180x180' }],
+},
           title: storeTranslation.seoTitle || storeName,
           description: storeTranslation.seoDescription || storeTranslation?.description || `Find the best coupons and deals for ${storeName}`,
           openGraph: {
