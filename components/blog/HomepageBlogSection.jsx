@@ -8,30 +8,10 @@ import BlogCard from './BlogCard';
 // Fetch up to 3 featured posts; fill remaining from latest if needed
 // ============================================================================
 async function getFeaturedPosts(lang, count = 3) {
-  // Step 1: Get featured posts
-  const featured = await prisma.blogPost.findMany({
-    where: { status: 'PUBLISHED', publishedAt: { lte: new Date() }, isFeatured: true },
-    include: {
-      translations: { where: { locale: lang } },
-      author: true,
-      category: { include: { translations: { where: { locale: lang } } } },
-      tags: { include: { tag: { include: { translations: { where: { locale: lang } } } } } }
-    },
-    orderBy: { publishedAt: 'desc' },
-    take: count
-  });
-
-  // Step 2: Fill up with latest if we don't have enough
-  if (featured.length < count) {
-    const featuredIds = featured.map(p => p.id);
-    const needed = count - featured.length;
-
-    const latest = await prisma.blogPost.findMany({
-      where: {
-        status: 'PUBLISHED',
-        publishedAt: { lte: new Date() },
-        id: { notIn: featuredIds }
-      },
+  try {
+    // Step 1: Get featured posts
+    const featured = await prisma.blogPost.findMany({
+      where: { status: 'PUBLISHED', publishedAt: { lte: new Date() }, isFeatured: true },
       include: {
         translations: { where: { locale: lang } },
         author: true,
@@ -39,13 +19,38 @@ async function getFeaturedPosts(lang, count = 3) {
         tags: { include: { tag: { include: { translations: { where: { locale: lang } } } } } }
       },
       orderBy: { publishedAt: 'desc' },
-      take: needed
+      take: count
     });
 
-    return [...featured, ...latest];
-  }
+    // Step 2: Fill up with latest if we don't have enough
+    if (featured.length < count) {
+      const featuredIds = featured.map(p => p.id);
+      const needed = count - featured.length;
 
-  return featured;
+      const latest = await prisma.blogPost.findMany({
+        where: {
+          status: 'PUBLISHED',
+          publishedAt: { lte: new Date() },
+          id: { notIn: featuredIds }
+        },
+        include: {
+          translations: { where: { locale: lang } },
+          author: true,
+          category: { include: { translations: { where: { locale: lang } } } },
+          tags: { include: { tag: { include: { translations: { where: { locale: lang } } } } } }
+        },
+        orderBy: { publishedAt: 'desc' },
+        take: needed
+      });
+
+      return [...featured, ...latest];
+    }
+
+    return featured;
+  } catch (error) {
+    console.error('[HomepageBlogSection] fetch error:', error.message);
+    return [];
+  }
 }
 
 // ============================================================================
@@ -164,21 +169,3 @@ export default async function HomepageBlogSection({ locale, count = 3 }) {
     </section>
   );
 }
-
-// ============================================================================
-// USAGE EXAMPLE (in app/[locale]/page.jsx):
-//
-//   import HomepageBlogSection from '@/components/blog/HomepageBlogSection';
-//
-//   export default async function HomePage({ params }) {
-//     const { locale } = await params;
-//     return (
-//       <>
-//         <HeroSection locale={locale} />
-//         <FeaturedStores locale={locale} />
-//         <HomepageBlogSection locale={locale} count={3} />
-//         <Footer locale={locale} />
-//       </>
-//     );
-//   }
-// ============================================================================
