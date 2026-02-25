@@ -27,6 +27,14 @@ export const revalidate = 60;
       : `Your #1 source for verified discount codes in Saudi 🇸🇦. Save more on fashion, electronics, and groceries with verified and active coupons for top local and global stores.`;
   
     return {
+     metadataBase: new URL(BASE_URL),
+icons: {
+  icon: [
+    { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+    { url: '/favicon-96x96.png', sizes: '96x96', type: 'image/png' },
+  ],
+  apple: [{ url: '/apple-touch-icon.png', sizes: '180x180' }],
+},
       title,
       description,
       alternates: {
