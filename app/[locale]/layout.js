@@ -1,3 +1,4 @@
+// app/[locale]/layout.jsx
 import { Geist, Geist_Mono, Alexandria, Open_Sans } from "next/font/google";
 import "./globals.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
@@ -33,67 +34,81 @@ export async function generateMetadata({ params }) {
 
   return {
     metadataBase: new URL(BASE_URL),
-    icons: {
-      icon: `${BASE_URL}/favicon.ico`,
-      apple: `${BASE_URL}/apple-touch-icon.png`,
-    },
+
     applicationName: isArabic ? 'كوبونات' : 'Cobonat',
-    siteName: isArabic ? 'كوبونات' : 'Cobonat',
+
     title: {
       default: isArabic
         ? "Cobonat | كوبونات - أكواد خصم السعودية (محدث باستمرار) - وفر أكثر على مشترياتك ومقاضيك!"
         : 'Cobonat - Save More on Every Purchase',
-      template: isArabic ? '%s | كوبونات' : '%s | Cobonat'
+      template: isArabic ? '%s | كوبونات' : '%s | Cobonat',
     },
+
     description: isArabic
       ? "منصتك الأولى لأكواد الخصم والعروض في السعودية 🇸🇦. وفر فلوسك مع كوبونات فعالة وموثقة لأشهر المتاجر العالمية والمحلية. مقاضيك، لبسك، وسفرياتك صارت أوفر!"
       : "Your #1 source for verified discount codes in Saudi 🇸🇦. Save more on fashion, electronics, and groceries with verified and active coupons for top local and global stores.",
-    applicationName: isArabic ? 'كوبونات' : 'Cobonat',
-    keywords: keywords,
+
+    keywords,
+
     authors: [{ name: 'Cobonat' }],
     creator: 'Cobonat',
     publisher: 'Cobonat',
+
+    // ✅ Single, complete icons definition with sizes Google needs
+    icons: {
+      icon: [
+        { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+        { url: '/favicon-96x96.png', sizes: '96x96', type: 'image/png' },
+      ],
+      apple: [{ url: '/apple-touch-icon.png', sizes: '180x180' }],
+      other: [{ rel: 'mask-icon', url: '/safari-pinned-tab.svg' }],
+    },
+
+    manifest: isArabic ? '/manifest-ar.webmanifest' : '/manifest-en.webmanifest',
+
     alternates: {
       canonical: `${BASE_URL}/${locale}`,
       languages: {
         'ar-SA': `${BASE_URL}/ar-SA`,
         'en-SA': `${BASE_URL}/en-SA`,
         'x-default': `${BASE_URL}/ar-SA`,
-      }
+      },
     },
-    openGraph: {
 
-      siteName: isArabic ? 'كوبونات' : 'Cobonat',
+    openGraph: {
+      type: 'website',
+      locale,
+      url: `${BASE_URL}/${locale}`,
+      siteName: isArabic ? 'كوبونات' : 'Cobonat', // ✅ siteName belongs here only
+      title: isArabic
+        ? "Cobonat | كوبونات - أكواد خصم السعودية (محدث باستمرار) - وفر أكثر على مشترياتك ومقاضيك!"
+        : "Cobonat | Active & Verified KSA Promo Codes 2026 - Verified Daily for Smart Savings!",
+      description: isArabic
+        ? "منصتك الأولى لأكواد الخصم والعروض في السعودية 🇸🇦. وفر فلوسك مع كوبونات فعالة وموثقة لأشهر المتاجر العالمية والمحلية. مقاضيك، لبسك، وسفرياتك صارت أوفر!"
+        : "Your #1 source for verified discount codes in Saudi 🇸🇦. Save more on fashion, electronics, and groceries with verified and active coupons for top local and global stores.",
       images: [
         {
           url: `${BASE_URL}/logo-512x512.png`,
           width: 512,
           height: 512,
           alt: 'Cobonat Logo',
-        }
-      ], 
-      url: `${BASE_URL}/${locale}`,
-      locale: locale,
-      type: 'website',
-      title: isArabic 
-      ? "Cobonat | كوبونات - أكواد خصم السعودية (محدث باستمرار) - وفر أكثر على مشترياتك ومقاضيك!"
-      : "Cobonat | Active & Verified KSA Promo Codes 2026 - Verified Daily for Smart Savings!",
-      description: isArabic
-      ? "منصتك الأولى لأكواد الخصم والعروض في السعودية 🇸🇦. وفر فلوسك مع كوبونات فعالة وموثقة لأشهر المتاجر العالمية والمحلية. مقاضيك، لبسك، وسفرياتك صارت أوفر!"
-      : "Your #1 source for verified discount codes in Saudi 🇸🇦. Save more on fashion, electronics, and groceries with verified and active coupons for top local and global stores.",
+        },
+      ],
     },
+
     twitter: {
       card: 'summary_large_image',
       site: '@cobonat',
       creator: '@cobonat',
-     title: isArabic 
-      ? "Cobonat | كوبونات - أكواد خصم السعودية (محدث باستمرار) - وفر أكثر على مشترياتك ومقاضيك!"
-      : "Cobonat | Active & Verified KSA Promo Codes 2026 - Verified Daily for Smart Savings!",
+      title: isArabic
+        ? "Cobonat | كوبونات - أكواد خصم السعودية (محدث باستمرار) - وفر أكثر على مشترياتك ومقاضيك!"
+        : "Cobonat | Active & Verified KSA Promo Codes 2026 - Verified Daily for Smart Savings!",
       description: isArabic
-      ? "منصتك الأولى لأكواد الخصم والعروض في السعودية 🇸🇦. وفر فلوسك مع كوبونات فعالة وموثقة لأشهر المتاجر العالمية والمحلية. مقاضيك، لبسك، وسفرياتك صارت أوفر!"
-      : "Your #1 source for verified discount codes in Saudi 🇸🇦. Save more on fashion, electronics, and groceries with verified and active coupons for top local and global stores.",
+        ? "منصتك الأولى لأكواد الخصم والعروض في السعودية 🇸🇦. وفر فلوسك مع كوبونات فعالة وموثقة لأشهر المتاجر العالمية والمحلية. مقاضيك، لبسك، وسفرياتك صارت أوفر!"
+        : "Your #1 source for verified discount codes in Saudi 🇸🇦. Save more on fashion, electronics, and groceries with verified and active coupons for top local and global stores.",
       images: [`${BASE_URL}/logo-512x512.png`],
     },
+
     robots: {
       index: true,
       follow: true,
@@ -104,11 +119,6 @@ export async function generateMetadata({ params }) {
         'max-image-preview': 'large',
         'max-snippet': -1,
       },
-    },
-    manifest: isArabic ? '/manifest-ar.webmanifest' : '/manifest-en.webmanifest',
-    icons: {
-      icon: '/favicon.ico',
-      apple: '/apple-touch-icon.png',
     },
   };
 }
@@ -130,34 +140,28 @@ export default async function LocaleLayout({ children, params }) {
   return (
     <html lang={locale} dir={isArabic ? 'rtl' : 'ltr'}>
       <head>
-        {/* Favicons */}
-        <link rel="icon" type="image/x-icon" href="/favicon.ico" />
-        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
-        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
-        <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png" />
-        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
-        <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#470ae2" />
+        {/* ✅ Only keep what Next.js metadata API doesn't handle */}
         <meta name="msapplication-TileColor" content="#470ae2" />
-        
+
         {/* Verification Tags */}
         <meta name="Takeads-verification" content="ac9f8039-eeff-43ac-8757-df8d658ef91b" />
         <meta name="tradetracker-site-verification" content="813f3ae64e317d77ca412f3741e5d24b3c977369" />
         <meta name="verify-admitad" content="95d170f413" />
-        
+
         {/* Preconnects for Performance */}
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://www.googletagmanager.com" />
-        
+
         {/* Material Symbols - Dynamic Icon Font */}
-        <link 
-          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Sharp:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" 
-          rel="stylesheet" 
+        <link
+          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Sharp:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
+          rel="stylesheet"
         />
-        
+
         {/* Google Analytics */}
-        <Script 
-          src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`} 
-          strategy="afterInteractive" 
+        <Script
+          src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
+          strategy="afterInteractive"
         />
         <Script id="google-analytics" strategy="afterInteractive">
           {`
@@ -169,14 +173,14 @@ export default async function LocaleLayout({ children, params }) {
         </Script>
 
         <script
-         type="text/javascript"
-         src="//widget.trustpilot.com/bootstrap/v5/tp.widget.bootstrap.min.js"
-         async
+          type="text/javascript"
+          src="//widget.trustpilot.com/bootstrap/v5/tp.widget.bootstrap.min.js"
+          async
         />
-        
+
         {/* WebSite Structured Data */}
-        <WebSiteStructuredData 
-          locale={locale} 
+        <WebSiteStructuredData
+          locale={locale}
           siteName={isArabic ? 'كوبونات' : 'Cobonat'}
         />
       </head>
@@ -202,7 +206,7 @@ export default async function LocaleLayout({ children, params }) {
                   Trustpilot
                 </a>
               </div>
-            </main>  
+            </main>
             <Footer />
             <MobileFooter />
           </SessionProviderWrapper>
@@ -210,4 +214,4 @@ export default async function LocaleLayout({ children, params }) {
       </body>
     </html>
   );
-                }
+}
