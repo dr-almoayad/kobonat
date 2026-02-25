@@ -8,6 +8,24 @@ export async function generateMetadata({ params }) {
   const isArabic = locale.startsWith("ar");
 
   return {
+    metadataBase: new URL(BASE_URL),
+icons: {
+  icon: [
+    { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+    { url: '/favicon-96x96.png', sizes: '96x96', type: 'image/png' },
+  ],
+  apple: [{ url: '/apple-touch-icon.png', sizes: '180x180' }],
+},
+    openGraph: {
+  siteName: isArabic ? 'كوبونات' : 'Cobonat',
+  title: isArabic ? 'عن كوبونات' : 'About Cobonat',
+  description: isArabic
+    ? 'تعرّف على كوبونات — المنصة الرائدة للكوبونات والعروض في منطقة الخليج والشرق الأوسط.'
+    : 'Learn about Cobonat — the leading coupon and deals platform across the Gulf and Middle East.',
+  url: `${BASE_URL}/${locale}/about`,
+  type: 'website',
+  images: [{ url: `${BASE_URL}/logo-512x512.png`, width: 512, height: 512 }],
+},
     title: isArabic ? "عن كوبونات" : "About Cobonat",
     description: isArabic
       ? "تعرّف على كوبونات — المنصة الرائدة للكوبونات والعروض في منطقة الخليج والشرق الأوسط."
