@@ -81,6 +81,22 @@ enum BlogStatus {
   ARCHIVED   // Hidden but preserved
 }
 
+// ─── NEW: Content type — drives template selection and structured data ─────────
+enum BlogContentType {
+  GUIDE        // How-to, tips — informational evergreen
+  DEAL_HUB     // Aggregated deals page for one merchant or category
+  SEASONAL     // Ramadan, Black Friday, Back to School, etc.
+  COMPARISON   // Store A vs Store B, product comparisons
+  NEWS         // Time-sensitive announcements
+}
+
+// ─── NEW: Search intent — used for internal link strategy + schema.org type ───
+enum SearchIntent {
+  INFORMATIONAL   // "how to save money on noon"
+  COMMERCIAL      // "best noon deals right now"
+  TRANSACTIONAL   // "noon coupon code"
+}
+
 // ============================================================================
 // CORE MODELS
 // ============================================================================
@@ -158,6 +174,10 @@ model Store {
   otherPromos    OtherPromo[]
   products       StoreProduct[]
   curatedOffers  CuratedOffer[]
+  // Blog relations
+  primaryBlogPosts    BlogPost[]         @relation("PrimaryStore")
+  blogPostStores      BlogPostStore[]
+  blogSectionStores   BlogPostSectionStore[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -320,7 +340,8 @@ model StoreProduct {
   store        Store               @relation(fields: [storeId], references: [id], onDelete: Cascade)
   clicks       StoreProductClick[]
   countries    StoreProductCountry[]
-  blogProducts BlogPostProduct[]   // ← NEW: reverse relation for blog ↔ product links
+  blogProducts BlogPostProduct[]        // post-level product links
+  blogSectionProducts BlogPostSectionProduct[] // section-level product links
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -770,38 +791,58 @@ model BlogTagTranslation {
 }
 
 // ── Blog Post ─────────────────────────────────────────────────────────────────
-// Core content record. Slug is language-agnostic (always English) so the same
-// URL pattern works for both locales: /ar-SA/blog/slug and /en-SA/blog/slug.
+// Core content record. Slug is language-agnostic (always English).
+// URL pattern: /ar-SA/blog/slug and /en-SA/blog/slug.
 
 model BlogPost {
-  id            Int        @id @default(autoincrement())
-  slug          String     @unique // URL slug — English only, shared across locales
-  featuredImage String?    // Hero image URL
-  isFeatured    Boolean    @default(false) // Pins to homepage section
-  status        BlogStatus @default(DRAFT)
-  publishedAt   DateTime?  // Null until explicitly published
+  id            Int              @id @default(autoincrement())
+  slug          String           @unique
+  featuredImage String?
 
-  // Optional relations
+  // ── Status & visibility ───────────────────────────────────────────────────
+  isFeatured  Boolean    @default(false)
+  status      BlogStatus @default(DRAFT)
+  publishedAt DateTime?
+
+  // ── SEO strategy fields ───────────────────────────────────────────────────
+  contentType   BlogContentType @default(GUIDE)
+  searchIntent  SearchIntent    @default(INFORMATIONAL)
+  readingTime   Int?            // minutes, computed from content word count
+  faqJson       String?         @db.Text // JSON array: [{q, a}, ...] for FAQ schema.org
+
+  // ── Merchant clustering ───────────────────────────────────────────────────
+  // One post belongs to one primary store. Used to:
+  // - auto-surface this post on the store's page
+  // - build topical authority clusters per merchant
+  primaryStoreId Int?
+  primaryStore   Store? @relation("PrimaryStore", fields: [primaryStoreId], references: [id], onDelete: SetNull)
+
+  // ── Taxonomy ──────────────────────────────────────────────────────────────
   authorId   Int?
   categoryId Int?
   author     BlogAuthor?   @relation(fields: [authorId], references: [id], onDelete: SetNull)
   category   BlogCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
 
-  // Content & relations
+  // ── Relations ─────────────────────────────────────────────────────────────
   translations     BlogPostTranslation[]
   tags             BlogPostTag[]
-  relatedProducts  BlogPostProduct[]
+  sections         BlogPostSection[]     // structured content blocks
+  linkedStores     BlogPostStore[]       // explicit post-level store links
+  relatedProducts  BlogPostProduct[]     // post-level product links
   relatedPosts     BlogPostRelated[] @relation("PostToRelated")
   relatedTo        BlogPostRelated[] @relation("RelatedToPost")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@index([status, publishedAt]) // Primary query: published posts sorted by date
-  @@index([isFeatured])          // Homepage featured section
-  @@index([categoryId])          // Category filter
-  @@index([authorId])            // Author filter
-  @@index([slug])                // URL lookup
+  @@index([status, publishedAt])  // primary list query
+  @@index([contentType])          // filter by content type
+  @@index([searchIntent])         // filter by intent
+  @@index([primaryStoreId])       // store page cluster query
+  @@index([isFeatured])
+  @@index([categoryId])
+  @@index([authorId])
+  @@index([slug])
 }
 
 // ── Blog Post Translation ─────────────────────────────────────────────────────
@@ -870,4 +911,105 @@ model BlogPostRelated {
 
   @@id([postId, relatedPostId])
   @@index([postId, order]) // Ordered fetch of a post's related articles
+}
+
+// ── Junction: Post ↔ Store (post-level explicit links) ────────────────────────
+// Used to display "Stores mentioned in this article" at the bottom of a post.
+// Also used to build the reverse relation: which posts mention a given store.
+// order controls display sequence in the UI.
+
+model BlogPostStore {
+  postId  Int
+  storeId Int
+  order   Int @default(0)
+
+  post  BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  store Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
+
+  @@id([postId, storeId])
+  @@index([postId, order])
+  @@index([storeId])         // reverse: all posts that mention this store
+}
+
+// ── Section-based content architecture ───────────────────────────────────────
+// Each BlogPost is composed of ordered sections instead of one monolithic
+// content field. This enables:
+//   - Per-section product recommendations
+//   - Per-section store callouts
+//   - Section-level images (e.g. step screenshots, product shots)
+//   - Easier CMS editing in the admin panel
+//
+// The BlogPostTranslation.content field is kept for backwards compatibility
+// and can serve as a fallback / legacy field.
+
+model BlogPostSection {
+  id     Int @id @default(autoincrement())
+  postId Int
+  order  Int @default(0)  // controls display sequence within a post
+
+  // Optional section-level image (e.g. step diagram, product banner)
+  image String?
+
+  // Relations
+  post         BlogPost                    @relation(fields: [postId], references: [id], onDelete: Cascade)
+  translations BlogPostSectionTranslation[]
+  products     BlogPostSectionProduct[]
+  stores       BlogPostSectionStore[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([postId, order])  // primary fetch: all sections for a post in order
+}
+
+// ── Section translation ───────────────────────────────────────────────────────
+// subtitle and content are per-locale. subtitle renders as an <h3> inside
+// the article. content is HTML/rich text for the section body.
+
+model BlogPostSectionTranslation {
+  id        Int    @id @default(autoincrement())
+  sectionId Int
+  locale    Locale
+
+  subtitle String?        // Optional section heading (h3)
+  content  String @db.Text // Section body — HTML/rich text
+
+  section BlogPostSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+
+  @@unique([sectionId, locale])
+  @@index([locale])
+}
+
+// ── Junction: Section ↔ StoreProduct ─────────────────────────────────────────
+// Links individual products into a specific section of a post.
+// e.g. "Best Noon Electronics Deals" section → specific product cards
+// order controls the display sequence of products within the section.
+
+model BlogPostSectionProduct {
+  sectionId Int
+  productId Int
+  order     Int @default(0)
+
+  section BlogPostSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  product StoreProduct    @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@id([sectionId, productId])
+  @@index([sectionId, order])
+}
+
+// ── Junction: Section ↔ Store ─────────────────────────────────────────────────
+// Links stores into a specific section of a post.
+// e.g. "Where to buy" section → Noon, Amazon, Jarir callout cards
+// order controls display sequence within the section.
+
+model BlogPostSectionStore {
+  sectionId Int
+  storeId   Int
+  order     Int @default(0)
+
+  section BlogPostSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  store   Store           @relation(fields: [storeId], references: [id], onDelete: Cascade)
+
+  @@id([sectionId, storeId])
+  @@index([sectionId, order])
 }
