@@ -6,7 +6,7 @@ import { NextIntlClientProvider } from 'next-intl';
 import { getMessages, setRequestLocale } from 'next-intl/server';
 import Header from "@/components/headers/Header";
 import Footer from "@/components/footers/footer";
-
+import SessionProviderWrapper from "@/components/SessionProviderComp";
 import "@emran-alhaddad/saudi-riyal-font/index.css";
 import MobileFooter from "@/components/footers/MobileFooter";
 import CategoryCarouselSubHeader from "@/components/headers/CategoryCarouselSubHeader";
@@ -174,7 +174,7 @@ export default async function LocaleLayout({ children, params }) {
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} ${alexandria.variable} ${openSans.variable} antialiased`}>
         <NextIntlClientProvider messages={messages} locale={locale}>
-          
+          <SessionProviderWrapper> 
             <Header />
             <CategoryCarouselSubHeader />
             <main>
@@ -197,7 +197,7 @@ export default async function LocaleLayout({ children, params }) {
             </main>
             <Footer />
             <MobileFooter />
-        
+                  </SessionProviderWrapper> 
         </NextIntlClientProvider>
 
 
