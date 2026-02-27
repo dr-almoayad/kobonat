@@ -1,0 +1,568 @@
+/* components/StoreIntelligenceCard/StoreIntelligenceCard.css
+   Aesthetic: Editorial data card — clean, dense, trustworthy.
+   Inspired by financial dashboards and product spec sheets.
+   Typeface: Alexandria (already loaded in project for Arabic/Latin parity).
+*/
+
+/* ── Design tokens ───────────────────────────────────────────────────────── */
+.sic {
+  --sic-accent:           #470ae2;   /* brand purple — overridden per-store via inline style */
+  --sic-accent-subtle:    color-mix(in srgb, var(--sic-accent) 10%, transparent);
+  --sic-accent-mid:       color-mix(in srgb, var(--sic-accent) 60%, transparent);
+
+  --sic-bg:               #ffffff;
+  --sic-surface:          #f8f8fa;
+  --sic-border:           #e4e4eb;
+  --sic-border-strong:    #d0d0db;
+
+  --sic-text-primary:     #0d0d12;
+  --sic-text-secondary:   #5a5a72;
+  --sic-text-muted:       #9292a8;
+
+  --sic-green:            #14a050;
+  --sic-green-bg:         #edf9f3;
+  --sic-red:              #d63a2f;
+  --sic-amber:            #c47a0a;
+
+  --sic-score-excellent:  #14a050;
+  --sic-score-good:       #2563eb;
+  --sic-score-average:    --sic-amber;
+  --sic-score-low:        --sic-red;
+
+  --sic-gauge-track:      #e4e4eb;
+  --sic-gauge-fill-high:  #14a050;
+  --sic-gauge-fill-mid:   #c47a0a;
+  --sic-gauge-fill-low:   #d63a2f;
+
+  --sic-radius:           12px;
+  --sic-radius-sm:        6px;
+  --sic-font:             'Alexandria', 'Segoe UI', sans-serif;
+
+  font-family:     var(--sic-font);
+  background:      var(--sic-bg);
+  border:          1px solid var(--sic-border);
+  border-radius:   var(--sic-radius);
+  overflow:        hidden;
+  box-shadow:      0 2px 12px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+}
+
+/* ── Header ─────────────────────────────────────────────────────────────── */
+.sic-header {
+  display:          flex;
+  align-items:      flex-start;
+  justify-content:  space-between;
+  gap:              1.25rem;
+  padding:          1.5rem;
+  background:       linear-gradient(135deg, var(--sic-accent-subtle) 0%, transparent 60%);
+  border-bottom:    1px solid var(--sic-border);
+  position:         relative;
+}
+
+/* Accent stripe */
+.sic-header::before {
+  content:    '';
+  position:   absolute;
+  inset-inline-start: 0;
+  top:        0;
+  bottom:     0;
+  width:      3px;
+  background: var(--sic-accent);
+  border-radius: 0 2px 2px 0;
+}
+
+.sic-header__brand {
+  display:     flex;
+  align-items: center;
+  gap:         0.875rem;
+  flex:        1;
+  min-width:   0;
+}
+
+.sic-header__logo {
+  width:        56px;
+  height:       40px;
+  object-fit:   contain;
+  border-radius: var(--sic-radius-sm);
+  border:       1px solid var(--sic-border);
+  padding:      4px;
+  background:   #fff;
+  flex-shrink:  0;
+}
+
+.sic-header__text { flex: 1; min-width: 0; }
+
+.sic-header__name {
+  font-size:   1.05rem;
+  font-weight: 700;
+  color:       var(--sic-text-primary);
+  margin:      0 0 0.25rem;
+  white-space: nowrap;
+  overflow:    hidden;
+  text-overflow: ellipsis;
+  letter-spacing: -0.01em;
+}
+
+.sic-header__desc {
+  font-size:   0.78rem;
+  color:       var(--sic-text-secondary);
+  margin:      0;
+  line-height: 1.45;
+  display:     -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow:    hidden;
+}
+
+.sic-header__score-block {
+  display:        flex;
+  flex-direction: column;
+  align-items:    center;
+  gap:            0.25rem;
+  flex-shrink:    0;
+}
+
+.sic-header__score-label {
+  font-size:   0.65rem;
+  color:       var(--sic-text-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.sic-header__rank {
+  display:    flex;
+  align-items: center;
+  gap:        0.35rem;
+  margin-top: 0.35rem;
+}
+
+.sic-header__rank-label {
+  font-size:  0.7rem;
+  color:      var(--sic-text-muted);
+}
+
+.sic-header__rank-value {
+  font-size:   0.82rem;
+  font-weight: 700;
+  color:       var(--sic-text-primary);
+}
+
+/* ── Score badge ─────────────────────────────────────────────────────────── */
+.sic-score {
+  display:        flex;
+  align-items:    baseline;
+  gap:            1px;
+  padding:        0.35rem 0.65rem;
+  border-radius:  var(--sic-radius-sm);
+  font-weight:    800;
+  line-height:    1;
+}
+
+.sic-score--large  { padding: 0.5rem 0.9rem; }
+.sic-score--small  { padding: 0.25rem 0.5rem; }
+
+.sic-score__number {
+  font-size:      1.6rem;
+  letter-spacing: -0.03em;
+}
+.sic-score--small .sic-score__number { font-size: 1rem; }
+
+.sic-score__denom {
+  font-size:   0.72rem;
+  font-weight: 500;
+  opacity:     0.7;
+  align-self:  flex-end;
+  padding-bottom: 2px;
+}
+
+.sic-score--excellent { background: #edf9f3; color: var(--sic-score-excellent); }
+.sic-score--good      { background: #eff4ff; color: #2563eb; }
+.sic-score--average   { background: #fef9ec; color: #c47a0a; }
+.sic-score--low       { background: #fff0ee; color: var(--sic-red); }
+
+/* ── Trend ───────────────────────────────────────────────────────────────── */
+.sic-trend        { font-size: 0.8rem; font-weight: 700; }
+.sic-trend--up    { color: var(--sic-green); }
+.sic-trend--down  { color: var(--sic-red); }
+.sic-trend--same  { color: var(--sic-text-muted); }
+
+/* ── Body ────────────────────────────────────────────────────────────────── */
+.sic-body {
+  display:        flex;
+  flex-direction: column;
+}
+
+/* ── Sections ────────────────────────────────────────────────────────────── */
+.sic-section {
+  padding:       1.25rem 1.5rem;
+  border-bottom: 1px solid var(--sic-border);
+}
+.sic-section:last-child { border-bottom: none; }
+
+.sic-section__title {
+  display:       flex;
+  align-items:   center;
+  gap:           0.5rem;
+  font-size:     0.72rem;
+  font-weight:   700;
+  color:         var(--sic-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  margin:        0 0 1rem;
+}
+
+.sic-section__icon {
+  color:     var(--sic-accent);
+  font-size: 0.9rem;
+  flex-shrink: 0;
+}
+
+/* ── Savings grid ────────────────────────────────────────────────────────── */
+.sic-savings-grid {
+  display:               grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap:                   1px;
+  background:            var(--sic-border);
+  border:                1px solid var(--sic-border);
+  border-radius:         var(--sic-radius-sm);
+  overflow:              hidden;
+  margin-bottom:         1.25rem;
+}
+
+.sic-savings-cell {
+  display:        flex;
+  flex-direction: column;
+  gap:            0.2rem;
+  padding:        0.85rem 1rem;
+  background:     var(--sic-bg);
+}
+
+.sic-savings-cell__label {
+  font-size:   0.68rem;
+  color:       var(--sic-text-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.sic-savings-cell__value {
+  font-size:   1.2rem;
+  font-weight: 700;
+  color:       var(--sic-text-primary);
+  letter-spacing: -0.02em;
+}
+
+.sic-savings-cell__value--hero {
+  font-size:   1.6rem;
+  color:       var(--sic-accent);
+}
+
+/* ── Gauge ───────────────────────────────────────────────────────────────── */
+.sic-gauge-wrap {
+  display:     flex;
+  align-items: center;
+  gap:         1rem;
+}
+
+.sic-gauge-wrap__label {
+  font-size:   0.75rem;
+  color:       var(--sic-text-secondary);
+  font-weight: 600;
+  flex:        1;
+  min-width:   0;
+}
+
+.sic-gauge {
+  position:   relative;
+  width:       100px;
+  flex-shrink: 0;
+}
+
+.sic-gauge__svg { width: 100%; height: auto; display: block; }
+
+.sic-gauge__label {
+  position:   absolute;
+  bottom:     0;
+  left:       50%;
+  transform:  translateX(-50%);
+  font-size:  0.85rem;
+  font-weight: 800;
+  color:       var(--sic-text-primary);
+}
+
+/* ── Logistics ───────────────────────────────────────────────────────────── */
+.sic-logistics { display: flex; flex-direction: column; gap: 0.65rem; }
+
+.sic-logistics__row {
+  display:         flex;
+  justify-content: space-between;
+  align-items:     center;
+  gap:             0.75rem;
+  padding-bottom:  0.65rem;
+  border-bottom:   1px solid var(--sic-surface);
+}
+.sic-logistics__row:last-child { border-bottom: none; padding-bottom: 0; }
+
+.sic-logistics__label {
+  display:     flex;
+  align-items: center;
+  gap:         0.4rem;
+  font-size:   0.8rem;
+  color:       var(--sic-text-secondary);
+  font-weight: 500;
+}
+
+.sic-logistics__value {
+  display:     flex;
+  align-items: center;
+  gap:         0.5rem;
+  font-size:   0.85rem;
+  font-weight: 700;
+  color:       var(--sic-text-primary);
+  text-align:  end;
+}
+
+.sic-icon { font-size: 0.85rem; }
+
+/* ── Badges ──────────────────────────────────────────────────────────────── */
+.sic-badge {
+  font-size:     0.62rem;
+  font-weight:   700;
+  padding:       2px 6px;
+  border-radius: 3px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.sic-badge--green { background: var(--sic-green-bg); color: var(--sic-green); }
+
+/* ── Payments ────────────────────────────────────────────────────────────── */
+.sic-payments {
+  display:   flex;
+  flex-wrap: wrap;
+  gap:       0.5rem;
+}
+
+.sic-payment {
+  display:       flex;
+  align-items:   center;
+  gap:           0.35rem;
+  padding:       0.35rem 0.65rem;
+  border:        1px solid var(--sic-border);
+  border-radius: var(--sic-radius-sm);
+  background:    var(--sic-bg);
+  transition:    border-color 0.15s;
+}
+.sic-payment:hover { border-color: var(--sic-accent-mid); }
+.sic-payment--bnpl { border-style: dashed; }
+
+.sic-payment__logo {
+  height:     20px;
+  width:      auto;
+  max-width:  56px;
+  object-fit: contain;
+  display:    block;
+}
+
+.sic-payment__name {
+  font-size:  0.72rem;
+  font-weight: 600;
+  color:      var(--sic-text-secondary);
+  white-space: nowrap;
+}
+
+.sic-payment__bnpl-tag {
+  font-size:     0.58rem;
+  font-weight:   700;
+  padding:       1px 4px;
+  border-radius: 2px;
+  background:    var(--sic-accent-subtle);
+  color:         var(--sic-accent);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* ── Upcoming events ─────────────────────────────────────────────────────── */
+.sic-events { display: flex; flex-direction: column; gap: 0.6rem; }
+
+.sic-event {
+  display:         flex;
+  align-items:     center;
+  justify-content: space-between;
+  gap:             0.75rem;
+  padding:         0.7rem 0.85rem;
+  background:      var(--sic-surface);
+  border-radius:   var(--sic-radius-sm);
+  border:          1px solid var(--sic-border);
+}
+
+.sic-event__info { display: flex; flex-direction: column; gap: 0.1rem; }
+
+.sic-event__name {
+  font-size:   0.82rem;
+  font-weight: 600;
+  color:       var(--sic-text-primary);
+}
+
+.sic-event__date {
+  font-size: 0.7rem;
+  color:     var(--sic-text-muted);
+}
+
+.sic-event__meta { display: flex; align-items: center; gap: 0.5rem; }
+
+.sic-event__discount {
+  font-size:   0.75rem;
+  font-weight: 700;
+  color:       var(--sic-green);
+}
+
+/* ── Confidence pips ─────────────────────────────────────────────────────── */
+.sic-confidence { display: flex; gap: 3px; align-items: center; }
+
+.sic-confidence__pip {
+  width:         6px;
+  height:        6px;
+  border-radius: 50%;
+  background:    var(--sic-border-strong);
+}
+
+.sic-confidence__pip--filled { background: var(--sic-accent); }
+
+/* ── Score breakdown bars ────────────────────────────────────────────────── */
+.sic-breakdown { display: flex; flex-direction: column; gap: 0.75rem; }
+
+.sic-score-bar { display: flex; flex-direction: column; gap: 0.2rem; }
+
+.sic-score-bar__header {
+  display:         flex;
+  justify-content: space-between;
+  align-items:     baseline;
+}
+
+.sic-score-bar__label {
+  font-size:   0.73rem;
+  color:       var(--sic-text-secondary);
+  font-weight: 500;
+}
+
+.sic-score-bar__value {
+  font-size:   0.73rem;
+  font-weight: 700;
+  color:       var(--sic-text-primary);
+}
+
+.sic-score-bar__track {
+  height:        5px;
+  background:    var(--sic-border);
+  border-radius: 99px;
+  overflow:      hidden;
+}
+
+.sic-score-bar__fill {
+  height:        100%;
+  background:    var(--sic-accent);
+  border-radius: 99px;
+  transition:    width 0.4s ease;
+}
+
+.sic-score-bar__weight {
+  font-size: 0.62rem;
+  color:     var(--sic-text-muted);
+  align-self: flex-end;
+}
+
+/* ── Compact variant ─────────────────────────────────────────────────────── */
+.sic--compact { padding: 1rem 1.25rem; }
+
+.sic-compact__header {
+  display:     flex;
+  align-items: center;
+  gap:         0.75rem;
+  margin-bottom: 0.875rem;
+}
+
+.sic-compact__logo {
+  width:      40px;
+  height:     28px;
+  object-fit: contain;
+  border:     1px solid var(--sic-border);
+  border-radius: 4px;
+  padding:    2px;
+  flex-shrink: 0;
+}
+
+.sic-compact__info {
+  display:        flex;
+  flex-direction: column;
+  gap:            0.1rem;
+  flex:           1;
+  min-width:      0;
+}
+
+.sic-compact__name {
+  font-size:   0.88rem;
+  font-weight: 700;
+  color:       var(--sic-text-primary);
+  white-space: nowrap;
+  overflow:    hidden;
+  text-overflow: ellipsis;
+}
+
+.sic-compact__rank {
+  font-size:   0.72rem;
+  color:       var(--sic-text-muted);
+  font-weight: 600;
+}
+
+.sic-compact__stats {
+  display:               grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap:                   1px;
+  background:            var(--sic-border);
+  border:                1px solid var(--sic-border);
+  border-radius:         var(--sic-radius-sm);
+  overflow:              hidden;
+}
+
+.sic-compact__stat {
+  display:        flex;
+  flex-direction: column;
+  align-items:    center;
+  padding:        0.65rem 0.5rem;
+  background:     var(--sic-bg);
+  gap:            0.15rem;
+}
+
+.sic-compact__stat-label {
+  font-size:   0.6rem;
+  color:       var(--sic-text-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  text-align:  center;
+}
+
+.sic-compact__stat-value {
+  font-size:   1rem;
+  font-weight: 800;
+  color:       var(--sic-text-primary);
+  letter-spacing: -0.02em;
+}
+
+.sic-compact__stat-value--savings { color: var(--sic-accent); }
+
+/* ── Responsive ──────────────────────────────────────────────────────────── */
+@media (max-width: 480px) {
+  .sic-header { flex-direction: column; }
+  .sic-header__score-block { flex-direction: row; align-items: center; width: 100%; justify-content: space-between; }
+  .sic-savings-grid { grid-template-columns: 1fr 1fr; }
+  .sic-compact__stats { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* ── RTL ─────────────────────────────────────────────────────────────────── */
+[dir="rtl"] .sic-header::before {
+  inset-inline-start: unset;
+  inset-inline-end:   0;
+  border-radius:      2px 0 0 2px;
+}
+[dir="rtl"] .sic-logistics__value { text-align: start; }
