@@ -1,0 +1,58 @@
+/* components/SavingsLeaderboard/StoreRankBadge.css */
+
+.srb-wrapper {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  background: #fff;
+  border: 1.5px solid #e3e6e6;
+  border-radius: 10px;
+  overflow: hidden;
+  font-family: 'Alexandria', 'Open Sans', sans-serif;
+}
+
+.srb-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  gap: 2px;
+}
+
+.srb-divider {
+  width: 1px;
+  height: 36px;
+  background: #e3e6e6;
+  flex-shrink: 0;
+}
+
+.srb-label {
+  font-size: 0.68rem;
+  color: #888;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.srb-value {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #0f1111;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.srb-value--rank   { color: #470ae2; }
+.srb-value--savings { color: #e3392d; }
+
+.srb-trend {
+  font-size: 0.85rem;
+  font-weight: 700;
+  margin-inline-start: 2px;
+}
+
+.srb-trend--up   { color: #16a34a; }
+.srb-trend--down { color: #dc2626; }
+.srb-trend--same { color: #9ca3af; }
