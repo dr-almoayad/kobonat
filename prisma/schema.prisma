@@ -1,4 +1,5 @@
 // prisma/schema.prisma
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -23,7 +24,7 @@ enum ShowOfferType {
   CODE
   DEAL
   DISCOUNT
-  FREE_SHIPPING  // Changed from FREE_DELIVERY
+  FREE_SHIPPING
   CASHBACK
   OFFER
 }
@@ -74,14 +75,14 @@ enum AdminRole {
   VIEWER
 }
 
-// ─── NEW: Blog status lifecycle ───────────────────────────────────────────────
+// Blog status lifecycle
 enum BlogStatus {
   DRAFT      // Being written, not visible publicly
   PUBLISHED  // Live and visible
   ARCHIVED   // Hidden but preserved
 }
 
-// ─── NEW: Content type — drives template selection and structured data ─────────
+// Content type — drives template selection and structured data
 enum BlogContentType {
   GUIDE        // How-to, tips — informational evergreen
   DEAL_HUB     // Aggregated deals page for one merchant or category
@@ -90,11 +91,44 @@ enum BlogContentType {
   NEWS         // Time-sensitive announcements
 }
 
-// ─── NEW: Search intent — used for internal link strategy + schema.org type ───
+// Search intent — used for internal link strategy + schema.org type
 enum SearchIntent {
   INFORMATIONAL   // "how to save money on noon"
   COMMERCIAL      // "best noon deals right now"
   TRANSACTIONAL   // "noon coupon code"
+}
+
+// Leaderboard / savings snapshot
+enum RankMovement {
+  UP    // Rose in rank vs previous week
+  DOWN  // Dropped in rank vs previous week
+  SAME  // No change
+  NEW   // No previous snapshot exists
+}
+
+// Stackability groups
+enum OfferStackGroup {
+  DEAL         // Auto-applied site-wide discount
+  CODE         // Requires a coupon code
+  BANK_OFFER   // Bank / card / payment method offer
+  CASHBACK     // Post-purchase return — not a point-of-sale % saving
+  BUNDLE       // Buy X get Y — excluded from % calculator
+}
+
+// Discount certainty (affects multiplier applied)
+enum DiscountCertainty {
+  EXACT      // "10% off everything" — applies to every purchase, no conditions
+  VERIFIED   // Admin has manually checked real product prices and entered a true average
+  TYPICAL    // Admin researched the store; figure is a reasonable estimate
+  ESTIMATED  // "Up to X% off" marketing claim — headline figure, not typical saving
+  UNKNOWN    // No reliable number available
+}
+
+// Confidence level for store intelligence predictions
+enum ConfidenceLevel {
+  LOW     // Based on general industry patterns
+  MEDIUM  // Based on this store's historical behaviour
+  HIGH    // Admin has confirmed or store has announced
 }
 
 // ============================================================================
@@ -140,7 +174,7 @@ model CountryTranslation {
 }
 
 // ============================================================================
-// STORE - ENHANCED WITH COVER IMAGE
+// STORE - ENHANCED WITH COVER IMAGE AND INTELLIGENCE FIELDS
 // ============================================================================
 
 model Store {
@@ -164,6 +198,17 @@ model Store {
   isActive   Boolean @default(true)
   isFeatured Boolean @default(false)
 
+  // ── Logistics & returns (store intelligence) ───────────────────────────
+  averageDeliveryDaysMin  Int?      // e.g. 1 (fastest quoted delivery)
+  averageDeliveryDaysMax  Int?      // e.g. 5 (slowest quoted delivery)
+  freeShippingThreshold   Float?    // SAR. null = always paid. 0 = always free.
+  returnWindowDays        Int?      // How many days to initiate a return
+  freeReturns             Boolean   @default(false)
+  refundProcessingDaysMin Int?      // Shortest quoted refund time
+  refundProcessingDaysMax Int?      // Longest quoted refund time
+  offerFrequencyDays      Int?      // Average days between major promotions
+  lastVerifiedAt          DateTime? // When admin last verified logistics info
+
   // Relations
   translations   StoreTranslation[]
   countries      StoreCountry[]
@@ -178,6 +223,12 @@ model Store {
   primaryBlogPosts    BlogPost[]         @relation("PrimaryStore")
   blogPostStores      BlogPostStore[]
   blogSectionStores   BlogPostSectionStore[]
+  // Leaderboard snapshots
+  savingsSnapshots    StoreSavingsSnapshot[]
+  // Store intelligence
+  savingsMetrics      StoreSavingsMetrics[]
+  upcomingEvents      StoreUpcomingEvent[]
+  peakSeasons         StorePeakSeason[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -222,6 +273,7 @@ model Category {
 
   translations CategoryTranslation[]
   stores       StoreCategory[]
+  savingsSnapshots StoreSavingsSnapshot[] // for category leaderboards
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -250,7 +302,7 @@ model CategoryTranslation {
 }
 
 // ============================================================================
-// VOUCHER - COUPONS & DEALS
+// VOUCHER - COUPONS & DEALS (with stackability & certainty fields)
 // ============================================================================
 
 model Voucher {
@@ -261,6 +313,16 @@ model Voucher {
   code     String?     // Coupon code (e.g., "SAVE20")
   type     VoucherType
   discount String?     // "20%", "50 SAR off", "Buy 1 Get 1"
+
+  // Numeric fields for calculation
+  discountPercent    Float?               // Numeric headline %
+  verifiedAvgPercent Float?               // Admin-verified true average (overrides discountPercent)
+  discountCertainty  DiscountCertainty    @default(ESTIMATED)
+  stackGroup         OfferStackGroup      @default(DEAL)
+  isStackable        Boolean              @default(false)
+  isCapped           Boolean              @default(false)
+  maxDiscountAmount  Float?               // SAR ceiling
+  minSpendAmount     Float?               // SAR minimum basket
 
   // Image for featured deals
   image String? // Hero image for visual deals
@@ -385,7 +447,7 @@ model StoreProductClick {
 }
 
 // ============================================================================
-// OTHER PROMOS - BANK/CARD OFFERS
+// OTHER PROMOS - BANK/CARD OFFERS (with stackability & certainty fields)
 // ============================================================================
 
 model OtherPromo {
@@ -396,6 +458,16 @@ model OtherPromo {
   // Promo Details
   image String?    // Banner image
   type  PromoType
+
+  // Numeric fields for calculation
+  discountPercent    Float?               // Numeric headline %
+  verifiedAvgPercent Float?               // Admin-verified true average
+  discountCertainty  DiscountCertainty    @default(EXACT) // bank offers are contract terms
+  stackGroup         OfferStackGroup      @default(BANK_OFFER)
+  isStackable        Boolean              @default(false)
+  isCapped           Boolean              @default(false)
+  maxDiscountAmount  Float?               // SAR ceiling
+  minSpendAmount     Float?               // SAR minimum basket
 
   // Links
   url String? // External link to T&Cs or signup
@@ -708,8 +780,6 @@ model Admin {
 // ============================================================================
 
 // ── Author ───────────────────────────────────────────────────────────────────
-// Separate from Admin because authors may not have login access, and their
-// public profile (bio, avatar, social) belongs on the frontend, not in Admin.
 
 model BlogAuthor {
   id            Int     @id @default(autoincrement())
@@ -729,8 +799,6 @@ model BlogAuthor {
 }
 
 // ── Blog Category ─────────────────────────────────────────────────────────────
-// Stores have a Category model; blogs get their own to avoid cross-contamination
-// of slugs and translations between store categories and content categories.
 
 model BlogCategory {
   id    Int     @id @default(autoincrement())
@@ -762,8 +830,6 @@ model BlogCategoryTranslation {
 }
 
 // ── Blog Tag ──────────────────────────────────────────────────────────────────
-// Tags are flat (no hierarchy), many-to-many with posts.
-// Slug is the stable identifier; names are translated.
 
 model BlogTag {
   id   Int    @id @default(autoincrement())
@@ -791,8 +857,6 @@ model BlogTagTranslation {
 }
 
 // ── Blog Post ─────────────────────────────────────────────────────────────────
-// Core content record. Slug is language-agnostic (always English).
-// URL pattern: /ar-SA/blog/slug and /en-SA/blog/slug.
 
 model BlogPost {
   id            Int              @id @default(autoincrement())
@@ -811,9 +875,6 @@ model BlogPost {
   faqJson       String?         @db.Text // JSON array: [{q, a}, ...] for FAQ schema.org
 
   // ── Merchant clustering ───────────────────────────────────────────────────
-  // One post belongs to one primary store. Used to:
-  // - auto-surface this post on the store's page
-  // - build topical authority clusters per merchant
   primaryStoreId Int?
   primaryStore   Store? @relation("PrimaryStore", fields: [primaryStoreId], references: [id], onDelete: SetNull)
 
@@ -835,31 +896,25 @@ model BlogPost {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@index([status, publishedAt])  // primary list query
-  @@index([contentType])          // filter by content type
-  @@index([searchIntent])         // filter by intent
-  @@index([primaryStoreId])       // store page cluster query
+  @@index([status, publishedAt])
+  @@index([contentType])
+  @@index([searchIntent])
+  @@index([primaryStoreId])
   @@index([isFeatured])
   @@index([categoryId])
   @@index([authorId])
   @@index([slug])
 }
 
-// ── Blog Post Translation ─────────────────────────────────────────────────────
-// All text content is per-locale. Meta fields fall back to title/excerpt
-// if left blank (handled in application layer, not schema).
-
 model BlogPostTranslation {
   id     Int    @id @default(autoincrement())
   postId Int
-  locale Locale // Uses existing Locale enum (ar | en)
+  locale Locale
 
-  // Core content
   title   String
   excerpt String  @db.Text // Short summary for cards and meta
   content String  @db.Text // Full HTML/rich text body
 
-  // SEO overrides (optional — fall back to title/excerpt if null)
   metaTitle       String?
   metaDescription String? @db.Text
 
@@ -868,8 +923,6 @@ model BlogPostTranslation {
   @@unique([postId, locale])
   @@index([locale])
 }
-
-// ── Junction: Post ↔ Tag ──────────────────────────────────────────────────────
 
 model BlogPostTag {
   postId Int
@@ -881,10 +934,6 @@ model BlogPostTag {
   @@id([postId, tagId])
 }
 
-// ── Junction: Post ↔ StoreProduct ─────────────────────────────────────────────
-// Links blog posts to specific store products for internal SEO linking.
-// Uses a proper FK to StoreProduct (not bare Int) for referential integrity.
-
 model BlogPostProduct {
   postId    Int
   productId Int
@@ -895,28 +944,17 @@ model BlogPostProduct {
   @@id([postId, productId])
 }
 
-// ── Self-join: Related Posts ───────────────────────────────────────────────────
-// Explicit editorial overrides for "Related Articles" sections.
-// When set, these take priority over algorithmic tag/category matching.
-// Named relations ("PostToRelated" / "RelatedToPost") are required by
-// Prisma whenever a model has two relations pointing to the same model.
-
 model BlogPostRelated {
   postId        Int
   relatedPostId Int
-  order         Int @default(0) // Controls display sequence
+  order         Int @default(0)
 
   post        BlogPost @relation("PostToRelated", fields: [postId], references: [id], onDelete: Cascade)
   relatedPost BlogPost @relation("RelatedToPost", fields: [relatedPostId], references: [id], onDelete: Cascade)
 
   @@id([postId, relatedPostId])
-  @@index([postId, order]) // Ordered fetch of a post's related articles
+  @@index([postId, order])
 }
-
-// ── Junction: Post ↔ Store (post-level explicit links) ────────────────────────
-// Used to display "Stores mentioned in this article" at the bottom of a post.
-// Also used to build the reverse relation: which posts mention a given store.
-// order controls display sequence in the UI.
 
 model BlogPostStore {
   postId  Int
@@ -928,29 +966,16 @@ model BlogPostStore {
 
   @@id([postId, storeId])
   @@index([postId, order])
-  @@index([storeId])         // reverse: all posts that mention this store
+  @@index([storeId])
 }
-
-// ── Section-based content architecture ───────────────────────────────────────
-// Each BlogPost is composed of ordered sections instead of one monolithic
-// content field. This enables:
-//   - Per-section product recommendations
-//   - Per-section store callouts
-//   - Section-level images (e.g. step screenshots, product shots)
-//   - Easier CMS editing in the admin panel
-//
-// The BlogPostTranslation.content field is kept for backwards compatibility
-// and can serve as a fallback / legacy field.
 
 model BlogPostSection {
   id     Int @id @default(autoincrement())
   postId Int
-  order  Int @default(0)  // controls display sequence within a post
+  order  Int @default(0)
 
-  // Optional section-level image (e.g. step diagram, product banner)
   image String?
 
-  // Relations
   post         BlogPost                    @relation(fields: [postId], references: [id], onDelete: Cascade)
   translations BlogPostSectionTranslation[]
   products     BlogPostSectionProduct[]
@@ -959,12 +984,8 @@ model BlogPostSection {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@index([postId, order])  // primary fetch: all sections for a post in order
+  @@index([postId, order])
 }
-
-// ── Section translation ───────────────────────────────────────────────────────
-// subtitle and content are per-locale. subtitle renders as an <h3> inside
-// the article. content is HTML/rich text for the section body.
 
 model BlogPostSectionTranslation {
   id        Int    @id @default(autoincrement())
@@ -980,11 +1001,6 @@ model BlogPostSectionTranslation {
   @@index([locale])
 }
 
-// ── Junction: Section ↔ StoreProduct ─────────────────────────────────────────
-// Links individual products into a specific section of a post.
-// e.g. "Best Noon Electronics Deals" section → specific product cards
-// order controls the display sequence of products within the section.
-
 model BlogPostSectionProduct {
   sectionId Int
   productId Int
@@ -997,11 +1013,6 @@ model BlogPostSectionProduct {
   @@index([sectionId, order])
 }
 
-// ── Junction: Section ↔ Store ─────────────────────────────────────────────────
-// Links stores into a specific section of a post.
-// e.g. "Where to buy" section → Noon, Amazon, Jarir callout cards
-// order controls display sequence within the section.
-
 model BlogPostSectionStore {
   sectionId Int
   storeId   Int
@@ -1012,4 +1023,130 @@ model BlogPostSectionStore {
 
   @@id([sectionId, storeId])
   @@index([sectionId, order])
+}
+
+// ============================================================================
+// LEADERBOARD (SAVINGS SNAPSHOTS)
+// ============================================================================
+
+model SavingsMethodology {
+  id          Int     @id @default(autoincrement())
+  version     String  @unique   // e.g. "v1", "v2"
+  description String  @db.Text  // Plain-language formula description
+  isActive    Boolean @default(false) // Only one row should be true at a time
+
+  // Formula parameters stored as config
+  maxSavingsCap       Float @default(75.0)  // Absolute ceiling (%)
+  bankOfferStackable  Boolean @default(true) // Whether bank offers stack
+  couponStackable     Boolean @default(true) // Whether coupons stack on top of deals
+  referenceBasketSize Float @default(500.0) // SAR basket size used to compute effective % for capped offers
+  multiplierExact     Float @default(1.00)
+  multiplierVerified  Float @default(1.00)
+  multiplierTypical   Float @default(0.80)
+  multiplierEstimated Float @default(0.35)
+
+  snapshots StoreSavingsSnapshot[]
+
+  createdAt DateTime @default(now())
+
+  @@index([isActive])
+}
+
+model StoreSavingsSnapshot {
+  id        Int    @id @default(autoincrement())
+  storeId   Int
+  categoryId Int?               // NULL = global leaderboard; set = category leaderboard
+
+  // Raw component scores (stored for auditability)
+  maxDirectDiscountPercent Float @default(0) // Best active DEAL voucher
+  maxCouponPercent         Float @default(0) // Best active CODE voucher
+  maxBankOfferPercent      Float @default(0) // Best active bank/card promo
+
+  // Calculated output
+  calculatedMaxSavingsPercent Float // Final stacked % after formula + cap
+  savingsOverridePercent      Float? // Admin can pin a manual value; NULL = use calculated
+
+  // Ranking
+  rank         Int             // 1 = best this week
+  previousRank Int?            // NULL if NEW entry
+  movement     RankMovement @default(NEW)
+
+  // Traceability
+  weekIdentifier     String  // ISO week: "2026-W10"
+  methodologyId      Int?    // Which formula version produced this row
+  calculatedAt       DateTime @default(now())
+
+  // Relations
+  store       Store               @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  category    Category?           @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  methodology SavingsMethodology? @relation(fields: [methodologyId], references: [id], onDelete: SetNull)
+
+  // One snapshot per store+category+week (idempotent upsert)
+  @@unique([storeId, categoryId, weekIdentifier])
+
+  @@index([weekIdentifier, rank])
+  @@index([storeId, weekIdentifier])
+  @@index([categoryId, weekIdentifier, rank])
+  @@index([movement])
+}
+
+// ============================================================================
+// STORE INTELLIGENCE
+// ============================================================================
+
+model StoreSavingsMetrics {
+  id              Int    @id @default(autoincrement())
+  storeId         Int
+  monthIdentifier String // "2026-03" — ISO year-month
+
+  // Savings data (inputs to score)
+  averageDiscountPercent    Float @default(0) // Mean across all active offers
+  maxStackableSavingsPercent Float @default(0) // Best compound saving (from leaderboard cron)
+  codeSuccessRate           Float @default(0) // 0–100: % of code clicks that weren't "code invalid"
+  totalActiveOffers         Int   @default(0) // Count of non-expired vouchers + promos
+
+  // Pre-computed score (avoids recalculating on every request)
+  storeScore      Float @default(0) // 0–10 scale, stored after cron calculates it
+  scoreBreakdown  String? @db.Text  // JSON: { savings: 2.7, codeSuccess: 1.6, ... }
+
+  updatedAt DateTime @updatedAt
+
+  store Store @relation(fields: [storeId], references: [id], onDelete: Cascade)
+
+  @@unique([storeId, monthIdentifier])
+  @@index([storeId, monthIdentifier])
+  @@index([monthIdentifier])
+}
+
+model StoreUpcomingEvent {
+  id              Int            @id @default(autoincrement())
+  storeId         Int
+  eventName       String         // e.g. "Ramadan Sale", "White Friday"
+  expectedMonth   String         // "2026-03" — ISO year-month
+  confidenceLevel ConfidenceLevel @default(MEDIUM)
+  expectedMaxDiscount Float?     // Optional: what % off is typically expected
+  notes           String?        @db.Text
+
+  store Store @relation(fields: [storeId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([storeId])
+  @@index([expectedMonth])
+  @@index([confidenceLevel])
+}
+
+model StorePeakSeason {
+  id        Int    @id @default(autoincrement())
+  storeId   Int
+  seasonKey String // Stable key: "ramadan", "white_friday", "back_to_school", etc.
+  nameEn    String // "Ramadan Sale"
+  nameAr    String // "تخفيضات رمضان"
+
+  store Store @relation(fields: [storeId], references: [id], onDelete: Cascade)
+
+  @@unique([storeId, seasonKey])
+  @@index([storeId])
+  @@index([seasonKey])
 }
