@@ -617,3 +617,194 @@ export async function getCuratedOffers(locale = 'en') {
     orderBy: [{ isFeatured: 'desc' }, { order: 'asc' }, { createdAt: 'desc' }]
   });
 }
+
+
+
+
+
+// ============================================================================
+// ── NEW: SAVINGS METHODOLOGY ─────────────────────────────────────────────────
+// ============================================================================
+
+/** All formula versions, newest first, with snapshot count. */
+export async function getMethodologies() {
+  return prisma.savingsMethodology.findMany({
+    orderBy: { id: 'desc' },
+    include: { _count: { select: { snapshots: true } } }
+  });
+}
+
+// ============================================================================
+// ── NEW: LEADERBOARD ─────────────────────────────────────────────────────────
+// ============================================================================
+
+/**
+ * Paginated weekly leaderboard snapshots.
+ * @param {string}  week       ISO week string e.g. "2026-W10"
+ * @param {number|null} categoryId  null = global leaderboard
+ */
+export async function getLeaderboardSnapshots({
+  week,
+  categoryId = null,
+  page       = 1,
+  limit      = 50,
+  search     = '',
+} = {}) {
+  const where = {
+    weekIdentifier: week,
+    categoryId:     categoryId ?? null,
+    ...(search ? {
+      store: {
+        translations: {
+          some: { locale: 'en', name: { contains: search, mode: 'insensitive' } }
+        }
+      }
+    } : {})
+  };
+
+  const [total, snapshots, availableWeeksRaw] = await Promise.all([
+    prisma.storeSavingsSnapshot.count({ where }),
+    prisma.storeSavingsSnapshot.findMany({
+      where,
+      orderBy: { rank: 'asc' },
+      skip:    (page - 1) * limit,
+      take:    limit,
+      select: {
+        id: true, rank: true, previousRank: true, movement: true,
+        calculatedMaxSavingsPercent: true, savingsOverridePercent: true, stackingPath: true,
+        maxDirectDiscountPercent: true, maxCouponPercent: true, maxBankOfferPercent: true,
+        weekIdentifier: true, calculatedAt: true,
+        store: {
+          select: {
+            id: true, logo: true,
+            translations: { where: { locale: 'en' }, select: { name: true, slug: true } }
+          }
+        },
+        methodology: { select: { version: true } }
+      }
+    }),
+    // Last 12 available weeks for the week-selector dropdown
+    prisma.storeSavingsSnapshot.findMany({
+      where:    { categoryId: categoryId ?? null },
+      distinct: ['weekIdentifier'],
+      orderBy:  { weekIdentifier: 'desc' },
+      take:     12,
+      select:   { weekIdentifier: true }
+    })
+  ]);
+
+  return {
+    snapshots,
+    total,
+    pages:          Math.ceil(total / limit),
+    availableWeeks: availableWeeksRaw.map(w => w.weekIdentifier)
+  };
+}
+
+// ============================================================================
+// ── NEW: STORE INTELLIGENCE ───────────────────────────────────────────────────
+// ============================================================================
+
+/**
+ * Full intelligence read for a single store.
+ * Returns logistics + last 6 months of metrics + upcoming events + peak seasons + recent snapshots.
+ */
+export async function getStoreIntelligence(storeId) {
+  return prisma.store.findUnique({
+    where: { id: parseInt(storeId) },
+    select: {
+      id: true, logo: true,
+      averageDeliveryDaysMin: true, averageDeliveryDaysMax: true,
+      freeShippingThreshold: true, returnWindowDays: true, freeReturns: true,
+      refundProcessingDaysMin: true, refundProcessingDaysMax: true,
+      offerFrequencyDays: true, lastVerifiedAt: true,
+      translations: { where: { locale: 'en' }, select: { name: true, slug: true } },
+      savingsMetrics: {
+        orderBy: { monthIdentifier: 'desc' },
+        take:    6,
+        select: {
+          monthIdentifier: true, averageDiscountPercent: true, maxStackableSavingsPercent: true,
+          offerQualityRatio: true, totalActiveOffers: true, storeScore: true,
+          scoreBreakdown: true, updatedAt: true
+        }
+      },
+      savingsSnapshots: {
+        where:   { categoryId: null },
+        orderBy: { weekIdentifier: 'desc' },
+        take:    4,
+        select: {
+          weekIdentifier: true, rank: true, previousRank: true, movement: true,
+          calculatedMaxSavingsPercent: true, savingsOverridePercent: true, stackingPath: true
+        }
+      },
+      upcomingEvents: {
+        orderBy: { expectedMonth: 'asc' },
+        select:  { id: true, eventName: true, expectedMonth: true, confidenceLevel: true, expectedMaxDiscount: true, notes: true }
+      },
+      peakSeasons: {
+        orderBy: { seasonKey: 'asc' },
+        select:  { id: true, seasonKey: true, nameEn: true, nameAr: true }
+      }
+    }
+  });
+}
+
+/**
+ * Vouchers for a store with all calculator fields — for the offers editor page.
+ */
+export async function getStoreVouchersForCalc(storeId, {
+  certainty   = null,
+  stackGroup  = null,
+  showExpired = false,
+  search      = '',
+  page        = 1,
+  limit       = 50,
+} = {}) {
+  const now   = new Date();
+  const where = {
+    storeId: parseInt(storeId),
+    ...(certainty  && { discountCertainty: certainty }),
+    ...(stackGroup && { stackGroup }),
+    ...(!showExpired && { OR: [{ expiryDate: null }, { expiryDate: { gte: now } }] }),
+    ...(search && {
+      translations: { some: { locale: 'en', title: { contains: search, mode: 'insensitive' } } }
+    })
+  };
+
+  const [total, vouchers] = await Promise.all([
+    prisma.voucher.count({ where }),
+    prisma.voucher.findMany({
+      where,
+      orderBy: [{ discountCertainty: 'asc' }, { updatedAt: 'desc' }],
+      skip:    (page - 1) * limit,
+      take:    limit,
+      select: {
+        id: true, code: true, type: true, discount: true,
+        discountPercent: true, verifiedAvgPercent: true, discountCertainty: true,
+        stackGroup: true, isStackable: true, isCapped: true,
+        maxDiscountAmount: true, minSpendAmount: true,
+        isVerified: true, isExclusive: true, expiryDate: true,
+        translations: { where: { locale: 'en' }, select: { title: true } }
+      }
+    })
+  ]);
+
+  return { vouchers, total, pages: Math.ceil(total / limit) };
+}
+
+/**
+ * OtherPromos for a store with calculator fields — for the offers editor page.
+ */
+export async function getStorePromosForCalc(storeId) {
+  return prisma.otherPromo.findMany({
+    where:   { storeId: parseInt(storeId) },
+    orderBy: [{ discountCertainty: 'asc' }, { updatedAt: 'desc' }],
+    select: {
+      id: true, type: true,
+      discountPercent: true, verifiedAvgPercent: true, discountCertainty: true,
+      stackGroup: true, isStackable: true, isCapped: true,
+      maxDiscountAmount: true, minSpendAmount: true,
+      translations: { where: { locale: 'en' }, select: { title: true } }
+    }
+  });
+}
