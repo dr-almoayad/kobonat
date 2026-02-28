@@ -2,12 +2,15 @@
 // POST — activates this version and deactivates all others (atomic transaction)
 
 import { NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
 import { prisma } from '@/lib/prisma';
-import { requireAdmin } from '@/lib/admin-auth';
+import { authOptions } from '../../auth/[...nextauth]/route';
 
 export async function POST(request, { params }) {
-  const auth = await requireAdmin(request, ['SUPER_ADMIN', 'ADMIN']);
-  if (!auth.ok) return auth.response;
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.isAdmin) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
 
   const id = Number(params.id);
 
