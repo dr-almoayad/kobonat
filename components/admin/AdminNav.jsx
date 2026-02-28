@@ -28,27 +28,10 @@ export default function AdminNav({ user }) {
       href: '/admin/stores'
     },
     {
-      label: 'Store Intelligence',
-      icon: 'info',
-      href: '/admin/stores/[id]/intelligence'
-    },
-    {
-      label: 'Store Offers',
-      icon: 'offer',
-      href: '/admin/stores/[id]/offers'
-    },
-
-    {
       label: 'Leaderboard',
-      icon: 'trend',
+      icon: 'leaderboard',
       href: '/admin/leaderboard'
     },
-    {
-      label: 'Leaderboard Methodology',
-      icon: 'chart',
-      href: '/admin/leaderboard/methodology'
-    },
-
     {
       label: 'Vouchers',
       icon: 'local_offer', 
