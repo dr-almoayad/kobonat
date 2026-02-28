@@ -10,7 +10,6 @@ export async function GET(req, { params }) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Next.js 15 Fix: params is a Promise
     const resolvedParams = await params;
     const { id } = resolvedParams;
     
@@ -20,9 +19,12 @@ export async function GET(req, { params }) {
     const store = await prisma.store.findUnique({
       where: { id: parseInt(id) },
       include: {
+        // Basic translations
         translations: {
           where: { locale: { in: ['en', 'ar'] } }
         },
+
+        // Countries
         countries: {
           include: {
             country: {
@@ -34,6 +36,8 @@ export async function GET(req, { params }) {
             }
           }
         },
+
+        // Categories
         categories: {
           include: {
             category: {
@@ -45,6 +49,8 @@ export async function GET(req, { params }) {
             }
           }
         },
+
+        // Payment methods
         paymentMethods: {
           include: {
             paymentMethod: {
@@ -61,18 +67,32 @@ export async function GET(req, { params }) {
                 }
               }
             }
-            // REMOVED: translations include here because StorePaymentMethod 
-            // only has a "notes" field, not a translation relation.
+            // StorePaymentMethodTranslation intentionally omitted (notes field only)
           }
         },
+
+        // Vouchers
         vouchers: {
           include: {
             translations: {
               where: { locale }
+            },
+            countries: {
+              include: {
+                country: {
+                  include: {
+                    translations: {
+                      where: { locale }
+                    }
+                  }
+                }
+              }
             }
           },
           orderBy: { createdAt: 'desc' }
         },
+
+        // FAQs
         faqs: {
           include: {
             translations: {
@@ -87,6 +107,110 @@ export async function GET(req, { params }) {
             }
           },
           orderBy: { order: 'asc' }
+        },
+
+        // Other promos (bank/card offers)
+        otherPromos: {
+          include: {
+            translations: {
+              where: { locale }
+            },
+            country: {
+              include: {
+                translations: {
+                  where: { locale }
+                }
+              }
+            }
+          },
+          orderBy: { order: 'asc' }
+        },
+
+        // Curated offers
+        curatedOffers: {
+          include: {
+            translations: {
+              where: { locale }
+            },
+            countries: {
+              include: {
+                country: {
+                  include: {
+                    translations: {
+                      where: { locale }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          orderBy: { order: 'asc' }
+        },
+
+        // Store products
+        products: {
+          include: {
+            translations: {
+              where: { locale }
+            },
+            countries: {
+              include: {
+                country: {
+                  include: {
+                    translations: {
+                      where: { locale }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          orderBy: { order: 'asc' }
+        },
+
+        // Leaderboard snapshots (latest 10 weeks)
+        savingsSnapshots: {
+          orderBy: { weekIdentifier: 'desc' },
+          take: 10
+        },
+
+        // Store intelligence metrics (latest 12 months)
+        savingsMetrics: {
+          orderBy: { monthIdentifier: 'desc' },
+          take: 12
+        },
+
+        // Upcoming events
+        upcomingEvents: {
+          orderBy: { expectedMonth: 'asc' }
+        },
+
+        // Peak seasons
+        peakSeasons: true,
+
+        // Blog relations (optional – can be excluded if too heavy)
+        primaryBlogPosts: {
+          where: { status: 'PUBLISHED' },
+          include: {
+            translations: {
+              where: { locale }
+            }
+          },
+          take: 5,
+          orderBy: { publishedAt: 'desc' }
+        },
+        blogPostStores: {
+          include: {
+            post: {
+              include: {
+                translations: {
+                  where: { locale }
+                }
+              }
+            }
+          },
+          take: 5,
+          orderBy: { post: { publishedAt: 'desc' } }
         }
       }
     });
@@ -102,7 +226,7 @@ export async function GET(req, { params }) {
   }
 }
 
-// PUT and DELETE should also await params for Next.js 15 consistency
+// PUT and DELETE remain as previously updated (await params, etc.)
 export async function PUT(req, { params }) {
   try {
     const session = await getServerSession(authOptions);
@@ -145,11 +269,9 @@ export async function PUT(req, { params }) {
 
     // Update translations if provided
     if (translations) {
-      // Delete existing translations
       await prisma.storeTranslation.deleteMany({
         where: { storeId: parseInt(id) }
       });
-      // Create new translations
       await prisma.storeTranslation.createMany({
         data: translations.map(t => ({
           ...t,
@@ -201,8 +323,6 @@ export async function PUT(req, { params }) {
   }
 }
 
-
-
 export async function DELETE(req, { params }) {
   try {
     const session = await getServerSession(authOptions);
@@ -210,11 +330,10 @@ export async function DELETE(req, { params }) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // FIX: Await params
     const { id } = await params; 
     const storeId = parseInt(id);
     
-    // Check if store exists
+    // Check if store exists and count dependencies
     const store = await prisma.store.findUnique({
       where: { id: storeId },
       include: {
@@ -223,7 +342,14 @@ export async function DELETE(req, { params }) {
             vouchers: true,
             products: true,
             faqs: true,
-            otherPromos: true
+            otherPromos: true,
+            curatedOffers: true,
+            upcomingEvents: true,
+            peakSeasons: true,
+            primaryBlogPosts: true,
+            blogPostStores: true,
+            savingsSnapshots: true,
+            savingsMetrics: true
           }
         }
       }
@@ -236,23 +362,27 @@ export async function DELETE(req, { params }) {
       );
     }
     
-    // Check if store has any dependencies
-    const totalDependencies = 
-      store._count.vouchers + 
-      store._count.products + 
-      store._count.faqs + 
-      store._count.otherPromos;
+    // Check if store has any dependencies (excluding read-only analytics)
+    const dependentCounts = store._count;
+    const deletableDeps = [
+      'vouchers',
+      'products',
+      'faqs',
+      'otherPromos',
+      'curatedOffers',
+      'upcomingEvents',
+      'peakSeasons',
+      'primaryBlogPosts',
+      'blogPostStores'
+    ];
     
-    if (totalDependencies > 0) {
+    const hasDependencies = deletableDeps.some(key => dependentCounts[key] > 0);
+    
+    if (hasDependencies) {
       return NextResponse.json(
         { 
-          error: `Cannot delete store. It has ${store._count.vouchers} vouchers, ${store._count.products} products, ${store._count.faqs} FAQs, and ${store._count.otherPromos} promos. Please delete these first.`,
-          details: {
-            vouchers: store._count.vouchers,
-            products: store._count.products,
-            faqs: store._count.faqs,
-            otherPromos: store._count.otherPromos
-          }
+          error: `Cannot delete store. It has related records.`,
+          details: dependentCounts
         },
         { status: 400 }
       );
