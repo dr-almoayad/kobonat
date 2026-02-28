@@ -1058,3 +1058,208 @@ export async function deleteFAQ(formData) {
     return { error: error.message };
   }
 }
+
+
+
+
+
+
+
+
+
+// ============================================================================
+// ── NEW: STORE INTELLIGENCE — LOGISTICS
+// ============================================================================
+
+/**
+ * Update all logistics / cadence fields for a store.
+ * Automatically stamps lastVerifiedAt on every save.
+ */
+export async function updateStoreLogistics(storeId, formData) {
+  try {
+    const n = (k) => { const v = formData.get(k); return v === '' || v === null ? null : Number(v); };
+
+    await prisma.store.update({
+      where: { id: parseInt(storeId) },
+      data:  {
+        averageDeliveryDaysMin:  n('averageDeliveryDaysMin'),
+        averageDeliveryDaysMax:  n('averageDeliveryDaysMax'),
+        freeShippingThreshold:   n('freeShippingThreshold'),
+        returnWindowDays:        n('returnWindowDays'),
+        freeReturns:             formData.get('freeReturns') === 'on',
+        refundProcessingDaysMin: n('refundProcessingDaysMin'),
+        refundProcessingDaysMax: n('refundProcessingDaysMax'),
+        offerFrequencyDays:      n('offerFrequencyDays'),
+        lastVerifiedAt:          new Date(),   // always stamp on save
+      }
+    });
+
+    revalidatePath(`/admin/stores/${storeId}/intelligence`);
+    return { success: true };
+  } catch (error) {
+    console.error('Update store logistics error:', error);
+    return { error: error.message };
+  }
+}
+
+// ============================================================================
+// ── NEW: STORE INTELLIGENCE — UPCOMING EVENTS
+// ============================================================================
+
+export async function createUpcomingEvent(formData) {
+  try {
+    const storeId = parseInt(formData.get('storeId'));
+    const raw     = formData.get('expectedMaxDiscount');
+
+    const event = await prisma.storeUpcomingEvent.create({
+      data: {
+        storeId,
+        eventName:           formData.get('eventName'),
+        expectedMonth:       formData.get('expectedMonth'),
+        confidenceLevel:     formData.get('confidenceLevel') || 'MEDIUM',
+        expectedMaxDiscount: raw ? parseFloat(raw) : null,
+        notes:               formData.get('notes') || null,
+      }
+    });
+
+    revalidatePath(`/admin/stores/${storeId}/intelligence`);
+    return { success: true, id: event.id };
+  } catch (error) {
+    return { error: error.message };
+  }
+}
+
+export async function deleteUpcomingEvent(id, storeId) {
+  try {
+    await prisma.storeUpcomingEvent.delete({ where: { id: parseInt(id) } });
+    revalidatePath(`/admin/stores/${storeId}/intelligence`);
+    return { success: true };
+  } catch (error) {
+    return { error: error.message };
+  }
+}
+
+// ============================================================================
+// ── NEW: STORE INTELLIGENCE — PEAK SEASONS
+// ============================================================================
+
+export async function createPeakSeason(formData) {
+  try {
+    const storeId = parseInt(formData.get('storeId'));
+    const season  = await prisma.storePeakSeason.create({
+      data: {
+        storeId,
+        seasonKey: formData.get('seasonKey'),
+        nameEn:    formData.get('nameEn'),
+        nameAr:    formData.get('nameAr'),
+      }
+    });
+    revalidatePath(`/admin/stores/${storeId}/intelligence`);
+    return { success: true, id: season.id };
+  } catch (error) {
+    return { error: error.message };
+  }
+}
+
+export async function deletePeakSeason(id, storeId) {
+  try {
+    await prisma.storePeakSeason.delete({ where: { id: parseInt(id) } });
+    revalidatePath(`/admin/stores/${storeId}/intelligence`);
+    return { success: true };
+  } catch (error) {
+    return { error: error.message };
+  }
+}
+
+// ============================================================================
+// ── NEW: SAVINGS METHODOLOGY (FORMULA VERSIONS)
+// ============================================================================
+
+export async function createMethodology(formData) {
+  try {
+    const version     = formData.get('version')?.trim();
+    const description = formData.get('description')?.trim();
+    if (!version || !description) return { error: 'Version and description are required' };
+
+    const existing = await prisma.savingsMethodology.findUnique({ where: { version } });
+    if (existing) return { error: `Version "${version}" already exists` };
+
+    const m = await prisma.savingsMethodology.create({
+      data: {
+        version, description,
+        isActive:            false,   // must be activated deliberately
+        maxSavingsCap:       parseFloat(formData.get('maxSavingsCap')       || '75'),
+        referenceBasketSize: parseFloat(formData.get('referenceBasketSize') || '500'),
+        multiplierExact:     parseFloat(formData.get('multiplierExact')     || '1.00'),
+        multiplierVerified:  parseFloat(formData.get('multiplierVerified')  || '1.00'),
+        multiplierTypical:   parseFloat(formData.get('multiplierTypical')   || '0.80'),
+        multiplierEstimated: parseFloat(formData.get('multiplierEstimated') || '0.35'),
+      }
+    });
+
+    revalidatePath('/admin/leaderboard/methodology');
+    return { success: true, id: m.id };
+  } catch (error) {
+    return { error: error.message };
+  }
+}
+
+/**
+ * Atomically activates one version and deactivates all others.
+ * Call with the methodology's numeric id.
+ */
+export async function activateMethodology(id) {
+  try {
+    await prisma.$transaction([
+      prisma.savingsMethodology.updateMany({ where: { isActive: true }, data: { isActive: false } }),
+      prisma.savingsMethodology.update({ where: { id: parseInt(id) }, data: { isActive: true } }),
+    ]);
+    revalidatePath('/admin/leaderboard/methodology');
+    return { success: true };
+  } catch (error) {
+    return { error: error.message };
+  }
+}
+
+export async function deleteMethodology(id) {
+  try {
+    const m = await prisma.savingsMethodology.findUnique({
+      where: { id: parseInt(id) },
+      include: { _count: { select: { snapshots: true } } }
+    });
+    if (!m) return { error: 'Not found' };
+    if (m.isActive) return { error: 'Cannot delete the active formula version' };
+    if (m._count.snapshots > 0) return { error: `${m._count.snapshots} leaderboard snapshots reference this version — archive it instead` };
+
+    await prisma.savingsMethodology.delete({ where: { id: parseInt(id) } });
+    revalidatePath('/admin/leaderboard/methodology');
+    return { success: true };
+  } catch (error) {
+    return { error: error.message };
+  }
+}
+
+// ============================================================================
+// ── NEW: LEADERBOARD — MANUAL SAVINGS OVERRIDE
+// ============================================================================
+
+/**
+ * Set or clear a manual savings override on a leaderboard snapshot.
+ * Pass overrideValue as a number (0–100) to set, or null to clear.
+ */
+export async function setLeaderboardOverride(snapshotId, overrideValue) {
+  try {
+    if (overrideValue !== null) {
+      const n = Number(overrideValue);
+      if (isNaN(n) || n < 0 || n > 100) return { error: 'Override must be 0–100, or null to clear' };
+    }
+    await prisma.storeSavingsSnapshot.update({
+      where: { id: parseInt(snapshotId) },
+      data:  { savingsOverridePercent: overrideValue }
+    });
+    revalidatePath('/admin/leaderboard');
+    return { success: true };
+  } catch (error) {
+    return { error: error.message };
+  }
+}
