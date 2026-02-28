@@ -39,7 +39,7 @@ export async function GET(request, { params }) {
           },
         },
 
-        // Categories
+        // Categories — orderBy removed (no 'order' field on StoreCategory)
         categories: {
           include: {
             category: {
@@ -48,7 +48,6 @@ export async function GET(request, { params }) {
               },
             },
           },
-          orderBy: { order: 'asc' },
         },
 
         // Vouchers (for the vouchers tab)
