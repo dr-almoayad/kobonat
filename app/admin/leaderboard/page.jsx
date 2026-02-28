@@ -3,7 +3,7 @@
 // Full leaderboard management: week selector, rank table, override modal, cron trigger.
 
 import { useState, useEffect, useCallback } from 'react';
-import '../../../components/admin/admin-panel.css';
+import '@/components/admin/admin-panel.css';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers
