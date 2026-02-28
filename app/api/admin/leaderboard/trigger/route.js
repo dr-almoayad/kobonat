@@ -6,12 +6,16 @@
 //   {}                  — run for all active stores (may take 30–60s for large catalogues)
 
 import { NextResponse } from 'next/server';
-import { requireAdmin } from '@/lib/admin-auth';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '../../auth/[...nextauth]/route';
 import { runLeaderboardCron } from '@/lib/leaderboard/runLeaderboardCron';
 
 export async function POST(request) {
-  const auth = await requireAdmin(request, ['SUPER_ADMIN', 'ADMIN']);
-  if (!auth.ok) return auth.response;
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.isAdmin) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  };
+
 
   const body    = await request.json().catch(() => ({}));
   const storeId = body.storeId ? Number(body.storeId) : null;
