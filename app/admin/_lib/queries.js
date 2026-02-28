@@ -1,6 +1,5 @@
 // app/admin/_lib/queries.js
 
-
 import { prisma } from '@/lib/prisma';
 
 // ============================================================================
@@ -405,7 +404,6 @@ export async function getAllCountries(locale = 'en') {
       translations: {
         where: { locale }
       },
-      // This is the missing piece for the counts
       _count: {
         select: {
           stores: true,
@@ -447,7 +445,7 @@ export async function getStoreProducts(storeId, locale = 'en') {
   return prisma.storeProduct.findMany({
     where: { storeId: parseInt(storeId) },
     include: {
-      translations: true, // Fetch all translations for the admin edit form
+      translations: true,
       _count: {
         select: { clicks: true }
       }
@@ -459,154 +457,194 @@ export async function getStoreProducts(storeId, locale = 'en') {
   });
 }
 
-
 // ============================================================================
-// BLOG — append these to your existing app/admin/_lib/queries.js
-//
-// IMPORTANT: All functions guard against a stale Prisma client (i.e. when
-// `prisma generate` hasn't been run after adding the blog models to schema.prisma).
-// Run `npx prisma migrate dev --name add_blog_system && npx prisma generate`
-// to permanently resolve any "Cannot read properties of undefined" errors.
+// BLOG — POSTS, AUTHORS, CATEGORIES, TAGS
 // ============================================================================
 
-export async function getBlogPosts(locale = 'en') {
+export async function getBlogPosts(locale = 'en', { status, limit } = {}) {
   try {
+    if (!prisma.blogPost) return [];
     return await prisma.blogPost.findMany({
+      where: status ? { status } : undefined,
       include: {
         translations: { where: { locale } },
         author: true,
-        category: {
-          include: { translations: { where: { locale } } }
+        category: { include: { translations: { where: { locale } } } },
+        tags: { include: { tag: { include: { translations: { where: { locale } } } } } },
+        primaryStore: {
+          include: { translations: { where: { locale }, select: { name: true, slug: true } } },
         },
-        tags: {
-          include: { tag: { include: { translations: { where: { locale } } } } }
-        },
-        _count: { select: { relatedProducts: true } }
+        _count: { select: { sections: true, linkedStores: true, relatedProducts: true } },
       },
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: 'desc' },
+      ...(limit ? { take: limit } : {}),
     });
   } catch (e) {
-    console.error('[getBlogPosts] Prisma error — did you run prisma generate?', e.message);
+    console.error('[getBlogPosts]', e.message);
     return [];
   }
 }
 
 export async function getBlogPost(id, locale = 'en') {
   try {
+    if (!prisma.blogPost) return null;
     return await prisma.blogPost.findUnique({
       where: { id: parseInt(id) },
       include: {
         translations: true,
         author: true,
-        category: {
-          include: { translations: { where: { locale } } }
+        category: { include: { translations: { where: { locale } } } },
+        primaryStore: {
+          include: { translations: { where: { locale }, select: { name: true, slug: true } } },
         },
-        tags: {
-          include: { tag: { include: { translations: true } } }
+        tags: { include: { tag: { include: { translations: true } } } },
+
+        // ── Sections ────────────────────────────────────────────────────
+        sections: {
+          orderBy: { order: 'asc' },
+          include: {
+            translations: true,
+            products: {
+              orderBy: { order: 'asc' },
+              include: { product: { include: { translations: { where: { locale } } } } },
+            },
+            stores: {
+              orderBy: { order: 'asc' },
+              include: { store: { include: { translations: { where: { locale }, select: { name: true, slug: true } } } } },
+            },
+          },
         },
-        relatedProducts: true,
+
+        // ── Post-level linked stores ─────────────────────────────────────
+        linkedStores: {
+          orderBy: { order: 'asc' },
+          include: {
+            store: {
+              include: {
+                translations: { where: { locale }, select: { name: true, slug: true } },
+                _count: { select: { vouchers: { where: { expiryDate: { gte: new Date() } } } } },
+              },
+            },
+          },
+        },
+
+        // ── Post-level product links ─────────────────────────────────────
+        relatedProducts: {
+          include: { product: { include: { translations: { where: { locale } } } } },
+        },
+
+        // ── Editorial related posts ─────────────────────────────────────
         relatedPosts: {
+          orderBy: { order: 'asc' },
           include: {
             relatedPost: {
-              include: { translations: { where: { locale } } }
-            }
-          }
-        }
-      }
-    });
-  } catch (e) {
-    console.error('[getBlogPost] Prisma error — did you run prisma generate?', e.message);
-    return null;
-  }
-}
-
-export async function getBlogCategories(locale = 'en') {
-  try {
-    return await prisma.blogCategory.findMany({
-      include: {
-        translations: { where: { locale } },
-        _count: { select: { posts: true } }
+              include: { translations: { where: { locale }, select: { title: true } } },
+            },
+          },
+        },
       },
-      orderBy: { createdAt: 'desc' }
     });
   } catch (e) {
-    console.error('[getBlogCategories] Prisma error — did you run prisma generate?', e.message);
-    return [];
+    console.error('[getBlogPost]', e.message);
+    return null;
   }
 }
 
-export async function getBlogCategory(id) {
+export async function getStoreRelatedPosts(storeId, locale = 'en', limit = 4) {
   try {
-    return await prisma.blogCategory.findUnique({
-      where: { id: parseInt(id) },
-      include: { translations: true }
+    if (!prisma.blogPost) return [];
+    return await prisma.blogPost.findMany({
+      where: {
+        status: 'PUBLISHED',
+        publishedAt: { lte: new Date() },
+        OR: [
+          { primaryStoreId: parseInt(storeId) },
+          { linkedStores: { some: { storeId: parseInt(storeId) } } },
+        ],
+      },
+      include: {
+        translations: { where: { locale }, select: { title: true, excerpt: true } },
+        category: { include: { translations: { where: { locale }, select: { name: true } } } },
+      },
+      orderBy: [{ primaryStoreId: 'asc' }, { publishedAt: 'desc' }],
+      take: limit,
     });
   } catch (e) {
-    console.error('[getBlogCategory] Prisma error — did you run prisma generate?', e.message);
-    return null;
+    console.error('[getStoreRelatedPosts]', e.message);
+    return [];
   }
 }
 
 export async function getBlogAuthors() {
   try {
+    if (!prisma.blogAuthor) return [];
     return await prisma.blogAuthor.findMany({
       include: { _count: { select: { posts: true } } },
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: 'desc' },
     });
   } catch (e) {
-    console.error('[getBlogAuthors] Prisma error — did you run prisma generate?', e.message);
+    console.error('[getBlogAuthors]', e.message);
     return [];
   }
 }
 
 export async function getBlogAuthor(id) {
   try {
-    return await prisma.blogAuthor.findUnique({
-      where: { id: parseInt(id) }
+    if (!prisma.blogAuthor) return null;
+    return await prisma.blogAuthor.findUnique({ where: { id: parseInt(id) } });
+  } catch (e) {
+    console.error('[getBlogAuthor]', e.message);
+    return null;
+  }
+}
+
+export async function getBlogCategories(locale = 'en') {
+  try {
+    if (!prisma.blogCategory) return [];
+    return await prisma.blogCategory.findMany({
+      include: {
+        translations: { where: { locale } },
+        _count: { select: { posts: true } },
+      },
+      orderBy: { createdAt: 'desc' },
     });
   } catch (e) {
-    console.error('[getBlogAuthor] Prisma error — did you run prisma generate?', e.message);
+    console.error('[getBlogCategories]', e.message);
+    return [];
+  }
+}
+
+export async function getBlogCategory(id) {
+  try {
+    if (!prisma.blogCategory) return null;
+    return await prisma.blogCategory.findUnique({
+      where: { id: parseInt(id) },
+      include: { translations: true },
+    });
+  } catch (e) {
+    console.error('[getBlogCategory]', e.message);
     return null;
   }
 }
 
 export async function getBlogTags(locale = 'en') {
   try {
+    if (!prisma.blogTag) return [];
     return await prisma.blogTag.findMany({
       include: {
         translations: { where: { locale } },
-        _count: { select: { posts: true } }
+        _count: { select: { posts: true } },
       },
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: 'desc' },
     });
   } catch (e) {
-    console.error('[getBlogTags] Prisma error — did you run prisma generate?', e.message);
+    console.error('[getBlogTags]', e.message);
     return [];
   }
 }
 
-export async function getBlogDashboardStats() {
-  try {
-    const now = new Date();
-    const [total, published, draft, totalCategories, totalAuthors] = await Promise.all([
-      prisma.blogPost.count(),
-      prisma.blogPost.count({ where: { status: 'PUBLISHED', publishedAt: { lte: now } } }),
-      prisma.blogPost.count({ where: { status: 'DRAFT' } }),
-      prisma.blogCategory.count(),
-      prisma.blogAuthor.count()
-    ]);
-    return { total, published, draft, categories: totalCategories, authors: totalAuthors };
-  } catch (e) {
-    console.error('[getBlogDashboardStats] Prisma error — did you run prisma generate?', e.message);
-    return { total: 0, published: 0, draft: 0, categories: 0, authors: 0 };
-  }
-}
-
-
-
-
 // ============================================================================
-// STEP 1: Append to app/admin/_lib/queries.js
+// CURATED OFFERS
 // ============================================================================
 
 export async function getCuratedOffers(locale = 'en') {
@@ -621,12 +659,8 @@ export async function getCuratedOffers(locale = 'en') {
   });
 }
 
-
-
-
-
 // ============================================================================
-// ── NEW: SAVINGS METHODOLOGY ─────────────────────────────────────────────────
+// SAVINGS METHODOLOGY
 // ============================================================================
 
 /** All formula versions, newest first, with snapshot count. */
@@ -638,7 +672,7 @@ export async function getMethodologies() {
 }
 
 // ============================================================================
-// ── NEW: LEADERBOARD ─────────────────────────────────────────────────────────
+// LEADERBOARD
 // ============================================================================
 
 /**
@@ -674,7 +708,7 @@ export async function getLeaderboardSnapshots({
       take:    limit,
       select: {
         id: true, rank: true, previousRank: true, movement: true,
-        calculatedMaxSavingsPercent: true, savingsOverridePercent: true, stackingPath: true,
+        calculatedMaxSavingsPercent: true, savingsOverridePercent: true,
         maxDirectDiscountPercent: true, maxCouponPercent: true, maxBankOfferPercent: true,
         weekIdentifier: true, calculatedAt: true,
         store: {
@@ -705,7 +739,7 @@ export async function getLeaderboardSnapshots({
 }
 
 // ============================================================================
-// ── NEW: STORE INTELLIGENCE ───────────────────────────────────────────────────
+// STORE INTELLIGENCE
 // ============================================================================
 
 /**
@@ -727,7 +761,7 @@ export async function getStoreIntelligence(storeId) {
         take:    6,
         select: {
           monthIdentifier: true, averageDiscountPercent: true, maxStackableSavingsPercent: true,
-          offerQualityRatio: true, totalActiveOffers: true, storeScore: true,
+          totalActiveOffers: true, storeScore: true,
           scoreBreakdown: true, updatedAt: true
         }
       },
@@ -737,7 +771,7 @@ export async function getStoreIntelligence(storeId) {
         take:    4,
         select: {
           weekIdentifier: true, rank: true, previousRank: true, movement: true,
-          calculatedMaxSavingsPercent: true, savingsOverridePercent: true, stackingPath: true
+          calculatedMaxSavingsPercent: true, savingsOverridePercent: true
         }
       },
       upcomingEvents: {
