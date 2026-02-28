@@ -20,36 +20,65 @@ export default function AdminNav({ user }) {
       icon: 'dashboard',
       href: '/admin/dashboard'
     },
+  
+    // --- STORE SECTION ---
     {
       label: 'Stores',
       icon: 'storefront',
       href: '/admin/stores'
     },
     {
+      label: 'Store Intelligence',
+      icon: 'info',
+      href: '/admin/stores/[id]/intelligence'
+    },
+    {
+      label: 'Store Offers',
+      icon: 'offer',
+      href: '/admin/stores/[id]/offers'
+    },
+
+    {
+      label: 'Leaderboard',
+      icon: 'trend',
+      href: '/admin/leaderboard'
+    },
+    {
+      label: 'Leaderboard Methodology',
+      icon: 'chart',
+      href: '/admin/leaderboard/methodology'
+    },
+
+    {
       label: 'Vouchers',
       icon: 'local_offer', 
       href: '/admin/vouchers'
     },
+
     {
       label: 'Curated Offers',
       icon: 'auto_awesome',
       href: '/admin/curated-offers'
     },
+
     {
       label: 'Categories',
       icon: 'category',
       href: '/admin/categories'
     },
+
     {
       label: 'Countries',
       icon: 'public', 
       href: '/admin/countries'
     },
+
     {
       label: 'Payment Methods',
       icon: 'payments',
       href: '/admin/payment-methods'
     },
+
     // --- BLOG SECTION ---
     {
       label: 'Blog Posts',
