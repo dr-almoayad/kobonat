@@ -10,7 +10,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'next/navigation';
-import '../../../../../components/admin/admin-panel.css';
+import '@/components/admin/admin-panel.css';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers
