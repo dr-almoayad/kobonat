@@ -276,17 +276,12 @@ const BLANK_SEASON = { seasonKey: '', nameEn: '', nameAr: '' };
 function PeakSeasonsManager({ storeId, initial, flash, onChanged }) {
   const [seasons,    setSeasons]    = useState(initial || []);
   const [newSeason,  setNewSeason]  = useState(BLANK_SEASON);
-  const [usePreset,  setUsePreset]  = useState(true);
   const [adding,     setAdding]     = useState(false);
 
   useEffect(() => { setSeasons(initial || []); }, [initial]);
 
   const existingKeys = new Set(seasons.map((s) => s.seasonKey));
   const availablePresets = SEASON_PRESETS.filter((p) => !existingKeys.has(p.seasonKey));
-
-  function applyPreset(preset) {
-    setNewSeason(preset);
-  }
 
   async function handleAdd() {
     setAdding(true);
@@ -296,8 +291,9 @@ function PeakSeasonsManager({ storeId, initial, flash, onChanged }) {
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify(newSeason),
       });
-      if (!res.ok) throw new Error((await res.json()).error);
-      setSeasons((prev) => [...prev, await res.json()].sort((a,b) => a.seasonKey.localeCompare(b.seasonKey)));
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      setSeasons((prev) => [...prev, data].sort((a,b) => a.seasonKey.localeCompare(b.seasonKey)));
       setNewSeason(BLANK_SEASON);
       flash('success', 'Season added.');
       onChanged();
@@ -349,8 +345,9 @@ function PeakSeasonsManager({ storeId, initial, flash, onChanged }) {
                       method: 'POST', headers: { 'Content-Type': 'application/json' },
                       body: JSON.stringify(p),
                     });
-                    if (!res.ok) throw new Error((await res.json()).error);
-                    setSeasons((prev) => [...prev, await res.json()].sort((a,b) => a.seasonKey.localeCompare(b.seasonKey)));
+                    const data = await res.json();
+                    if (!res.ok) throw new Error(data.error);
+                    setSeasons((prev) => [...prev, data].sort((a,b) => a.seasonKey.localeCompare(b.seasonKey)));
                     flash('success', `${p.nameEn} added.`);
                     onChanged();
                   } catch (e) { flash('error', e.message); }
