@@ -1,3 +1,5 @@
+// app/admin/stores/[id]/page.jsx
+
 'use client';
 
 import { use, useEffect, useState, useTransition } from 'react';
