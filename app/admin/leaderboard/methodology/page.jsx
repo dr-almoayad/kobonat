@@ -3,7 +3,7 @@
 // Formula version management: list, create, activate, delete.
 
 import { useState, useEffect } from 'react';
-import '../../../../components/admin/admin-panel.css';
+import '@/components/admin/admin-panel.css';
 
 const FIELD_DEFS = [
   { key: 'maxSavingsCap',       label: 'Max savings cap (%)',      step: 1,    min: 0, max: 100,  help: 'No store can rank with a saving above this value.' },
