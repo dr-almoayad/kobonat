@@ -4,12 +4,14 @@
 
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { requireAdmin } from '@/lib/admin-auth';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 
 export async function PATCH(request, { params }) {
-  const auth = await requireAdmin(request, ['SUPER_ADMIN', 'ADMIN', 'EDITOR']);
-  if (!auth.ok) return auth.response;
-
+  const session = await getServerSession(authOptions);
+    if (!session?.user?.isAdmin) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
   const id   = Number(params.eventId);
   const body = await request.json();
   const { eventName, expectedMonth, confidenceLevel, expectedMaxDiscount, notes } = body;
@@ -29,8 +31,10 @@ export async function PATCH(request, { params }) {
 }
 
 export async function DELETE(request, { params }) {
-  const auth = await requireAdmin(request, ['SUPER_ADMIN', 'ADMIN', 'EDITOR']);
-  if (!auth.ok) return auth.response;
+  const session = await getServerSession(authOptions);
+    if (!session?.user?.isAdmin) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
   await prisma.storeUpcomingEvent.delete({ where: { id: Number(params.eventId) } });
   return NextResponse.json({ deleted: true });
