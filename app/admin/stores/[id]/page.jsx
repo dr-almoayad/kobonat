@@ -216,8 +216,8 @@ export default function StoreEditPage({ params }) {
       <div className={styles.pageHeader}>
         <h1>Edit Store: {enTranslation.name || `Store #${id}`}</h1>
         <button onClick={() => router.push('/admin/stores')} className={styles.btnSecondary}>← Back</button>
-        <button onClick={() => router.push('/admin/stores/${id}/intelligence')} className={styles.btnPrimary}>← Back</button>
-        <button onClick={() => router.push('/admin/stores/${id}/offers')} className={styles.btnPrimary}>← Back</button>
+        <button onClick={() => router.push('/admin/stores/${id}/intelligence')} className={styles.btnPrimary}>Intelligence</button>
+        <button onClick={() => router.push('/admin/stores/${id}/offers')} className={styles.btnPrimary}>Offers</button>
       </div>
       {/* Tabs Navigation */}
       <div className={styles.tabs}>
