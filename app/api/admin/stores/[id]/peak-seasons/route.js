@@ -4,11 +4,14 @@
 
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { requireAdmin } from '@/lib/admin-auth';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 
 export async function GET(request, { params }) {
-  const auth = await requireAdmin(request);
-  if (!auth.ok) return auth.response;
+  const session = await getServerSession(authOptions);
+    if (!session?.user?.isAdmin) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
   const storeId = Number(params.id);
   const seasons = await prisma.storePeakSeason.findMany({
@@ -19,8 +22,10 @@ export async function GET(request, { params }) {
 }
 
 export async function POST(request, { params }) {
-  const auth = await requireAdmin(request, ['SUPER_ADMIN', 'ADMIN', 'EDITOR']);
-  if (!auth.ok) return auth.response;
+  const session = await getServerSession(authOptions);
+    if (!session?.user?.isAdmin) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
   const storeId = Number(params.id);
   const { seasonKey, nameEn, nameAr } = await request.json();
