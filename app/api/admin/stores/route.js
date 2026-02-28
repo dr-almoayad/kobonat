@@ -17,32 +17,38 @@ export async function GET(req) {
     const search = searchParams.get('search')?.trim();
     const limit  = searchParams.get('limit') ? parseInt(searchParams.get('limit')) : undefined;
 
-   const store = await prisma.store.findUnique({
-  where: { id: parseInt(id) },
-  include: {
-    translations: true,
-    countries: { /* ... */ },
-    categories: {
-      include: {
-        category: {
-          include: {
+    const stores = await prisma.store.findMany({
+      where: search
+        ? {
             translations: {
-              where: { locale }
-            }
+              some: {
+                locale,
+                name: { contains: search, mode: 'insensitive' },
+              },
+            },
           }
-        }
-      }
-      // ❌ REMOVE the line below – it causes the error
-      // orderBy: { order: "asc" }
-    },
-    vouchers: { /* ... */ },
-    faqs: { /* ... */ },
-    otherPromos: { /* ... */ },
-    curatedOffers: { /* ... */ },
-    products: { /* ... */ },
-    paymentMethods: { /* ... */ }
-  }
-});
+        : undefined,
+      include: {
+        translations: { where: { locale } },
+        countries: {
+          include: {
+            country: {
+              include: { translations: { where: { locale } } },
+            },
+          },
+        },
+        categories: {
+          include: {
+            category: {
+              include: { translations: { where: { locale } } },
+            },
+          },
+        },
+        _count: { select: { vouchers: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+      ...(limit ? { take: limit } : {}),
+    });
 
     return NextResponse.json(stores);
   } catch (error) {
