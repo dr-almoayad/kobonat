@@ -4,11 +4,14 @@
 
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { requireAdmin } from '@/lib/admin-auth';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '../../auth/[...nextauth]/route';
 
 export async function GET(request) {
-  const auth = await requireAdmin(request);
-  if (!auth.ok) return auth.response;
+   const session = await getServerSession(authOptions);
+    if (!session?.user?.isAdmin) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    };
 
   const methodologies = await prisma.savingsMethodology.findMany({
     orderBy: { id: 'desc' },
@@ -19,8 +22,11 @@ export async function GET(request) {
 }
 
 export async function POST(request) {
-  const auth = await requireAdmin(request, ['SUPER_ADMIN', 'ADMIN']);
-  if (!auth.ok) return auth.response;
+   const session = await getServerSession(authOptions);
+    if (!session?.user?.isAdmin) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    };
+
 
   const body = await request.json();
   const {
