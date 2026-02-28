@@ -3,15 +3,25 @@
 // Query: week, categoryId, page, limit, search
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 
 function currentWeek() {
-  const now = new Date();
-  const startOfYear = new Date(now.getFullYear(), 0, 1);
-  const week = Math.ceil(((now - startOfYear) / 86400000 + startOfYear.getDay() + 1) / 7);
-  return `${now.getFullYear()}-W${String(week).padStart(2, '0')}`;
+  const now  = new Date();
+  const d    = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
+  d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7)); // Thursday of ISO week
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  const week  = Math.ceil(((d - yearStart) / 86400000 + 1) / 7);
+  return `${d.getUTCFullYear()}-W${String(week).padStart(2, '0')}`;
 }
 
 export async function GET(request) {
+  // ── Auth ────────────────────────────────────────────────────────────────
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.isAdmin) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   try {
     const { searchParams } = new URL(request.url);
     const week       = searchParams.get('week')   || currentWeek();
@@ -62,12 +72,25 @@ export async function GET(request) {
       })
     ]);
 
+    const availableWeeks = availableWeeksRaw.map(w => w.weekIdentifier);
+
+    // Response shape matches what the admin leaderboard page expects:
+    //   data?.data          → snapshot rows
+    //   data?.meta?.week    → current week string
+    //   data?.meta?.availableWeeks → week list for selector
     return NextResponse.json({
-      snapshots,
-      availableWeeks: availableWeeksRaw.map(w => w.weekIdentifier),
-      meta: { total, page, limit, pages: Math.ceil(total / limit), week }
+      data: snapshots,
+      meta: {
+        total,
+        page,
+        limit,
+        pages: Math.ceil(total / limit),
+        week,
+        availableWeeks,
+      },
     });
   } catch (error) {
+    console.error('[admin/leaderboard GET]', error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
