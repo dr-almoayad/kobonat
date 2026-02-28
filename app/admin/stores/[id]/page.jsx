@@ -215,11 +215,11 @@ export default function StoreEditPage({ params }) {
 
   return (
     <div className={styles.page}>
-      <div className={styles.pageHeader}>
+       <div className={styles.pageHeader}>
         <h1>Edit Store: {enTranslation.name || `Store #${id}`}</h1>
         <button onClick={() => router.push('/admin/stores')} className={styles.btnSecondary}>← Back</button>
-        <button onClick={() => router.push('/admin/stores/${id}/intelligence')} className={styles.btnPrimary}>Intelligence</button>
-        <button onClick={() => router.push('/admin/stores/${id}/offers')} className={styles.btnPrimary}>Offers</button>
+        <button onClick={() => router.push(`/admin/stores/${id}/intelligence`)} className={styles.btnPrimary}>Intelligence</button>
+        <button onClick={() => router.push(`/admin/stores/${id}/offers`)} className={styles.btnPrimary}>Offers</button>
       </div>
       {/* Tabs Navigation */}
       <div className={styles.tabs}>
