@@ -5,11 +5,14 @@
 
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { requireAdmin } from '@/lib/admin-auth';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '../../auth/[...nextauth]/route';
 
 export async function GET(request, { params }) {
-  const auth = await requireAdmin(request);
-  if (!auth.ok) return auth.response;
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.isAdmin) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
   const id = Number(params.id);
   const methodology = await prisma.savingsMethodology.findUnique({
