@@ -25,8 +25,10 @@ export async function GET(request, { params }) {
 }
 
 export async function PATCH(request, { params }) {
-  const auth = await requireAdmin(request, ['SUPER_ADMIN', 'ADMIN']);
-  if (!auth.ok) return auth.response;
+   const session = await getServerSession(authOptions);
+    if (!session?.user?.isAdmin) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
   const id = Number(params.id);
   const body = await request.json();
@@ -44,8 +46,10 @@ export async function PATCH(request, { params }) {
 }
 
 export async function DELETE(request, { params }) {
-  const auth = await requireAdmin(request, ['SUPER_ADMIN']);
-  if (!auth.ok) return auth.response;
+   const session = await getServerSession(authOptions);
+    if (!session?.user?.isAdmin) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
   const id = Number(params.id);
   const methodology = await prisma.savingsMethodology.findUnique({
