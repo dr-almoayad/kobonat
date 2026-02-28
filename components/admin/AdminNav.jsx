@@ -1,6 +1,4 @@
-// =============================================================================
-// components/admin/AdminNav.jsx - Admin Navigation
-// =============================================================================
+// components/admin/AdminNav.jsx
 'use client';
 import { useState } from 'react';
 import Link from 'next/link';
@@ -10,116 +8,83 @@ import Image from 'next/image';
 import logo from '@/public/coubonat.png';
 import './AdminNav.css';
 
+const NAV = [
+  // ── Dashboard ──────────────────────────────────────────────────────────
+  { label: 'Dashboard',       icon: 'dashboard',      href: '/admin/dashboard' },
+
+  // ── Store section ──────────────────────────────────────────────────────
+  { label: '─', separator: true },
+  { label: 'Stores',          icon: 'storefront',     href: '/admin/stores' },
+  { label: 'Leaderboard',     icon: 'leaderboard',    href: '/admin/leaderboard' },
+  { label: 'Vouchers',        icon: 'local_offer',    href: '/admin/vouchers' },
+  { label: 'Curated Offers',  icon: 'auto_awesome',   href: '/admin/curated-offers' },
+  { label: 'Categories',      icon: 'category',       href: '/admin/categories' },
+  { label: 'Countries',       icon: 'public',         href: '/admin/countries' },
+  { label: 'Payment Methods', icon: 'payments',       href: '/admin/payment-methods' },
+
+  // ── Blog section ───────────────────────────────────────────────────────
+  { label: '─', separator: true },
+  { label: 'Blog Posts',      icon: 'edit_note',      href: '/admin/blog' },
+  { label: 'Categories & Tags', icon: 'sell',         href: '/admin/blog/categories' },
+  { label: 'Authors',         icon: 'manage_accounts', href: '/admin/blog/authors' },
+  { label: 'New Post',        icon: 'add_circle',     href: '/admin/blog/new' },
+];
+
 export default function AdminNav({ user }) {
   const pathname = usePathname();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
-  const navItems = [
-    {
-      label: 'Dashboard',
-      icon: 'dashboard',
-      href: '/admin/dashboard'
-    },
-  
-    // --- STORE SECTION ---
-    {
-      label: 'Stores',
-      icon: 'storefront',
-      href: '/admin/stores'
-    },
-    {
-      label: 'Leaderboard',
-      icon: 'leaderboard',
-      href: '/admin/leaderboard'
-    },
-    {
-      label: 'Vouchers',
-      icon: 'local_offer', 
-      href: '/admin/vouchers'
-    },
-
-    {
-      label: 'Curated Offers',
-      icon: 'auto_awesome',
-      href: '/admin/curated-offers'
-    },
-
-    {
-      label: 'Categories',
-      icon: 'category',
-      href: '/admin/categories'
-    },
-
-    {
-      label: 'Countries',
-      icon: 'public', 
-      href: '/admin/countries'
-    },
-
-    {
-      label: 'Payment Methods',
-      icon: 'payments',
-      href: '/admin/payment-methods'
-    },
-
-    // --- BLOG SECTION ---
-    {
-      label: 'Blog Posts',
-      icon: 'edit_note',
-      href: '/admin/blog'
-    },
-    {
-      label: 'Categories & Tags',
-      icon: 'sell',
-      href: '/admin/blog/categories'
-    },
-    {
-      label: 'Authors',
-      icon: 'manage_accounts',
-      href: '/admin/blog/authors'
-    },
-    {
-      label: 'New Post',
-      icon: 'add_circle',
-      href: '/admin/blog/new'
-    }
-  ];
-
-  const handleSignOut = async () => {
-    await signOut({ callbackUrl: '/admin/login' });
-  };
-
-  // Smart active state handler (keeps "Blog Posts" active when editing a post)
-  const isItemActive = (href) => {
+  /**
+   * Active-state rules:
+   *  - /admin/blog → active for pathname === /admin/blog OR /admin/blog/edit/…
+   *    (NOT for /admin/blog/categories or /admin/blog/authors)
+   *  - /admin/stores → active for /admin/stores ONLY — NOT for /admin/stores/123/…
+   *    because intelligence/offers sub-pages should not highlight "Stores"
+   *  - /admin/leaderboard → active for /admin/leaderboard AND /admin/leaderboard/methodology
+   *  - All other items: exact match or direct child
+   */
+  function isActive(href) {
     if (href === '/admin/blog') {
-      return pathname === href || pathname.startsWith('/admin/blog/edit');
+      return pathname === '/admin/blog' || pathname.startsWith('/admin/blog/edit');
+    }
+    if (href === '/admin/stores') {
+      // Only exact /admin/stores or /admin/stores?… (list page)
+      return pathname === '/admin/stores';
+    }
+    if (href === '/admin/leaderboard') {
+      return pathname === '/admin/leaderboard' || pathname.startsWith('/admin/leaderboard/');
     }
     return pathname === href || pathname.startsWith(`${href}/`);
-  };
+  }
+
+  const navLinks = NAV.filter(item => !item.separator);
 
   return (
     <>
-      {/* Desktop Sidebar */}
+      {/* ── Desktop Sidebar ─────────────────────────────────────────── */}
       <aside className="admin-sidebar">
         <div className="sidebar-header">
           <Link href="/admin/dashboard" className="sidebar-logo">
-            <Image src={logo} alt="Logo" width={110} height={20} />
+            <Image src={logo} alt="Logo" width={110} height={20} priority />
             <span className="admin-badge">ADMIN</span>
           </Link>
         </div>
 
         <nav className="sidebar-nav">
-          {navItems.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`nav-item ${isItemActive(item.href) ? 'active' : ''}`}
-            >
-              {/* Added the missing icon rendering for desktop */}
-              <span className="material-symbols-sharp">{item.icon}</span>
-              <span>{item.label}</span>
-            </Link>
-          ))}
+          {NAV.map((item, i) =>
+            item.separator ? (
+              <div key={i} style={{ height: '1px', background: 'var(--admin-border)', margin: '0.5rem 0' }} />
+            ) : (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`nav-item${isActive(item.href) ? ' active' : ''}`}
+              >
+                <span className="material-symbols-sharp">{item.icon}</span>
+                {item.label}
+              </Link>
+            )
+          )}
         </nav>
 
         <div className="sidebar-footer">
@@ -128,51 +93,46 @@ export default function AdminNav({ user }) {
               <span className="material-symbols-sharp">person</span>
             </div>
             <div className="user-details">
-              <div className="user-name">{user?.name || 'Admin'}</div>
-              <div className="user-role">{user?.role || 'ADMIN'}</div>
+              <div className="user-name">{user?.name || user?.email || 'Admin'}</div>
+              <div className="user-role">Administrator</div>
             </div>
           </div>
-          <button onClick={handleSignOut} className="logout-btn">
-            <span>Sign Out</span>
+          <button className="logout-btn" onClick={() => signOut({ callbackUrl: '/admin/login' })}>
+            <span className="material-symbols-sharp">logout</span>
+            Sign out
           </button>
         </div>
       </aside>
 
-      {/* Mobile Header */}
+      {/* ── Mobile Header ───────────────────────────────────────────── */}
       <header className="admin-mobile-header">
-        <Link href="/admin/dashboard" className="mobile-logo">
-          <Image src={logo} alt="Logo" width={100} height={24} />
+        <Link href="/admin/dashboard" className="sidebar-logo">
+          <Image src={logo} alt="Logo" width={90} height={16} priority />
         </Link>
-        <button 
-          className="mobile-menu-btn"
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-        >
-          <span className="material-symbols-sharp">
-            {mobileMenuOpen ? 'close' : 'menu'}
-          </span>
+        <button className="mobile-menu-btn" onClick={() => setMobileOpen(v => !v)} aria-label="Menu">
+          <span className="material-symbols-sharp">{mobileOpen ? 'close' : 'menu'}</span>
         </button>
       </header>
 
-      {/* Mobile Menu */}
-      {mobileMenuOpen && (
-        <div className="mobile-menu">
+      {/* ── Mobile Slide Menu ────────────────────────────────────────── */}
+      {mobileOpen && (
+        <div className="mobile-menu" onClick={() => setMobileOpen(false)}>
           <nav className="mobile-nav">
-            {navItems.map((item) => (
+            {navLinks.map(item => (
               <Link
                 key={item.href}
                 href={item.href}
-                className={`mobile-nav-item ${isItemActive(item.href) ? 'active' : ''}`}
-                onClick={() => setMobileMenuOpen(false)}
+                className={`mobile-nav-item${isActive(item.href) ? ' active' : ''}`}
               >
                 <span className="material-symbols-sharp">{item.icon}</span>
-                <span>{item.label}</span>
+                {item.label}
               </Link>
             ))}
           </nav>
           <div className="mobile-menu-footer">
-            <button onClick={handleSignOut} className="mobile-logout-btn">
+            <button className="mobile-logout-btn" onClick={() => signOut({ callbackUrl: '/admin/login' })}>
               <span className="material-symbols-sharp">logout</span>
-              <span>Sign Out</span>
+              Sign out
             </button>
           </div>
         </div>
