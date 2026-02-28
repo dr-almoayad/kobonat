@@ -4,7 +4,7 @@
 
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { requireAdmin } from '@/lib/admin-auth';
+import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 
 const LOGISTICS_SELECT = {
   id:                      true,
@@ -20,8 +20,10 @@ const LOGISTICS_SELECT = {
 };
 
 export async function GET(request, { params }) {
-  const auth = await requireAdmin(request);
-  if (!auth.ok) return auth.response;
+  const session = await getServerSession(authOptions);
+    if (!session?.user?.isAdmin) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
   const id    = Number(params.id);
   const store = await prisma.store.findUnique({ where: { id }, select: LOGISTICS_SELECT });
@@ -30,8 +32,10 @@ export async function GET(request, { params }) {
 }
 
 export async function PATCH(request, { params }) {
-  const auth = await requireAdmin(request, ['SUPER_ADMIN', 'ADMIN', 'EDITOR']);
-  if (!auth.ok) return auth.response;
+  const session = await getServerSession(authOptions);
+    if (!session?.user?.isAdmin) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
   const id   = Number(params.id);
   const body = await request.json();
