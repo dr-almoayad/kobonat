@@ -13,7 +13,9 @@ export async function GET(request, { params }) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-  const storeId = Number(params.id);
+  const { id } = await params;
+  const storeId = Number(id);
+
   const seasons = await prisma.storePeakSeason.findMany({
     where:   { storeId },
     orderBy: { seasonKey: 'asc' },
@@ -27,7 +29,9 @@ export async function POST(request, { params }) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-  const storeId = Number(params.id);
+  const { id } = await params;
+  const storeId = Number(id);
+
   const { seasonKey, nameEn, nameAr } = await request.json();
 
   if (!seasonKey || !nameEn || !nameAr) {
