@@ -26,7 +26,9 @@ export async function GET(request, { params }) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-  const id    = Number(params.id);
+  const { id } = await params;
+  const storeId = Number(id);
+
   const store = await prisma.store.findUnique({ where: { id }, select: LOGISTICS_SELECT });
   if (!store) return NextResponse.json({ error: 'Store not found' }, { status: 404 });
   return NextResponse.json(store);
@@ -38,7 +40,8 @@ export async function PATCH(request, { params }) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-  const id   = Number(params.id);
+  const { id } = await params;
+  const storeId = Number(id);
   const body = await request.json();
 
   // Whitelist — only accept known logistics fields
