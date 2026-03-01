@@ -21,7 +21,9 @@ export async function GET(request, { params }) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const storeId = Number((await params).id);
+  const { id } = await params;
+  const storeId = Number(id);
+
   if (!storeId) return NextResponse.json({ error: 'Invalid store id' }, { status: 400 });
 
   const { searchParams } = new URL(request.url);
