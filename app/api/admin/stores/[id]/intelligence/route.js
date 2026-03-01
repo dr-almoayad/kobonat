@@ -22,52 +22,54 @@ export async function GET(request, { params }) {
       return NextResponse.json({ error: 'Invalid store ID' }, { status: 400 });
     }
 
-    const store = await prisma.store.findUnique({
-      where: { id: storeId },
-      select: {
-        id:                      true,
-        logo:                    true,
-        averageDeliveryDaysMin:  true,
-        averageDeliveryDaysMax:  true,
-        freeShippingThreshold:   true,
-        returnWindowDays:        true,
-        freeReturns:             true,
-        refundProcessingDaysMin: true,
-        refundProcessingDaysMax: true,
-        offerFrequencyDays:      true,
-        lastVerifiedAt:          true,
-        translations: {
-          where:  { locale: 'en' },
-          select: { name: true, slug: true },
+      const store = await prisma.store.findUnique({
+    where: { id: storeId },
+    select: {
+      id:                      true,
+      logo:                    true,
+      averageDeliveryDaysMin:  true,
+      averageDeliveryDaysMax:  true,
+      freeShippingThreshold:   true,
+      returnWindowDays:        true,
+      freeReturns:             true,
+      refundProcessingDaysMin: true,
+      refundProcessingDaysMax: true,
+      offerFrequencyDays:      true,
+      lastVerifiedAt:          true,
+      translations: {
+        where:  { locale: 'en' },
+        select: { name: true, slug: true },
+      },
+      savingsMetrics: {
+        orderBy: { monthIdentifier: 'desc' },
+        take:    6,
+        select: {
+          monthIdentifier:            true,
+          averageDiscountPercent:     true,
+          maxStackableSavingsPercent: true,
+          // ❌ remove offerQualityRatio – it does not exist
+          // offerQualityRatio: true,
+          totalActiveOffers:          true,
+          storeScore:                 true,
+          scoreBreakdown:             true,
+          updatedAt:                  true,
         },
-        savingsMetrics: {
-          orderBy: { monthIdentifier: 'desc' },
-          take:    6,
-          select: {
-            monthIdentifier:            true,
-            averageDiscountPercent:     true,
-            maxStackableSavingsPercent: true,
-            offerQualityRatio:          true,
-            totalActiveOffers:          true,
-            storeScore:                 true,
-            scoreBreakdown:             true,
-            updatedAt:                  true,
-          },
+      },
+      savingsSnapshots: {
+        orderBy: { weekIdentifier: 'desc' },
+        take:    4,
+        where:   { categoryId: null },
+        select: {
+          weekIdentifier:              true,
+          rank:                        true,
+          previousRank:                true,
+          movement:                    true,
+          calculatedMaxSavingsPercent: true,
+          savingsOverridePercent:      true,
+          // ❌ remove stackingPath – it does not exist
+          // stackingPath: true,
         },
-        savingsSnapshots: {
-          orderBy: { weekIdentifier: 'desc' },
-          take:    4,
-          where:   { categoryId: null }, // global rank only
-          select: {
-            weekIdentifier:              true,
-            rank:                        true,
-            previousRank:                true,
-            movement:                    true,
-            calculatedMaxSavingsPercent: true,
-            savingsOverridePercent:      true,
-            stackingPath:                true,
-          },
-        },
+      },
         upcomingEvents: {
           orderBy: { expectedMonth: 'asc' },
           select: {
