@@ -13,7 +13,9 @@ export async function GET(request, { params }) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-  const storeId = Number(params.id);
+  const { id } = await params;
+  const storeId = Number(id);
+
   const { searchParams } = new URL(request.url);
   const page       = Math.max(1, Number(searchParams.get('page')  || 1));
   const limit      = Math.min(100, Math.max(1, Number(searchParams.get('limit') || 50)));
