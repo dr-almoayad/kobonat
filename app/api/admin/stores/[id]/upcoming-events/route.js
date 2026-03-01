@@ -13,7 +13,9 @@ export async function GET(request, { params }) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     };
 
-  const storeId = Number(params.id);
+  const { id } = await params;
+    const storeId = Number(id);
+
   const events  = await prisma.storeUpcomingEvent.findMany({
     where:   { storeId },
     orderBy: [{ expectedMonth: 'asc' }],
