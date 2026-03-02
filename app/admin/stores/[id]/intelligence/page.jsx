@@ -462,13 +462,21 @@ export default function StoreIntelligencePage() {
   }
 
   const load = useCallback(async () => {
-    setLoading(true);
-    const res  = await fetch(`/api/admin/stores/${storeId}/intelligence`);
+  setLoading(true);
+  try {
+    const res = await fetch(`/api/admin/stores/${storeId}/intelligence`);
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error || 'Failed to load intelligence data');
+    }
     setData(await res.json());
+  } catch (e) {
+    flash('error', e.message);
+    setData(null);
+  } finally {
     setLoading(false);
-  }, [storeId]);
-
-  useEffect(() => { load(); }, [load]);
+  }
+}, [storeId]);
 
   async function triggerCron() {
     setRunning(true);
