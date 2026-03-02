@@ -1,22 +1,18 @@
-// components/leaderboard/HomepageLeaderboardSection.jsx
 import Image from 'next/image';
 import Link from 'next/link';
+import styles from './LeaderboardSection.module.css';
 import { prisma } from '@/lib/prisma';
 import { getCurrentWeekIdentifier } from '@/lib/leaderboard/calculateStoreSavings';
-import './HomepageLeaderboardSection.css';
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Data layer
-// ─────────────────────────────────────────────────────────────────────────────
-
-async function getLeagueStandings(lang = 'en', limit = 5) {
+// Data fetching (same pattern as original)
+async function getLeaderboardData(lang = 'en', limit = 10) {
   try {
     const week = getCurrentWeekIdentifier();
 
     const snapshots = await prisma.storeSavingsSnapshot.findMany({
       where: {
         weekIdentifier: week,
-        categoryId: null, // Global overall standings
+        categoryId: null,
         calculatedMaxSavingsPercent: { gt: 0 },
       },
       orderBy: { rank: 'asc' },
@@ -30,6 +26,15 @@ async function getLeagueStandings(lang = 'en', limit = 5) {
               where: { locale: lang },
               select: { name: true, slug: true },
             },
+            // Additional metrics (optional – you can join savingsMetrics)
+            savingsMetrics: {
+              orderBy: { monthIdentifier: 'desc' },
+              take: 1,
+              select: {
+                totalActiveOffers: true,
+                codeSuccessRate: true,
+              },
+            },
           },
         },
       },
@@ -37,165 +42,161 @@ async function getLeagueStandings(lang = 'en', limit = 5) {
 
     return snapshots.map((snap) => {
       const t = snap.store.translations[0] || {};
-      
-      // Calculate specific spots moved for the "Form" column
-      let spotsMoved = 0;
-      if (snap.movement === 'up' || snap.movement === 'down') {
-        spotsMoved = snap.previousRank ? Math.abs(snap.previousRank - snap.rank) : 0;
-      }
-
+      const metrics = snap.store.savingsMetrics?.[0] || {};
       return {
         rank: snap.rank,
-        movement: snap.movement, // 'up' | 'down' | 'same' | 'new'
-        spotsMoved: spotsMoved,
+        previousRank: snap.previousRank,
+        movement: snap.movement?.toLowerCase() || 'same',
         storeId: snap.storeId,
-        storeName: t.name || '',
+        storeName: t.name || 'Unknown',
         storeSlug: t.slug || '',
         storeLogo: snap.store.logo,
-        score: snap.savingsOverridePercent ?? snap.calculatedMaxSavingsPercent,
+        savings: snap.savingsOverridePercent ?? snap.calculatedMaxSavingsPercent,
+        offers: metrics.totalActiveOffers || 0,
+        successRate: metrics.codeSuccessRate || 0,
       };
     });
   } catch (error) {
-    console.error("League Standings fetch error:", error);
+    console.error('Leaderboard fetch error:', error);
     return [];
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Sub-components
-// ─────────────────────────────────────────────────────────────────────────────
+// Helper to determine movement symbol and color
+const movementConfig = {
+  up:    { symbol: '▲', color: '#16a34a', label: 'up' },
+  down:  { symbol: '▼', color: '#dc2626', label: 'down' },
+  same:  { symbol: '•', color: '#6b7280', label: 'same' },
+  new:   { symbol: 'NEW', color: '#7c3aed', label: 'new', short: true },
+};
 
-function FormBadge({ movement, spotsMoved, isRTL }) {
-  if (!movement) return null;
+// Medal emojis for top 3
+const medals = ['🥇', '🥈', '🥉'];
 
-  if (movement === 'up') {
-    return (
-      <div className="form-badge form-up" title={`Moved up ${spotsMoved} spots`}>
-        <span className="form-icon">▲</span>
-        {spotsMoved > 0 && <span>{spotsMoved}</span>}
-      </div>
-    );
-  }
-  if (movement === 'down') {
-    return (
-      <div className="form-badge form-down" title={`Dropped ${spotsMoved} spots`}>
-        <span className="form-icon">▼</span>
-        {spotsMoved > 0 && <span>{spotsMoved}</span>}
-      </div>
-    );
-  }
-  if (movement === 'same') {
-    return (
-      <div className="form-badge form-same" title="Maintained position">
-        <span className="form-icon">▬</span>
-      </div>
-    );
-  }
-  if (movement === 'new') {
-    return (
-      <div className="form-badge form-new" title="New Entry">
-        {isRTL ? 'جديد' : 'NEW'}
-      </div>
-    );
-  }
-  return null;
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Main component
-// ─────────────────────────────────────────────────────────────────────────────
-
-export default async function HomepageLeaderboardSection({ locale }) {
-  const lang = locale?.split('-')[0] || 'en';
+export default async function LeaderboardSection({ locale = 'en' }) {
+  const lang = locale.split('-')[0];
   const isRTL = lang === 'ar';
+  const entries = await getLeaderboardData(lang, 10);
 
-  const standings = await getLeagueStandings(lang, 5);
-  if (standings.length === 0) return null;
+  if (!entries.length) return null;
 
-  // Sports-style labels
   const labels = {
-    heading: lang === 'ar' ? 'جدول الترتيب' : 'League Standings',
-    meta: lang === 'ar' ? 'أعلى الخصومات' : 'Top Discounts',
-    colPos: lang === 'ar' ? 'مركز' : 'POS',
-    colClub: lang === 'ar' ? 'المتجر' : 'CLUB',
-    colForm: lang === 'ar' ? 'الحالة' : 'FORM',
-    colPts: lang === 'ar' ? 'النقاط' : 'PTS',
+    title: lang === 'ar' ? 'ترتيب المتاجر' : 'Store Leaderboard',
+    subtitle: lang === 'ar' ? 'أعلى المتاجر توفيراً هذا الأسبوع' : 'Top saving stores this week',
+    savings: lang === 'ar' ? 'التوفير' : 'Savings',
+    offers: lang === 'ar' ? 'العروض' : 'Offers',
+    success: lang === 'ar' ? 'نجاح الكود' : 'Code Success',
+    trend: lang === 'ar' ? 'الاتجاه' : 'Trend',
+    viewAll: lang === 'ar' ? 'عرض الكل' : 'View Full Leaderboard',
   };
 
   return (
-    <section
-      dir={isRTL ? 'rtl' : 'ltr'}
-      aria-label={labels.heading}
-      className="leaderboard-container"
-    >
-      {/* Header Area */}
-      <div className="leaderboard-header">
-        <h2 className="leaderboard-title">
-          <span className="material-symbols-sharp" style={{ color: '#0f172a' }}>
-            leaderboard
-          </span>
-          {labels.heading}
-        </h2>
-        <span className="leaderboard-meta">{labels.meta}</span>
-      </div>
-
-      {/* Strict League Table Wrapper */}
-      <div className="league-standings">
-        
-        {/* Table Head */}
-        <div className="standings-grid standings-head">
-          <div className="cell cell-pos">{labels.colPos}</div>
-          <div className="cell cell-club">{labels.colClub}</div>
-          <div className="cell cell-form">{labels.colForm}</div>
-          <div className="cell cell-pts">{labels.colPts}</div>
+    <section className={styles.leaderboard} dir={isRTL ? 'rtl' : 'ltr'}>
+      <div className={styles.container}>
+        {/* Header */}
+        <div className={styles.header}>
+          <div>
+            <h2 className={styles.title}>
+              <span className="material-symbols-sharp">emoji_events</span>
+              {labels.title}
+            </h2>
+            <p className={styles.subtitle}>{labels.subtitle}</p>
+          </div>
+          <Link href={`/${locale}/leaderboard`} className={styles.viewAll}>
+            {labels.viewAll}
+            <span className="material-symbols-sharp">
+              {isRTL ? 'chevron_left' : 'chevron_right'}
+            </span>
+          </Link>
         </div>
 
-        {/* Table Body */}
-        <div className="standings-body">
-          {standings.map((team) => (
-            <Link
-              key={team.storeId}
-              href={`/${locale}/stores/${team.storeSlug}`}
-              className={`standings-grid standings-row pos-${team.rank}`}
-            >
-              {/* POS */}
-              <div className="cell cell-pos">
-                {team.rank}
-              </div>
+        {/* Desktop column headers (hidden on mobile) */}
+        <div className={styles.columnHeaders}>
+          <div>#</div>
+          <div>{lang === 'ar' ? 'المتجر' : 'Store'}</div>
+          <div>{labels.savings}</div>
+          <div>{labels.offers}</div>
+          <div>{labels.success}</div>
+          <div>{labels.trend}</div>
+        </div>
 
-              {/* CLUB (Store) */}
-              <div className="cell cell-club">
-                <div className="club-crest">
-                  {team.storeLogo ? (
-                    <Image
-                      src={team.storeLogo}
-                      alt={team.storeName}
-                      width={28}
-                      height={28}
-                    />
+        {/* Rows */}
+        <div className={styles.rows}>
+          {entries.map((entry) => (
+            <Link
+              key={entry.storeId}
+              href={`/${locale}/stores/${entry.storeSlug}`}
+              className={styles.rowLink}
+            >
+              <div className={styles.row}>
+                {/* Rank with medal for top 3 */}
+                <div className={styles.rank}>
+                  {entry.rank <= 3 ? (
+                    <span className={styles.medal}>{medals[entry.rank - 1]}</span>
                   ) : (
-                    <span className="material-symbols-sharp" style={{ fontSize: '1rem', color: '#cbd5e1' }}>
-                      storefront
-                    </span>
+                    <span className={styles.rankNumber}>#{entry.rank}</span>
                   )}
                 </div>
-                <span className="club-name" title={team.storeName}>
-                  {team.storeName}
-                </span>
-              </div>
 
-              {/* FORM (Movement) */}
-              <div className="cell cell-form">
-                <FormBadge 
-                  movement={team.movement} 
-                  spotsMoved={team.spotsMoved} 
-                  isRTL={isRTL} 
-                />
-              </div>
+                {/* Store info */}
+                <div className={styles.store}>
+                  <div className={styles.logoWrapper}>
+                    {entry.storeLogo ? (
+                      <Image
+                        src={entry.storeLogo}
+                        alt={entry.storeName}
+                        width={36}
+                        height={36}
+                        className={styles.logo}
+                      />
+                    ) : (
+                      <span className="material-symbols-sharp">store</span>
+                    )}
+                  </div>
+                  <span className={styles.storeName}>{entry.storeName}</span>
+                </div>
 
-              {/* PTS (Score/Savings) */}
-              <div className="cell cell-pts">
-                {Math.round(team.score)}<span style={{ fontSize: '0.7em' }}>%</span>
+                {/* Savings badge (always visible) */}
+                <div className={styles.savingsBadge}>
+                  <span className={styles.savingsValue}>{Math.round(entry.savings)}%</span>
+                  <span className={styles.savingsLabel}>{labels.savings}</span>
+                </div>
+
+                {/* Desktop-only stats */}
+                <div className={styles.desktopStats}>
+                  <div className={styles.stat}>{entry.offers}</div>
+                  <div className={styles.stat}>
+                    {entry.successRate ? `${Math.round(entry.successRate)}%` : '—'}
+                  </div>
+                  <div className={styles.trend}>
+                    <span
+                      className={styles.movement}
+                      style={{ color: movementConfig[entry.movement]?.color }}
+                    >
+                      {movementConfig[entry.movement]?.symbol}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Mobile extra details (shown below row) */}
+                <div className={styles.mobileDetails}>
+                  <div className={styles.mobileStat}>
+                    <span>{labels.offers}:</span> {entry.offers}
+                  </div>
+                  <div className={styles.mobileStat}>
+                    <span>{labels.success}:</span>{' '}
+                    {entry.successRate ? `${Math.round(entry.successRate)}%` : '—'}
+                  </div>
+                  <div className={styles.mobileTrend}>
+                    <span
+                      className={styles.movement}
+                      style={{ color: movementConfig[entry.movement]?.color }}
+                    >
+                      {movementConfig[entry.movement]?.symbol}
+                    </span>
+                    <span>{movementConfig[entry.movement]?.label}</span>
+                  </div>
+                </div>
               </div>
             </Link>
           ))}
