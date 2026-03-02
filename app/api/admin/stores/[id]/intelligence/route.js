@@ -1,5 +1,3 @@
-// app/api/admin/stores/[id]/intelligence/route.js
-
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
@@ -40,8 +38,6 @@ export async function GET(request, { params }) {
           orderBy: { monthIdentifier: 'desc' },
           take:    6,
           select: {
-            // offerQualityRatio is NOT a DB column — it's computed by the cron
-            // and stored inside scoreBreakdown JSON as breakdown.offerQuality
             monthIdentifier:            true,
             averageDiscountPercent:     true,
             maxStackableSavingsPercent: true,
@@ -63,7 +59,7 @@ export async function GET(request, { params }) {
             movement:                    true,
             calculatedMaxSavingsPercent: true,
             savingsOverridePercent:      true,
-            stackingPath:                true,
+            // ❌ stackingPath removed – not in schema
           },
         },
         upcomingEvents: {
