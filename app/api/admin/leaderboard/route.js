@@ -53,7 +53,7 @@ export async function GET(request) {
           id: true, rank: true, previousRank: true, movement: true,
           calculatedMaxSavingsPercent: true, savingsOverridePercent: true,
           maxDirectDiscountPercent: true, maxCouponPercent: true, maxBankOfferPercent: true,
-          weekIdentifier: true, calculatedAt: true,
+          stackingPath: true, weekIdentifier: true, calculatedAt: true,
           store: {
             select: {
               id: true, logo: true,
