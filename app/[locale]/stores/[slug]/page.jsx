@@ -82,6 +82,11 @@ icons: {
           },
           alternates: {
             canonical: `${BASE_URL}/${locale}/stores/${slug}`,
+            languages: {
+              'ar-SA': `${BASE_URL}/ar-SA/stores/${slug}`,
+              'en-SA': `${BASE_URL}/en-SA/stores/${slug}`,
+              'x-default': `${BASE_URL}/ar-SA/stores/${slug}`,
+            },
           }
         };
       }
@@ -161,6 +166,11 @@ icons: {
           },
           alternates: {
             canonical: `${BASE_URL}/${locale}/stores/${slug}`,
+            languages: {
+              'ar-SA': `${BASE_URL}/ar-SA/stores/${slug}`,
+              'en-SA': `${BASE_URL}/en-SA/stores/${slug}`,
+              'x-default': `${BASE_URL}/ar-SA/stores/${slug}`,
+            },
           }
         };
       }
