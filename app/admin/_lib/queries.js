@@ -845,3 +845,23 @@ export async function getStorePromosForCalc(storeId) {
     }
   });
 }
+
+
+export async function getBlogDashboardStats() {
+  try {
+    const [total, published, draft, archived, featured, categories, authors] =
+      await Promise.all([
+        prisma.blogPost.count(),
+        prisma.blogPost.count({ where: { status: 'PUBLISHED' } }),
+        prisma.blogPost.count({ where: { status: 'DRAFT' } }),
+        prisma.blogPost.count({ where: { status: 'ARCHIVED' } }),
+        prisma.blogPost.count({ where: { isFeatured: true } }),
+        prisma.blogCategory.count(),
+        prisma.blogAuthor.count(),
+      ]);
+    return { total, published, draft, archived, featured, categories, authors };
+  } catch (e) {
+    console.error('[getBlogDashboardStats]', e.message);
+    return { total: 0, published: 0, draft: 0, archived: 0, featured: 0, categories: 0, authors: 0 };
+  }
+}
