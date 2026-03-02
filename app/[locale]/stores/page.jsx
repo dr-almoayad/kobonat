@@ -8,7 +8,10 @@ import { getStoresData } from "@/lib/stores";
 import { isValidLocale } from "@/i18n/locales"; // Import your validator
 import { notFound } from "next/navigation";
 import HelpBox from "@/components/help/HelpBox";
-import WebSiteStructuredData from '@/components/StructuredData/WebSiteStructuredData';
+// ✅ FIX: Removed WebSiteStructuredData import — it is already rendered
+// by app/[locale]/layout.jsx on every page. Rendering it here too would
+// produce duplicate Organization and WebSite JSON-LD on the stores page,
+// which Google flags as a structured data error.
 
 import "./stores-page.css";
 
@@ -142,10 +145,6 @@ export default async function AllStoresPage({ params }) {
   }
 
   return (
-    <>
-
-      <WebSiteStructuredData locale={locale} /> 
-    
     <div className="stores_page">
       {carouselStores.length > 0 && (
         <div className="stores-hero-section">
@@ -215,6 +214,5 @@ export default async function AllStoresPage({ params }) {
       </section>
       <HelpBox locale={locale}/>
     </div>
-      </>
   );
 }
