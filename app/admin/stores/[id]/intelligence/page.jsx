@@ -624,7 +624,7 @@ export default function StoreIntelligencePage() {
                 storeId={storeId}
                 initial={data?.upcomingEvents}
                 flash={flash}
-                onChanged={load}
+                onChanged={fetchData}   // ✅
               />
             )}
             {tab === 'Peak Seasons' && (
@@ -632,7 +632,7 @@ export default function StoreIntelligencePage() {
                 storeId={storeId}
                 initial={data?.peakSeasons}
                 flash={flash}
-                onChanged={load}
+                onChanged={fetchData}   // ✅
               />
             )}
             {tab === 'Metrics History' && (
