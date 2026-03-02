@@ -1063,8 +1063,9 @@ model StoreSavingsSnapshot {
   maxBankOfferPercent      Float @default(0) // Best active bank/card promo
 
   // Calculated output
-  calculatedMaxSavingsPercent Float // Final stacked % after formula + cap
-  savingsOverridePercent      Float? // Admin can pin a manual value; NULL = use calculated
+  calculatedMaxSavingsPercent Float    // Final stacked % after formula + cap
+  savingsOverridePercent      Float?   // Admin can pin a manual value; NULL = use calculated
+  stackingPath                String?  // ← ADD THIS e.g. "DEAL(20.0%) + BANK_OFFER(12.0%)"
 
   // Ranking
   rank         Int             // 1 = best this week
@@ -1104,6 +1105,7 @@ model StoreSavingsMetrics {
   maxStackableSavingsPercent Float @default(0) // Best compound saving (from leaderboard cron)
   codeSuccessRate           Float @default(0) // 0–100: % of code clicks that weren't "code invalid"
   totalActiveOffers         Int   @default(0) // Count of non-expired vouchers + promos
+  offerQualityRatio         Float   @default(0) // ← add this
 
   // Pre-computed score (avoids recalculating on every request)
   storeScore      Float @default(0) // 0–10 scale, stored after cron calculates it
