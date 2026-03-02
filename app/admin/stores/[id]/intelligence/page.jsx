@@ -461,19 +461,26 @@ export default function StoreIntelligencePage() {
     setTimeout(() => setAlert(null), 5000);
   }
 
-  const load = useCallback(async () => {
+ const load = useCallback(async () => {
+  console.log('load start, loading =', loading);
   setLoading(true);
   try {
+    console.log('fetching...');
     const res = await fetch(`/api/admin/stores/${storeId}/intelligence`);
+    console.log('response status:', res.status);
     if (!res.ok) {
       const err = await res.json();
-      throw new Error(err.error || 'Failed to load intelligence data');
+      throw new Error(err.error || 'Failed to load');
     }
-    setData(await res.json());
+    const json = await res.json();
+    console.log('data received:', json);
+    setData(json);
   } catch (e) {
+    console.error('load error:', e);
     flash('error', e.message);
     setData(null);
   } finally {
+    console.log('load finished, setting loading false');
     setLoading(false);
   }
 }, [storeId]);
