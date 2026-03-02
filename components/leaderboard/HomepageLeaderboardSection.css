@@ -1,291 +1,217 @@
 /* components/leaderboard/HomepageLeaderboardSection.css */
 
-/* --- Wrapper & Header --- */
-.leaderboard-wrapper {
-  max-width: 1000px; /* Tighter width for a focused standings table */
+.leaderboard-container {
+  max-width: 900px;
   margin: 0 auto;
   padding: 2rem 1rem;
-  font-family: var(--font-family, system-ui, sans-serif);
+  font-family: var(--font-family, system-ui, -apple-system, sans-serif);
 }
 
-.leaderboard-header-top {
+.leaderboard-header {
+  margin-bottom: 1.25rem;
   display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  margin-bottom: 1.5rem;
+  justify-content: space-between;
+  align-items: flex-end;
 }
 
 .leaderboard-title {
   font-size: 1.5rem;
   font-weight: 800;
-  color: #111827;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+  color: #0f172a;
   margin: 0;
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  line-height: 1.2;
 }
 
-.leaderboard-title .icon {
-  color: #f59e0b; /* Gold trophy color */
-  font-size: 1.75rem;
-}
-
-.leaderboard-subtitle {
-  color: #6b7280;
-  font-size: 0.875rem;
-  margin: 0;
+.leaderboard-meta {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 /* --- League Table Structure --- */
-.league-table-container {
+.league-standings {
   background: #ffffff;
-  border-radius: 16px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-  border: 1px solid #e5e7eb;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
   overflow: hidden;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
 }
 
-/* Mobile-first grid: Rank (50px) | Store (auto) | Score (70px) */
-.league-row-grid {
+/* Mobile First Grid: Pos (40px) | Club (1fr) | Form (55px) | Pts (65px) */
+.standings-grid {
   display: grid;
-  grid-template-columns: 55px 1fr 75px;
+  grid-template-columns: 40px 1fr 55px 65px;
   align-items: center;
-  gap: 0.75rem;
 }
 
-/* --- Table Header --- */
-.league-table-header {
-  background: #f8fafc;
-  border-bottom: 2px solid #e2e8f0;
-  padding: 0.75rem 1rem;
-}
-
-.th-cell {
-  font-size: 0.7rem;
-  text-transform: uppercase;
+/* --- Table Header Row --- */
+.standings-head {
+  background-color: #0f172a; /* Dark sports-like header */
+  color: #f8fafc;
+  font-size: 0.65rem;
   font-weight: 700;
-  color: #64748b;
+  text-transform: uppercase;
   letter-spacing: 0.05em;
+  border-bottom: 2px solid #334155;
 }
 
-.th-rank { text-align: center; }
-.th-store { text-align: start; }
-.th-score { text-align: end; }
-
-/* --- Table Body & Rows --- */
-.league-table-body {
+.standings-head .cell {
+  padding: 0.75rem 0.5rem;
   display: flex;
-  flex-direction: column;
+  align-items: center;
 }
 
-.league-row-link {
+/* Alignment rules */
+.cell-pos { justify-content: center; }
+.cell-club { justify-content: flex-start; }
+.cell-form { justify-content: center; }
+.cell-pts { justify-content: flex-end; padding-inline-end: 1rem !important; }
+
+/* --- Table Body Rows --- */
+.standings-row {
   text-decoration: none;
   color: inherit;
-  display: block;
-  border-bottom: 1px solid #f1f5f9;
-  transition: background-color 0.2s ease, transform 0.2s ease;
-  padding: 0.875rem 1rem;
-  position: relative;
-  overflow: hidden;
+  border-bottom: 1px solid #e2e8f0;
+  transition: background-color 0.15s ease;
 }
 
-.league-row-link:last-child {
+.standings-row:last-child {
   border-bottom: none;
 }
 
-.league-row-link:hover {
+.standings-row:hover {
   background-color: #f8fafc;
 }
 
-.league-row-link:active {
-  transform: scale(0.99);
-}
-
-/* Top 3 Podium Highlights */
-.league-row-link.rank-1 { background-color: #fffbf0; border-bottom-color: #fef0c7; }
-.league-row-link.rank-1:hover { background-color: #fef0c7; }
-
-.league-row-link.rank-2 { background-color: #f8fafc; border-bottom-color: #e2e8f0; }
-.league-row-link.rank-2:hover { background-color: #f1f5f9; }
-
-.league-row-link.rank-3 { background-color: #fff7ed; border-bottom-color: #ffedd5; }
-.league-row-link.rank-3:hover { background-color: #ffedd5; }
-
-/* --- Cells --- */
-
-/* 1. Rank Cell */
-.td-rank {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0.25rem;
-}
-
-.rank-number {
-  font-size: 1.125rem;
-  font-weight: 800;
-  color: #475569;
-  font-variant-numeric: tabular-nums;
-  line-height: 1;
-}
-
-.rank-1 .rank-number { color: #d97706; font-size: 1.25rem; } /* Gold */
-.rank-2 .rank-number { color: #64748b; font-size: 1.25rem; } /* Silver */
-.rank-3 .rank-number { color: #b45309; font-size: 1.25rem; } /* Bronze */
-
-/* Movement Indicators */
-.movement {
+.standings-row .cell {
+  padding: 0.75rem 0.5rem;
   display: flex;
   align-items: center;
-  justify-content: center;
-  font-size: 0.65rem;
+  height: 100%;
+}
+
+/* --- Position/Rank Column --- */
+.cell-pos {
+  font-size: 0.875rem;
   font-weight: 700;
+  color: #64748b;
+  font-variant-numeric: tabular-nums;
 }
 
-.move-up { color: #16a34a; }
-.move-down { color: #dc2626; }
-.move-same { color: #cbd5e1; }
-.move-new {
-  background: #7c3aed;
-  color: white;
-  padding: 2px 4px;
-  border-radius: 4px;
-  font-size: 0.5rem;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-}
+/* Podium Colors */
+.pos-1 .cell-pos { color: #b45309; font-weight: 900; background: #fef3c7; border-inline-start: 3px solid #f59e0b; }
+.pos-2 .cell-pos { color: #334155; font-weight: 800; background: #f1f5f9; border-inline-start: 3px solid #94a3b8; }
+.pos-3 .cell-pos { color: #78350f; font-weight: 800; background: #ffedd5; border-inline-start: 3px solid #d97706; }
 
-.movement-icon {
-  font-size: 0.875rem !important; /* Material symbol override */
-  line-height: 1;
-}
-
-/* 2. Store Cell */
-.td-store {
-  display: flex;
-  align-items: center;
+/* --- Club/Store Column --- */
+.cell-club {
   gap: 0.75rem;
-  min-width: 0; /* allows text truncation */
+  min-width: 0;
 }
 
-.store-logo-wrapper {
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
+.club-crest {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
   background: #ffffff;
   border: 1px solid #e2e8f0;
+  padding: 2px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.02);
 }
 
-.store-logo {
+.club-crest img {
   width: 100%;
   height: 100%;
   object-fit: contain;
-  padding: 4px;
+  border-radius: 50%;
 }
 
-.store-fallback-icon {
-  color: #94a3b8;
-  font-size: 1.25rem;
-}
-
-.store-name {
-  font-size: 0.95rem;
+.club-name {
+  font-size: 0.875rem;
   font-weight: 700;
-  color: #111827;
+  color: #0f172a;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-/* 3. Score Cell (Savings) */
-.td-score {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
+/* --- Form/Trend Column --- */
+.form-badge {
+  display: inline-flex;
+  align-items: center;
   justify-content: center;
-  text-align: end;
-}
-
-.score-value {
-  font-size: 1.25rem;
-  font-weight: 900;
-  color: #470ae2; /* Primary brand color */
-  line-height: 1;
-  display: flex;
-  align-items: baseline;
-}
-
-.score-symbol {
-  font-size: 0.875rem;
-  font-weight: 700;
-  margin-inline-start: 1px;
-}
-
-.score-label {
+  gap: 2px;
+  padding: 2px 6px;
+  border-radius: 4px;
   font-size: 0.65rem;
-  color: #64748b;
-  font-weight: 600;
-  text-transform: uppercase;
-  margin-top: 0.15rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  min-width: 32px;
+  color: white;
 }
 
-/* --- Desktop/Tablet Enhancements --- */
+.form-up { background-color: #16a34a; }
+.form-down { background-color: #dc2626; }
+.form-same { background-color: #94a3b8; }
+.form-new { background-color: #4f46e5; font-size: 0.55rem; padding: 3px 6px; }
+
+.form-icon {
+  font-size: 10px;
+  line-height: 1;
+}
+
+/* --- Points/Score Column --- */
+.cell-pts {
+  font-size: 1rem;
+  font-weight: 900;
+  color: #470ae2;
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- Desktop Scaling --- */
 @media (min-width: 640px) {
-  .leaderboard-title {
-    font-size: 1.75rem;
+  .standings-grid {
+    /* Expand columns slightly for desktop */
+    grid-template-columns: 50px 1fr 80px 100px;
   }
   
-  .leaderboard-subtitle {
+  .standings-head {
+    font-size: 0.75rem;
+  }
+  
+  .standings-head .cell, .standings-row .cell {
+    padding: 1rem;
+  }
+
+  .club-crest {
+    width: 36px;
+    height: 36px;
+  }
+
+  .club-name {
     font-size: 1rem;
   }
 
-  /* Expand grid for larger screens */
-  .league-row-grid {
-    grid-template-columns: 80px 1fr 120px;
-    gap: 1.5rem;
-  }
-
-  .th-cell {
-    font-size: 0.8rem;
-  }
-
-  .league-row-link {
-    padding: 1rem 1.5rem;
-  }
-
-  .store-logo-wrapper {
-    width: 48px;
-    height: 48px;
-    border-radius: 12px;
-  }
-
-  .store-name {
-    font-size: 1.1rem;
-  }
-
-  .score-value {
-    font-size: 1.5rem;
-  }
-
-  .score-label {
+  .form-badge {
     font-size: 0.75rem;
+    padding: 4px 8px;
+  }
+
+  .cell-pts {
+    font-size: 1.25rem;
   }
 }
 
-/* --- RTL Support --- */
-[dir="rtl"] .league-row-grid {
-  /* CSS Grid naturally handles RTL, but we enforce alignment */
-}
-
-[dir="rtl"] .score-symbol {
-  margin-inline-start: 0;
-  margin-inline-end: 2px;
-}
+/* RTL Support */
+[dir="rtl"] .pos-1 .cell-pos { border-inline-start: 3px solid #f59e0b; border-inline-end: none; }
+[dir="rtl"] .pos-2 .cell-pos { border-inline-start: 3px solid #94a3b8; border-inline-end: none; }
+[dir="rtl"] .pos-3 .cell-pos { border-inline-start: 3px solid #d97706; border-inline-end: none; }
