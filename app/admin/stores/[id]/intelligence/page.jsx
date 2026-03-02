@@ -461,42 +461,34 @@ export default function StoreIntelligencePage() {
     setTimeout(() => setAlert(null), 5000);
   }
 
-  useEffect(() => {
-    let isMounted = true;
-
-    async function fetchData() {
-      // Only fetch if storeId is valid
-      if (!storeId || isNaN(storeId)) {
-        setLoading(false);
-        return;
+  // Define fetchData with useCallback, depends only on storeId
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/admin/stores/${storeId}/intelligence`);
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || 'Failed to load');
       }
-
-      setLoading(true);
-      try {
-        const res = await fetch(`/api/admin/stores/${storeId}/intelligence`);
-        if (!res.ok) {
-          const err = await res.json();
-          throw new Error(err.error || 'Failed to load');
-        }
-        const json = await res.json();
-        if (isMounted) setData(json);
-      } catch (e) {
-        console.error('Fetch error:', e);
-        if (isMounted) {
-          flash('error', e.message);
-          setData(null);
-        }
-      } finally {
-        if (isMounted) setLoading(false);
-      }
+      const json = await res.json();
+      setData(json);
+    } catch (e) {
+      console.error('Fetch error:', e);
+      flash('error', e.message);
+      setData(null);
+    } finally {
+      setLoading(false);
     }
+  }, [storeId]);
 
-    fetchData();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [storeId]); // Direct dependency – safe and simple
+  useEffect(() => {
+    // Only fetch if storeId is valid
+    if (storeId && !isNaN(storeId)) {
+      fetchData();
+    } else {
+      setLoading(false);
+    }
+  }, [fetchData]);
 
   async function triggerCron() {
     setRunning(true);
@@ -509,29 +501,26 @@ export default function StoreIntelligencePage() {
       const result = await res.json();
       if (!result.ok) throw new Error(result.error);
       flash('success', `Intelligence recalculated in ${result.durationMs}ms.`);
-      // Reload data after cron
-      // Trigger the effect again by forcing a state change? Instead, just re‑fetch manually.
-      // We'll reuse the fetch logic by calling the same function.
-      // But the function is inside the effect. To call it from outside, we can extract it to a useCallback.
-      // Simpler: just refetch by running the effect again – we can do that by updating a dummy state.
-      // I'll keep it simple: after cron, manually fetch again using the same logic.
-      const res2 = await fetch(`/api/admin/stores/${storeId}/intelligence`);
-      if (res2.ok) setData(await res2.json());
+      // Refresh data after cron completes
+      await fetchData();
     } catch (e) {
       flash('error', e.message);
     } finally {
       setRunning(false);
     }
   }
-  if (loading && !data) return (
-    <div className="ap-root" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
-      <span className="ap-spinner" style={{ width: '28px', height: '28px', borderWidth: '3px' }} />
-    </div>
-  );
+
+  if (loading && !data) {
+    return (
+      <div className="ap-root" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
+        <span className="ap-spinner" style={{ width: '28px', height: '28px', borderWidth: '3px' }} />
+      </div>
+    );
+  }
 
   const storeName = data?.translations?.[0]?.name ?? `Store #${storeId}`;
   const latestMetrics = data?.savingsMetrics?.[0];
-  const latestSnap    = data?.savingsSnapshots?.[0];
+  const latestSnap = data?.savingsSnapshots?.[0];
 
   return (
     <div className="ap-root">
