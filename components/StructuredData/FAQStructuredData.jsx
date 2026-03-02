@@ -1,11 +1,12 @@
 // components/StructuredData/FAQStructuredData.jsx
-'use client';
+// ✅ NO 'use client' — JSON-LD must be server-rendered so Googlebot
+// sees it in the initial HTML response. A client component would only
+// inject the script after hydration, which Google may miss entirely.
 
 /**
  * FAQ Structured Data Component
  * 
  * Generates schema.org FAQPage markup for Google Search Console
- * Fixes missing "name" and "text" (acceptedAnswer) fields
  * 
  * @param {Array} faqs - Array of FAQ objects with translations
  * @param {string} locale - Current locale (e.g., 'en-SA', 'ar-SA')
