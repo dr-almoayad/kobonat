@@ -1,25 +1,11 @@
 // app/layout.jsx
-
-export const metadata = {
-  metadataBase: new URL('https://cobonat.me'),
-  openGraph: {
-    siteName: 'Cobonat',
-  },
-  icons: {
-    icon: [
-      { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
-      { url: '/favicon-96x96.png', sizes: '96x96', type: 'image/png' },
-    ],
-    apple: '/apple-touch-icon.png',
-  },
-};
+//
+// ✅ FIX: This root layout must NOT contain <html> or <body> tags.
+// The locale layout (app/[locale]/layout.jsx) handles the full document
+// shell with the correct lang and dir per locale. Having both layouts
+// render <html><body> caused browsers to produce duplicate <head> and
+// <body> elements, breaking SEO tags (canonicals, hreflang, etc.).
 
 export default function RootLayout({ children }) {
-  return (
-    <html lang="en" dir="ltr">
-      <body>
-        {children}
-      </body>
-    </html>
-  );
+  return children;
 }
