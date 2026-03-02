@@ -177,7 +177,7 @@ export default async function HomepageLeaderboardSection({ locale }) {
             <p style={{ color: '#777', fontSize: '0.875rem', margin: 0 }}>{labels.sub}</p>
           </div>
 
-          <Link
+          {/*<Link
             href={`/${locale}/leaderboard`}
             style={{
               display: 'inline-flex',
@@ -195,7 +195,7 @@ export default async function HomepageLeaderboardSection({ locale }) {
             }}
           >
             {labels.cta} {isRTL ? '←' : '→'}
-          </Link>
+          </Link>*/}
         </div>
 
         {/* ── Leaderboard rows ── */}
