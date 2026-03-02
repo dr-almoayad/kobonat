@@ -36,8 +36,6 @@ export async function POST(request, { params }) {
     );
   }
 
-  // Must upsert — @@unique([storeId, seasonKey]) means a plain create throws
-  // P2002 if this season already exists for the store.
   const season = await prisma.storePeakSeason.upsert({
     where:  { storeId_seasonKey: { storeId, seasonKey } },
     create: { storeId, seasonKey, nameEn, nameAr },
