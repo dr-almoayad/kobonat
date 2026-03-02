@@ -59,7 +59,7 @@ export async function GET(request, { params }) {
             movement:                    true,
             calculatedMaxSavingsPercent: true,
             savingsOverridePercent:      true,
-            // ❌ stackingPath removed – not in schema
+            stackingPath:                true,
           },
         },
         upcomingEvents: {
