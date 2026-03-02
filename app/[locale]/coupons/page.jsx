@@ -38,8 +38,12 @@ icons: {
       title,
       description,
       alternates: {
-        // This tells Google this IS the primary version of the page
-        canonical: `${BASE_URL}/${locale}/coupons`, 
+        canonical: `${BASE_URL}/${locale}/coupons`,
+        languages: {
+          'ar-SA': `${BASE_URL}/ar-SA/coupons`,
+          'en-SA': `${BASE_URL}/en-SA/coupons`,
+          'x-default': `${BASE_URL}/ar-SA/coupons`,
+        },
       },
       openGraph: {
         title,
