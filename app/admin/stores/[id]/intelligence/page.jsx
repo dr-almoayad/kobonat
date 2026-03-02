@@ -450,10 +450,10 @@ export default function StoreIntelligencePage() {
   const params = useParams();
   const storeId = Number(params.id);
 
-  const [data,    setData]    = useState(null);
+  const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [tab,     setTab]     = useState('Logistics');
-  const [alert,   setAlert]   = useState(null);
+  const [tab, setTab] = useState('Logistics');
+  const [alert, setAlert] = useState(null);
   const [running, setRunning] = useState(false);
 
   function flash(type, msg) {
@@ -461,49 +461,68 @@ export default function StoreIntelligencePage() {
     setTimeout(() => setAlert(null), 5000);
   }
 
- const load = useCallback(async () => {
-  console.log('load start, loading =', loading);
-  setLoading(true);
-  try {
-    console.log('fetching...');
-    const res = await fetch(`/api/admin/stores/${storeId}/intelligence`);
-    console.log('response status:', res.status);
-    if (!res.ok) {
-      const err = await res.json();
-      throw new Error(err.error || 'Failed to load');
+  useEffect(() => {
+    let isMounted = true;
+
+    async function fetchData() {
+      // Only fetch if storeId is valid
+      if (!storeId || isNaN(storeId)) {
+        setLoading(false);
+        return;
+      }
+
+      setLoading(true);
+      try {
+        const res = await fetch(`/api/admin/stores/${storeId}/intelligence`);
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.error || 'Failed to load');
+        }
+        const json = await res.json();
+        if (isMounted) setData(json);
+      } catch (e) {
+        console.error('Fetch error:', e);
+        if (isMounted) {
+          flash('error', e.message);
+          setData(null);
+        }
+      } finally {
+        if (isMounted) setLoading(false);
+      }
     }
-    const json = await res.json();
-    console.log('data received:', json);
-    setData(json);
-  } catch (e) {
-    console.error('load error:', e);
-    flash('error', e.message);
-    setData(null);
-  } finally {
-    console.log('load finished, setting loading false');
-    setLoading(false);
-  }
-}, [storeId]);
+
+    fetchData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [storeId]); // Direct dependency – safe and simple
 
   async function triggerCron() {
     setRunning(true);
     try {
       const res = await fetch('/api/admin/intelligence/trigger', {
-        method:  'POST',
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ storeId }),
+        body: JSON.stringify({ storeId }),
       });
       const result = await res.json();
       if (!result.ok) throw new Error(result.error);
       flash('success', `Intelligence recalculated in ${result.durationMs}ms.`);
-      await load();
+      // Reload data after cron
+      // Trigger the effect again by forcing a state change? Instead, just re‑fetch manually.
+      // We'll reuse the fetch logic by calling the same function.
+      // But the function is inside the effect. To call it from outside, we can extract it to a useCallback.
+      // Simpler: just refetch by running the effect again – we can do that by updating a dummy state.
+      // I'll keep it simple: after cron, manually fetch again using the same logic.
+      const res2 = await fetch(`/api/admin/stores/${storeId}/intelligence`);
+      if (res2.ok) setData(await res2.json());
     } catch (e) {
       flash('error', e.message);
     } finally {
       setRunning(false);
     }
   }
-
   if (loading && !data) return (
     <div className="ap-root" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
       <span className="ap-spinner" style={{ width: '28px', height: '28px', borderWidth: '3px' }} />
