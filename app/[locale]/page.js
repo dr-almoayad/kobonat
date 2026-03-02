@@ -14,6 +14,7 @@ import HomeFeaturedProductsSection from '@/components/HomeFeaturedProducts/HomeF
 import HomepageBlogSection from '@/components/blog/HomepageBlogSection';
 import HelpBox from "@/components/help/HelpBox";
 import WebSiteStructuredData from '@/components/StructuredData/WebSiteStructuredData';
+import HomepageLeaderboardSection from '@/components/leaderboard/HomepageLeaderboardSection';
 
 export const revalidate = 60;
 
@@ -259,7 +260,9 @@ export default async function Home({ params }) {
           locale={locale}
           countryCode={countryCode || 'SA'}
         />
-
+        
+        {/* Savings Leaderboard — top 5 stores by verified discount this week */}
+        <HomepageLeaderboardSection locale={locale} />
 
         {/* Blog Section — latest/featured articles, returns null if no published posts */}
         <HomepageBlogSection locale={locale} count={3} />
