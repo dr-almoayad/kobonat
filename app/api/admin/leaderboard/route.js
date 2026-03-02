@@ -51,7 +51,7 @@ export async function GET(request) {
         take:    limit,
         select: {
           id: true, rank: true, previousRank: true, movement: true,
-          calculatedMaxSavingsPercent: true, savingsOverridePercent: true, stackingPath: true,
+          calculatedMaxSavingsPercent: true, savingsOverridePercent: true,
           maxDirectDiscountPercent: true, maxCouponPercent: true, maxBankOfferPercent: true,
           weekIdentifier: true, calculatedAt: true,
           store: {
