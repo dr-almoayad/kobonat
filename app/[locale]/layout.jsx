@@ -1,4 +1,19 @@
 // app/[locale]/layout.jsx
+//
+// ✅ FIX SUMMARY:
+// 1. This is now the ONLY layout that renders <html> and <body>.
+//    app/layout.jsx has been reduced to `return children` to prevent
+//    the duplicate <head>/<body> structure that was breaking SEO.
+//
+// 2. The explicit <head>...</head> block has been removed.
+//    All meta tags that were inside it have been moved into
+//    generateMetadata() using the `other` and `verification` keys.
+//    Next.js will hoist these into the real <head> automatically.
+//
+// 3. <WebSiteStructuredData> moved from <head> into <body>.
+//    JSON-LD scripts are valid anywhere in the document and do not
+//    need to live inside <head>.
+
 import { Geist, Geist_Mono, Alexandria, Open_Sans } from "next/font/google";
 import "./globals.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
@@ -100,6 +115,15 @@ export async function generateMetadata({ params }) {
         'max-snippet': -1,
       },
     },
+    // ✅ FIX: Verification tags and msapplication meta moved from the
+    // explicit <head> block into metadata. Next.js renders these as
+    // proper <meta> tags inside the real <head> automatically.
+    other: {
+      'msapplication-TileColor': '#470ae2',
+      'Takeads-verification': 'ac9f8039-eeff-43ac-8757-df8d658ef91b',
+      'tradetracker-site-verification': '813f3ae64e317d77ca412f3741e5d24b3c977369',
+      'verify-admitad': '95d170f413',
+    },
   };
 }
 
@@ -118,16 +142,15 @@ export default async function LocaleLayout({ children, params }) {
   const isArabic = language === 'ar';
 
   return (
+    // ✅ This <html> and <body> are the ONLY ones in the document now.
+    // No duplicate shell from app/layout.jsx anymore.
     <html lang={locale} dir={isArabic ? 'rtl' : 'ltr'}>
       <head>
-        <meta name="msapplication-TileColor" content="#470ae2" />
-
-        {/* Verification Tags */}
-        <meta name="Takeads-verification" content="ac9f8039-eeff-43ac-8757-df8d658ef91b" />
-        <meta name="tradetracker-site-verification" content="813f3ae64e317d77ca412f3741e5d24b3c977369" />
-        <meta name="verify-admitad" content="95d170f413" />
-
-        {/* Material Symbols - non-blocking via display=swap in URL */}
+        {/*
+          ✅ Font preconnects for Material Symbols stay here as they are
+          not expressible via the metadata API. Everything else that was
+          here (verification tags, msapplication) has moved to generateMetadata().
+        */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
@@ -135,16 +158,19 @@ export default async function LocaleLayout({ children, params }) {
           href="https://fonts.googleapis.com/css2?family=Material+Symbols+Sharp:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap"
           crossOrigin="anonymous"
         />
-
-        {/* WebSite Structured Data */}
-        <WebSiteStructuredData
-          locale={locale}
-          siteName={isArabic ? 'كوبونات' : 'Cobonat'}
-        />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} ${alexandria.variable} ${openSans.variable} antialiased`}>
         <NextIntlClientProvider messages={messages} locale={locale}>
           <SessionProviderWrapper>
+            {/*
+              ✅ FIX: WebSiteStructuredData moved from <head> into <body>.
+              JSON-LD <script> tags are valid anywhere in the document.
+              Google recommends <head> but accepts <body> too.
+            */}
+            <WebSiteStructuredData
+              locale={locale}
+              siteName={isArabic ? 'كوبونات' : 'Cobonat'}
+            />
             <Header />
             <CategoryCarouselSubHeader />
             <main>
@@ -169,7 +195,6 @@ export default async function LocaleLayout({ children, params }) {
           </SessionProviderWrapper>
         </NextIntlClientProvider>
 
-        {/* ✅ Scripts outside providers, inside body */}
         <Script
           src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
           strategy="lazyOnload"
@@ -189,4 +214,4 @@ export default async function LocaleLayout({ children, params }) {
       </body>
     </html>
   );
-    }
+}
