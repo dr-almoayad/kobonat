@@ -384,7 +384,7 @@
 .hhs-list-storename {
   font-size: 0.82rem;
   font-weight: 700;
-  color: #1e293b;
+  color: #541e5d;
   margin: 0;
   font-family: 'Alexandria', 'Open Sans', sans-serif;
   line-height: 1.3;
@@ -412,7 +412,7 @@
   display: inline-block;
   font-size: 0.62rem;
   font-weight: 700;
-  color: #470ae2;
+  color: #16d77d;
   font-family: 'Alexandria', 'Open Sans', sans-serif;
   margin-top: 2px;
 }
@@ -646,9 +646,9 @@
 .hhs-save-pill {
   font-size: 0.65rem;
   font-weight: 700;
-  color: #059669;
-  background: #ecfdf5;
-  border: 1px solid #a7f3d0;
+  color: #16d77d;
+  background: none;
+  border: 1px solid #16d77d;
   padding: 2px 7px;
   border-radius: 20px;
   font-family: 'Alexandria', 'Open Sans', sans-serif;
@@ -694,7 +694,7 @@
 }
 
 @media (max-width: 600px) {
-  .hhs-grid  { grid-template-columns: 1fr; }
+  .hhs-grid  { grid-template-columns: 1fr; gap: 12px 0;}
   .hhs-panel--list,
   .hhs-panel--lb   { grid-column: 1; }
   .hhs-cards-row   { gap: 6px; padding: 0 0.75rem; }
