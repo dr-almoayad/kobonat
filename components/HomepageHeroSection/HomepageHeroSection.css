@@ -644,15 +644,15 @@
 .hhs-lb-save { flex-shrink: 0; }
 
 .hhs-save-pill {
-  font-size: 0.65rem;
-  font-weight: 700;
-  color: #16d77d;
-  background: none;
-  border: 1px solid #16d77d;
-  padding: 2px 7px;
-  border-radius: 20px;
-  font-family: 'Alexandria', 'Open Sans', sans-serif;
-  white-space: nowrap;
+    font-size: .65rem;
+    color: #16d77d;
+    background: none;
+    border: 1px solid #16d77d;
+    padding: 1px 3px;
+    border-radius: 3px;
+    white-space: nowrap;
+    font-family: 'Alexandria', 'Open Sans', sans-serif;
+    white-space: nowrap;
 }
 
 /* movement */
@@ -664,7 +664,7 @@
   font-family: 'Alexandria', 'Open Sans', sans-serif;
   letter-spacing: 0.01em;
 }
-.hhs-mv--new { background: none; color:#470ae2; font-size:0.52rem; padding:2px 4px; border-radius:3px; border: 1px solid #470ae2; font-weight:700; width: fit-content;}
+.hhs-mv--new { background: none; color:#470ae2; font-size:0.52rem; padding:2px 4px; border-radius:3px; border: none; font-weight:700; width: fit-content;}
 .hhs-mv--up  { color: #16a34a; }
 .hhs-mv--dn  { color: #dc2626; }
 .hhs-mv--eq  { color: #94a3b8; }
