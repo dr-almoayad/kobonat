@@ -84,12 +84,9 @@ export default async function Home({ params }) {
 
   const t = await getTranslations('HomePage');
   const [language, countryCode] = locale.split('-');
-
   const currentWeek = getCurrentWeekIdentifier();
 
   // ── Data fetching ─────────────────────────────────────────────────────────
-  // CuratedOffersSection is a Server Component that fetches its own data.
-  // Do NOT fetch curatedOffers here — it would be a double database hit.
   const [
     featuredStoresWithCovers,
     topVouchers,
@@ -98,7 +95,7 @@ export default async function Home({ params }) {
     leaderboardSnapshots,
   ] = await Promise.all([
 
-    // 1. Hero Carousel Stores — include showOffer from translation
+    // 1. Hero Carousel Stores — full fields needed for the new hero section
     prisma.store.findMany({
       where: {
         isActive: true,
@@ -106,14 +103,24 @@ export default async function Home({ params }) {
         coverImage: { not: null },
         countries: { some: { country: { code: countryCode || 'SA' } } }
       },
-      include: {
+      select: {
+        id: true,
+        logo: true,
+        bigLogo: true,       // ← used in cover + thumbnails
+        coverImage: true,
         translations: {
           where: { locale: language },
-          select: { name: true, slug: true, showOffer: true }
+          select: {
+            name: true,
+            slug: true,
+            showOffer: true,
+            seoTitle: true,      // ← shown next to thumbnail + on main cover
+            description: true,   // ← shown below main cover
+          }
         },
       },
       orderBy: { isFeatured: 'desc' },
-      take: 10,
+      take: 5, // Only 5 max for the hero (MAX_THUMBNAILS)
     }),
 
     // 2. Top Vouchers
@@ -144,7 +151,7 @@ export default async function Home({ params }) {
       take: 21
     }),
 
-    // 3. Featured Stores List
+    // 3. Featured Stores List (for the grid section)
     prisma.store.findMany({
       where: {
         isActive: true,
@@ -208,6 +215,7 @@ export default async function Home({ params }) {
           select: {
             id: true,
             logo: true,
+            bigLogo: true,
             translations: {
               where: { locale: language },
               select: { name: true, slug: true }
@@ -224,40 +232,42 @@ export default async function Home({ params }) {
     const translation = store.translations?.[0] || {};
     return {
       ...store,
-      name: translation.name || '',
-      slug: translation.slug || '',
-      showOffer: translation.showOffer || '',
-      translations: undefined
+      name:        translation.name        || '',
+      slug:        translation.slug        || '',
+      showOffer:   translation.showOffer   || '',
+      seoTitle:    translation.seoTitle    || '',
+      description: translation.description || '',
+      translations: undefined,
     };
   };
 
   const transformVoucherWithTranslation = (voucher) => {
     const voucherTranslation = voucher.translations?.[0] || {};
-    const storeTranslation = voucher.store?.translations?.[0] || {};
+    const storeTranslation   = voucher.store?.translations?.[0] || {};
     return {
       ...voucher,
-      title: voucherTranslation.title || 'Special Offer',
+      title:       voucherTranslation.title       || 'Special Offer',
       description: voucherTranslation.description || null,
       store: voucher.store ? {
         ...voucher.store,
-        name: storeTranslation.name || '',
-        slug: storeTranslation.slug || '',
-        translations: undefined
+        name:         storeTranslation.name || '',
+        slug:         storeTranslation.slug || '',
+        translations: undefined,
       } : null,
-      translations: undefined
+      translations: undefined,
     };
   };
 
   const transformedCarouselStores = featuredStoresWithCovers.map(transformStoreWithTranslation);
-  const transformedFeaturedStores  = featuredStores.map(transformStoreWithTranslation);
-  const transformedTopVouchers     = topVouchers.map(transformVoucherWithTranslation);
+  const transformedFeaturedStores = featuredStores.map(transformStoreWithTranslation);
+  const transformedTopVouchers    = topVouchers.map(transformVoucherWithTranslation);
 
   const transformedBrands = allActiveBrands.map(brand => ({
-    id: brand.id,
-    name: brand.translations?.[0]?.name || '',
-    slug: brand.translations?.[0]?.slug || '',
-    logo: brand.logo,
-    activeVouchersCount: brand._count?.vouchers || 0
+    id:                 brand.id,
+    name:               brand.translations?.[0]?.name || '',
+    slug:               brand.translations?.[0]?.slug || '',
+    logo:               brand.logo,
+    activeVouchersCount: brand._count?.vouchers || 0,
   }));
 
   // ── Render ────────────────────────────────────────────────────────────────
@@ -268,7 +278,7 @@ export default async function Home({ params }) {
 
       <main className="homepage-wrapper">
 
-        {/* ── Hero Section: main cover + store thumbnails + leaderboard ── */}
+        {/* ── Hero: main cover + thumbnails + leaderboard ── */}
         {transformedCarouselStores.length > 0 && (
           <HomepageHeroSection
             stores={transformedCarouselStores}
@@ -288,10 +298,10 @@ export default async function Home({ params }) {
           countryCode={countryCode || 'SA'}
         />
 
-        {/* Blog Section — latest/featured articles, returns null if no published posts */}
+        {/* Blog Section */}
         <HomepageBlogSection locale={locale} count={3} />
 
-        {/* Featured Products — hand-picked products from multiple stores */}
+        {/* Featured Products */}
         <HomeFeaturedProductsSection
           locale={locale}
           countryCode={countryCode || 'SA'}
@@ -311,10 +321,7 @@ export default async function Home({ params }) {
 
           <div className="vouchers-grid-home">
             {transformedTopVouchers.map((voucher) => (
-              <VoucherCard
-                key={voucher.id}
-                voucher={voucher}
-              />
+              <VoucherCard key={voucher.id} voucher={voucher} />
             ))}
           </div>
 
@@ -337,10 +344,7 @@ export default async function Home({ params }) {
 
           <div className="stores-grid-home">
             {transformedFeaturedStores.map((store) => (
-              <StoreCard
-                key={store.id}
-                store={store}
-              />
+              <StoreCard key={store.id} store={store} />
             ))}
           </div>
 
