@@ -107,7 +107,7 @@ export default function HomepageHeroSection({
                 <span className="hhs-hero-label">{L.featured}</span>
               </div>
 
-              {/* ── THUMBNAIL CARD ROW ── */}
+             {/* ── THUMBNAIL CARD ROW ── */}
               {/*<div className="hhs-cards-row">
                 {pool.map((s, i) => (
                   <button
@@ -116,22 +116,18 @@ export default function HomepageHeroSection({
                     onClick={e => { e.preventDefault(); goTo(i); }}
                     aria-label={s.name}
                   >
-                    {/* portrait image */}
                     <div className="hhs-card-img">
                       {s.coverImage
                         ? <Image src={s.coverImage} alt={s.name} fill sizes="140px" style={{ objectFit: 'cover' }} />
                         : <div className="hhs-card-img-fallback" />
                       }
-                      {/* active glow ring */}
                       {i === active && <div className="hhs-card-ring" />}
                     </div>
-
-                    {/* coloured name bar (like PL green bar) */}
+              
                     <div className="hhs-card-bar">
                       <span className="hhs-card-name">{s.name}</span>
                     </div>
-
-                    {/* big-logo badge below card (like club crest) */}
+              
                     <div className="hhs-card-crest">
                       {s.bigLogo
                         ? <Image src={s.bigLogo} alt="" fill style={{ objectFit: 'contain' }} />
