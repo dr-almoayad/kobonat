@@ -34,11 +34,16 @@
    PANEL 1 — HERO CARD
 ════════════════════════════════════════════════════════ */
 
+.hhs-panel--hero{
+   height: 100%;
+}
+
 /* ── Cover image link ── */
 .hhs-hero-img-link {
   display: block;
   text-decoration: none;
   transition: opacity 0.2s ease;
+   height: 70%;
 }
 .hhs-hero-img-link--fading { opacity: 0; }
 
@@ -46,7 +51,7 @@
 .hhs-hero-img {
   position: relative;
   width: 100%;
-  height: 300px;
+  height: 100%;
   background: #1a1a2e;
   overflow: hidden;
 }
@@ -238,8 +243,9 @@
    HERO INFO SECTION  (dark bottom — like PL purple/dark box)
 ════════════════════════════════════════════════════════ */
 .hhs-info-section {
+   height: 30%;
   display: flex;
-  align-items: flex-end;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
   background: #1a1033;        /* deep dark purple like PL */
@@ -316,6 +322,7 @@
 .hhs-panel--list {
   display: flex;
   flex-direction: column;
+   height: 100%;
 }
 
 .hhs-list-header {
@@ -462,6 +469,7 @@
    PANEL 3 — LEADERBOARD  (PL scores column style)
 ════════════════════════════════════════════════════════ */
 .hhs-panel--lb {
+   height: 100%;
   display: flex;
   flex-direction: column;
 }
