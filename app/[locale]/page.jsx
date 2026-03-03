@@ -7,14 +7,14 @@ import { notFound } from "next/navigation";
 import { allLocaleCodes } from "@/i18n/locales";
 import VoucherCard from "@/components/VoucherCard/VoucherCard";
 import StoreCard from "@/components/StoreCard/StoreCard";
-import HeroCarousel from "@/components/HeroCarousel/HeroCarousel";
 import BrandsCarousel from "@/components/BrandsCarousel/BrandsCarousel";
 import CuratedOffersSection from '@/components/CuratedOffersSection/CuratedOffersSection';
 import HomeFeaturedProductsSection from '@/components/HomeFeaturedProducts/HomeFeaturedProductsSection';
 import HomepageBlogSection from '@/components/blog/HomepageBlogSection';
 import HelpBox from "@/components/help/HelpBox";
 import WebSiteStructuredData from '@/components/StructuredData/WebSiteStructuredData';
-import HomepageLeaderboardSection from '@/components/leaderboard/HomepageLeaderboardSection';
+import HomepageHeroSection from '@/components/HomepageHeroSection/HomepageHeroSection';
+import { getCurrentWeekIdentifier } from '@/lib/leaderboard/calculateStoreSavings';
 
 export const revalidate = 60;
 
@@ -85,12 +85,20 @@ export default async function Home({ params }) {
   const t = await getTranslations('HomePage');
   const [language, countryCode] = locale.split('-');
 
+  const currentWeek = getCurrentWeekIdentifier();
+
   // ── Data fetching ─────────────────────────────────────────────────────────
   // CuratedOffersSection is a Server Component that fetches its own data.
   // Do NOT fetch curatedOffers here — it would be a double database hit.
-  const [featuredStoresWithCovers, topVouchers, featuredStores, allActiveBrands] = await Promise.all([
+  const [
+    featuredStoresWithCovers,
+    topVouchers,
+    featuredStores,
+    allActiveBrands,
+    leaderboardSnapshots,
+  ] = await Promise.all([
 
-    // 1. Hero Carousel Stores
+    // 1. Hero Carousel Stores — include showOffer from translation
     prisma.store.findMany({
       where: {
         isActive: true,
@@ -101,7 +109,7 @@ export default async function Home({ params }) {
       include: {
         translations: {
           where: { locale: language },
-          select: { name: true, slug: true }
+          select: { name: true, slug: true, showOffer: true }
         },
       },
       orderBy: { isFeatured: 'desc' },
@@ -180,6 +188,34 @@ export default async function Home({ params }) {
       orderBy: [{ isFeatured: 'desc' }, { id: 'asc' }],
       take: 20
     }),
+
+    // 5. Leaderboard — global top 10 for the current ISO week
+    prisma.storeSavingsSnapshot.findMany({
+      where: {
+        weekIdentifier: currentWeek,
+        categoryId: null,
+      },
+      orderBy: { rank: 'asc' },
+      take: 10,
+      select: {
+        id: true,
+        rank: true,
+        previousRank: true,
+        movement: true,
+        calculatedMaxSavingsPercent: true,
+        savingsOverridePercent: true,
+        store: {
+          select: {
+            id: true,
+            logo: true,
+            translations: {
+              where: { locale: language },
+              select: { name: true, slug: true }
+            }
+          }
+        }
+      }
+    }),
   ]);
 
   // ── Data transformations ──────────────────────────────────────────────────
@@ -232,22 +268,13 @@ export default async function Home({ params }) {
 
       <main className="homepage-wrapper">
 
-        {/* Hero Section */}
+        {/* ── Hero Section: main cover + store thumbnails + leaderboard ── */}
         {transformedCarouselStores.length > 0 && (
-          <div className="hero-section">
-            <HeroCarousel
-              images={transformedCarouselStores.map(store => ({
-                id: store.id,
-                image: store.coverImage,
-                name: store.name,
-                logo: store.logo,
-              }))}
-              locale={locale}
-              height="400px"
-              autoplayDelay={4000}
-              showOverlay={true}
-            />
-          </div>
+          <HomepageHeroSection
+            stores={transformedCarouselStores}
+            leaderboard={leaderboardSnapshots}
+            locale={locale}
+          />
         )}
 
         {/* Brands Ticker */}
@@ -260,9 +287,6 @@ export default async function Home({ params }) {
           locale={locale}
           countryCode={countryCode || 'SA'}
         />
-        
-        {/* Savings Leaderboard — top 5 stores by verified discount this week */}
-        <HomepageLeaderboardSection locale={locale} />
 
         {/* Blog Section — latest/featured articles, returns null if no published posts */}
         <HomepageBlogSection locale={locale} count={3} />
@@ -272,7 +296,6 @@ export default async function Home({ params }) {
           locale={locale}
           countryCode={countryCode || 'SA'}
         />
-
 
         {/* Top Deals Grid */}
         <section className="home-section">
