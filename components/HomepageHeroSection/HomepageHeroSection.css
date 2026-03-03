@@ -469,6 +469,7 @@
    PANEL 3 — LEADERBOARD  (PL scores column style)
 ════════════════════════════════════════════════════════ */
 .hhs-panel--lb {
+   border-top: 5px solid #220e45;
    height: 100%;
   display: flex;
   flex-direction: column;
@@ -477,15 +478,20 @@
 .hhs-lb-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
+  gap: 0.5rem;
   padding: 12px 14px;
   border-bottom: 1px solid #f1f5f9;
   flex-shrink: 0;
 }
 
+.hhs-lb-header .material-symbols-sharp {
+   color: #15a189;
+}
+
 .hhs-lb-title {
   font-size: 0.78rem;
-  font-weight: 800;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: #1e293b;
