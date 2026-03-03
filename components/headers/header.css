@@ -88,12 +88,13 @@ header {
 .nav-link {
   font-size: 14px;
   font-weight: 500;
+  line-height: 1.2;
   color: var(--text-primary);
   text-decoration: none;
   transition: all 0.2s ease;
   font-family: 'Alexandria', 'Open Sans', sans-serif;
   -webkit-font-smoothing: antialiased;
-  padding: 0.5rem 0.9rem;
+  padding: 12px 16px;
   border-radius: 25px;
   overflow: hidden;
   position: relative;
@@ -111,7 +112,8 @@ header {
   height:100%;
   top: 0;
   left: 0;
-  background: rgba(55,0,60,.05);
+  border-radius: 25px;
+  background: rgba(55,0,60,.04);
   transform: scale(0);
   transform-origin: center;
   opacity: 0;
