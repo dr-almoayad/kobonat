@@ -471,7 +471,7 @@
    PANEL 3 — LEADERBOARD  (PL scores column style)
 ════════════════════════════════════════════════════════ */
 .hhs-panel--lb {
-   border-top: 5px solid #30184c;
+   border-top: 5px solid #541e5d;
    height: 100%;
    display: flex;
    flex-direction: column;
@@ -488,7 +488,7 @@
 }
 
 .hhs-lb-header .material-symbols-sharp {
-   color: #15a189;
+   color: #16d77d;
 }
 
 .hhs-lb-title {
@@ -595,16 +595,25 @@
 }
 
 .hhs-lb-logo {
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   border-radius: 7px;
   background: #f1f5f9;
-  border: 1px solid #e2e8f0;
+  border: none;
+  border-radius: 50%;
+  padding: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
   flex-shrink: 0;
+}
+
+.hhs-lb-logo img {
+    object-fit: cover;
+    width: 100%;
+    height: 100%;
+    transform: scale(1.25);
 }
 
 .hhs-lb-init {
