@@ -1,17 +1,17 @@
 /* AnimatedSearchInput.css - Simplified Version */
 
 :root {
-  --search-primary: #0062ff;
-  --search-primary-hover: #0052cc;
+  --search-primary: #16d77d;
+  --search-primary-hover: #16d77d;
   --search-text: #111;
   --search-text-secondary: #666;
   --search-text-tertiary: #999;
   --search-border: #e5e5e5;
-  --search-bg: #ffffff;
-  --search-bg-secondary: #f5f5f5;
-  --search-bg-hover: #f0f0f0;
-  --search-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  --search-shadow-hover: 0 8px 24px rgba(0, 0, 0, 0.15);
+  --search-bg: rgba(255, 255, 255, 0.7);
+  --search-bg-secondary: rgba(255, 255, 255, 0.7);
+  --search-bg-hover: rgba(255, 255, 255, 0.8);
+  --search-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  --search-shadow-hover: 0 8px 24px rgba(0, 0, 0, 0.1);
 }
 
 /* ========================================
@@ -36,6 +36,7 @@
   gap: 12px;
   padding: 10px 16px;
   background: var(--search-bg-secondary);
+  box-shadow: var(--search-shadow);
   border: 2px solid transparent;
   border-radius: 25px;
   transition: all 0.2s ease;
@@ -45,7 +46,7 @@
 .search-input-container.focused {
   background: var(--search-bg);
   border-color: var(--search-primary);
-  box-shadow: var(--search-shadow);
+  box-shadow: var(--search-shadow-hover);
 }
 
 .search-icon {
