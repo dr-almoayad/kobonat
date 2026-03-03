@@ -70,7 +70,7 @@ export default function HomepageHeroSection({
   /* labels */
   const L = {
     featured:    lang === 'ar' ? 'المتاجر المميزة' : 'Featured Stores',
-    leaderboard: lang === 'ar' ? 'جدول المتاجر'    : 'Store Leaderboard',
+    leaderboard: lang === 'ar' ? 'أفضل المتاجر'    : 'Store Leaderboard',
     viewAll:     lang === 'ar' ? 'عرض الكل'        : 'View all',
     savings:     lang === 'ar' ? 'توفير'           : 'Savings',
     explore:     lang === 'ar' ? 'استعرض العروض'   : 'Explore Deals',
@@ -108,7 +108,7 @@ export default function HomepageHeroSection({
               </div>
 
               {/* ── THUMBNAIL CARD ROW ── */}
-              <div className="hhs-cards-row">
+              {/*<div className="hhs-cards-row">
                 {pool.map((s, i) => (
                   <button
                     key={s.id}
@@ -140,7 +140,7 @@ export default function HomepageHeroSection({
                     </div>
                   </button>
                 ))}
-              </div>
+              </div>*/}
 
               {/* progress bar */}
               <div className="hhs-progress" key={pbKey} />
@@ -172,10 +172,10 @@ export default function HomepageHeroSection({
             PANEL 2 — Featured-store news-item list
         ══════════════════════════════════════════════════ */}
         <div className="hhs-panel hhs-panel--list">
-          <div className="hhs-list-header">
+          {/*<div className="hhs-list-header">
             <span className="hhs-list-title">{L.featured}</span>
             <Link href={`/${locale}/stores`} className="hhs-viewall">{L.viewAll} →</Link>
-          </div>
+          </div>*/}
 
           <div className="hhs-list-items">
             {pool.map((s, i) => (
@@ -217,8 +217,9 @@ export default function HomepageHeroSection({
         ══════════════════════════════════════════════════ */}
         <div className="hhs-panel hhs-panel--lb">
           <div className="hhs-lb-header">
-            <span className="hhs-lb-title">{L.leaderboard}</span>
-            <Link href={`/${locale}/leaderboard`} className="hhs-viewall">{L.viewAll} →</Link>
+            <span class="material-symbols-sharp">social_leaderboard</span>
+            <span className="hhs-lb-title">{L.leaderboard} {L.week}</span>
+            {/*<Link href={`/${locale}/leaderboard`} className="hhs-viewall">{L.viewAll} →</Link>*/}
           </div>
 
           <div className="hhs-lb-col-row">
