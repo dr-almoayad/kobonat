@@ -70,7 +70,7 @@ export async function generateMetadata({ params }) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Full post fetch (mirrors getBlogPostPage from reference doc)
+// Full post fetch
 // ─────────────────────────────────────────────────────────────────────────────
 async function getPost(slug, lang) {
   return prisma.blogPost.findUnique({
@@ -84,7 +84,7 @@ async function getPost(slug, lang) {
       },
       tags: { include: { tag: { include: { translations: { where: { locale: lang } } } } } },
 
-      // ── Structured sections ───────────────────────────────────────────
+      // ── Structured sections ──────────────────────────────────────────
       sections: {
         orderBy: { order: 'asc' },
         include: {
@@ -113,7 +113,7 @@ async function getPost(slug, lang) {
         },
       },
 
-      // ── Post-level linked stores ───────────────────────────────────────
+      // ── Post-level linked stores ─────────────────────────────────────
       linkedStores: {
         orderBy: { order: 'asc' },
         include: {
@@ -126,13 +126,15 @@ async function getPost(slug, lang) {
         },
       },
 
-      // ── Editorial related posts ────────────────────────────────────────
+      // ── Editorial related posts ──────────────────────────────────────
+      // FIX: `where` is NOT allowed inside `include` for to-one relations.
+      // Removed `where: { status: 'PUBLISHED' }` from here — status is now
+      // checked in JavaScript after the query (see explicitRelated filter below).
       relatedPosts: {
         orderBy: { order: 'asc' },
         take:    3,
         include: {
           relatedPost: {
-            where: { status: 'PUBLISHED' },
             include: {
               translations: { where: { locale: lang } },
               author: true,
@@ -165,9 +167,11 @@ export default async function BlogPostPage({ params }) {
     ? new Intl.DateTimeFormat(locale, { year: 'numeric', month: 'long', day: 'numeric' }).format(new Date(post.publishedAt))
     : '';
 
-  // ── Related posts: use explicit overrides, fall back to tag/category ──
+  // ── Related posts: use explicit overrides, fall back to tag/category ──────
+  // FIX: status check moved here from the Prisma query (to-one relations don't
+  // support `where` inside `include` — Prisma throws PrismaClientValidationError).
   const explicitRelated = post.relatedPosts
-    .filter(rp => rp.relatedPost)
+    .filter(rp => rp.relatedPost && rp.relatedPost.status === 'PUBLISHED')
     .map(rp => {
       const rPost = rp.relatedPost;
       const rt    = rPost.translations[0] || {};
@@ -183,9 +187,9 @@ export default async function BlogPostPage({ params }) {
 
   let relatedPosts = explicitRelated;
   if (relatedPosts.length < 3) {
-    const tagIds     = post.tags.map(pt => pt.tagId);
-    const catId      = post.categoryId;
-    const needed     = 3 - relatedPosts.length;
+    const tagIds      = post.tags.map(pt => pt.tagId);
+    const catId       = post.categoryId;
+    const needed      = 3 - relatedPosts.length;
     const existingIds = [post.id, ...relatedPosts.map(r => r.id)];
     const fallback = await prisma.blogPost.findMany({
       where: {
@@ -243,11 +247,11 @@ export default async function BlogPostPage({ params }) {
 
       <main dir={isRTL ? 'rtl' : 'ltr'} style={{ maxWidth: 1100, margin: '0 auto', padding: '32px 16px' }}>
 
-        {/* ── Breadcrumbs ─────────────────────────────────────────────── */}
+        {/* ── Breadcrumbs ──────────────────────────────────────────────── */}
         <nav aria-label="breadcrumb" style={{ marginBottom: 24, fontSize: '0.82rem', color: '#888', display: 'flex', gap: '0.35rem', flexWrap: 'wrap', alignItems: 'center' }}>
-          <Link href={`/${locale}`}       style={{ color: '#888', textDecoration: 'none' }}>{lang === 'ar' ? 'الرئيسية' : 'Home'}</Link>
+          <Link href={`/${locale}`}      style={{ color: '#888', textDecoration: 'none' }}>{lang === 'ar' ? 'الرئيسية' : 'Home'}</Link>
           <span>/</span>
-          <Link href={`/${locale}/blog`}  style={{ color: '#888', textDecoration: 'none' }}>{lang === 'ar' ? 'المدونة' : 'Blog'}</Link>
+          <Link href={`/${locale}/blog`} style={{ color: '#888', textDecoration: 'none' }}>{lang === 'ar' ? 'المدونة' : 'Blog'}</Link>
           {post.category && (
             <>
               <span>/</span>
@@ -258,42 +262,40 @@ export default async function BlogPostPage({ params }) {
           )}
         </nav>
 
-        {/* ── Two-column layout (article + sidebar) ───────────────────── */}
-        <div style={{ display: 'grid', gridTemplateColumns: hasLinkedStores ? '1fr 280px' : '1fr', gap: '3rem', alignItems: 'start' }}>
+        {/* ── Two-column layout (article + sidebar) ────────────────────── */}
+        <div style={{ display: 'grid', gridTemplateColumns: hasLinkedStores ? '1fr 260px' : '1fr', gap: 40, alignItems: 'start' }}>
 
-          {/* ── Article ─────────────────────────────────────────────── */}
+          {/* ── ARTICLE ──────────────────────────────────────────────── */}
           <article>
-            {/* Category badge */}
-            {post.category && (
-              <Link href={`/${locale}/blog?category=${post.category.slug}`} style={{ textDecoration: 'none', display: 'inline-block', marginBottom: 16 }}>
-                <span style={{ background: post.category.color || '#470ae2', color: '#fff', padding: '4px 14px', borderRadius: 20, fontSize: '0.78rem', fontWeight: 600 }}>
+
+            {/* Category badge + meta row */}
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center', marginBottom: 16 }}>
+              {post.category && (
+                <Link href={`/${locale}/blog?category=${post.category.slug}`}
+                  style={{ padding: '3px 12px', borderRadius: 20, background: post.category.color || '#470ae2', color: '#fff', fontSize: '0.78rem', fontWeight: 600, textDecoration: 'none' }}>
                   {post.category.translations[0]?.name || post.category.slug}
-                </span>
-              </Link>
-            )}
-
-            <h1 style={{ fontSize: 'clamp(1.6rem, 4vw, 2.25rem)', fontWeight: 800, lineHeight: 1.25, color: '#1a1a1a', margin: '0 0 16px' }}>
-              {t.title}
-            </h1>
-
-            {/* Meta row */}
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', alignItems: 'center', color: '#666', fontSize: '0.85rem', marginBottom: 24 }}>
-              {post.author && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  {post.author.avatar && (
-                    <Image src={post.author.avatar} alt={authorName} width={28} height={28} style={{ borderRadius: '50%', objectFit: 'cover' }} />
-                  )}
-                  <span style={{ fontWeight: 600, color: '#333' }}>{authorName}</span>
-                </div>
+                </Link>
               )}
-              {formattedDate && <span>{formattedDate}</span>}
+              {formattedDate && (
+                <span style={{ fontSize: '0.8rem', color: '#888' }}>{formattedDate}</span>
+              )}
+              {authorName && (
+                <span style={{ fontSize: '0.8rem', color: '#888' }}>· {authorName}</span>
+              )}
               {post.readingTime && (
-                <span>{lang === 'ar' ? `${post.readingTime} دقائق قراءة` : `${post.readingTime} min read`}</span>
+                <span style={{ fontSize: '0.8rem', color: '#888' }}>
+                  · {lang === 'ar' ? `${post.readingTime} دقائق قراءة` : `${post.readingTime} min read`}
+                </span>
               )}
               {post.contentType && post.contentType !== 'GUIDE' && (
                 <span style={{ background: '#f0f0f0', padding: '2px 10px', borderRadius: 12, fontSize: '0.75rem' }}>{post.contentType}</span>
               )}
             </div>
+
+            {/* Title */}
+            <h1 style={{ fontSize: 'clamp(1.5rem, 4vw, 2.25rem)', fontWeight: 800, lineHeight: 1.25, color: '#1a1a1a', marginBottom: 24 }}>
+              {t.title}
+            </h1>
 
             {/* Featured image */}
             {post.featuredImage && (
@@ -316,7 +318,7 @@ export default async function BlogPostPage({ params }) {
               dangerouslySetInnerHTML={{ __html: t.content || '' }}
             />
 
-            {/* ── Structured sections ────────────────────────────────── */}
+            {/* ── Structured sections ──────────────────────────────── */}
             {post.sections?.length > 0 && (
               <div style={{ marginTop: 40 }}>
                 {post.sections.map(section => {
@@ -382,7 +384,7 @@ export default async function BlogPostPage({ params }) {
               </div>
             )}
 
-            {/* ── FAQ accordion ─────────────────────────────────────── */}
+            {/* ── FAQ accordion ────────────────────────────────────── */}
             {faqItems.length > 0 && (
               <section style={{ marginTop: 48 }}>
                 <h2 style={{ fontSize: '1.4rem', fontWeight: 700, marginBottom: 20, color: '#1a1a1a' }}>
@@ -400,7 +402,7 @@ export default async function BlogPostPage({ params }) {
               </section>
             )}
 
-            {/* ── Tags ──────────────────────────────────────────────── */}
+            {/* ── Tags ─────────────────────────────────────────────── */}
             {post.tags.length > 0 && (
               <div style={{ marginTop: 36, display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                 {post.tags.map(pt => (
@@ -440,7 +442,7 @@ export default async function BlogPostPage({ params }) {
             )}
           </article>
 
-          {/* ── Sidebar: Linked Stores ─────────────────────────────── */}
+          {/* ── Sidebar: Linked Stores ────────────────────────────────── */}
           {hasLinkedStores && (
             <aside style={{ position: 'sticky', top: '2rem' }}>
               <div style={{ background: '#fff', border: '1px solid #e5e5e5', borderRadius: 12, padding: '20px' }}>
