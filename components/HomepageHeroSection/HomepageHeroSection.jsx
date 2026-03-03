@@ -196,11 +196,11 @@ export default function HomepageHeroSection({
                     : <div className="hhs-list-thumb-fallback" />
                   }
                   {/* bigLogo badge over thumb */}
-                  {s.bigLogo && (
+                  {/*{s.bigLogo && (
                     <div className="hhs-list-thumb-logo">
                       <Image src={s.bigLogo} alt="" fill style={{ objectFit: 'contain' }} />
                     </div>
-                  )}
+                  )}*/}
                 </div>
               </button>
             ))}
