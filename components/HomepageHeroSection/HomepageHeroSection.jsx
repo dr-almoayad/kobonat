@@ -252,7 +252,7 @@ export default function HomepageHeroSection({
                   <div className="hhs-lb-store">
                     <div className="hhs-lb-logo">
                       {logo
-                        ? <Image src={logo} alt={name} width={26} height={26} style={{ objectFit: 'contain' }} />
+                        ? <Image src={logo} alt={name} width={50} height={50} style={{ objectFit: 'cover' }} />
                         : <span className="hhs-lb-init">{name.charAt(0)}</span>
                       }
                     </div>
