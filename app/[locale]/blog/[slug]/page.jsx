@@ -8,6 +8,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import BlogCard from '@/components/blog/BlogCard';
 import BlogPostStructuredData from '@/components/StructuredData/BlogPostStructuredData';
+import RelatedPostsSidebar from '@/components/blog/RelatedPostsSidebar';
 
 export const dynamicParams = true;
 
@@ -127,12 +128,11 @@ async function getPost(slug, lang) {
       },
 
       // ── Editorial related posts ──────────────────────────────────────
-      // FIX: `where` is NOT allowed inside `include` for to-one relations.
-      // Removed `where: { status: 'PUBLISHED' }` from here — status is now
-      // checked in JavaScript after the query (see explicitRelated filter below).
+      // NOTE: `where` is NOT allowed inside `include` for to-one relations in Prisma.
+      // Status filtering is done in JavaScript below instead.
       relatedPosts: {
         orderBy: { order: 'asc' },
-        take:    3,
+        take:    4,
         include: {
           relatedPost: {
             include: {
@@ -167,9 +167,8 @@ export default async function BlogPostPage({ params }) {
     ? new Intl.DateTimeFormat(locale, { year: 'numeric', month: 'long', day: 'numeric' }).format(new Date(post.publishedAt))
     : '';
 
-  // ── Related posts: use explicit overrides, fall back to tag/category ──────
-  // FIX: status check moved here from the Prisma query (to-one relations don't
-  // support `where` inside `include` — Prisma throws PrismaClientValidationError).
+  // ── Related posts ────────────────────────────────────────────────────────
+  // FIX: `where` on to-one relations crashes Prisma — status checked in JS here.
   const explicitRelated = post.relatedPosts
     .filter(rp => rp.relatedPost && rp.relatedPost.status === 'PUBLISHED')
     .map(rp => {
@@ -186,10 +185,10 @@ export default async function BlogPostPage({ params }) {
     });
 
   let relatedPosts = explicitRelated;
-  if (relatedPosts.length < 3) {
+  if (relatedPosts.length < 4) {
     const tagIds      = post.tags.map(pt => pt.tagId);
     const catId       = post.categoryId;
-    const needed      = 3 - relatedPosts.length;
+    const needed      = 4 - relatedPosts.length;
     const existingIds = [post.id, ...relatedPosts.map(r => r.id)];
     const fallback = await prisma.blogPost.findMany({
       where: {
@@ -240,6 +239,8 @@ export default async function BlogPostPage({ params }) {
   };
 
   const hasLinkedStores = post.linkedStores?.length > 0;
+  const hasRelated      = relatedPosts.length > 0;
+  const hasSidebar      = hasLinkedStores || hasRelated;
 
   return (
     <>
@@ -262,8 +263,13 @@ export default async function BlogPostPage({ params }) {
           )}
         </nav>
 
-        {/* ── Two-column layout (article + sidebar) ────────────────────── */}
-        <div style={{ display: 'grid', gridTemplateColumns: hasLinkedStores ? '1fr 260px' : '1fr', gap: 40, alignItems: 'start' }}>
+        {/* ── Two-column layout ────────────────────────────────────────── */}
+        <div style={{
+          display:             'grid',
+          gridTemplateColumns: hasSidebar ? '1fr 300px' : '1fr',
+          gap:                 48,
+          alignItems:          'start',
+        }}>
 
           {/* ── ARTICLE ──────────────────────────────────────────────── */}
           <article>
@@ -344,7 +350,7 @@ export default async function BlogPostPage({ params }) {
                             const pt = sp.product?.translations?.[0] || {};
                             return (
                               <a key={sp.productId} href={sp.product?.productUrl || '#'} target="_blank" rel="nofollow noopener"
-                                style={{ display: 'block', border: '1px solid #e5e5e5', borderRadius: 10, overflow: 'hidden', textDecoration: 'none', color: '#333', transition: 'box-shadow 0.2s' }}>
+                                style={{ display: 'block', border: '1px solid #e5e5e5', borderRadius: 10, overflow: 'hidden', textDecoration: 'none', color: '#333' }}>
                                 {sp.product?.image && (
                                   <div style={{ aspectRatio: '1', overflow: 'hidden', position: 'relative' }}>
                                     <Image src={sp.product.image} alt={pt.title || ''} fill style={{ objectFit: 'cover' }} sizes="200px" />
@@ -426,45 +432,41 @@ export default async function BlogPostPage({ params }) {
                 </div>
               </div>
             )}
-
-            {/* ── Related posts ─────────────────────────────────────── */}
-            {relatedPosts.length > 0 && (
-              <section style={{ marginTop: 64 }}>
-                <h2 style={{ fontSize: '1.3rem', fontWeight: 700, marginBottom: 24, color: '#1a1a1a' }}>
-                  {lang === 'ar' ? 'مقالات ذات صلة' : 'Related Articles'}
-                </h2>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 20 }}>
-                  {relatedPosts.map(rPost => (
-                    <BlogCard key={rPost.id} post={rPost} locale={locale} variant="default" />
-                  ))}
-                </div>
-              </section>
-            )}
           </article>
 
-          {/* ── Sidebar: Linked Stores ────────────────────────────────── */}
-          {hasLinkedStores && (
-            <aside style={{ position: 'sticky', top: '2rem' }}>
-              <div style={{ background: '#fff', border: '1px solid #e5e5e5', borderRadius: 12, padding: '20px' }}>
-                <h3 style={{ margin: '0 0 16px', fontSize: '0.9rem', fontWeight: 700, color: '#1a1a1a', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                  {lang === 'ar' ? 'المتاجر في هذا المقال' : 'Stores in this article'}
-                </h3>
-                {post.linkedStores.map(ls => {
-                  const st = ls.store?.translations?.[0] || {};
-                  const activeVouchers = ls.store?._count?.vouchers ?? 0;
-                  return (
-                    <Link key={ls.storeId} href={`/${locale}/stores/${st.slug || ls.storeId}`}
-                      style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid #f0f0f0', textDecoration: 'none', color: '#333' }}>
-                      <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>{st.name || `Store #${ls.storeId}`}</span>
-                      {activeVouchers > 0 && (
-                        <span style={{ background: '#dcfce7', color: '#166534', padding: '2px 10px', borderRadius: 12, fontSize: '0.72rem', fontWeight: 600 }}>
-                          {activeVouchers} {lang === 'ar' ? 'كود' : 'codes'}
-                        </span>
-                      )}
-                    </Link>
-                  );
-                })}
-              </div>
+          {/* ── RIGHT SIDEBAR ─────────────────────────────────────────── */}
+          {hasSidebar && (
+            <aside style={{ position: 'sticky', top: '2rem', display: 'flex', flexDirection: 'column', gap: 32 }}>
+
+              {/* Linked Stores widget */}
+              {hasLinkedStores && (
+                <div style={{ background: '#fff', border: '1px solid #e5e5e5', borderRadius: 12, padding: '20px' }}>
+                  <h3 style={{ margin: '0 0 16px', fontSize: '0.9rem', fontWeight: 700, color: '#1a1a1a', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                    {lang === 'ar' ? 'المتاجر في هذا المقال' : 'Stores in this article'}
+                  </h3>
+                  {post.linkedStores.map(ls => {
+                    const st = ls.store?.translations?.[0] || {};
+                    const activeVouchers = ls.store?._count?.vouchers ?? 0;
+                    return (
+                      <Link key={ls.storeId} href={`/${locale}/stores/${st.slug || ls.storeId}`}
+                        style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid #f0f0f0', textDecoration: 'none', color: '#333' }}>
+                        <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>{st.name || `Store #${ls.storeId}`}</span>
+                        {activeVouchers > 0 && (
+                          <span style={{ background: '#dcfce7', color: '#166534', padding: '2px 10px', borderRadius: 12, fontSize: '0.72rem', fontWeight: 600 }}>
+                            {activeVouchers} {lang === 'ar' ? 'كود' : 'codes'}
+                          </span>
+                        )}
+                      </Link>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Related Posts — styled to match screenshot layout */}
+              {hasRelated && (
+                <RelatedPostsSidebar posts={relatedPosts} locale={locale} />
+              )}
+
             </aside>
           )}
 
