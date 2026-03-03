@@ -213,7 +213,7 @@ export default function HomepageHeroSection({
         ══════════════════════════════════════════════════ */}
         <div className="hhs-panel hhs-panel--lb">
           <div className="hhs-lb-header">
-            <span class="material-symbols-sharp">social_leaderboard</span>
+            <span class="material-symbols-sharp">leaderboard</span>
             <span className="hhs-lb-title">{L.leaderboard} {L.week}</span>
             {/*<Link href={`/${locale}/leaderboard`} className="hhs-viewall">{L.viewAll} →</Link>*/}
           </div>
