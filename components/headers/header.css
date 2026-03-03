@@ -93,7 +93,9 @@ header {
   transition: all 0.2s ease;
   font-family: 'Alexandria', 'Open Sans', sans-serif;
   -webkit-font-smoothing: antialiased;
-  padding: 0.4rem 0.9rem;
+  padding: 0.5rem 0.9rem;
+  border-radius: 25px;
+  overflow: hidden;
   position: relative;
   white-space: nowrap;
 }
