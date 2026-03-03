@@ -246,6 +246,7 @@
 .hhs-info-section {
    height: 30%;
   display: flex;
+   flex-direction: column;
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
@@ -685,7 +686,6 @@
 
 @media (max-width: 600px) {
   .hhs-grid  { grid-template-columns: 1fr; }
-  .hhs-panel--hero,
   .hhs-panel--list,
   .hhs-panel--lb   { grid-column: 1; }
   .hhs-cards-row   { gap: 6px; padding: 0 0.75rem; }
