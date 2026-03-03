@@ -244,9 +244,9 @@ export default async function Home({ params }) {
         )}
 
         {/* Brands Ticker */}
-        {transformedBrands.length > 0 && (
+        {/*{transformedBrands.length > 0 && (
           <BrandsCarousel brands={transformedBrands} />
-        )}
+        )}*/}
 
         {/* Curated Offers */}
         <CuratedOffersSection locale={locale} countryCode={countryCode || 'SA'} />
