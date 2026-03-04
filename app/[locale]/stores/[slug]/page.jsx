@@ -1,4 +1,4 @@
-// app/[locale]/stores/[slug]/page.jsx - FULLY SEO OPTIMIZED WITH FAQ
+// app/[locale]/stores/[slug]/page.jsx - FULLY SEO OPTIMIZED WITH FAQ + SIDEBAR
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import { getTranslations } from 'next-intl/server';
@@ -14,9 +14,13 @@ import FAQStructuredData from "@/components/StructuredData/FAQStructuredData";
 import StoreStructuredData from "@/components/StructuredData/StoreStructuredData";
 import Breadcrumbs from "@/components/Breadcrumbs/Breadcrumbs";
 import PromoCodesFAQ from "@/components/PromoCodesFAQ/PromoCodesFAQ";
+import StoreLeaderboardSidebar from "@/components/leaderboard/StoreLeaderboardSidebar";
+import RelatedPostsSidebar from "@/components/blog/RelatedPostsSidebar";
 import { getCategoryData, getCountryCategories } from "@/lib/storeCategories";
 import { getStoresData, getStoreData } from "@/lib/stores";
+import { getStoreRelatedPosts } from "@/app/admin/_lib/queries";
 import { generateEnhancedStoreMetadata, generateEnhancedCategoryMetadata } from "@/lib/seo/generateStoreMetadata";
+import { getCurrentWeekIdentifier } from "@/lib/leaderboard/calculateStoreSavings";
 import HelpBox from "@/components/help/HelpBox";
 import "./store-page.css";
 import "./stores-page.css";
@@ -29,10 +33,8 @@ export async function generateMetadata({ params }) {
   try {
     const { slug, locale } = await params;
     const [language, countryCode] = locale.split('-');
-
     const isArabic = language === 'ar';
 
-    // Get country data
     const country = await prisma.country.findUnique({
       where: { code: countryCode, isActive: true },
       include: { translations: { where: { locale: language } } }
@@ -42,77 +44,37 @@ export async function generateMetadata({ params }) {
     const category = await getCategoryData(slug, language, countryCode);
     if (category) {
       const categoryTranslation = category.translations[0];
-      
-      // Check if custom SEO fields exist - PRIORITIZE CUSTOM SEO
+
       if (categoryTranslation?.seoTitle || categoryTranslation?.seoDescription) {
         const categoryName = categoryTranslation?.name || 'Category';
-        
         return {
           metadataBase: new URL(BASE_URL),
-icons: {
-  icon: [
-    { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
-    { url: '/favicon-96x96.png', sizes: '96x96', type: 'image/png' },
-  ],
-  apple: [{ url: '/apple-touch-icon.png', sizes: '180x180' }],
-},
+          icons: {
+            icon: [
+              { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+              { url: '/favicon-96x96.png', sizes: '96x96', type: 'image/png' },
+            ],
+            apple: [{ url: '/apple-touch-icon.png', sizes: '180x180' }],
+          },
           title: categoryTranslation.seoTitle || categoryName,
           description: categoryTranslation.seoDescription || categoryTranslation?.description || '',
           openGraph: {
             siteName: isArabic ? 'كوبونات' : 'Cobonat',
             title: categoryTranslation.seoTitle || categoryName,
-            description: categoryTranslation.seoDescription || categoryTranslation?.description || '',
+            description: categoryTranslation.seoDescription || '',
             type: 'website',
-            locale: locale,
+            locale,
             url: `${BASE_URL}/${locale}/stores/${slug}`,
-            images: [
-              {
-                url: `${BASE_URL}/logo-512x512.png`,
-                width: 512,
-                height: 512,
-                alt: 'Cobonat Logo',
-              }
-            ], 
           },
-          twitter: {
-            card: 'summary_large_image',
-            title: categoryTranslation.seoTitle || categoryName,
-            description: categoryTranslation.seoDescription || categoryTranslation?.description || '',
-            images: category.image ? [category.image] : [],
-          },
-          alternates: {
-            canonical: `${BASE_URL}/${locale}/stores/${slug}`,
-            languages: {
-              'ar-SA': `${BASE_URL}/ar-SA/stores/${slug}`,
-              'en-SA': `${BASE_URL}/en-SA/stores/${slug}`,
-              'x-default': `${BASE_URL}/ar-SA/stores/${slug}`,
-            },
-          }
         };
       }
-      
-      // Fallback to generated metadata if no custom SEO
-      const stores = await getStoresData({ 
-        language, 
-        countryCode, 
-        categoryId: category.id 
-      });
-      
+
+      const stores = await getStoresData({ language, countryCode, categoryId: category.id });
       const voucherCount = stores.reduce((sum, s) => sum + s.activeVouchersCount, 0);
-      
       return generateEnhancedCategoryMetadata({
-        category: {
-          ...category,
-          name: categoryTranslation?.name || 'Category',
-          description: categoryTranslation?.description || '',
-          slug
-        },
-        locale,
-        storeCount: stores.length,
-        voucherCount,
-        country: country ? {
-          name: country.translations[0]?.name || country.code
-        } : null
+        category: { ...category, name: categoryTranslation?.name || 'Category', description: categoryTranslation?.description || '', slug },
+        locale, storeCount: stores.length, voucherCount,
+        country: country ? { name: country.translations[0]?.name || country.code } : null
       });
     }
 
@@ -120,184 +82,83 @@ icons: {
     const store = await getStoreData(slug, language, countryCode);
     if (store) {
       const storeTranslation = store.translations[0];
-      
-      // Check if custom SEO fields exist - PRIORITIZE CUSTOM SEO
       if (storeTranslation?.seoTitle || storeTranslation?.seoDescription) {
         const storeName = storeTranslation?.name || slug;
-        
         return {
           metadataBase: new URL(BASE_URL),
-icons: {
-  icon: [
-    { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
-    { url: '/favicon-96x96.png', sizes: '96x96', type: 'image/png' },
-  ],
-  apple: [{ url: '/apple-touch-icon.png', sizes: '180x180' }],
-},
+          icons: {
+            icon: [
+              { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+              { url: '/favicon-96x96.png', sizes: '96x96', type: 'image/png' },
+            ],
+            apple: [{ url: '/apple-touch-icon.png', sizes: '180x180' }],
+          },
           title: storeTranslation.seoTitle || storeName,
           description: storeTranslation.seoDescription || storeTranslation?.description || `Find the best coupons and deals for ${storeName}`,
           openGraph: {
             siteName: isArabic ? 'كوبونات' : 'Cobonat',
             title: storeTranslation.seoTitle || storeName,
             description: storeTranslation.seoDescription || storeTranslation?.description || '',
-            type: 'website',
-            locale: locale,
-            url: `${BASE_URL}/${locale}/stores/${slug}`,
-            images: [
-              ...(store.coverImage ? [{
-                url: store.coverImage,
-                width: 1200,
-                height: 630,
-                alt: storeName,
-              }] : []),
-              ...(store.logo ? [{
-                url: store.logo,
-                width: 800,
-                height: 600,
-                alt: `${storeName} logo`,
-              }] : []),
-            ],
+            type: 'website', locale, url: `${BASE_URL}/${locale}/stores/${slug}`,
+            images: [...(store.coverImage ? [{ url: store.coverImage, width: 1200, height: 630 }] : [])],
           },
-          twitter: {
-            card: 'summary_large_image',
-            title: storeTranslation.seoTitle || storeName,
-            description: storeTranslation.seoDescription || storeTranslation?.description || '',
-            images: store.coverImage ? [store.coverImage] : (store.logo ? [store.logo] : []),
-          },
-          alternates: {
-            canonical: `${BASE_URL}/${locale}/stores/${slug}`,
-            languages: {
-              'ar-SA': `${BASE_URL}/ar-SA/stores/${slug}`,
-              'en-SA': `${BASE_URL}/en-SA/stores/${slug}`,
-              'x-default': `${BASE_URL}/ar-SA/stores/${slug}`,
-            },
-          }
         };
       }
-
-      // Fallback to generated metadata if no custom SEO
-      const voucherCount = await prisma.voucher.count({
-        where: {
-          storeId: store.id,
-          AND: [
-            {
-              OR: [
-                { expiryDate: null },
-                { expiryDate: { gte: new Date() } }
-              ]
-            },
-            {
-              countries: {
-                some: { country: { code: countryCode } }
-              }
-            }
-          ]
-        }
-      });
-
-      return generateEnhancedStoreMetadata({
-        store: {
-          ...store,
-          name: storeTranslation?.name || slug,
-          description: storeTranslation?.description || '',
-          slug
-        },
-        locale,
-        voucherCount,
-        categories: store.categories.map(sc => ({
-          name: sc.category.translations[0]?.name || ''
-        })),
-        country: country ? {
-          name: country.translations[0]?.name || country.code
-        } : null
-      });
+      return generateEnhancedStoreMetadata({ store, locale, country: country ? { name: country.translations[0]?.name || country.code } : null });
     }
 
-    return { title: "Not Found" };
+    return {};
   } catch (error) {
-    console.error('Metadata generation error:', error);
-    return { title: "Error" };
+    console.error('[generateMetadata] error:', error);
+    return {};
   }
 }
 
-export default async function UnifiedStorePage({ params }) {
+export default async function StorePage({ params }) {
   try {
     const { slug, locale } = await params;
     const [language, countryCode] = locale.split('-');
-    
-    const t = await getTranslations('StoresPage');
     const tStore = await getTranslations('StorePage');
+    const t      = await getTranslations('StoresPage');
+    const currentWeek = getCurrentWeekIdentifier();
 
-    // Try as category first
-    const categoryData = await getCategoryData(slug, language, countryCode);
-
-    if (categoryData) {
-      const stores = await getStoresData({ 
-        language, 
-        countryCode, 
-        categoryId: categoryData.id 
-      });
-
-      const featuredStoresWithCovers = stores.filter(s => 
-        s.isFeatured && s.coverImage
-      ).slice(0, 6);
-
-      const carouselStores = featuredStoresWithCovers.map(store => ({
-        id: store.id,
-        image: store.coverImage,
-        name: store.name,
-        logo: store.logo,
-      }));
-
-      const featuredStores = stores.filter(s => s.isFeatured);
-      const regularStores = stores.filter(s => !s.isFeatured);
-      const translation = categoryData.translations[0];
+    // ── Try as category ───────────────────────────────────────────────────
+    const category = await getCategoryData(slug, language, countryCode);
+    if (category) {
+      const translation  = category.translations[0];
+      const stores       = await getStoresData({ language, countryCode, categoryId: category.id });
       const totalVouchers = stores.reduce((sum, s) => sum + s.activeVouchersCount, 0);
+      const featuredStores = stores.filter(s => s.isFeatured);
+      const regularStores  = stores.filter(s => !s.isFeatured);
 
-      // Build breadcrumbs
+      const carouselStores = stores
+        .filter(s => s.coverImage)
+        .slice(0, 8)
+        .map(s => ({ id: s.id, image: s.coverImage, name: s.name, logo: s.logo }));
+
       const breadcrumbs = [
-        {
-          name: language === 'ar' ? 'الرئيسية' : 'Home',
-          url: `${BASE_URL}/${locale}`
-        },
-        {
-          name: language === 'ar' ? 'المتاجر' : 'Stores',
-          url: `${BASE_URL}/${locale}/stores`
-        },
-        {
-          name: translation?.name || 'Category',
-          url: `${BASE_URL}/${locale}/stores/${slug}`
-        }
+        { name: language === 'ar' ? 'الرئيسية' : 'Home', url: `${BASE_URL}/${locale}` },
+        { name: language === 'ar' ? 'المتاجر' : 'Stores', url: `${BASE_URL}/${locale}/stores` },
+        { name: translation?.name || 'Category', url: `${BASE_URL}/${locale}/stores/${slug}` },
       ];
 
       return (
         <div className="stores_page">
           <Breadcrumbs items={breadcrumbs} locale={locale} />
-
           {carouselStores.length > 0 && (
             <div className="category-hero-section">
-              <HeroCarousel 
-                images={carouselStores}
-                locale={locale}
-                height="320px"
-                autoplayDelay={3500}
-              />
+              <HeroCarousel images={carouselStores} locale={locale} height="320px" autoplayDelay={3500} />
             </div>
           )}
-
           <div className="stores_page_header">
             <div className="stores_page_header_container">
               <div className="stores_page_title_section">
                 <div className="stores_page_icon">
-                  <span className="material-symbols-sharp">
-                    {categoryData.icon || 'category'}
-                  </span>
+                  <span className="material-symbols-sharp">{category.icon || 'category'}</span>
                 </div>
                 <div className="stores_info">
                   <h1>{translation?.name || 'Category'}</h1>
-                  {translation?.description && (
-                    <p className="category_description">{translation.description}</p>
-                  )}
+                  {translation?.description && <p className="category_description">{translation.description}</p>}
                   <p className="stores_stats">
                     <span className="stat_item">
                       <span className="material-symbols-sharp">store</span>
@@ -315,234 +176,201 @@ export default async function UnifiedStorePage({ params }) {
               </div>
             </div>
           </div>
-
           <main>
             {featuredStores.length > 0 && (
               <section className="featured_stores_section">
                 <div className="section_header">
-                  <h2>
-                    <span className="material-symbols-sharp">star</span>
-                    {t('featuredStores')}
-                  </h2>
-                  <span className="section_count">
-                    {t('count', { count: featuredStores.length })}
-                  </span>
+                  <h2><span className="material-symbols-sharp">star</span>{t('featuredStores')}</h2>
+                  <span className="section_count">{t('count', { count: featuredStores.length })}</span>
                 </div>
                 <StoresGrid stores={featuredStores} locale={locale} />
               </section>
             )}
-
             <section className="all_stores_section">
               <div className="section_header">
-                <h2>
-                  {featuredStores.length > 0 ? t('otherStores') : t('allStores')}
-                </h2>
-                <span className="section_count">
-                  {t('count', { count: regularStores.length })}
-                </span>
+                <h2>{featuredStores.length > 0 ? t('otherStores') : t('allStores')}</h2>
+                <span className="section_count">{t('count', { count: regularStores.length })}</span>
               </div>
-              <StoresGrid 
-                stores={featuredStores.length > 0 ? regularStores : stores} 
-                locale={locale} 
-              />
+              <StoresGrid stores={featuredStores.length > 0 ? regularStores : stores} locale={locale} />
             </section>
-
-            {/* Promo Codes FAQ - Category Pages */}
-            <section className="promo-faq-section">
-              <PromoCodesFAQ />
-            </section>
+            <section className="promo-faq-section"><PromoCodesFAQ /></section>
           </main>
-          
-          <HelpBox locale={locale}/>
+          <HelpBox locale={locale} />
         </div>
       );
     }
 
-    // Try as store
+    // ── Try as store ──────────────────────────────────────────────────────
     const store = await getStoreData(slug, language, countryCode);
 
     if (store) {
       const country = await prisma.country.findUnique({
         where: { code: countryCode, isActive: true },
-        include: {
-          translations: {
-            where: { locale: language }
-          }
-        }
+        include: { translations: { where: { locale: language } } }
       });
-
       if (!country) return notFound();
 
       const storeTranslation = store.translations[0];
       const transformedStore = {
         ...store,
-        name: storeTranslation?.name || slug,
-        slug: storeTranslation?.slug || slug,
+        name:        storeTranslation?.name        || slug,
+        slug:        storeTranslation?.slug        || slug,
         description: storeTranslation?.description || null,
-        coverImage: store.coverImage,
-        categories: store.categories.map(sc => ({
-          id: sc.category.id,
-          name: sc.category.translations[0]?.name || '',
-          slug: sc.category.translations[0]?.slug || '',
-          icon: sc.category.icon,
-          color: sc.category.color
-        }))
+        coverImage:  store.coverImage,
+        categories:  store.categories.map(sc => ({
+          id:    sc.category.id,
+          name:  sc.category.translations[0]?.name || '',
+          slug:  sc.category.translations[0]?.slug || '',
+          icon:  sc.category.icon,
+          color: sc.category.color,
+        })),
       };
 
-      const vouchers = await prisma.voucher.findMany({
-        where: {
-          storeId: store.id,
-          AND: [
-            {
-              OR: [
-                { expiryDate: null },
-                { expiryDate: { gte: new Date() } }
-              ]
-            },
-            {
-              countries: {
-                some: { country: { code: countryCode } }
-              }
-            }
-          ]
-        },
-        include: {
-          translations: { where: { locale: language } },
-          _count: { select: { clicks: true } }
-        },
-        orderBy: [
-          { isExclusive: 'desc' },
-          { isVerified: 'desc' },
-          { popularityScore: 'desc' }
-        ]
-      });
+      // ── Parallel data fetch ───────────────────────────────────────────
+      const [
+        vouchers,
+        paymentMethodsData,
+        faqs,
+        relatedStores,
+        storeProducts,
+        leaderboardSnapshots,
+        relatedPostsRaw,
+      ] = await Promise.all([
 
+        // 1. Vouchers
+        prisma.voucher.findMany({
+          where: {
+            storeId: store.id,
+            AND: [
+              { OR: [{ expiryDate: null }, { expiryDate: { gte: new Date() } }] },
+              { countries: { some: { country: { code: countryCode } } } },
+            ],
+          },
+          include: {
+            translations:  { where: { locale: language } },
+            _count: { select: { clicks: true } },
+          },
+          orderBy: [{ isExclusive: 'desc' }, { isVerified: 'desc' }, { popularityScore: 'desc' }],
+        }),
+
+        // 2. Payment methods
+        prisma.storePaymentMethod.findMany({
+          where: { storeId: store.id, countryId: country.id },
+          include: {
+            paymentMethod: { include: { translations: { where: { locale: language } } } },
+          },
+        }),
+
+        // 3. FAQs
+        prisma.storeFAQ.findMany({
+          where: { storeId: store.id, countryId: country.id, isActive: true },
+          include: { translations: { where: { locale: language } } },
+          orderBy: { order: 'asc' },
+        }),
+
+        // 4. Related stores (same category)
+        prisma.store.findMany({
+          where: {
+            id: { not: store.id },
+            isActive: true,
+            countries: { some: { country: { code: countryCode } } },
+            categories: { some: { categoryId: { in: store.categories.map(sc => sc.categoryId) } } },
+          },
+          include: {
+            translations: { where: { locale: language } },
+            _count: { select: { vouchers: { where: { expiryDate: { gte: new Date() } } } } },
+          },
+          take: 6,
+          orderBy: { isFeatured: 'desc' },
+        }),
+
+        // 5. Featured products
+        prisma.storeProduct.findMany({
+          where: { storeId: store.id, isFeatured: true },
+          select: {
+            id: true, image: true, productUrl: true,
+            discountValue: true, discountType: true,
+            translations: { where: { locale: language }, select: { title: true } },
+          },
+          orderBy: { order: 'asc' },
+          take: 12,
+        }),
+
+        // 6. ── NEW: Global leaderboard top 10 for current week ──
+        prisma.storeSavingsSnapshot.findMany({
+          where: { weekIdentifier: currentWeek, categoryId: null },
+          orderBy: { rank: 'asc' },
+          take: 10,
+          select: {
+            id: true, rank: true, previousRank: true, movement: true,
+            calculatedMaxSavingsPercent: true, savingsOverridePercent: true,
+            store: {
+              select: {
+                id: true, logo: true, bigLogo: true,
+                translations: { where: { locale: language }, select: { name: true, slug: true } },
+              },
+            },
+          },
+        }),
+
+        // 7. ── NEW: Blog posts related to this store ──
+        getStoreRelatedPosts(store.id, language, 4),
+      ]);
+
+      // ── Transform data ────────────────────────────────────────────────
       const transformedVouchers = vouchers.map(v => ({
         ...v,
-        title: v.translations[0]?.title || '',
+        title:       v.translations[0]?.title       || '',
         description: v.translations[0]?.description || null,
-        store: transformedStore
+        store:       transformedStore,
       }));
-
-      const paymentMethodsData = await prisma.storePaymentMethod.findMany({
-        where: {
-          storeId: store.id,
-          countryId: country.id
-        },
-        include: {
-          paymentMethod: {
-            include: {
-              translations: { where: { locale: language } }
-            }
-          }
-        }
-      });
 
       const allPaymentMethods = paymentMethodsData.map(spm => ({
         ...spm.paymentMethod,
-        name: spm.paymentMethod.translations[0]?.name || '',
-        description: spm.paymentMethod.translations[0]?.description || null
+        name:        spm.paymentMethod.translations[0]?.name        || '',
+        description: spm.paymentMethod.translations[0]?.description || null,
       }));
-
-      const bnplMethods = allPaymentMethods.filter(pm => pm.isBnpl);
+      const bnplMethods         = allPaymentMethods.filter(pm => pm.isBnpl);
       const otherPaymentMethods = allPaymentMethods.filter(pm => !pm.isBnpl);
-      const mostTrackedVoucher = transformedVouchers[0] || null;
-
-      const faqs = await prisma.storeFAQ.findMany({
-        where: {
-          storeId: store.id,
-          countryId: country.id,
-          isActive: true
-        },
-        include: {
-          translations: { where: { locale: language } }
-        },
-        orderBy: { order: 'asc' }
-      });
-
-      const relatedStores = await prisma.store.findMany({
-        where: {
-          id: { not: store.id },
-          isActive: true,
-          countries: {
-            some: { country: { code: countryCode } }
-          },
-          categories: {
-            some: {
-              categoryId: { in: store.categories.map(sc => sc.categoryId) }
-            }
-          }
-        },
-        include: {
-          translations: { where: { locale: language } },
-          _count: {
-            select: {
-              vouchers: { where: { expiryDate: { gte: new Date() } } }
-            }
-          }
-        },
-        take: 6,
-        orderBy: { isFeatured: 'desc' }
-      });
+      const mostTrackedVoucher  = transformedVouchers[0] || null;
 
       const transformedRelatedStores = relatedStores.map(s => ({
         ...s,
         name: s.translations[0]?.name || '',
-        slug: s.translations[0]?.slug || ''
+        slug: s.translations[0]?.slug || '',
       }));
-
-      const storeProducts = await prisma.storeProduct.findMany({
-        where: {
-          storeId: store.id,
-          isFeatured: true
-        },
-        select: {
-          id: true,
-          image: true,
-          productUrl: true,
-          discountValue: true,
-          discountType: true,
-          translations: {
-            where: { locale: language },
-            select: {
-              title: true
-            }
-          }
-        },
-        orderBy: { order: 'asc' },
-        take: 12
-      });
 
       const transformedProducts = storeProducts.map(p => ({
-        id: p.id,
-        image: p.image,
-        title: p.translations[0]?.title || '',
-        price: p.price,
-        originalPrice: p.originalPrice,
-        productUrl: p.productUrl,
+        id: p.id, image: p.image,
+        title:         p.translations[0]?.title || '',
+        productUrl:    p.productUrl,
         discountValue: p.discountValue,
-        discountType: p.discountType
+        discountType:  p.discountType,
       }));
 
-      const codeVouchers = transformedVouchers.filter(v => v.type === 'CODE');
-      const dealVouchers = transformedVouchers.filter(v => v.type === 'DEAL');
-      const shippingVouchers = transformedVouchers.filter(v => v.type === 'FREE_SHIPPING');
-      const countryName = country.translations[0]?.name || country.code;
+      // Transform related posts into the shape RelatedPostsSidebar expects
+      const relatedPosts = relatedPostsRaw.map(post => ({
+        id:            post.id,
+        slug:          post.slug,
+        title:         post.translations?.[0]?.title         || '',
+        excerpt:       post.translations?.[0]?.excerpt        || null,
+        featuredImage: post.featuredImage                     || null,
+        publishedAt:   post.publishedAt,
+        category: post.category ? {
+          name:  post.category.translations?.[0]?.name  || '',
+          color: post.category.color                     || '#470ae2',
+        } : null,
+      }));
 
-      // Build breadcrumbs for store page
+      const codeVouchers     = transformedVouchers.filter(v => v.type === 'CODE');
+      const dealVouchers     = transformedVouchers.filter(v => v.type === 'DEAL');
+      const shippingVouchers = transformedVouchers.filter(v => v.type === 'FREE_SHIPPING');
+      const countryName      = country.translations[0]?.name || country.code;
+
       const breadcrumbs = [
-        {
-          name: language === 'ar' ? 'الرئيسية' : 'Home',
-          url: `${BASE_URL}/${locale}`
-        },
-        {
-          name: language === 'ar' ? 'المتاجر' : 'Stores',
-          url: `${BASE_URL}/${locale}/stores`
-        },
-        {
-          name: transformedStore.name,
-          url: `${BASE_URL}/${locale}/stores/${slug}`
-        }
+        { name: language === 'ar' ? 'الرئيسية' : 'Home',   url: `${BASE_URL}/${locale}` },
+        { name: language === 'ar' ? 'المتاجر'  : 'Stores', url: `${BASE_URL}/${locale}/stores` },
+        { name: transformedStore.name, url: `${BASE_URL}/${locale}/stores/${slug}` },
       ];
 
       const headerProps = {
@@ -556,8 +384,7 @@ export default async function UnifiedStorePage({ params }) {
 
       return (
         <>
-          {/* Comprehensive Structured Data */}
-          <StoreStructuredData 
+          <StoreStructuredData
             store={transformedStore}
             vouchers={transformedVouchers}
             locale={locale}
@@ -565,97 +392,122 @@ export default async function UnifiedStorePage({ params }) {
             breadcrumbs={breadcrumbs}
           />
           <FAQStructuredData faqs={faqs} locale={locale} />
-          
+
           <div className="store-page-layout">
             <Breadcrumbs items={breadcrumbs} locale={locale} />
             <StorePageShell {...headerProps} />
 
-            <main className="store-main-content">
-              
-              {codeVouchers.length > 0 && (
-                <section className="vouchers-section">
-                  <h2 className="section-title">
-                    <span className="material-symbols-sharp">local_offer</span>
-                    {tStore('couponCodes')}
-                  </h2>
-                  <VouchersGrid vouchers={codeVouchers} hideStoreBranding={true} />
-                </section>
-              )}
+            {/* ── 2-column wrapper ── */}
+            <div className="store-main-content">
+              <div className="store-content-grid">
 
-              {dealVouchers.length > 0 && (
-                <section className="vouchers-section">
-                  <h2 className="section-title">
-                    <span className="material-symbols-sharp">shopping_bag</span>
-                    {tStore('deals')}
-                  </h2>
-                  <VouchersGrid vouchers={dealVouchers} hideStoreBranding={true} />
-                </section>
-              )}
+                {/* ════ MAIN COLUMN ════ */}
+                <main className="store-content-main">
 
-              {shippingVouchers.length > 0 && (
-                <section className="vouchers-section">
-                  <h2 className="section-title">
-                    <span className="material-symbols-sharp">local_shipping</span>
-                    {tStore('freeShipping')}
-                  </h2>
-                  <VouchersGrid vouchers={shippingVouchers} hideStoreBranding={true} />
-                </section>
-              )}
+                  {codeVouchers.length > 0 && (
+                    <section className="vouchers-section">
+                      <h2 className="section-title">
+                        <span className="material-symbols-sharp">local_offer</span>
+                        {tStore('couponCodes')}
+                      </h2>
+                      <VouchersGrid vouchers={codeVouchers} hideStoreBranding={true} />
+                    </section>
+                  )}
 
-              <OtherPromosSection 
-                storeSlug={transformedStore.slug}
-                storeName={transformedStore.name}
-              />
+                  {dealVouchers.length > 0 && (
+                    <section className="vouchers-section">
+                      <h2 className="section-title">
+                        <span className="material-symbols-sharp">shopping_bag</span>
+                        {tStore('deals')}
+                      </h2>
+                      <VouchersGrid vouchers={dealVouchers} hideStoreBranding={true} />
+                    </section>
+                  )}
 
-              {transformedProducts.length > 0 && (
-                <FeaturedProductsCarousel
-                  storeSlug={transformedStore.slug}
-                  storeName={transformedStore.name}
-                  storeLogo={transformedStore.logo}
-                  products={transformedProducts}
-                />
-              )}
+                  {shippingVouchers.length > 0 && (
+                    <section className="vouchers-section">
+                      <h2 className="section-title">
+                        <span className="material-symbols-sharp">local_shipping</span>
+                        {tStore('freeShipping')}
+                      </h2>
+                      <VouchersGrid vouchers={shippingVouchers} hideStoreBranding={true} />
+                    </section>
+                  )}
 
-              {faqs.length > 0 && (
-                <StoreFAQ 
-                  faqs={faqs} 
-                  locale={locale} 
-                  storeName={transformedStore.name}
-                  countryName={countryName}
-                />
-              )}
+                  <OtherPromosSection
+                    storeSlug={transformedStore.slug}
+                    storeName={transformedStore.name}
+                  />
 
-              {transformedRelatedStores.length > 0 && (
-                <section className="related-stores-section">
-                  <h2 className="section-title">
-                    <span className="material-symbols-sharp">storefront</span>
-                    {tStore('similarStores')}
-                  </h2>
-                  <div className="related-stores-grid">
-                    {transformedRelatedStores.map((relatedStore) => (
-                      <StoreCard
-                        key={relatedStore.id} 
-                        store={relatedStore} 
-                      />
-                    ))}
-                  </div>
-                </section>
-              )}
+                  {transformedProducts.length > 0 && (
+                    <FeaturedProductsCarousel
+                      storeSlug={transformedStore.slug}
+                      storeName={transformedStore.name}
+                      storeLogo={transformedStore.logo}
+                      products={transformedProducts}
+                    />
+                  )}
 
-              {/* Promo Codes FAQ - Store Pages */}
-              <section className="promo-faq-section">
-                <PromoCodesFAQ />
-              </section>
-            </main>
+                  {faqs.length > 0 && (
+                    <StoreFAQ
+                      faqs={faqs}
+                      locale={locale}
+                      storeName={transformedStore.name}
+                      countryName={countryName}
+                    />
+                  )}
+
+                  {transformedRelatedStores.length > 0 && (
+                    <section className="related-stores-section">
+                      <h2 className="section-title">
+                        <span className="material-symbols-sharp">storefront</span>
+                        {tStore('similarStores')}
+                      </h2>
+                      <div className="related-stores-grid">
+                        {transformedRelatedStores.map(s => (
+                          <StoreCard key={s.id} store={s} />
+                        ))}
+                      </div>
+                    </section>
+                  )}
+
+                  <section className="promo-faq-section">
+                    <PromoCodesFAQ />
+                  </section>
+                </main>
+
+                {/* ════ SIDEBAR ════ */}
+                <aside className="store-content-sidebar">
+
+                  {/* Leaderboard */}
+                  <StoreLeaderboardSidebar
+                    snapshots={leaderboardSnapshots}
+                    currentStoreId={store.id}
+                    locale={locale}
+                    weekLabel={currentWeek}
+                  />
+
+                  {/* Related blog posts */}
+                  {relatedPosts.length > 0 && (
+                    <RelatedPostsSidebar
+                      posts={relatedPosts}
+                      locale={locale}
+                    />
+                  )}
+
+                </aside>
+
+              </div>{/* /store-content-grid */}
+            </div>{/* /store-main-content */}
+
           </div>
-          
-          <HelpBox locale={locale}/>
+
+          <HelpBox locale={locale} />
         </>
       );
     }
 
     notFound();
-    
   } catch (error) {
     console.error('Page render error:', error);
     throw error;
