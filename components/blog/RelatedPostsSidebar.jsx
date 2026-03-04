@@ -1,180 +1,114 @@
 // components/blog/RelatedPostsSidebar.jsx
-// Matches the "Related Content" sidebar layout:
-//   • First post  → large hero card (full-width image + title + excerpt + tag + date)
-//   • Remaining   → compact rows (small thumbnail + title + tag + date)
+//
+// Layout pattern (mirrors the screenshot exactly):
+//   Group 1:  [HERO]    posts[0]  — full-width image + title + excerpt + tag + date
+//             [COMPACT] posts[1]  — thumbnail left, title + tag + date right
+//             [COMPACT] posts[2]  — thumbnail left, title + tag + date right
+//   Group 2:  [HERO]    posts[3]  — same as above
+//             [COMPACT] posts[4]
+//             [COMPACT] posts[5]
+//   Maximum 6 posts total (2 groups of 3).
 
 import Image from 'next/image';
 import Link from 'next/link';
+import styles from './RelatedPostsSidebar.module.css';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers
 // ─────────────────────────────────────────────────────────────────────────────
+
 function formatDate(publishedAt, locale) {
   if (!publishedAt) return '';
-  return new Intl.DateTimeFormat(locale, { day: '2-digit', month: 'short', year: 'numeric' })
-    .format(new Date(publishedAt));
+  return new Intl.DateTimeFormat(locale, {
+    day:   '2-digit',
+    month: 'short',
+    year:  'numeric',
+  }).format(new Date(publishedAt));
 }
 
-function CategoryTag({ category }) {
-  if (!category) return null;
-  // Derive a stable background from the category color or fall back to a dark default
-  const bg    = category.color || '#2a1a6e';
-  const label = (category.name || '').toUpperCase();
+/** Purple/violet pill matching the screenshot's FEATURE tag style */
+const TAG_DEFAULT_COLOR = '#9333ea';
+
+function Meta({ category, publishedAt, locale }) {
+  const date = formatDate(publishedAt, locale);
+  const bg   = category?.color || TAG_DEFAULT_COLOR;
   return (
-    <span style={{
-      display:       'inline-block',
-      background:    bg,
-      color:         '#fff',
-      fontSize:      '0.65rem',
-      fontWeight:    700,
-      letterSpacing: '0.06em',
-      padding:       '3px 8px',
-      borderRadius:  3,
-      lineHeight:    1,
-    }}>
-      {label}
-    </span>
+    <div className={styles.meta}>
+      {category && (
+        <span className={styles.tag} style={{ background: bg }}>
+          {(category.name || '').toUpperCase()}
+        </span>
+      )}
+      {date && <time className={styles.date}>{date}</time>}
+    </div>
   );
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Hero card — first post
+// Hero card — full-width image
 // ─────────────────────────────────────────────────────────────────────────────
 function HeroCard({ post, locale }) {
-  const isRTL = locale?.startsWith('ar');
   const postUrl = `/${locale}/blog/${post.slug}`;
-  const date = formatDate(post.publishedAt, locale);
-
   return (
-    <article style={{ borderBottom: '1px solid #e8e8e8', paddingBottom: 16, marginBottom: 4 }}>
+    <Link href={postUrl} className={styles.hero}>
       {/* Image */}
-      <Link href={postUrl} style={{ display: 'block', textDecoration: 'none' }}>
-        <div style={{ position: 'relative', width: '100%', aspectRatio: '16 / 9', borderRadius: 4, overflow: 'hidden', marginBottom: 12, background: '#f0f0f0' }}>
-          {post.featuredImage ? (
-            <Image
-              src={post.featuredImage}
-              alt={post.title || ''}
-              fill
-              sizes="(max-width: 640px) 100vw, 400px"
-              style={{ objectFit: 'cover' }}
-              priority
-            />
-          ) : (
-            <div style={{ position: 'absolute', inset: 0, background: '#ddd', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <span style={{ fontSize: 32, opacity: 0.4 }}>📰</span>
-            </div>
-          )}
-        </div>
+      <div className={styles.heroImageWrap}>
+        {post.featuredImage ? (
+          <Image
+            src={post.featuredImage}
+            alt={post.title || ''}
+            fill
+            sizes="(max-width: 768px) 100vw, 420px"
+            className={styles.heroImage}
+            priority
+          />
+        ) : (
+          <div className={styles.placeholder}>📰</div>
+        )}
+      </div>
 
-        {/* Title */}
-        <h3 style={{
-          margin:        '0 0 6px',
-          fontSize:      '1.05rem',
-          fontWeight:    700,
-          color:         '#111',
-          lineHeight:    1.35,
-          textAlign:     isRTL ? 'right' : 'left',
-          display:       '-webkit-box',
-          WebkitLineClamp: 3,
-          WebkitBoxOrient: 'vertical',
-          overflow:      'hidden',
-        }}>
-          {post.title}
-        </h3>
-      </Link>
+      {/* Title */}
+      <h3 className={styles.heroTitle}>{post.title}</h3>
 
       {/* Excerpt */}
       {post.excerpt && (
-        <p style={{
-          margin:        '0 0 10px',
-          fontSize:      '0.8rem',
-          color:         '#666',
-          lineHeight:    1.5,
-          textAlign:     isRTL ? 'right' : 'left',
-          display:       '-webkit-box',
-          WebkitLineClamp: 2,
-          WebkitBoxOrient: 'vertical',
-          overflow:      'hidden',
-        }}>
-          {post.excerpt}
-        </p>
+        <p className={styles.heroExcerpt}>{post.excerpt}</p>
       )}
 
-      {/* Tag + Date row */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', justifyContent: isRTL ? 'flex-end' : 'flex-start' }}>
-        <CategoryTag category={post.category} />
-        {date && (
-          <time style={{ fontSize: '0.72rem', color: '#999', fontWeight: 500 }}>{date}</time>
-        )}
-      </div>
-    </article>
+      {/* Tag + date */}
+      <Meta category={post.category} publishedAt={post.publishedAt} locale={locale} />
+    </Link>
   );
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Compact row — subsequent posts
+// Compact card — thumbnail left, text right
 // ─────────────────────────────────────────────────────────────────────────────
 function CompactCard({ post, locale }) {
-  const isRTL = locale?.startsWith('ar');
   const postUrl = `/${locale}/blog/${post.slug}`;
-  const date = formatDate(post.publishedAt, locale);
-
   return (
-    <article style={{
-      display:       'flex',
-      gap:           12,
-      flexDirection: isRTL ? 'row-reverse' : 'row',
-      alignItems:    'flex-start',
-      padding:       '12px 0',
-      borderBottom:  '1px solid #e8e8e8',
-    }}>
+    <Link href={postUrl} className={styles.compact}>
       {/* Thumbnail */}
-      <Link href={postUrl} style={{ flexShrink: 0, display: 'block', textDecoration: 'none' }}>
-        <div style={{ position: 'relative', width: 80, height: 60, borderRadius: 4, overflow: 'hidden', background: '#f0f0f0' }}>
-          {post.featuredImage ? (
-            <Image
-              src={post.featuredImage}
-              alt={post.title || ''}
-              fill
-              sizes="80px"
-              style={{ objectFit: 'cover' }}
-            />
-          ) : (
-            <div style={{ position: 'absolute', inset: 0, background: '#ddd', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <span style={{ fontSize: 18, opacity: 0.4 }}>📰</span>
-            </div>
-          )}
-        </div>
-      </Link>
+      <div className={styles.compactImageWrap}>
+        {post.featuredImage ? (
+          <Image
+            src={post.featuredImage}
+            alt={post.title || ''}
+            fill
+            sizes="110px"
+            className={styles.compactImage}
+          />
+        ) : (
+          <div className={styles.placeholder}>📰</div>
+        )}
+      </div>
 
       {/* Text */}
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <Link href={postUrl} style={{ textDecoration: 'none' }}>
-          <h4 style={{
-            margin:          '0 0 8px',
-            fontSize:        '0.875rem',
-            fontWeight:      700,
-            color:           '#111',
-            lineHeight:      1.35,
-            textAlign:       isRTL ? 'right' : 'left',
-            display:         '-webkit-box',
-            WebkitLineClamp: 3,
-            WebkitBoxOrient: 'vertical',
-            overflow:        'hidden',
-          }}>
-            {post.title}
-          </h4>
-        </Link>
-
-        {/* Tag + Date row */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', justifyContent: isRTL ? 'flex-end' : 'flex-start' }}>
-          <CategoryTag category={post.category} />
-          {date && (
-            <time style={{ fontSize: '0.7rem', color: '#999', fontWeight: 500 }}>{date}</time>
-          )}
-        </div>
+      <div className={styles.compactBody}>
+        <h4 className={styles.compactTitle}>{post.title}</h4>
+        <Meta category={post.category} publishedAt={post.publishedAt} locale={locale} />
       </div>
-    </article>
+    </Link>
   );
 }
 
@@ -185,52 +119,51 @@ function CompactCard({ post, locale }) {
 /**
  * RelatedPostsSidebar
  *
- * Props:
- *   posts  — array of transformed post objects (same shape as blog page produces)
+ * Props
+ *   posts  — array of post objects (max 6 consumed)
  *   locale — e.g. 'en-SA' | 'ar-SA'
- *   title  — optional heading override (defaults to "Related Content" / "محتوى ذو صلة")
+ *   title  — optional heading override
+ *
+ * Each post object shape:
+ *   { id, slug, featuredImage, title, excerpt, publishedAt,
+ *     category: { slug, name, color } }
  */
 export default function RelatedPostsSidebar({ posts = [], locale, title }) {
-  if (!posts.length) return null;
-
-  const lang   = locale?.split('-')[0] || 'en';
-  const isRTL  = lang === 'ar';
+  const lang    = locale?.split('-')[0] || 'en';
+  const isRTL   = lang === 'ar';
   const heading = title || (lang === 'ar' ? 'محتوى ذو صلة' : 'RELATED CONTENT');
 
-  const [first, ...rest] = posts;
+  // Limit to 6, split into groups of 3
+  const capped = posts.slice(0, 6);
+  if (!capped.length) return null;
+
+  // Chunk array into groups of 3: [[p0,p1,p2], [p3,p4,p5]]
+  const groups = [];
+  for (let i = 0; i < capped.length; i += 3) {
+    groups.push(capped.slice(i, i + 3));
+  }
 
   return (
     <section
       dir={isRTL ? 'rtl' : 'ltr'}
+      className={styles.sidebar}
       aria-label={heading}
-      style={{
-        background:   '#fff',
-        borderRadius: 4,
-        padding:      0,
-      }}
     >
-      {/* ── Heading ── */}
-      <h2 style={{
-        margin:        '0 0 14px',
-        fontSize:      '0.78rem',
-        fontWeight:    800,
-        color:         '#111',
-        letterSpacing: '0.08em',
-        textTransform: 'uppercase',
-        textAlign:     isRTL ? 'right' : 'left',
-        borderBottom:  '2px solid #111',
-        paddingBottom: 8,
-      }}>
-        {heading}
-      </h2>
+      {/* Heading */}
+      <h2 className={styles.heading}>{heading}</h2>
 
-      {/* ── Hero card (first post) ── */}
-      <HeroCard post={first} locale={locale} />
-
-      {/* ── Compact rows (remaining posts) ── */}
-      {rest.map(post => (
-        <CompactCard key={post.id} post={post} locale={locale} />
-      ))}
+      {/* Groups: each group = 1 hero + up to 2 compact */}
+      {groups.map((group, gi) => {
+        const [hero, ...compacts] = group;
+        return (
+          <div key={gi} className={styles.group}>
+            <HeroCard post={hero} locale={locale} />
+            {compacts.map(post => (
+              <CompactCard key={post.id} post={post} locale={locale} />
+            ))}
+          </div>
+        );
+      })}
     </section>
   );
 }
