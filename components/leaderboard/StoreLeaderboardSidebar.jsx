@@ -3,7 +3,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import styles from './StoreLeaderboardSidebar.css';
+import styles from './StoreLeaderboardSidebar.module.css';
 
 function MovementBadge({ movement, rank, previousRank }) {
   if (movement === 'NEW') {
