@@ -277,7 +277,21 @@ export default function StoreEditPage({ params }) {
             <FormRow>
               <FormField label="Logo URL" name="logo" defaultValue={store.logo} />
               <FormField label="Big Logo URL" name="bigLogo" defaultValue={store.bigLogo} />
-              <FormField label="Brand Color" name="color" type="color" defaultValue={store.color} />
+              <FormField
+  label="Hero Slot (1–5)"
+  name="color"
+  type="select"
+  defaultValue={store.color}
+  helpText="Set a slot to pin this store to the homepage hero. Leave empty to exclude."
+  options={[
+    { value: '',  label: '— Not in hero —' },
+    { value: '1', label: 'Slot 1 (leftmost / first)' },
+    { value: '2', label: 'Slot 2' },
+    { value: '3', label: 'Slot 3' },
+    { value: '4', label: 'Slot 4' },
+    { value: '5', label: 'Slot 5 (rightmost / last)' },
+  ]}
+/>
             </FormRow>
             <FormRow>
               <FormField 
