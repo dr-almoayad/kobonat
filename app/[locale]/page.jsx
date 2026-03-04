@@ -83,7 +83,8 @@ export default async function Home({ params }) {
     prisma.store.findMany({
       where: {
         isActive:    true,
-        isFeatured:  true,
+        // isFeatured:  true,
+        color:      { in: ['1', '2', '3', '4', '5'] },
         coverImage:  { not: null },
         countries:   { some: { country: { code: countryCode || 'SA' } } },
       },
@@ -104,7 +105,7 @@ export default async function Home({ params }) {
           },
         },
       },
-      orderBy: { isFeatured: 'desc' },
+      orderBy: { color: 'asc' },
       take: 5,                  // MAX_THUMBNAILS = 5
     }),
 
