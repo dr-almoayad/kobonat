@@ -296,7 +296,7 @@ export default async function StorePage({ params }) {
           take: 12,
         }),
 
-        // 6. ── NEW: Global leaderboard top 10 for current week ──
+        // 6. Global leaderboard top 10 for current week
         prisma.storeSavingsSnapshot.findMany({
           where: { weekIdentifier: currentWeek, categoryId: null },
           orderBy: { rank: 'asc' },
@@ -313,8 +313,8 @@ export default async function StorePage({ params }) {
           },
         }),
 
-        // 7. ── NEW: Blog posts related to this store ──
-        getStoreRelatedPosts(store.id, language, 4),
+        // 7. Blog posts related to this store (max 6 → 2 full groups in RelatedPostsSidebar)
+        getStoreRelatedPosts(store.id, language, 6),
       ]);
 
       // ── Transform data ────────────────────────────────────────────────
@@ -348,17 +348,17 @@ export default async function StorePage({ params }) {
         discountType:  p.discountType,
       }));
 
-      // Transform related posts into the shape RelatedPostsSidebar expects
+      // Transform raw posts → shape RelatedPostsSidebar expects
       const relatedPosts = relatedPostsRaw.map(post => ({
         id:            post.id,
         slug:          post.slug,
-        title:         post.translations?.[0]?.title         || '',
-        excerpt:       post.translations?.[0]?.excerpt        || null,
-        featuredImage: post.featuredImage                     || null,
+        title:         post.translations?.[0]?.title   || '',
+        excerpt:       post.translations?.[0]?.excerpt  || null,
+        featuredImage: post.featuredImage               || null,
         publishedAt:   post.publishedAt,
         category: post.category ? {
-          name:  post.category.translations?.[0]?.name  || '',
-          color: post.category.color                     || '#470ae2',
+          name:  post.category.translations?.[0]?.name || '',
+          color: post.category.color                    || '#470ae2',
         } : null,
       }));
 
@@ -487,7 +487,7 @@ export default async function StorePage({ params }) {
                     weekLabel={currentWeek}
                   />
 
-                  {/* Related blog posts */}
+                  {/* Related blog posts — uses the same RelatedPostsSidebar as blog/[slug] */}
                   {relatedPosts.length > 0 && (
                     <RelatedPostsSidebar
                       posts={relatedPosts}
@@ -512,4 +512,4 @@ export default async function StorePage({ params }) {
     console.error('Page render error:', error);
     throw error;
   }
-}
+          }
