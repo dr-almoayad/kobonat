@@ -1,3 +1,4 @@
+
 // app/[locale]/stores/[slug]/page.jsx - FULLY SEO OPTIMIZED WITH FAQ + SIDEBAR
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
@@ -16,6 +17,7 @@ import Breadcrumbs from "@/components/Breadcrumbs/Breadcrumbs";
 import PromoCodesFAQ from "@/components/PromoCodesFAQ/PromoCodesFAQ";
 import StoreLeaderboardSidebar from "@/components/leaderboard/StoreLeaderboardSidebar";
 import RelatedPostsSidebar from "@/components/blog/RelatedPostsSidebar";
+import StoreIntelligenceCard from "@/components/StoreIntelligenceCard/StoreIntelligenceCard";
 import { getCategoryData, getCountryCategories } from "@/lib/storeCategories";
 import { getStoresData, getStoreData } from "@/lib/stores";
 import { getStoreRelatedPosts } from "@/app/admin/_lib/queries";
@@ -125,8 +127,8 @@ export default async function StorePage({ params }) {
     // ── Try as category ───────────────────────────────────────────────────
     const category = await getCategoryData(slug, language, countryCode);
     if (category) {
-      const translation  = category.translations[0];
-      const stores       = await getStoresData({ language, countryCode, categoryId: category.id });
+      const translation   = category.translations[0];
+      const stores        = await getStoresData({ language, countryCode, categoryId: category.id });
       const totalVouchers = stores.reduce((sum, s) => sum + s.activeVouchersCount, 0);
       const featuredStores = stores.filter(s => s.isFeatured);
       const regularStores  = stores.filter(s => !s.isFeatured);
@@ -137,9 +139,9 @@ export default async function StorePage({ params }) {
         .map(s => ({ id: s.id, image: s.coverImage, name: s.name, logo: s.logo }));
 
       const breadcrumbs = [
-        { name: language === 'ar' ? 'الرئيسية' : 'Home', url: `${BASE_URL}/${locale}` },
-        { name: language === 'ar' ? 'المتاجر' : 'Stores', url: `${BASE_URL}/${locale}/stores` },
-        { name: translation?.name || 'Category', url: `${BASE_URL}/${locale}/stores/${slug}` },
+        { name: language === 'ar' ? 'الرئيسية' : 'Home',   url: `${BASE_URL}/${locale}` },
+        { name: language === 'ar' ? 'المتاجر'  : 'Stores', url: `${BASE_URL}/${locale}/stores` },
+        { name: translation?.name || 'Category',            url: `${BASE_URL}/${locale}/stores/${slug}` },
       ];
 
       return (
@@ -227,6 +229,8 @@ export default async function StorePage({ params }) {
       };
 
       // ── Parallel data fetch ───────────────────────────────────────────
+      // StoreIntelligenceCard is a self-fetching Server Component —
+      // no need to add it to this Promise.all.
       const [
         vouchers,
         paymentMethodsData,
@@ -247,7 +251,7 @@ export default async function StorePage({ params }) {
             ],
           },
           include: {
-            translations:  { where: { locale: language } },
+            translations: { where: { locale: language } },
             _count: { select: { clicks: true } },
           },
           orderBy: [{ isExclusive: 'desc' }, { isVerified: 'desc' }, { popularityScore: 'desc' }],
@@ -271,9 +275,9 @@ export default async function StorePage({ params }) {
         // 4. Related stores (same category)
         prisma.store.findMany({
           where: {
-            id: { not: store.id },
+            id:       { not: store.id },
             isActive: true,
-            countries: { some: { country: { code: countryCode } } },
+            countries:  { some: { country: { code: countryCode } } },
             categories: { some: { categoryId: { in: store.categories.map(sc => sc.categoryId) } } },
           },
           include: {
@@ -341,7 +345,8 @@ export default async function StorePage({ params }) {
       }));
 
       const transformedProducts = storeProducts.map(p => ({
-        id: p.id, image: p.image,
+        id:            p.id,
+        image:         p.image,
         title:         p.translations[0]?.title || '',
         productUrl:    p.productUrl,
         discountValue: p.discountValue,
@@ -448,6 +453,15 @@ export default async function StorePage({ params }) {
                     />
                   )}
 
+                  {/* 2. Intelligence card — score, savings %, logistics, payments, upcoming events.
+                       Self-fetching Server Component; renders nothing if no data exists. */}
+                  <StoreIntelligenceCard
+                    storeId={store.id}
+                    locale={locale}
+                    countryCode={countryCode}
+                    variant="full"
+                  />
+
                   {faqs.length > 0 && (
                     <StoreFAQ
                       faqs={faqs}
@@ -471,23 +485,13 @@ export default async function StorePage({ params }) {
                     </section>
                   )}
 
-                  <section className="promo-faq-section">
-                    <PromoCodesFAQ />
-                  </section>
+                  
                 </main>
 
                 {/* ════ SIDEBAR ════ */}
                 <aside className="store-content-sidebar">
 
-                  {/* Leaderboard */}
-                  <StoreLeaderboardSidebar
-                    snapshots={leaderboardSnapshots}
-                    currentStoreId={store.id}
-                    locale={locale}
-                    weekLabel={currentWeek}
-                  />
-
-                  {/* Related blog posts — uses the same RelatedPostsSidebar as blog/[slug] */}
+                  {/* 3. Related blog posts */}
                   {relatedPosts.length > 0 && (
                     <RelatedPostsSidebar
                       posts={relatedPosts}
@@ -495,12 +499,28 @@ export default async function StorePage({ params }) {
                     />
                   )}
 
+                  {/* 1. Leaderboard — weekly savings rank */}
+                  <StoreLeaderboardSidebar
+                    snapshots={leaderboardSnapshots}
+                    currentStoreId={store.id}
+                    locale={locale}
+                    weekLabel={currentWeek}
+                  />
+
+        
+
+                  
+
                 </aside>
 
               </div>{/* /store-content-grid */}
             </div>{/* /store-main-content */}
 
           </div>
+
+          <section className="promo-faq-section">
+           <PromoCodesFAQ />
+          </section>
 
           <HelpBox locale={locale} />
         </>
@@ -512,4 +532,4 @@ export default async function StorePage({ params }) {
     console.error('Page render error:', error);
     throw error;
   }
-          }
+}
