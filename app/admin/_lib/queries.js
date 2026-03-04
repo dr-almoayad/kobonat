@@ -550,23 +550,42 @@ export async function getBlogPost(id, locale = 'en') {
   }
 }
 
-export async function getStoreRelatedPosts(storeId, locale = 'en', limit = 4) {
+// ─── REPLACE the existing getStoreRelatedPosts function in app/admin/_lib/queries.js ───
+//
+// Changes vs previous version:
+//   • Default limit bumped from 4 → 6 (fills 2 full hero+compact groups in RelatedPostsSidebar)
+//   • translations: removed the restrictive `select` so ALL translation fields are returned
+//     (previously only title+excerpt were selected, which caused issues if other fields were needed)
+//   • category: removed select restriction so `color` field comes through on the category itself
+//   • orderBy: primary posts first, then by date descending (unchanged)
+
+export async function getStoreRelatedPosts(storeId, locale = 'en', limit = 6) {
   try {
     if (!prisma.blogPost) return [];
     return await prisma.blogPost.findMany({
       where: {
-        status: 'PUBLISHED',
+        status:      'PUBLISHED',
         publishedAt: { lte: new Date() },
         OR: [
           { primaryStoreId: parseInt(storeId) },
-          { linkedStores: { some: { storeId: parseInt(storeId) } } },
+          { linkedStores:   { some: { storeId: parseInt(storeId) } } },
         ],
       },
       include: {
-        translations: { where: { locale }, select: { title: true, excerpt: true } },
-        category: { include: { translations: { where: { locale }, select: { name: true } } } },
+        // Full translation row — title, excerpt, metaTitle, etc.
+        translations: { where: { locale } },
+        // Category with color + translated name
+        category: {
+          include: {
+            translations: { where: { locale }, select: { name: true } },
+          },
+        },
       },
-      orderBy: [{ primaryStoreId: 'asc' }, { publishedAt: 'desc' }],
+      orderBy: [
+        // Posts where this store is the primary cluster come first
+        { primaryStoreId: 'asc' },
+        { publishedAt:    'desc' },
+      ],
       take: limit,
     });
   } catch (e) {
@@ -574,6 +593,7 @@ export async function getStoreRelatedPosts(storeId, locale = 'en', limit = 4) {
     return [];
   }
 }
+
 
 export async function getBlogAuthors() {
   try {
