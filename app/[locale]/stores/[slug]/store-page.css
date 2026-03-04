@@ -1,3 +1,5 @@
+
+
 /* app/[locale]/stores/[slug]/store-page.css */
 
 /* Import StoreHeader styles */
@@ -13,13 +15,12 @@
   padding-top: 0;
 }
 
-.store-page-layout .hero-carousel-wrapper{
-   height: 280px;
-   border-bottom-left-radius: 0;
-   border-bottom-right-radius: 0;
+.store-page-layout .hero-carousel-wrapper {
+  height: 280px;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
 }
 
-/* Hero Section for Store Page */
 .store-hero-section {
   background: #fff;
   margin-bottom: 0;
@@ -34,15 +35,39 @@
 }
 
 /* ============================================
-   MAIN CONTENT AREA
+   MAIN CONTENT WRAPPER
    ============================================ */
 .store-main-content {
-   max-width: 1280px;
-   margin: 0 auto;
-   padding: 1.5rem 1rem 2rem;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 2rem;
 }
 
-/* Breadcrumbs */
+/* ============================================
+   2-COLUMN CONTENT + SIDEBAR GRID
+   ============================================ */
+.store-content-grid {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 2rem;
+  align-items: start;
+}
+
+.store-content-main {
+  min-width: 0; /* prevent overflow from wide children */
+}
+
+.store-content-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  position: sticky;
+  top: 1rem;       /* sticks while scrolling past the main column */
+}
+
+/* ============================================
+   BREADCRUMBS
+   ============================================ */
 .store-breadcrumbs {
   margin-bottom: 1.5rem;
   padding: 0 0.5rem;
@@ -70,86 +95,46 @@
 
 .section-title .material-symbols-sharp {
   font-size: 1.75rem;
-  color: #6366f1;
+  color: #470ae2;
 }
 
-
-
 /* ============================================
-   RELATED STORES SECTION
+   RELATED STORES
    ============================================ */
 .related-stores-section {
-  padding: 2rem 0;
-  border-top: 1px solid #e2e8f0;
-  margin-top: 1rem;
+  padding: 1rem 0;
 }
 
 .related-stores-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 1.5rem;
-  margin-top: 1.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 1rem;
 }
 
 /* ============================================
-   EMPTY STATE
+   PROMO FAQ SECTION
    ============================================ */
-.no-vouchers-state {
-  text-align: center;
-  padding: 4rem 1rem;
-  background: #f8fafc;
-  border-radius: 16px;
-  border: 1px solid #e2e8f0;
-  margin: 2rem 0;
-}
-
-.no-vouchers-state .material-symbols-sharp {
-  font-size: 3rem;
-  color: #94a3b8;
-  margin-bottom: 1rem;
-}
-
-.no-vouchers-state h3 {
-  font-size: 1.25rem;
-  color: #1e293b;
-  margin: 0 0 0.5rem;
-}
-
-.no-vouchers-state p {
-  color: #64748b;
-  margin: 0 0 1.5rem;
-}
-
-.visit-store-anyway-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1.5rem;
-  background: #6366f1;
-  color: white;
-  text-decoration: none;
-  border-radius: 8px;
-  font-weight: 600;
-  transition: all 0.2s ease;
-}
-
-.visit-store-anyway-btn:hover {
-  background: #4f46e5;
-  transform: translateY(-1px);
+.promo-faq-section {
+  padding: 1rem 0;
 }
 
 /* ============================================
-   ERROR CONTAINER
+   ERROR STATE
    ============================================ */
 .error-container {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 3rem 1rem;
+  max-width: 500px;
+  margin: 4rem auto;
+  padding: 3rem 2rem;
   text-align: center;
+  background: #fff;
+  border-radius: 16px;
+  border: 1px dashed #e2e8f0;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
 }
 
 .error-container h1 {
-  font-size: 2rem;
+  font-size: 1.5rem;
+  font-weight: 700;
   color: #1e293b;
   margin-bottom: 1rem;
 }
@@ -164,64 +149,55 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1.5rem;
-  background: #6366f1;
-  color: white;
+  background: #470ae2;
+  color: #fff;
   text-decoration: none;
   border-radius: 8px;
   font-weight: 600;
-  transition: all 0.2s ease;
+  transition: background 0.2s;
 }
-
-.error-container a:hover {
-  background: #4f46e5;
-  transform: translateY(-1px);
-}
+.error-container a:hover { background: #3a08b5; }
 
 /* ============================================
-   RESPONSIVE STYLES
+   RESPONSIVE
    ============================================ */
 
-/* Tablet */
-@media (min-width: 768px) {
-  .store-page-layout {
-    padding-top: 0;
+/* Large tablet — narrow the sidebar */
+@media (max-width: 1100px) {
+  .store-content-grid {
+    grid-template-columns: 1fr 260px;
+    gap: 1.5rem;
   }
-  
-  .store-main-content {
-    padding: 1.5rem 1rem;
+}
+
+/* Tablet — stack sidebar below main */
+@media (max-width: 860px) {
+  .store-content-grid {
+    grid-template-columns: 1fr;
   }
-  
-  .store-breadcrumbs {
-    margin-bottom: 2rem;
+
+  .store-content-sidebar {
+    position: static; /* un-stick on mobile */
   }
-  
+
   .related-stores-grid {
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   }
 }
 
-/* Desktop */
+/* Desktop vouchers padding */
 @media (min-width: 1024px) {
-  .store-page-layout {
-    padding-top: 0;
-  }
-  
   .store-main-content {
     padding: 1.5rem 1.5rem 2rem;
   }
-  
+
   .vouchers-section {
     padding: 1.5rem 0;
   }
-  
+
   .section-title {
     font-size: 1.25rem;
     padding: 0.5rem 0;
-  }
-  
-  .related-stores-grid {
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-    gap: 2rem;
   }
 }
 
@@ -237,11 +213,7 @@
   }
 }
 
-/* RTL Support */
+/* RTL */
 [dir="rtl"] .section-title {
-  flex-direction: row;
-}
-
-[dir="rtl"] .visit-store-anyway-btn {
   flex-direction: row;
 }
