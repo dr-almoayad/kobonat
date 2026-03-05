@@ -85,26 +85,31 @@ async function fetchIntelligence(storeId, lang, countryCode) {
 // ─────────────────────────────────────────────────────────────────────────────
 
 function ScoreBadge({ score, size = 'large' }) {
+  const n = parseFloat(score);
+  if (isNaN(n)) return null;
+
   const tier =
-    score >= 8.5 ? 'excellent' :
-    score >= 7   ? 'good'      :
-    score >= 5   ? 'average'   : 'low';
+    n >= 8.5 ? 'excellent' :
+    n >= 7   ? 'good'      :
+    n >= 5   ? 'average'   : 'low';
 
   return (
-    <div className={`sic-score sic-score--${size} sic-score--${tier}`} aria-label={`Store score: ${score} out of 10`}>
-      <span className="sic-score__number">{score.toFixed(1)}</span>
+    <div className={`sic-score sic-score--${size} sic-score--${tier}`} aria-label={`Store score: ${n} out of 10`}>
+      <span className="sic-score__number">{n.toFixed(1)}</span>
       <span className="sic-score__denom">/10</span>
     </div>
   );
 }
 
 function ScoreBar({ label, value, weight }) {
-  const pct = Math.min(Math.max(value, 0), 10) * 10;
+  const n   = parseFloat(value);
+  if (isNaN(n)) return null;
+  const pct = Math.min(Math.max(n, 0), 10) * 10;
   return (
     <div className="sic-score-bar">
       <div className="sic-score-bar__header">
         <span className="sic-score-bar__label">{label}</span>
-        <span className="sic-score-bar__value">{value.toFixed(1)}</span>
+        <span className="sic-score-bar__value">{n.toFixed(1)}</span>
       </div>
       <div className="sic-score-bar__track" aria-hidden="true">
         <div className="sic-score-bar__fill" style={{ width: `${pct}%` }} />
@@ -133,7 +138,9 @@ function ConfidencePip({ level }) {
 }
 
 function CodeSuccessGauge({ rate }) {
-  const pct  = Math.round(rate);
+  const n    = parseFloat(rate);
+  if (isNaN(n)) return null;
+  const pct  = Math.round(n);
   const tier = pct >= 85 ? 'high' : pct >= 60 ? 'mid' : 'low';
   return (
     <div className="sic-gauge" aria-label={`Code success rate: ${pct}%`}>
@@ -519,4 +526,4 @@ export default async function StoreIntelligenceCard({
       </div>{/* /sic-body */}
     </div>
   );
-}
+                  }
