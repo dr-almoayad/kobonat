@@ -445,6 +445,14 @@ export default async function StorePage({ params }) {
                     />
                   )}
 
+                  {/* 1. Intelligence card — score, savings %, logistics, payments, upcoming events */}
+                  <StoreIntelligenceCard
+                    storeId={store.id}
+                    locale={locale}
+                    countryCode={countryCode}
+                    variant="full"
+                  />
+
                   {faqs.length > 0 && (
                     <StoreFAQ
                       faqs={faqs}
@@ -468,29 +476,12 @@ export default async function StorePage({ params }) {
                     </section>
                   )}
 
-                  <section className="promo-faq-section">
-                    <PromoCodesFAQ />
-                  </section>
+                  
                 </main>
 
                 {/* ════ SIDEBAR ════ */}
                 <aside className="store-content-sidebar">
 
-                  {/* 1. Intelligence card — score, savings %, logistics, payments, upcoming events */}
-                  <StoreIntelligenceCard
-                    storeId={store.id}
-                    locale={locale}
-                    countryCode={countryCode}
-                    variant="full"
-                  />
-
-                  {/* 2. Leaderboard — weekly savings rank */}
-                  <StoreLeaderboardSidebar
-                    snapshots={leaderboardSnapshots}
-                    currentStoreId={store.id}
-                    locale={locale}
-                    weekLabel={currentWeek}
-                  />
 
                   {/* 3. Related blog posts */}
                   {relatedPosts.length > 0 && (
@@ -500,11 +491,26 @@ export default async function StorePage({ params }) {
                     />
                   )}
 
+                  
+                  {/* 2. Leaderboard — weekly savings rank */}
+                  <StoreLeaderboardSidebar
+                    snapshots={leaderboardSnapshots}
+                    currentStoreId={store.id}
+                    locale={locale}
+                    weekLabel={currentWeek}
+                  />
+
+                  
+
                 </aside>
 
               </div>
             </div>
           </div>
+
+          <section className="promo-faq-section">
+            <PromoCodesFAQ />
+          </section>
 
           <HelpBox locale={locale} />
         </>
