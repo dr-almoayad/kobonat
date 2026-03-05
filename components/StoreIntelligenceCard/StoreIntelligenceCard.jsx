@@ -34,6 +34,19 @@ const scoreToPct = (v) => {
 /** Clamp to 0–100 */
 const clamp = (v) => Math.min(100, Math.max(0, v ?? 0));
 
+/**
+ * Color-code a 0–100 percentage.
+ * Red → Orange → Yellow → Lime → Green
+ */
+function pctToColor(pct) {
+  const n = clamp(pct ?? 0);
+  if (n >= 80) return '#22c55e'; // green-500
+  if (n >= 60) return '#84cc16'; // lime-500
+  if (n >= 40) return '#eab308'; // yellow-500
+  if (n >= 20) return '#f97316'; // orange-500
+  return '#ef4444';              // red-500
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Data fetch
 // ─────────────────────────────────────────────────────────────────────────────
@@ -93,6 +106,15 @@ async function fetchIntelligence(storeId, lang, countryCode) {
           take: 1,
           select: { rank: true, movement: true, previousRank: true },
         },
+        // Fetch all active vouchers (type only) — counted in JS by type
+        vouchers: {
+          where: {
+            AND: [
+              { OR: [{ expiryDate: null }, { expiryDate: { gte: new Date() } }] },
+            ],
+          },
+          select: { type: true },
+        },
       },
     });
   } catch (e) {
@@ -101,22 +123,7 @@ async function fetchIntelligence(storeId, lang, countryCode) {
   }
 }
 
-async function fetchVoucherCounts(storeId) {
-  const now = new Date();
-  const expiryOk = [{ expiryDate: null }, { expiryDate: { gte: now } }];
-  try {
-    const [codes, deals, shipping, bank] = await Promise.all([
-      prisma.voucher.count({ where: { storeId, type: 'CODE',          OR: expiryOk } }),
-      prisma.voucher.count({ where: { storeId, type: 'DEAL',          OR: expiryOk } }),
-      prisma.voucher.count({ where: { storeId, type: 'FREE_SHIPPING', OR: expiryOk } }),
-      prisma.voucher.count({ where: { storeId, type: 'BANK_OFFER',    OR: expiryOk } }),
-    ]);
-    return { codes, deals, shipping, bank };
-  } catch (e) {
-    console.error('[StoreIntelligenceCard] fetchVoucherCounts error:', e.message);
-    return { codes: 0, deals: 0, shipping: 0, bank: 0 };
-  }
-}
+
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Pure SVG ring gauge (no JS on client)
@@ -253,10 +260,7 @@ export default async function StoreIntelligenceCard({
   const lang  = locale.split('-')[0];
   const isRtl = lang === 'ar';
 
-  const [store, vc] = await Promise.all([
-    fetchIntelligence(storeId, lang, countryCode),
-    fetchVoucherCounts(storeId),
-  ]);
+  const store = await fetchIntelligence(storeId, lang, countryCode);
   if (!store) return null;
 
   const t        = store.translations[0] || {};
@@ -275,6 +279,15 @@ export default async function StoreIntelligenceCard({
   const hasDelivery = store.averageDeliveryDaysMin != null || store.averageDeliveryDaysMax != null;
   const hasRefund   = store.refundProcessingDaysMin != null;
   const accent      = store.color || '#470ae2';
+
+  // Voucher counts — derived from the vouchers already fetched
+  const vv = store.vouchers ?? [];
+  const vc = {
+    codes:    vv.filter(v => v.type === 'CODE').length,
+    deals:    vv.filter(v => v.type === 'DEAL').length,
+    shipping: vv.filter(v => v.type === 'FREE_SHIPPING').length,
+    bank:     vv.filter(v => v.type === 'BANK_OFFER').length,
+  };
 
   // ── Normalised metric values ──────────────────────────────────────────────
   // codeSuccessRate: stored as 0-1 fraction or 0-100 — normalise to 0-100
@@ -398,12 +411,12 @@ export default async function StoreIntelligenceCard({
           {hasScore && (
             <div className="sic-compact__gauges">
               <GaugeCard pct={rawScore * 10} display={rawScore.toFixed(1)}
-                sub="/10" label={L.storeScore} color={accent} size={72} stroke={6} />
+                sub="/10" label={L.storeScore} color={pctToColor(rawScore * 10)} size={72} stroke={6} />
               {successPct != null && (
-                <GaugeCard pct={successPct} label={L.codeSuccess} color={accent} size={72} stroke={6} />
+                <GaugeCard pct={successPct} label={L.codeSuccess} color={pctToColor(successPct)} size={72} stroke={6} />
               )}
               {maxSavePct != null && (
-                <GaugeCard pct={maxSavePct} label={L.maxSavings} color={accent} size={72} stroke={6} />
+                <GaugeCard pct={maxSavePct} label={L.maxSavings} color={pctToColor(clamp(maxSavePct))} size={72} stroke={6} />
               )}
             </div>
           )}
@@ -443,7 +456,7 @@ export default async function StoreIntelligenceCard({
                 display={rawScore.toFixed(1)}
                 sub="/10"
                 label={L.storeScore}
-                color={accent}
+                color={pctToColor(rawScore * 10)}
                 size={80}
                 stroke={7}
               />
@@ -486,13 +499,13 @@ export default async function StoreIntelligenceCard({
           <SecHead icon="insights" text={L.savingsIntel} />
           <div className="sic-gauges">
             {successPct != null && (
-              <GaugeCard pct={successPct} label={L.codeSuccess} tooltip={L.codeSuccTip} color={accent} />
+              <GaugeCard pct={successPct} label={L.codeSuccess} tooltip={L.codeSuccTip} color={pctToColor(successPct)} />
             )}
             {maxSavePct != null && (
-              <GaugeCard pct={clamp(maxSavePct)} label={L.maxSavings} tooltip={L.maxSaveTip} color={accent} />
+              <GaugeCard pct={clamp(maxSavePct)} label={L.maxSavings} tooltip={L.maxSaveTip} color={pctToColor(clamp(maxSavePct))} />
             )}
             {avgDiscPct != null && (
-              <GaugeCard pct={clamp(avgDiscPct)} label={L.avgDiscount} tooltip={L.avgDiscTip} color={accent} />
+              <GaugeCard pct={clamp(avgDiscPct)} label={L.avgDiscount} tooltip={L.avgDiscTip} color={pctToColor(clamp(avgDiscPct))} />
             )}
             {freqPct != null && (
               <GaugeCard
@@ -500,7 +513,7 @@ export default async function StoreIntelligenceCard({
                 display={`${store.offerFrequencyDays}d`}
                 label={L.offerFreq}
                 tooltip={L.freqTip}
-                color={accent}
+                color={pctToColor(freqPct)}
               />
             )}
           </div>
@@ -524,7 +537,7 @@ export default async function StoreIntelligenceCard({
                 }
                 label={L.delivery}
                 tooltip={isRtl ? 'سرعة التوصيل — أقل أيام = تقييم أعلى' : 'Delivery speed — fewer days = higher score'}
-                color={accent}
+                color={pctToColor(delivPct)}
                 size={76}
                 stroke={6}
               />
@@ -535,7 +548,7 @@ export default async function StoreIntelligenceCard({
                 display={`${store.returnWindowDays}d`}
                 label={L.returnWindow}
                 tooltip={isRtl ? 'مهلة الإرجاع — كلما طالت، ارتفع التقييم' : 'Return window — longer = higher score'}
-                color={accent}
+                color={pctToColor(returnPct)}
                 size={76}
                 stroke={6}
               />
@@ -643,7 +656,7 @@ export default async function StoreIntelligenceCard({
                   sub={`/10 · ${w}%`}
                   label={label}
                   tooltip={tip}
-                  color={accent}
+                  color={pctToColor(pct)}
                   size={76}
                   stroke={6}
                 />
@@ -655,4 +668,4 @@ export default async function StoreIntelligenceCard({
 
     </div>
   );
-      }
+}
