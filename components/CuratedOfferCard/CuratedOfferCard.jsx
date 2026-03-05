@@ -54,12 +54,23 @@ export default function CuratedOfferCard({ offer }) {
       {/* ── Top: Image Area ── */}
       <div className="card-media">
         {offerImage ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
+          // ✅ FIX: Replaced bare <img> with Next.js <Image>.
+          // The old <img> tag bypassed Next.js image optimisation entirely —
+          // no automatic WebP/AVIF conversion, no responsive srcset, and
+          // no built-in lazy loading via the framework pipeline.
+          // `fill` + `sizes` mirrors what the CSS already does (card fills
+          // its container), so no layout change occurs.
+          // `priority` is set for featured offers because CuratedOffersSection
+          // renders at the top of the homepage, making featured cards likely
+          // to be in the initial viewport (LCP candidates).
+          <Image
             src={offerImage}
             alt=""
+            fill
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
             className="card-image"
-            loading={offer.isFeatured ? 'eager' : 'lazy'}
+            priority={!!offer.isFeatured}
+            style={{ objectFit: 'cover' }}
             onError={(e) => { e.currentTarget.style.display = 'none'; }}
           />
         ) : (
