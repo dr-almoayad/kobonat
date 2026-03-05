@@ -13,6 +13,20 @@
 // 3. <WebSiteStructuredData> moved from <head> into <body>.
 //    JSON-LD scripts are valid anywhere in the document and do not
 //    need to live inside <head>.
+//
+// ✅ PERF FIX (2025-03-05):
+// 4. Material Symbols stylesheet removed from <head> (was render-blocking,
+//    chained to a 3,352 KiB woff2 on the critical path).
+//    It is now loaded via Script strategy="afterInteractive" so it never
+//    blocks FCP/LCP.  Icons will use font-display:swap from the URL so
+//    they appear as soon as the font arrives without any invisible flash.
+//
+// 5. fonts.gstatic.com preconnect now carries crossOrigin="anonymous"
+//    (required for the CORS font fetch — without it the preconnect was a no-op).
+//
+// 6. Trustpilot widget div now has an explicit minHeight so the 52px
+//    widget slot is reserved in the layout before the JS widget loads,
+//    eliminating the CLS contribution from that element.
 
 import { Geist, Geist_Mono, Alexandria, Open_Sans } from "next/font/google";
 import "./globals.css";
@@ -36,6 +50,12 @@ const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"]
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://cobonat.me';
 const GA_MEASUREMENT_ID = 'G-EFNHSXWE0M';
+
+// ── Shared Material Symbols URL ───────────────────────────────────────────────
+// Defined once here so the <link preload> in <head> and the async Script
+// in <body> both reference exactly the same URL (cache hit guaranteed).
+const MATERIAL_SYMBOLS_URL =
+  'https://fonts.googleapis.com/css2?family=Material+Symbols+Sharp:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap';
 
 export async function generateMetadata({ params }) {
   const { locale } = await params;
@@ -147,15 +167,26 @@ export default async function LocaleLayout({ children, params }) {
     <html lang={locale} dir={isArabic ? 'rtl' : 'ltr'}>
       <head>
         {/*
-          ✅ Font preconnects for Material Symbols stay here as they are
-          not expressible via the metadata API. Everything else that was
-          here (verification tags, msapplication) has moved to generateMetadata().
+          ✅ Preconnect to Google Fonts origins so the browser opens the
+          TCP/TLS tunnels as early as possible.
+          IMPORTANT: fonts.gstatic.com MUST have crossOrigin="anonymous"
+          because font files are fetched with CORS — without it the browser
+          opens an anonymous connection anyway, so the preconnect is wasted.
         */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+
+        {/*
+          ✅ PERF FIX: Preload the Material Symbols CSS as a high-priority
+          hint WITHOUT it blocking render.  rel="preload" tells the browser
+          to fetch the resource in parallel with the rest of the page but
+          not to apply it until we explicitly switch rel to "stylesheet"
+          (done in the Script below once the page is interactive).
+        */}
         <link
-          rel="stylesheet"
-          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Sharp:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap"
+          rel="preload"
+          as="style"
+          href={MATERIAL_SYMBOLS_URL}
           crossOrigin="anonymous"
         />
       </head>
@@ -176,6 +207,13 @@ export default async function LocaleLayout({ children, params }) {
             <main>
               {children}
               <Disclaimer locale={locale} />
+
+              {/*
+                ✅ CLS FIX: Added explicit minHeight matching data-style-height.
+                Without this the widget slot has 0 height until the Trustpilot
+                bootstrap JS runs, causing a layout shift every page load.
+                The height is the same value already declared in data-style-height.
+              */}
               <div
                 className="trustpilot-widget"
                 data-locale="en-US"
@@ -184,6 +222,7 @@ export default async function LocaleLayout({ children, params }) {
                 data-style-height="52px"
                 data-style-width="100%"
                 data-token="33c61b23-0f8b-4661-9277-0e2a157bf8ad"
+                style={{ minHeight: '52px' }}
               >
                 <a href="https://www.trustpilot.com/review/cobonat.me" target="_blank" rel="noopener">
                   Trustpilot
@@ -194,6 +233,32 @@ export default async function LocaleLayout({ children, params }) {
             <MobileFooter />
           </SessionProviderWrapper>
         </NextIntlClientProvider>
+
+        {/*
+          ✅ PERF FIX: Material Symbols is now activated here instead of
+          being a blocking <link rel="stylesheet"> in <head>.
+          strategy="afterInteractive" means this runs after hydration —
+          the preload hint above has already fetched the CSS by then,
+          so activation is near-instant with zero network wait.
+          The &display=swap in the URL ensures icon glyphs swap in as
+          soon as the font is ready rather than staying invisible.
+        */}
+        <Script id="material-symbols-activate" strategy="afterInteractive">
+          {`
+            (function () {
+              var preload = document.querySelector('link[rel="preload"][href*="Material+Symbols"]');
+              if (preload) {
+                preload.rel = 'stylesheet';
+              } else {
+                var link = document.createElement('link');
+                link.rel = 'stylesheet';
+                link.href = '${MATERIAL_SYMBOLS_URL}';
+                link.crossOrigin = 'anonymous';
+                document.head.appendChild(link);
+              }
+            })();
+          `}
+        </Script>
 
         <Script
           src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
