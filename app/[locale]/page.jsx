@@ -12,9 +12,12 @@ import CuratedOffersSection from '@/components/CuratedOffersSection/CuratedOffer
 import HomeFeaturedProductsSection from '@/components/HomeFeaturedProducts/HomeFeaturedProductsSection';
 import HomepageBlogSection from '@/components/blog/HomepageBlogSection';
 import HelpBox from "@/components/help/HelpBox";
-import WebSiteStructuredData from '@/components/StructuredData/WebSiteStructuredData';
 import HomepageHeroSection from '@/components/HomepageHeroSection/HomepageHeroSection';
 import { getCurrentWeekIdentifier } from '@/lib/leaderboard/calculateStoreSavings';
+
+// ✅ PERF FIX: Removed `import WebSiteStructuredData` — it was being rendered
+// both here (page level) AND in layout.jsx, injecting duplicate JSON-LD into
+// every page response. The layout already handles structured data for all routes.
 
 export const revalidate = 60;
 
@@ -230,76 +233,71 @@ export default async function Home({ params }) {
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
-    <>
-      <WebSiteStructuredData locale={locale} />
+    <main className="homepage-wrapper">
 
-      <main className="homepage-wrapper">
+      {/* ── 3-Panel Hero: cover + card strip + list + leaderboard ── */}
+      {transformedCarouselStores.length > 0 && (
+        <HomepageHeroSection
+          stores={transformedCarouselStores}
+          leaderboard={leaderboardSnapshots}
+          locale={locale}
+        />
+      )}
 
-        {/* ── 3-Panel Hero: cover + card strip + list + leaderboard ── */}
-        {transformedCarouselStores.length > 0 && (
-          <HomepageHeroSection
-            stores={transformedCarouselStores}
-            leaderboard={leaderboardSnapshots}
-            locale={locale}
-          />
-        )}
+      {/* Brands Ticker */}
+      {/*{transformedBrands.length > 0 && (
+        <BrandsCarousel brands={transformedBrands} />
+      )}*/}
 
-        {/* Brands Ticker */}
-        {/*{transformedBrands.length > 0 && (
-          <BrandsCarousel brands={transformedBrands} />
-        )}*/}
+      {/* Curated Offers */}
+      <CuratedOffersSection locale={locale} countryCode={countryCode || 'SA'} />
 
-        {/* Curated Offers */}
-        <CuratedOffersSection locale={locale} countryCode={countryCode || 'SA'} />
+      {/* Blog Section */}
+      <HomepageBlogSection locale={locale} count={3} />
 
-        {/* Blog Section */}
-        <HomepageBlogSection locale={locale} count={3} />
+      {/* Featured Products */}
+      <HomeFeaturedProductsSection locale={locale} countryCode={countryCode || 'SA'} />
 
-        {/* Featured Products */}
-        <HomeFeaturedProductsSection locale={locale} countryCode={countryCode || 'SA'} />
-
-        {/* Top Deals Grid */}
-        <section className="home-section">
-          <div className="section-header">
-            <div className="header-content">
-              <h2>
-                <span className="material-symbols-sharp">local_fire_department</span>
-                {t('topDealsTitle', { defaultMessage: 'Trending Deals' })}
-              </h2>
-              <p>{t('topDealsSubtitle', { defaultMessage: 'Verified codes saving you money today' })}</p>
-            </div>
+      {/* Top Deals Grid */}
+      <section className="home-section">
+        <div className="section-header">
+          <div className="header-content">
+            <h2>
+              <span className="material-symbols-sharp">local_fire_department</span>
+              {t('topDealsTitle', { defaultMessage: 'Trending Deals' })}
+            </h2>
+            <p>{t('topDealsSubtitle', { defaultMessage: 'Verified codes saving you money today' })}</p>
           </div>
-          <div className="vouchers-grid-home">
-            {transformedTopVouchers.map(v => <VoucherCard key={v.id} voucher={v} />)}
-          </div>
-          <Link href={`/${locale}/stores`} className="btn-view-all">
-            {t('viewAll', { defaultValue: 'View All' })}
-            <span className="material-symbols-sharp">arrow_forward</span>
-          </Link>
-        </section>
+        </div>
+        <div className="vouchers-grid-home">
+          {transformedTopVouchers.map(v => <VoucherCard key={v.id} voucher={v} />)}
+        </div>
+        <Link href={`/${locale}/stores`} className="btn-view-all">
+          {t('viewAll', { defaultValue: 'View All' })}
+          <span className="material-symbols-sharp">arrow_forward</span>
+        </Link>
+      </section>
 
-        {/* Featured Stores Grid */}
-        <section className="home-section alt-bg">
-          <div className="section-header">
-            <div className="header-content">
-              <h2>
-                <span className="material-symbols-sharp">storefront</span>
-                {t('featuredStoresTitle', { defaultValue: 'Featured Stores' })}
-              </h2>
-            </div>
+      {/* Featured Stores Grid */}
+      <section className="home-section alt-bg">
+        <div className="section-header">
+          <div className="header-content">
+            <h2>
+              <span className="material-symbols-sharp">storefront</span>
+              {t('featuredStoresTitle', { defaultValue: 'Featured Stores' })}
+            </h2>
           </div>
-          <div className="stores-grid-home">
-            {transformedFeaturedStores.map(s => <StoreCard key={s.id} store={s} />)}
-          </div>
-          <Link href={`/${locale}/stores`} className="btn-view-all">
-            {t('browseStores', { defaultValue: 'Browse Stores' })}
-            <span className="material-symbols-sharp">arrow_forward</span>
-          </Link>
-        </section>
-
-      </main>
+        </div>
+        <div className="stores-grid-home">
+          {transformedFeaturedStores.map(s => <StoreCard key={s.id} store={s} />)}
+        </div>
+        <Link href={`/${locale}/stores`} className="btn-view-all">
+          {t('browseStores', { defaultValue: 'Browse Stores' })}
+          <span className="material-symbols-sharp">arrow_forward</span>
+        </Link>
+      </section>
 
       <HelpBox locale={locale} />
-    </>
+    </main>
   );
-}
+            }
