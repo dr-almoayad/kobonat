@@ -1,67 +1,72 @@
 /* components/PromoCodesFAQ/PromoCodesFAQ.css - EXPEDIA STYLE */
 
 /* ============================================================================
-   CSS VARIABLES - Matching Cobonat Theme
+   CSS VARIABLES - Premium Typography & Colors
    ============================================================================ */
 :root {
-    --text-main: #1e293b;
-    --text-secondary: #64748b;
-    --link-color: #470ae2;
-    --link-hover: #4f46e5;
-    --font-family: 'Alexandria', 'Open Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    --text-main: #0f172a;       /* Darker, richer slate for headings */
+    --text-secondary: #475569;  /* Softer slate for body text */
+    --link-color: #4338ca;
+    --link-hover: #3730a3;
+    
+    /* Font stacks optimized for respective languages */
+    --font-primary-en: 'Inter', system-ui, -apple-system, sans-serif;
+    --font-primary-ar: 'Alexandria', 'Cairo', 'Tajawal', system-ui, sans-serif;
 }
 
 /* ============================================================================
-   FAQ SECTION - CLEAN EXPEDIA STYLE
+   FAQ SECTION - CLEAN & MINIMAL
    ============================================================================ */
 .faq-section {
     width: 100%;
     max-width: 1280px;
     margin: 0 auto;
-    padding: 2rem 0 1rem;
+    padding: 3rem 1.5rem;
+    font-family: var(--font-primary-en);
 }
 
 /* Section Header */
 .faq-header {
-    margin-bottom: 2rem;
+    margin-bottom: 2.5rem;
 }
 
 .faq-title {
-    font-size: 1.2rem;
-    font-weight: 600;
+    font-size: 1.5rem;
+    font-weight: 700;
     color: var(--text-main);
     margin: 0;
-    font-family: var(--font-family);
     line-height: 1.2;
+    letter-spacing: -0.015em; /* Premium tight spacing for English headings */
 }
 
-/* FAQ Grid - Two Columns on Desktop */
+/* FAQ Grid */
 .faq-grid {
     display: grid;
     grid-template-columns: 1fr;
-    gap: 1.5rem;
+    gap: 2rem;
 }
 
 /* Individual FAQ Item */
 .faq-item {
-    /* No background, no borders - clean and minimal */
+    display: flex;
+    flex-direction: column;
+    gap: 0.625rem; /* Consistent spacing between Q and A */
 }
 
 .faq-question {
-    font-size: 0.875rem;
+    font-size: 1.05rem;
     font-weight: 600;
     color: var(--text-main);
-    margin: 0 0 0.25rem 0;
+    margin: 0;
     line-height: 1.4;
-    font-family: var(--font-family);
+    letter-spacing: -0.01em;
 }
 
 .faq-answer {
-    font-size: 0.8rem;
+    font-size: 0.95rem;
     color: var(--text-secondary);
-    line-height: 1.25;
+    line-height: 1.6; /* Increased for better reading experience */
     margin: 0;
-    font-family: var(--font-family);
 }
 
 /* Links within answers */
@@ -70,27 +75,29 @@
     color: var(--link-color);
     text-decoration: none;
     font-weight: 500;
-    transition: color 0.2s ease;
+    transition: color 0.2s ease, text-decoration 0.2s ease;
 }
 
 .faq-answer a:hover,
 .faq-answer .contact-link:hover {
     color: var(--link-hover);
     text-decoration: underline;
+    text-underline-offset: 4px; /* Cleaner underline style */
 }
 
 /* ============================================================================
    RESPONSIVE DESIGN
    ============================================================================ */
 
-/* Tablet: 640px+ */
-@media (min-width: 640px) {
-
+/* Tablet: 768px+ */
+@media (min-width: 768px) {
     .faq-title {
         font-size: 2rem;
     }
-
     .faq-question {
+        font-size: 1.125rem;
+    }
+    .faq-answer {
         font-size: 1rem;
     }
 }
@@ -98,22 +105,22 @@
 /* Desktop: 1024px+ - TWO COLUMN LAYOUT */
 @media (min-width: 1024px) {
     .faq-section {
-        padding: 4rem 2rem;
+        padding: 5rem 2rem;
     }
 
     .faq-header {
-        margin-bottom: 3rem;
+        margin-bottom: 3.5rem;
     }
 
     .faq-title {
-        font-size: 2.25rem;
+        font-size: 2.5rem;
+        letter-spacing: -0.02em;
     }
 
     /* Two-column grid layout like Expedia */
     .faq-grid {
         grid-template-columns: repeat(2, 1fr);
-        gap: 2.5rem 3rem;
-        column-gap: 4rem;
+        gap: 3rem 4rem; /* row-gap column-gap */
     }
 
     .faq-question {
@@ -121,29 +128,31 @@
     }
 
     .faq-answer {
-        font-size: 0.9rem;
+        font-size: 1.05rem;
     }
 }
 
 /* Large Desktop: 1280px+ */
 @media (min-width: 1280px) {
     .faq-grid {
-        column-gap: 5rem;
+        gap: 3.5rem 6rem;
     }
 }
 
 /* ============================================================================
-   RTL SUPPORT
+   RTL SUPPORT (ARABIC TYPOGRAPHY ADJUSTMENTS)
    ============================================================================ */
 [dir="rtl"] .faq-section {
-    font-family: 'Alexandria', -apple-system, sans-serif;
+    font-family: var(--font-primary-ar);
 }
 
 [dir="rtl"] .faq-title,
 [dir="rtl"] .faq-question {
-    font-family: 'Alexandria', sans-serif;
+    letter-spacing: 0; /* Arabic cursive script should NOT have modified letter spacing */
+    font-weight: 700; /* Slightly bolder weight handles Arabic display fonts better */
 }
 
 [dir="rtl"] .faq-answer {
+    line-height: 1.8; /* Arabic characters need significantly more vertical breathing room */
     text-align: right;
 }
