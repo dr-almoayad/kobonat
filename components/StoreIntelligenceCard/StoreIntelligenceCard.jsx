@@ -102,16 +102,18 @@ async function fetchIntelligence(storeId, lang, countryCode) {
 }
 
 async function fetchVoucherCounts(storeId) {
-  const active = { OR: [{ expiryDate: null }, { expiryDate: { gte: new Date() } }] };
+  const now = new Date();
+  const expiryOk = [{ expiryDate: null }, { expiryDate: { gte: now } }];
   try {
     const [codes, deals, shipping, bank] = await Promise.all([
-      prisma.voucher.count({ where: { storeId, type: 'CODE',          AND: [active] } }),
-      prisma.voucher.count({ where: { storeId, type: 'DEAL',          AND: [active] } }),
-      prisma.voucher.count({ where: { storeId, type: 'FREE_SHIPPING', AND: [active] } }),
-      prisma.voucher.count({ where: { storeId, type: 'BANK_OFFER',    AND: [active] } }),
+      prisma.voucher.count({ where: { storeId, type: 'CODE',          OR: expiryOk } }),
+      prisma.voucher.count({ where: { storeId, type: 'DEAL',          OR: expiryOk } }),
+      prisma.voucher.count({ where: { storeId, type: 'FREE_SHIPPING', OR: expiryOk } }),
+      prisma.voucher.count({ where: { storeId, type: 'BANK_OFFER',    OR: expiryOk } }),
     ]);
     return { codes, deals, shipping, bank };
-  } catch {
+  } catch (e) {
+    console.error('[StoreIntelligenceCard] fetchVoucherCounts error:', e.message);
     return { codes: 0, deals: 0, shipping: 0, bank: 0 };
   }
 }
@@ -135,7 +137,7 @@ function Ring({ pct, size = 88, stroke = 7, color = 'var(--sic-accent)' }) {
         fill="none" stroke={color}
         strokeWidth={stroke} strokeLinecap="round"
         strokeDasharray={circ} strokeDashoffset={offset}
-        style={{ transform: 'rotate(-90deg)', transformOrigin: '50% 50%' }} />
+        transform={`rotate(-90 ${c} ${c})`} />
     </svg>
   );
 }
@@ -653,4 +655,4 @@ export default async function StoreIntelligenceCard({
 
     </div>
   );
-              }
+      }
