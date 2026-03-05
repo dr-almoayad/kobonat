@@ -1,4 +1,3 @@
-
 // app/[locale]/stores/[slug]/page.jsx - FULLY SEO OPTIMIZED WITH FAQ + SIDEBAR
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
@@ -18,7 +17,7 @@ import PromoCodesFAQ from "@/components/PromoCodesFAQ/PromoCodesFAQ";
 import StoreLeaderboardSidebar from "@/components/leaderboard/StoreLeaderboardSidebar";
 import RelatedPostsSidebar from "@/components/blog/RelatedPostsSidebar";
 import StoreIntelligenceCard from "@/components/StoreIntelligenceCard/StoreIntelligenceCard";
-import { getCategoryData, getCountryCategories } from "@/lib/storeCategories";
+import { getCategoryData } from "@/lib/storeCategories";
 import { getStoresData, getStoreData } from "@/lib/stores";
 import { getStoreRelatedPosts } from "@/app/admin/_lib/queries";
 import { generateEnhancedStoreMetadata, generateEnhancedCategoryMetadata } from "@/lib/seo/generateStoreMetadata";
@@ -42,11 +41,9 @@ export async function generateMetadata({ params }) {
       include: { translations: { where: { locale: language } } }
     });
 
-    // Try as category first
     const category = await getCategoryData(slug, language, countryCode);
     if (category) {
       const categoryTranslation = category.translations[0];
-
       if (categoryTranslation?.seoTitle || categoryTranslation?.seoDescription) {
         const categoryName = categoryTranslation?.name || 'Category';
         return {
@@ -64,13 +61,11 @@ export async function generateMetadata({ params }) {
             siteName: isArabic ? 'كوبونات' : 'Cobonat',
             title: categoryTranslation.seoTitle || categoryName,
             description: categoryTranslation.seoDescription || '',
-            type: 'website',
-            locale,
+            type: 'website', locale,
             url: `${BASE_URL}/${locale}/stores/${slug}`,
           },
         };
       }
-
       const stores = await getStoresData({ language, countryCode, categoryId: category.id });
       const voucherCount = stores.reduce((sum, s) => sum + s.activeVouchersCount, 0);
       return generateEnhancedCategoryMetadata({
@@ -80,7 +75,6 @@ export async function generateMetadata({ params }) {
       });
     }
 
-    // Try as store
     const store = await getStoreData(slug, language, countryCode);
     if (store) {
       const storeTranslation = store.translations[0];
@@ -230,7 +224,7 @@ export default async function StorePage({ params }) {
 
       // ── Parallel data fetch ───────────────────────────────────────────
       // StoreIntelligenceCard is a self-fetching Server Component —
-      // no need to add it to this Promise.all.
+      // no need to include its data here.
       const [
         vouchers,
         paymentMethodsData,
@@ -353,7 +347,6 @@ export default async function StorePage({ params }) {
         discountType:  p.discountType,
       }));
 
-      // Transform raw posts → shape RelatedPostsSidebar expects
       const relatedPosts = relatedPostsRaw.map(post => ({
         id:            post.id,
         slug:          post.slug,
@@ -402,7 +395,6 @@ export default async function StorePage({ params }) {
             <Breadcrumbs items={breadcrumbs} locale={locale} />
             <StorePageShell {...headerProps} />
 
-            {/* ── 2-column wrapper ── */}
             <div className="store-main-content">
               <div className="store-content-grid">
 
@@ -453,15 +445,6 @@ export default async function StorePage({ params }) {
                     />
                   )}
 
-                  {/* 2. Intelligence card — score, savings %, logistics, payments, upcoming events.
-                       Self-fetching Server Component; renders nothing if no data exists. */}
-                  <StoreIntelligenceCard
-                    storeId={store.id}
-                    locale={locale}
-                    countryCode={countryCode}
-                    variant="full"
-                  />
-
                   {faqs.length > 0 && (
                     <StoreFAQ
                       faqs={faqs}
@@ -485,11 +468,29 @@ export default async function StorePage({ params }) {
                     </section>
                   )}
 
-                  
+                  <section className="promo-faq-section">
+                    <PromoCodesFAQ />
+                  </section>
                 </main>
 
                 {/* ════ SIDEBAR ════ */}
                 <aside className="store-content-sidebar">
+
+                  {/* 1. Intelligence card — score, savings %, logistics, payments, upcoming events */}
+                  <StoreIntelligenceCard
+                    storeId={store.id}
+                    locale={locale}
+                    countryCode={countryCode}
+                    variant="full"
+                  />
+
+                  {/* 2. Leaderboard — weekly savings rank */}
+                  <StoreLeaderboardSidebar
+                    snapshots={leaderboardSnapshots}
+                    currentStoreId={store.id}
+                    locale={locale}
+                    weekLabel={currentWeek}
+                  />
 
                   {/* 3. Related blog posts */}
                   {relatedPosts.length > 0 && (
@@ -499,28 +500,11 @@ export default async function StorePage({ params }) {
                     />
                   )}
 
-                  {/* 1. Leaderboard — weekly savings rank */}
-                  <StoreLeaderboardSidebar
-                    snapshots={leaderboardSnapshots}
-                    currentStoreId={store.id}
-                    locale={locale}
-                    weekLabel={currentWeek}
-                  />
-
-        
-
-                  
-
                 </aside>
 
-              </div>{/* /store-content-grid */}
-            </div>{/* /store-main-content */}
-
+              </div>
+            </div>
           </div>
-
-          <section className="promo-faq-section">
-           <PromoCodesFAQ />
-          </section>
 
           <HelpBox locale={locale} />
         </>
@@ -532,4 +516,4 @@ export default async function StorePage({ params }) {
     console.error('Page render error:', error);
     throw error;
   }
-}
+                    }
