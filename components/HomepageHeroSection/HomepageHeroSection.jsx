@@ -213,7 +213,10 @@ export default function HomepageHeroSection({
         ══════════════════════════════════════════════════ */}
         <div className="hhs-panel hhs-panel--lb">
           <div className="hhs-lb-header">
-            <span class="material-symbols-sharp">leaderboard</span>
+            {/* ✅ FIX: was `class=` (invalid HTML attribute in JSX), now `className=`.
+                The old value caused React to emit a warning and the browser to silently
+                drop the attribute, making the leaderboard icon invisible on SSR. */}
+            <span className="material-symbols-sharp">leaderboard</span>
             <span className="hhs-lb-title">{L.leaderboard} {L.week}</span>
             {/*<Link href={`/${locale}/leaderboard`} className="hhs-viewall">{L.viewAll} →</Link>*/}
           </div>
@@ -274,4 +277,4 @@ export default function HomepageHeroSection({
       </div>
     </section>
   );
-}
+            }
