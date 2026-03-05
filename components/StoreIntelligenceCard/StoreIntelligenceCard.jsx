@@ -29,13 +29,6 @@ async function fetchIntelligence(storeId, lang, countryCode) {
           where:  { locale: lang },
           select: { name: true, slug: true, description: true },
         },
-        // Voucher counts by type (Prisma filtered _count)
-        _count: {
-          select: {
-            vouchers: true,
-          },
-        },
-        // We need per-type counts — add 4 separate aggregates via raw fields below
         paymentMethods: {
           where: { isActive: true, country: { code: countryCode } },
           select: {
@@ -55,10 +48,6 @@ async function fetchIntelligence(storeId, lang, countryCode) {
             maxStackableSavingsPercent: true,
             codeSuccessRate:            true,
             totalActiveOffers:          true,
-            totalCodes:                 true,
-            totalDeals:                 true,
-            totalFreeShipping:          true,
-            totalBankOffers:            true,
             storeScore:                 true,
             scoreBreakdown:             true,
           },
@@ -79,7 +68,8 @@ async function fetchIntelligence(storeId, lang, countryCode) {
         },
       },
     });
-  } catch {
+  } catch (e) {
+    console.error('[StoreIntelligenceCard] fetchIntelligence error:', e.message);
     return null;
   }
 }
@@ -267,12 +257,12 @@ export default async function StoreIntelligenceCard({
   const hasDelivery = store.averageDeliveryDaysMin != null || store.averageDeliveryDaysMax != null;
   const accentColor = store.color || '#470ae2';
 
-  // Voucher counts: prefer metrics fields, fall back to live counts
+  // Voucher counts — live from fetchVoucherCounts (parallel fetch above)
   const counts = {
-    codes:    metrics?.totalCodes    ?? voucherCounts.codes,
-    deals:    metrics?.totalDeals    ?? voucherCounts.deals,
-    shipping: metrics?.totalFreeShipping ?? voucherCounts.shipping,
-    bank:     metrics?.totalBankOffers   ?? voucherCounts.bank,
+    codes:    voucherCounts.codes,
+    deals:    voucherCounts.deals,
+    shipping: voucherCounts.shipping,
+    bank:     voucherCounts.bank,
   };
 
   const lbl = isRtl ? {
@@ -626,4 +616,4 @@ export default async function StoreIntelligenceCard({
 
     </div>
   );
-      }
+}
