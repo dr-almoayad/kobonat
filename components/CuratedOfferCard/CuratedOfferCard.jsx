@@ -52,7 +52,7 @@ export default function CuratedOfferCard({ offer }) {
       rel={isExternal ? 'noopener noreferrer' : undefined}
     >
       {/* ── Top: Image Area ── */}
-      <div className="card-media">
+      <div className="card-media" style={{ position: 'relative' }}>
         {offerImage ? (
           // ✅ FIX: Replaced bare <img> with Next.js <Image>.
           // The old <img> tag bypassed Next.js image optimisation entirely —
