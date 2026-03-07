@@ -13,6 +13,7 @@ import HomeFeaturedProductsSection from '@/components/HomeFeaturedProducts/HomeF
 import HomepageBlogSection from '@/components/blog/HomepageBlogSection';
 import HelpBox from "@/components/help/HelpBox";
 import HomepageHeroSection from '@/components/HomepageHeroSection/HomepageHeroSection';
+import OfferStacksSection from '@/components/OfferStacksSection/OfferStacksSection';
 import { getCurrentWeekIdentifier } from '@/lib/leaderboard/calculateStoreSavings';
 
 // ✅ PERF FIX: Removed `import WebSiteStructuredData` — it was being rendered
@@ -251,6 +252,9 @@ export default async function Home({ params }) {
 
       {/* Curated Offers */}
       <CuratedOffersSection locale={locale} countryCode={countryCode || 'SA'} />
+
+      {/* ── Stackable Offers ── */}
+      <OfferStacksSection locale={locale} countryCode={countryCode || 'SA'} />
 
       {/* Blog Section */}
       <HomepageBlogSection locale={locale} count={3} />
