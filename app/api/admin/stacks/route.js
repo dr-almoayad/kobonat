@@ -135,7 +135,10 @@ export async function GET(request) {
   };
 
   for (const v of vouchers) {
-    ensureStore(v.storeId, v.store).vouchers.push({
+    const entry = ensureStore(v.storeId, v.store);
+    // One CODE and one DEAL per store — already ordered best-first
+    if (entry.vouchers.some(x => x.itemType === v.stackGroup)) continue;
+    entry.vouchers.push({
       id:              v.id,
       itemType:        v.stackGroup,
       title:           v.translations?.[0]?.title || v.discount || '—',
@@ -148,8 +151,11 @@ export async function GET(request) {
   }
 
   for (const p of promos) {
+    const entry = ensureStore(p.storeId, p.store);
+    // One BANK_OFFER per store — already ordered best-first
+    if (entry.promos.length > 0) continue;
     const bankName = p.bank?.translations?.[0]?.name || null;
-    ensureStore(p.storeId, p.store).promos.push({
+    entry.promos.push({
       id:              p.id,
       itemType:        'BANK_OFFER',
       title:           p.translations?.[0]?.title || bankName || 'Bank Offer',
