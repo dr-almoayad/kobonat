@@ -9,26 +9,27 @@ import logo from '@/public/coubonat.png';
 import './AdminNav.css';
 
 const NAV = [
-  // ── Dashboard ──────────────────────────────────────────────────────────
-  { label: 'Dashboard',       icon: 'dashboard',      href: '/admin/dashboard' },
+  { label: 'Dashboard',       icon: 'dashboard',       href: '/admin/dashboard' },
 
-  // ── Store section ──────────────────────────────────────────────────────
   { label: '─', separator: true },
-  { label: 'Stores',          icon: 'storefront',     href: '/admin/stores' },
-  { label: 'Leaderboard',     icon: 'leaderboard',    href: '/admin/leaderboard' },
-  { label: 'Vouchers',        icon: 'local_offer',    href: '/admin/vouchers' },
-  { label: 'Curated Offers',  icon: 'auto_awesome',   href: '/admin/curated-offers' },
-  { label: 'Categories',      icon: 'category',       href: '/admin/categories' },
-  { label: 'Countries',       icon: 'public',         href: '/admin/countries' },
-  { label: 'Payment Methods', icon: 'payments',       href: '/admin/payment-methods' },
+  { label: 'Stores',          icon: 'storefront',      href: '/admin/stores' },
+  { label: 'Leaderboard',     icon: 'leaderboard',     href: '/admin/leaderboard' },
+  { label: 'Vouchers',        icon: 'local_offer',     href: '/admin/vouchers' },
+  { label: 'Curated Offers',  icon: 'auto_awesome',    href: '/admin/curated-offers' },
+  { label: 'Categories',      icon: 'category',        href: '/admin/categories' },
+  { label: 'Countries',       icon: 'public',          href: '/admin/countries' },
+  { label: 'Payment Methods', icon: 'payments',        href: '/admin/payment-methods' },
 
-  // ── Blog section ───────────────────────────────────────────────────────
   { label: '─', separator: true },
-  { label: 'Blog Posts',      icon: 'edit_note',      href: '/admin/blog' },
-  { label: 'Categories & Tags', icon: 'sell',         href: '/admin/blog/categories' },
+  { label: 'Banks',           icon: 'account_balance', href: '/admin/banks' },  // ← new
+
+  { label: '─', separator: true },
+  { label: 'Blog Posts',      icon: 'edit_note',       href: '/admin/blog' },
+  { label: 'Categories & Tags', icon: 'sell',          href: '/admin/blog/categories' },
   { label: 'Authors',         icon: 'manage_accounts', href: '/admin/blog/authors' },
-  { label: 'New Post',        icon: 'add_circle',     href: '/admin/blog/new' },
+  { label: 'New Post',        icon: 'add_circle',      href: '/admin/blog/new' },
 ];
+
 
 export default function AdminNav({ user }) {
   const pathname = usePathname();
@@ -53,6 +54,9 @@ export default function AdminNav({ user }) {
     }
     if (href === '/admin/leaderboard') {
       return pathname === '/admin/leaderboard' || pathname.startsWith('/admin/leaderboard/');
+    }
+    if (href === '/admin/banks') {
+      return pathname === '/admin/banks' || pathname.startsWith('/admin/banks/');
     }
     return pathname === href || pathname.startsWith(`${href}/`);
   }
