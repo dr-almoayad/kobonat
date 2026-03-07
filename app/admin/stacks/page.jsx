@@ -80,10 +80,11 @@ function Plus() {
 }
 
 // ─── Homepage toggle ──────────────────────────────────────────────────────────
-function HomepageToggle({ storeId, vouchers, value, onChange }) {
+function HomepageToggle({ storeId, vouchers, value, onChange, disabled }) {
   const [saving, setSaving] = useState(false);
 
   async function toggle() {
+    if (disabled) return;
     const next = !value;
     setSaving(true);
     try {
@@ -108,8 +109,12 @@ function HomepageToggle({ storeId, vouchers, value, onChange }) {
   return (
     <button
       onClick={toggle}
-      disabled={saving}
-      title={value ? 'Remove from homepage stacks section' : 'Show in homepage stacks section'}
+      disabled={saving || disabled}
+      title={
+        disabled  ? 'Run migration first to enable homepage curation' :
+        value     ? 'Remove from homepage stacks section' :
+                    'Show in homepage stacks section'
+      }
       style={{
         display:      'inline-flex',
         alignItems:   'center',
@@ -117,16 +122,18 @@ function HomepageToggle({ storeId, vouchers, value, onChange }) {
         padding:      '0.35rem 0.75rem',
         borderRadius: '7px',
         border:       value ? 'none' : '1px solid var(--ap-border)',
-        cursor:       saving ? 'wait' : 'pointer',
+        cursor:       (saving || disabled) ? 'not-allowed' : 'pointer',
         fontWeight:   700,
         fontSize:     '0.75rem',
         transition:   'all 0.15s',
-        background:   value
-          ? 'linear-gradient(135deg,#f59e0b 0%,#f97316 100%)'
-          : 'var(--ap-surface-2)',
-        color:        value ? '#fff' : 'var(--ap-text-secondary)',
-        boxShadow:    value ? '0 2px 10px rgba(249,115,22,0.3)' : 'none',
-        opacity:      saving ? 0.65 : 1,
+        background:   disabled
+          ? 'var(--ap-surface-2)'
+          : value
+            ? 'linear-gradient(135deg,#f59e0b 0%,#f97316 100%)'
+            : 'var(--ap-surface-2)',
+        color:        (disabled || !value) ? 'var(--ap-text-secondary)' : '#fff',
+        boxShadow:    (!disabled && value) ? '0 2px 10px rgba(249,115,22,0.3)' : 'none',
+        opacity:      (saving || disabled) ? 0.5 : 1,
         whiteSpace:   'nowrap',
       }}
     >
@@ -142,7 +149,7 @@ function HomepageToggle({ storeId, vouchers, value, onChange }) {
 }
 
 // ─── Store stack card ─────────────────────────────────────────────────────────
-function StackCard({ stack, onFeaturedChange }) {
+function StackCard({ stack, onFeaturedChange, hasFeaturedField }) {
   const allItems = [
     ...stack.vouchers.map(v => ({ ...v, _src: 'voucher' })),
     ...stack.promos.map(p =>  ({ ...p, _src: 'promo'   })),
@@ -251,6 +258,7 @@ function StackCard({ stack, onFeaturedChange }) {
           vouchers={stack.vouchers}
           value={stack.isFeaturedStack}
           onChange={onFeaturedChange}
+          disabled={!hasFeaturedField}
         />
 
         <Link
@@ -271,9 +279,9 @@ function StackCard({ stack, onFeaturedChange }) {
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 export default function StacksPage() {
-  const [stacks,       setStacks]       = useState([]);
-  const [meta,         setMeta]         = useState({ total: 0, homepageFeatured: 0 });
-  const [loading,      setLoading]      = useState(true);
+  const [stacks,           setStacks]           = useState([]);
+  const [meta,             setMeta]             = useState({ total: 0, homepageFeatured: 0, hasFeaturedField: true });
+  const [loading,          setLoading]          = useState(true);
   const [search,       setSearch]       = useState('');
   const [featuredOnly, setFeaturedOnly] = useState(false);
   const [debSearch,    setDebSearch]    = useState('');
@@ -357,6 +365,15 @@ export default function StacksPage() {
           </div>
         </div>
 
+        {/* ── Migration warning ───────────────────────────────────── */}
+        {!loading && !meta.hasFeaturedField && (
+          <div className="ap-alert ap-alert--warning" style={{ marginBottom: '1.25rem' }}>
+            <strong>Migration needed:</strong> The <code>isFeaturedStack</code> column
+            doesn't exist yet. Stacks are shown but the Homepage toggle is disabled until
+            you run: <code>npx prisma migrate dev --name add_voucher_isFeaturedStack</code>
+          </div>
+        )}
+
         {/* ── Info banner ─────────────────────────────────────────── */}
         <div className="ap-alert ap-alert--info" style={{ marginBottom: '1.25rem' }}>
           Stores appear here automatically once their offers are flagged{' '}
@@ -426,6 +443,7 @@ export default function StacksPage() {
                 key={stack.storeId}
                 stack={stack}
                 onFeaturedChange={handleFeaturedChange}
+                hasFeaturedField={meta.hasFeaturedField}
               />
             ))}
           </div>
