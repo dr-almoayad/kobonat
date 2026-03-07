@@ -16,6 +16,7 @@ const NAV = [
   { label: 'Leaderboard',     icon: 'leaderboard',     href: '/admin/leaderboard' },
   { label: 'Vouchers',        icon: 'local_offer',     href: '/admin/vouchers' },
   { label: 'Curated Offers',  icon: 'auto_awesome',    href: '/admin/curated-offers' },
+  { label: 'Offer Stacks',    icon: 'layers',          href: '/admin/stacks',},
   { label: 'Categories',      icon: 'category',        href: '/admin/categories' },
   { label: 'Countries',       icon: 'public',          href: '/admin/countries' },
   { label: 'Payment Methods', icon: 'payments',        href: '/admin/payment-methods' },
