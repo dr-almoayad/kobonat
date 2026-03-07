@@ -1,0 +1,293 @@
+/* components/OfferStackBox/OfferStackBox.css */
+
+/* ─── Container ────────────────────────────────────────────────────────────── */
+.stack-box {
+  position: relative;
+  background: linear-gradient(145deg, #1a0a4e 0%, #2d1280 45%, #3b1fa8 100%);
+  border-radius: 16px;
+  padding: 1.125rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+  overflow: hidden;
+  box-shadow:
+    0 4px 24px rgba(71, 10, 226, 0.25),
+    0 1px 4px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  min-width: 0;
+}
+
+.stack-box::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 110% -10%, rgba(139, 92, 246, 0.35) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at -10% 110%, rgba(59, 130, 246, 0.2) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+.stack-box:hover {
+  transform: translateY(-3px);
+  box-shadow:
+    0 8px 32px rgba(71, 10, 226, 0.35),
+    0 2px 8px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+/* ─── Top Row: store logo + name + savings badge ──────────────────────────── */
+.stack-box-header {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  position: relative;
+  z-index: 1;
+}
+
+.stack-store-logo {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.95);
+  object-fit: contain;
+  padding: 3px;
+  flex-shrink: 0;
+}
+
+.stack-store-logo-placeholder {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 1rem;
+}
+
+.stack-store-name {
+  font-family: 'Alexandria', 'Open Sans', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.92);
+  line-height: 1.2;
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.stack-savings-badge {
+  background: linear-gradient(135deg, #f59e0b 0%, #f97316 100%);
+  color: #fff;
+  font-family: 'Alexandria', 'Open Sans', sans-serif;
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  letter-spacing: 0.01em;
+  box-shadow: 0 2px 8px rgba(249, 115, 22, 0.35);
+}
+
+/* ─── Label: "Stack & Save" ─────────────────────────────────────────────────── */
+.stack-label {
+  font-family: 'Alexandria', 'Open Sans', sans-serif;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  position: relative;
+  z-index: 1;
+  margin-top: -0.25rem;
+}
+
+/* ─── Items Row ─────────────────────────────────────────────────────────────── */
+.stack-items-row {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.stack-item {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.09);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  padding: 0.625rem 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-width: 0;
+  transition: background 0.15s ease;
+}
+
+.stack-item:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.stack-item-type-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  width: fit-content;
+}
+
+.stack-item-type-badge.type-code {
+  background: rgba(99, 102, 241, 0.3);
+  color: #a5b4fc;
+  border: 1px solid rgba(99, 102, 241, 0.3);
+}
+
+.stack-item-type-badge.type-deal {
+  background: rgba(16, 185, 129, 0.25);
+  color: #6ee7b7;
+  border: 1px solid rgba(16, 185, 129, 0.25);
+}
+
+.stack-item-type-badge.type-bank {
+  background: rgba(245, 158, 11, 0.2);
+  color: #fcd34d;
+  border: 1px solid rgba(245, 158, 11, 0.25);
+}
+
+.stack-item-title {
+  font-family: 'Alexandria', 'Open Sans', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.88);
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.stack-item-discount {
+  font-family: 'Alexandria', 'Open Sans', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #fff;
+  margin-top: auto;
+}
+
+.stack-item-code {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px dashed rgba(255, 255, 255, 0.25);
+  border-radius: 5px;
+  padding: 0.2rem 0.4rem;
+  font-family: 'Courier New', monospace;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.9);
+  letter-spacing: 0.05em;
+  width: fit-content;
+  margin-top: auto;
+}
+
+/* ─── Plus connector ─────────────────────────────────────────────────────────── */
+.stack-plus {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  flex-shrink: 0;
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 0.9rem;
+  font-weight: 700;
+  z-index: 1;
+}
+
+/* ─── Equals row ─────────────────────────────────────────────────────────────── */
+.stack-total-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  position: relative;
+  z-index: 1;
+}
+
+.stack-total-label {
+  font-family: 'Alexandria', 'Open Sans', sans-serif;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.5);
+  font-weight: 600;
+}
+
+.stack-total-value {
+  font-family: 'Alexandria', 'Open Sans', sans-serif;
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1;
+}
+
+.stack-total-value .superscript {
+  font-size: 0.75rem;
+  vertical-align: super;
+  font-weight: 700;
+  opacity: 0.8;
+}
+
+/* ─── CTA ────────────────────────────────────────────────────────────────────── */
+.stack-cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  background: linear-gradient(135deg, #f59e0b 0%, #f97316 100%);
+  color: #fff;
+  font-family: 'Alexandria', 'Open Sans', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 0.6rem 1rem;
+  border-radius: 10px;
+  text-decoration: none;
+  position: relative;
+  z-index: 1;
+  transition: filter 0.15s ease, transform 0.15s ease;
+  box-shadow: 0 2px 12px rgba(249, 115, 22, 0.3);
+  letter-spacing: 0.01em;
+}
+
+.stack-cta:hover {
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(249, 115, 22, 0.45);
+}
+
+.stack-cta .material-symbols-sharp {
+  font-size: 1rem;
+  font-variation-settings: 'FILL' 1;
+}
+
+/* ─── RTL ─────────────────────────────────────────────────────────────────────── */
+[dir="rtl"] .stack-items-row {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .stack-store-logo,
+[dir="rtl"] .stack-store-logo-placeholder {
+  order: 1;
+}
+
+[dir="rtl"] .stack-savings-badge {
+  order: 0;
+}
