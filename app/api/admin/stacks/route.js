@@ -27,61 +27,91 @@ export async function GET(request) {
 
   const now = new Date();
 
-  const [vouchers, promos] = await Promise.all([
-    prisma.voucher.findMany({
-      where: {
-        isActive:    true,
-        isStackable: true,
-        stackGroup:  { in: ['CODE', 'DEAL'] },
-        OR: [{ expiryDate: null }, { expiryDate: { gte: now } }],
-      },
-      select: {
-        id:                 true,
-        code:               true,
-        discount:           true,
-        discountPercent:    true,
-        verifiedAvgPercent: true,
-        stackGroup:         true,
-        isFeaturedStack:    true,
-        expiryDate:         true,
-        storeId:            true,
-        translations: { where: { locale: 'en' }, select: { title: true } },
-        store: {
-          select: {
-            id:   true,
-            logo: true,
-            translations: { where: { locale: 'en' }, select: { name: true, slug: true } },
-          },
-        },
-      },
-      orderBy: [{ storeId: 'asc' }, { stackGroup: 'asc' }, { verifiedAvgPercent: 'desc' }],
-    }),
+  // isFeaturedStack may not exist yet if the migration hasn't been run.
+  // Try with it first; if Prisma throws an unknown field error, retry without it.
+  let vouchers, promos, hasFeaturedField = true;
 
-    prisma.otherPromo.findMany({
-      where: {
-        isActive:    true,
-        isStackable: true,
-        stackGroup:  'BANK_OFFER',
-        OR: [{ expiryDate: null }, { expiryDate: { gte: now } }],
-      },
+  const VOUCHER_SELECT_BASE = {
+    id:                 true,
+    code:               true,
+    discount:           true,
+    discountPercent:    true,
+    verifiedAvgPercent: true,
+    stackGroup:         true,
+    expiryDate:         true,
+    storeId:            true,
+    translations: { where: { locale: 'en' }, select: { title: true } },
+    store: {
       select: {
-        id:                 true,
-        discountPercent:    true,
-        verifiedAvgPercent: true,
-        storeId:            true,
-        translations: { where: { locale: 'en' }, select: { title: true } },
-        store: {
-          select: {
-            id:   true,
-            logo: true,
-            translations: { where: { locale: 'en' }, select: { name: true, slug: true } },
-          },
-        },
-        bank: { select: { name: true, logo: true } },
+        id:   true,
+        logo: true,
+        translations: { where: { locale: 'en' }, select: { name: true, slug: true } },
       },
-      orderBy: [{ storeId: 'asc' }, { verifiedAvgPercent: 'desc' }],
-    }),
-  ]);
+    },
+  };
+
+  const VOUCHER_WHERE = {
+    isStackable: true,
+    stackGroup:  { in: ['CODE', 'DEAL'] },
+    OR: [{ expiryDate: null }, { expiryDate: { gte: now } }],
+  };
+
+  const PROMO_WHERE = {
+    isActive:    true,
+    isStackable: true,
+    stackGroup:  'BANK_OFFER',
+    OR: [{ expiryDate: null }, { expiryDate: { gte: now } }],
+  };
+
+  const PROMO_SELECT = {
+    id:                 true,
+    discountPercent:    true,
+    verifiedAvgPercent: true,
+    storeId:            true,
+    translations: { where: { locale: 'en' }, select: { title: true } },
+    store: {
+      select: {
+        id:   true,
+        logo: true,
+        translations: { where: { locale: 'en' }, select: { name: true, slug: true } },
+      },
+    },
+    bank: { select: { name: true, logo: true } },
+  };
+
+  try {
+    [vouchers, promos] = await Promise.all([
+      prisma.voucher.findMany({
+        where:   VOUCHER_WHERE,
+        select:  { ...VOUCHER_SELECT_BASE, isFeaturedStack: true },
+        orderBy: [{ storeId: 'asc' }, { stackGroup: 'asc' }, { verifiedAvgPercent: 'desc' }],
+      }),
+      prisma.otherPromo.findMany({
+        where:   PROMO_WHERE,
+        select:  PROMO_SELECT,
+        orderBy: [{ storeId: 'asc' }, { verifiedAvgPercent: 'desc' }],
+      }),
+    ]);
+  } catch (e) {
+    // isFeaturedStack column doesn't exist yet — run without it
+    if (e.message?.includes('isFeaturedStack') || e.code === 'P2025') {
+      hasFeaturedField = false;
+      [vouchers, promos] = await Promise.all([
+        prisma.voucher.findMany({
+          where:   VOUCHER_WHERE,
+          select:  VOUCHER_SELECT_BASE,
+          orderBy: [{ storeId: 'asc' }, { stackGroup: 'asc' }, { verifiedAvgPercent: 'desc' }],
+        }),
+        prisma.otherPromo.findMany({
+          where:   PROMO_WHERE,
+          select:  PROMO_SELECT,
+          orderBy: [{ storeId: 'asc' }, { verifiedAvgPercent: 'desc' }],
+        }),
+      ]);
+    } else {
+      throw e;
+    }
+  }
 
   // ── Group by storeId ───────────────────────────────────────────────────────
   const byStore = new Map();
@@ -109,7 +139,7 @@ export async function GET(request) {
       discount:        v.discount || null,
       discountPercent: v.verifiedAvgPercent ?? v.discountPercent ?? null,
       code:            v.code || null,
-      isFeaturedStack: v.isFeaturedStack,
+      isFeaturedStack: hasFeaturedField ? (v.isFeaturedStack ?? false) : false,
       expiryDate:      v.expiryDate,
     });
   }
@@ -162,8 +192,9 @@ export async function GET(request) {
   return NextResponse.json({
     data: stacks,
     meta: {
-      total:            stacks.length,
-      homepageFeatured: stacks.filter(s => s.isFeaturedStack).length,
+      total:              stacks.length,
+      homepageFeatured:   stacks.filter(s => s.isFeaturedStack).length,
+      hasFeaturedField,   // false = migration not yet run, homepage toggle disabled
     },
   });
 }
