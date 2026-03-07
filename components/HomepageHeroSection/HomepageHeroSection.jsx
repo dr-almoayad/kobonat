@@ -138,7 +138,7 @@ export default function HomepageHeroSection({
             PANEL 2 — Featured-store news-item list
         ══════════════════════════════════════════════════ */}
 
-        {/* ── THUMBNAIL CARD ROW ── */}
+        {/* ── THUMBNAIL CARD ROW ── 
               <div className="hhs-cards-row">
                 {pool.map((s, i) => (
                   <button
@@ -167,17 +167,17 @@ export default function HomepageHeroSection({
                     </div>
                   </button>
                 ))}
-              </div>
+              </div>*/}
 
 
 
 
         
-        {/*<div className="hhs-panel hhs-panel--list">
-          <div className="hhs-list-header">
+        <div className="hhs-panel hhs-panel--list">
+          {/*<div className="hhs-list-header">
             <span className="hhs-list-title">{L.featured}</span>
             <Link href={`/${locale}/stores`} className="hhs-viewall">{L.viewAll} →</Link>
-          </div>
+          </div>*/}
 
           <div className="hhs-list-items">
             {pool.map((s, i) => (
@@ -202,16 +202,16 @@ export default function HomepageHeroSection({
                     : <div className="hhs-list-thumb-fallback" />
                   }
                   // bigLogo badge over thumb
-                  {s.bigLogo && (
+                  {/*{s.bigLogo && (
                     <div className="hhs-list-thumb-logo">
                       <Image src={s.bigLogo} alt="" fill style={{ objectFit: 'contain' }} />
                     </div>
-                  )}
+                  )}*/}
                 </div>
               </button>
             ))}
           </div>
-        </div>*/}
+        </div>
 
         {/* panel list */}
 
