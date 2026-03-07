@@ -16,6 +16,7 @@ export default async function OfferStacksSection({ locale, countryCode = 'SA' })
       countryCode,
       language: lang,
       limit:    8,
+      homepageOnly: true,
     });
   } catch (err) {
     // Silently skip — this section is non-critical
