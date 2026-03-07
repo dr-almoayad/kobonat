@@ -1,0 +1,31 @@
+/* components/StoreOfferStacks/StoreOfferStacks.css */
+
+.store-offer-stacks-section {
+  padding: 1rem 0;
+}
+
+.store-offer-stacks-title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-family: 'Alexandria', 'Open Sans', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 0.75rem;
+  padding: 0;
+}
+
+.store-offer-stacks-title .material-symbols-sharp {
+  font-size: 1.75rem;
+  color: #470ae2;
+  font-variation-settings: 'FILL' 1;
+}
+
+/* ── Grid of stacks (usually 1-2 for a single store) ───────────────────────── */
+.store-offer-stacks-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+}
