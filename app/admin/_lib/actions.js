@@ -861,41 +861,63 @@ export async function deletePaymentMethod(id) {
 // OTHER PROMOS
 // ============================================================================
 
+// PATCH: app/admin/_lib/actions.js
+// Replace the existing createOtherPromo function with this version.
+// Adds bankId, cardId, cardNetwork, installmentMonths — all nullable/optional.
+
 export async function createOtherPromo(formData) {
   try {
-    const storeId = parseInt(formData.get('storeId'));
+    const storeId   = parseInt(formData.get('storeId'));
     const countryId = parseInt(formData.get('countryId'));
-    const startDate = formData.get('startDate') ? new Date(formData.get('startDate')) : null;
+    const startDate  = formData.get('startDate')  ? new Date(formData.get('startDate'))  : null;
     const expiryDate = formData.get('expiryDate') ? new Date(formData.get('expiryDate')) : null;
+
+    // ── Bank / card fields (all nullable) ──────────────────────────────────
+    const rawBankId     = formData.get('bankId');
+    const rawCardId     = formData.get('cardId');
+    const rawNetwork    = formData.get('cardNetwork');
+    const rawInstall    = formData.get('installmentMonths');
+
+    const bankId            = rawBankId  ? parseInt(rawBankId)  : null;
+    const cardId            = rawCardId  ? parseInt(rawCardId)  : null;
+    const cardNetwork       = rawNetwork || null;
+    const installmentMonths = rawInstall ? parseInt(rawInstall) : null;
 
     const promo = await prisma.otherPromo.create({
       data: {
         storeId,
         countryId,
-        image: formData.get('image'),
-        type: formData.get('type'),
-        url: formData.get('url'),
+        image:    formData.get('image')    || null,
+        type:     formData.get('type'),
+        url:      formData.get('url')      || null,
         startDate,
         expiryDate,
         isActive: formData.get('isActive') === 'on',
-        order: parseInt(formData.get('order') || '0'),
+        order:    parseInt(formData.get('order') || '0'),
+
+        // ← new fields
+        bankId,
+        cardId,
+        cardNetwork,
+        installmentMonths,
+
         translations: {
           create: [
             {
-              locale: 'en',
-              title: formData.get('title_en'),
+              locale:      'en',
+              title:       formData.get('title_en'),
               description: formData.get('description_en'),
-              terms: formData.get('terms_en')
+              terms:       formData.get('terms_en'),
             },
             {
-              locale: 'ar',
-              title: formData.get('title_ar'),
+              locale:      'ar',
+              title:       formData.get('title_ar'),
               description: formData.get('description_ar'),
-              terms: formData.get('terms_ar')
-            }
-          ]
-        }
-      }
+              terms:       formData.get('terms_ar'),
+            },
+          ],
+        },
+      },
     });
 
     revalidatePath(`/admin/stores/${storeId}`);
