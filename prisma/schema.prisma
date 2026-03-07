@@ -131,6 +131,30 @@ enum ConfidenceLevel {
   HIGH    // Admin has confirmed or store has announced
 }
 
+// === NEW BANK ENUMS ===
+enum BankType {
+  COMMERCIAL
+  ISLAMIC
+  DIGITAL
+}
+
+enum CardNetwork {
+  VISA
+  MASTERCARD
+  MADA
+  AMEX
+  UNIONPAY
+}
+
+enum CardTier {
+  CLASSIC
+  GOLD
+  PLATINUM
+  SIGNATURE
+  INFINITE
+  WORLD_ELITE
+}
+
 // ============================================================================
 // CORE MODELS
 // ============================================================================
@@ -262,7 +286,7 @@ model StoreTranslation {
 }
 
 // ============================================================================
-// CATEGORY - ENHANCED WITH IMAGE
+// CATEGORY - ENHANCED WITH IMAGE AND BANK SCORING WEIGHTS
 // ============================================================================
 
 model Category {
@@ -271,9 +295,15 @@ model Category {
   image String? // Category banner/thumbnail
   color String? // Category accent color
 
+  // Bank niche scoring (null = not a bank scoring category)
+  bankScoringWeights Json? // JSON object with weights for criteria (e.g., {"loungeAccess": 0.2, "cashbackGeneral": 0.5})
+
   translations CategoryTranslation[]
   stores       StoreCategory[]
   savingsSnapshots StoreSavingsSnapshot[] // for category leaderboards
+
+  // Bank niche snapshots (leaderboard rows for this category)
+  bankNicheSnapshots BankNicheSnapshot[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -447,7 +477,7 @@ model StoreProductClick {
 }
 
 // ============================================================================
-// OTHER PROMOS - BANK/CARD OFFERS (with stackability & certainty fields)
+// OTHER PROMOS - BANK/CARD OFFERS (with stackability & certainty fields, and bank relations)
 // ============================================================================
 
 model OtherPromo {
@@ -479,10 +509,18 @@ model OtherPromo {
   isActive Boolean @default(true)
   order    Int     @default(0)
 
+  // Bank-related fields (new)
+  bankId            Int?
+  cardId            Int?
+  cardNetwork       CardNetwork?
+  installmentMonths Int?
+
   // Relations
   translations OtherPromoTranslation[]
   store        Store   @relation(fields: [storeId], references: [id], onDelete: Cascade)
   country      Country @relation(fields: [countryId], references: [id], onDelete: Cascade)
+  bank         Bank?     @relation(fields: [bankId], references: [id], onDelete: SetNull)
+  card         BankCard? @relation(fields: [cardId], references: [id], onDelete: SetNull)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -492,6 +530,8 @@ model OtherPromo {
   @@index([expiryDate])
   @@index([order])
   @@index([type])
+  @@index([bankId])
+  @@index([cardId])
 }
 
 model OtherPromoTranslation {
@@ -1065,7 +1105,7 @@ model StoreSavingsSnapshot {
   // Calculated output
   calculatedMaxSavingsPercent Float    // Final stacked % after formula + cap
   savingsOverridePercent      Float?   // Admin can pin a manual value; NULL = use calculated
-  stackingPath                String?  // ← ADD THIS e.g. "DEAL(20.0%) + BANK_OFFER(12.0%)"
+  stackingPath                String?  // e.g. "DEAL(20.0%) + BANK_OFFER(12.0%)"
 
   // Ranking
   rank         Int             // 1 = best this week
@@ -1105,7 +1145,7 @@ model StoreSavingsMetrics {
   maxStackableSavingsPercent Float @default(0) // Best compound saving (from leaderboard cron)
   codeSuccessRate           Float @default(0) // 0–100: % of code clicks that weren't "code invalid"
   totalActiveOffers         Int   @default(0) // Count of non-expired vouchers + promos
-  offerQualityRatio         Float   @default(0) // ← add this
+  offerQualityRatio         Float @default(0) // Added field
 
   // Pre-computed score (avoids recalculating on every request)
   storeScore      Float @default(0) // 0–10 scale, stored after cron calculates it
@@ -1151,4 +1191,134 @@ model StorePeakSeason {
   @@unique([storeId, seasonKey])
   @@index([storeId])
   @@index([seasonKey])
+}
+
+// ============================================================================
+// NEW BANK MODELS
+// ============================================================================
+
+model Bank {
+  id         Int      @id @default(autoincrement())
+  slug       String   @unique
+  logo       String?
+  color      String?
+  websiteUrl String?
+  type       BankType @default(COMMERCIAL)
+  appRating  Float?
+  isActive   Boolean  @default(true)
+
+  translations   BankTranslation[]
+  cards          BankCard[]
+  nicheSnapshots BankNicheSnapshot[]
+  otherPromos    OtherPromo[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isActive])
+  @@index([type])
+}
+
+model BankTranslation {
+  id     Int    @id @default(autoincrement())
+  bankId Int
+  locale Locale
+
+  name        String
+  description String? @db.Text
+
+  bank Bank @relation(fields: [bankId], references: [id], onDelete: Cascade)
+
+  @@unique([bankId, locale])
+  @@index([locale])
+}
+
+model BankCard {
+  id        Int  @id @default(autoincrement())
+  bankId    Int
+
+  network   CardNetwork
+  tier      CardTier    @default(CLASSIC)
+  isIslamic Boolean     @default(false)
+  image     String?
+
+  // Financials
+  annualFee           Float?
+  minSalary           Float?
+  foreignTxFeePercent Float?
+
+  // Perks
+  loungeAccessPerYear   Int?
+  hasTravelInsurance    Boolean @default(false)
+  hasPurchaseProtection Boolean @default(false)
+  hasApplePay           Boolean @default(true)
+  hasGooglePay          Boolean @default(true)
+  hasSamsungPay         Boolean @default(false)
+
+  // Earn rates (%) per spend category — feed the scoring engine
+  cashbackGeneral    Float?
+  cashbackTravel     Float?
+  cashbackDining     Float?
+  cashbackShopping   Float?
+  cashbackFuel       Float?
+  cashbackGaming     Float?
+  cashbackGroceries  Float?
+  cashbackOnline     Float?
+  cashbackHealthcare Float?
+
+  maxInstallmentMonths Int?
+
+  bank         Bank                @relation(fields: [bankId], references: [id], onDelete: Cascade)
+  translations BankCardTranslation[]
+  otherPromos  OtherPromo[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([bankId])
+  @@index([network])
+  @@index([tier])
+}
+
+model BankCardTranslation {
+  id     Int    @id @default(autoincrement())
+  cardId Int
+  locale Locale
+
+  name        String
+  description String? @db.Text
+  benefits    String? @db.Text
+
+  card BankCard @relation(fields: [cardId], references: [id], onDelete: Cascade)
+
+  @@unique([cardId, locale])
+  @@index([locale])
+}
+
+// Weekly auto-calculated leaderboard row, one per bank × category (niche)
+model BankNicheSnapshot {
+  id         Int @id @default(autoincrement())
+  bankId     Int
+  categoryId Int   // reuses Category (travel, gaming, dining…)
+
+  weekIdentifier String   // "2026-W10"
+
+  score          Float         // 0–100 normalised
+  rank           Int
+  previousRank   Int?
+  movement       RankMovement  @default(NEW) // reuses existing enum
+
+  // Per-criterion breakdown for radar chart: { "loungeAccess": 8.5, ... }
+  scoreBreakdown Json
+
+  bestCardId Int?  // which of the bank's cards drove this score
+
+  bank     Bank     @relation(fields: [bankId],     references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  calculatedAt DateTime @default(now())
+
+  @@unique([bankId, categoryId, weekIdentifier])
+  @@index([categoryId, weekIdentifier, rank])
+  @@index([bankId])
 }
