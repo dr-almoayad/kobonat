@@ -94,7 +94,15 @@ export async function GET(request) {
               },
             },
           },
-          bank: { select: { name: true, logo: true } },
+          bank: {
+            select: {
+              logo: true,
+              translations: {
+                where:  { locale: 'en' },
+                select: { name: true },
+              },
+            },
+          },
         },
         orderBy: [
           { storeId:            'asc'  },
@@ -140,12 +148,13 @@ export async function GET(request) {
   }
 
   for (const p of promos) {
+    const bankName = p.bank?.translations?.[0]?.name || null;
     ensureStore(p.storeId, p.store).promos.push({
       id:              p.id,
       itemType:        'BANK_OFFER',
-      title:           p.translations?.[0]?.title || p.bank?.name || 'Bank Offer',
+      title:           p.translations?.[0]?.title || bankName || 'Bank Offer',
       discountPercent: p.verifiedAvgPercent ?? p.discountPercent ?? null,
-      bankName:        p.bank?.name || null,
+      bankName,
       bankLogo:        p.bank?.logo || null,
     });
   }
