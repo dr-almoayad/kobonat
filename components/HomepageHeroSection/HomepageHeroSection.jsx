@@ -107,7 +107,38 @@ export default function HomepageHeroSection({
                 <span className="hhs-hero-label">{L.featured}</span>
               </div>
 
-             {/* ── THUMBNAIL CARD ROW ── */}
+             
+              {/* progress bar */}
+              <div className="hhs-progress" key={pbKey} />
+            </div>
+          </Link>
+
+          {/* Dark info section below cover */}
+          <Link href={`/${locale}/stores/${store.slug}`} className="hhs-info-section">
+            <div className="hhs-info-text">
+              <p className={`hhs-info-name${fading ? ' hhs-info-name--fading' : ''}`}>{store.name}</p>
+              {store.seoTitle && (
+                <p className={`hhs-info-seotitle${fading ? ' hhs-info-seotitle--fading' : ''}`}>
+                  {store.seoTitle}
+                </p>
+              )}
+              {store.description && (
+                <p className={`hhs-info-desc${fading ? ' hhs-info-desc--fading' : ''}`}>
+                  {store.description}
+                </p>
+              )}
+            </div>
+            <span className="hhs-info-tag">{L.explore} →</span>
+          </Link>
+
+        </div>{/* /panel hero */}
+
+
+        {/* ══════════════════════════════════════════════════
+            PANEL 2 — Featured-store news-item list
+        ══════════════════════════════════════════════════ */}
+
+        {/* ── THUMBNAIL CARD ROW ── */}
               <div className="hhs-cards-row">
                 {pool.map((s, i) => (
                   <button
@@ -138,35 +169,10 @@ export default function HomepageHeroSection({
                 ))}
               </div>
 
-              {/* progress bar */}
-              <div className="hhs-progress" key={pbKey} />
-            </div>
-          </Link>
-
-          {/* Dark info section below cover */}
-          <Link href={`/${locale}/stores/${store.slug}`} className="hhs-info-section">
-            <div className="hhs-info-text">
-              <p className={`hhs-info-name${fading ? ' hhs-info-name--fading' : ''}`}>{store.name}</p>
-              {store.seoTitle && (
-                <p className={`hhs-info-seotitle${fading ? ' hhs-info-seotitle--fading' : ''}`}>
-                  {store.seoTitle}
-                </p>
-              )}
-              {store.description && (
-                <p className={`hhs-info-desc${fading ? ' hhs-info-desc--fading' : ''}`}>
-                  {store.description}
-                </p>
-              )}
-            </div>
-            <span className="hhs-info-tag">{L.explore} →</span>
-          </Link>
-
-        </div>{/* /panel hero */}
 
 
-        {/* ══════════════════════════════════════════════════
-            PANEL 2 — Featured-store news-item list
-        ══════════════════════════════════════════════════ */}
+
+        
         {/*<div className="hhs-panel hhs-panel--list">
           <div className="hhs-list-header">
             <span className="hhs-list-title">{L.featured}</span>
