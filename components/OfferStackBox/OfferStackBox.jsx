@@ -1,7 +1,4 @@
 // components/OfferStackBox/OfferStackBox.jsx
-// Server-compatible (no 'use client'). Pure display component.
-// Receives a pre-built stack object from buildOfferStacks().
-
 import Image from 'next/image';
 import Link from 'next/link';
 import './OfferStackBox.css';
@@ -27,22 +24,54 @@ const TYPE_META = {
   },
 };
 
+function StackItem({ item, isAr }) {
+  const meta = TYPE_META[item.itemType] || TYPE_META.DEAL;
+  return (
+    <div className="stack-item">
+      <span className={`stack-item-type-badge ${meta.cls}`}>
+        <span className="material-symbols-sharp" style={{ fontSize: '0.65rem' }}>{meta.icon}</span>
+        {isAr ? meta.labelAr : meta.labelEn}
+      </span>
+      <span className="stack-item-title">{item.title}</span>
+      {item.discount && (
+        <span className="stack-item-discount">{item.discount}</span>
+      )}
+      {item.discountPercent != null && !item.discount && (
+        <span className="stack-item-discount">{item.discountPercent}%</span>
+      )}
+      {item.code && (
+        <span className="stack-item-code">
+          <span className="material-symbols-sharp" style={{ fontSize: '0.65rem', opacity: 0.7 }}>content_cut</span>
+          {item.code}
+        </span>
+      )}
+    </div>
+  );
+}
+
 export default function OfferStackBox({ stack, locale }) {
-  const lang     = locale?.split('-')[0] || 'ar';
-  const isAr     = lang === 'ar';
+  const lang  = locale?.split('-')[0] || 'ar';
+  const isAr  = lang === 'ar';
 
   const { store, items, combinedSavingsPercent } = stack;
-
   const storeHref = `/${locale}/stores/${store.slug}`;
 
-  // Labels
-  const savingsLabel  = isAr ? 'ادخر حتى' : 'Save up to';
-  const stackLabel    = isAr ? 'عروض قابلة للجمع' : 'Stackable Offers';
-  const ctaText       = isAr ? 'احصل على الخصم' : 'Stack & Save';
+  // Map items by type for deterministic slot placement
+  const codeItem = items.find(i => i.itemType === 'CODE');
+  const dealItem = items.find(i => i.itemType === 'DEAL');
+  const bankItem = items.find(i => i.itemType === 'BANK_OFFER');
+
+  // Top row: CODE (div1) + DEAL (div2). If only one exists, show in div1.
+  const topLeft  = codeItem || dealItem;
+  const topRight = codeItem ? dealItem : null;
+  const hasBottom = !!bankItem;
+  const hasTopPair = !!(topLeft && topRight);
+
+  const ctaText = isAr ? 'احصل على الخصم' : 'Stack & Save';
 
   return (
     <div className="stack-box">
-      {/* ── Header: logo + store name + savings badge ── */}
+      {/* ── Header ── */}
       <div className="stack-box-header">
         {store.logo ? (
           <Image
@@ -58,9 +87,7 @@ export default function OfferStackBox({ stack, locale }) {
             <span className="material-symbols-sharp" style={{ color: 'rgba(255,255,255,0.6)', fontSize: '1rem' }}>storefront</span>
           </div>
         )}
-
         <span className="stack-store-name">{store.name}</span>
-
         {combinedSavingsPercent != null && combinedSavingsPercent > 0 && (
           <span className="stack-savings-badge">
             {isAr ? `وفر ${combinedSavingsPercent}%` : `Save ${combinedSavingsPercent}%`}
@@ -69,46 +96,43 @@ export default function OfferStackBox({ stack, locale }) {
       </div>
 
       {/* ── Sub-label ── */}
-      <div className="stack-label">{stackLabel}</div>
+      <div className="stack-label">
+        {isAr ? 'عروض قابلة للجمع' : 'Stackable Offers'}
+      </div>
 
-      {/* ── Items row ── */}
-      <div className="stack-items-row">
-        {items.map((item, idx) => {
-          const meta = TYPE_META[item.itemType] || TYPE_META.DEAL;
-          const typeLabel = isAr ? meta.labelAr : meta.labelEn;
+      {/* ── Items grid ── */}
+      <div className={`stack-items-grid${hasBottom ? ' has-bottom' : ''}`}>
 
-          return (
-            <>
-              {idx > 0 && (
-                <div key={`plus-${idx}`} className="stack-plus">+</div>
-              )}
-              <div key={item.id} className="stack-item">
-                {/* Type badge */}
-                <span className={`stack-item-type-badge ${meta.cls}`}>
-                  <span className="material-symbols-sharp" style={{ fontSize: '0.65rem' }}>{meta.icon}</span>
-                  {typeLabel}
-                </span>
+        {/* div1 — top-left */}
+        {topLeft && (
+          <div className="stack-grid-div1">
+            <StackItem item={topLeft} isAr={isAr} />
+          </div>
+        )}
 
-                {/* Title */}
-                <span className="stack-item-title">{item.title}</span>
+        {/* div2 — top-right */}
+        {topRight && (
+          <div className="stack-grid-div2">
+            <StackItem item={topRight} isAr={isAr} />
+          </div>
+        )}
 
-                {/* Discount or code */}
-                {item.discount && (
-                  <span className="stack-item-discount">{item.discount}</span>
-                )}
-                {item.discountPercent != null && !item.discount && (
-                  <span className="stack-item-discount">{item.discountPercent}%</span>
-                )}
-                {item.code && (
-                  <span className="stack-item-code">
-                    <span className="material-symbols-sharp" style={{ fontSize: '0.65rem', opacity: 0.7 }}>content_cut</span>
-                    {item.code}
-                  </span>
-                )}
-              </div>
-            </>
-          );
-        })}
+        {/* div3 — bottom full-width */}
+        {bankItem && (
+          <div className="stack-grid-div3">
+            <StackItem item={bankItem} isAr={isAr} />
+          </div>
+        )}
+
+        {/* ── Plus signs ── */}
+        {/* Horizontal + between div1 and div2 */}
+        {hasTopPair && (
+          <span className="stack-plus stack-plus--h" aria-hidden="true">+</span>
+        )}
+        {/* Vertical + between top row and div3 */}
+        {hasBottom && topLeft && (
+          <span className="stack-plus stack-plus--v" aria-hidden="true">+</span>
+        )}
       </div>
 
       {/* ── CTA ── */}
