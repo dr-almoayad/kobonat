@@ -1,0 +1,67 @@
+/* components/OfferStacksSection/OfferStacksSection.css */
+
+.offer-stacks-section {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 1rem 0;
+}
+
+/* ── Section header ─────────────────────────────────────────────────────────── */
+.offer-stacks-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding: 0.7rem 0;
+  margin: 1rem 0;
+}
+
+.offer-stacks-header-content h2 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 0.5rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-family: 'Alexandria', 'Open Sans', sans-serif;
+}
+
+.offer-stacks-header-content h2 .material-symbols-sharp {
+  color: #470ae2;
+  font-size: 2rem;
+  font-variation-settings: 'FILL' 1;
+}
+
+.offer-stacks-header-content p {
+  color: #64748b;
+  margin: 0;
+  font-size: 0.95rem;
+  font-family: 'Alexandria', 'Open Sans', sans-serif;
+}
+
+/* ── Scroll container ────────────────────────────────────────────────────────── */
+.offer-stacks-scroll {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.25rem;
+  width: 100%;
+}
+
+@media (max-width: 768px) {
+  .offer-stacks-scroll {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    gap: 1rem;
+    padding-bottom: 0.5rem;
+    /* Hide scrollbar */
+    scrollbar-width: none;
+  }
+  .offer-stacks-scroll::-webkit-scrollbar { display: none; }
+
+  .offer-stacks-scroll .stack-box {
+    min-width: 275px;
+    scroll-snap-align: start;
+  }
+}
