@@ -180,7 +180,7 @@ export default function HomepageHeroSection({
                 className={`hhs-list-item${i === active ? ' hhs-list-item--active' : ''}`}
                 onClick={() => goTo(i)}
               >
-                {/* left: text block */}
+                // left: text block
                 <div className="hhs-list-text">
                   <p className="hhs-list-storename">{s.name}</p>
                   {s.seoTitle && <p className="hhs-list-seotitle">{s.seoTitle}</p>}
@@ -189,18 +189,18 @@ export default function HomepageHeroSection({
                   )}
                 </div>
 
-                {/* right: thumbnail image */}
+                // right: thumbnail image
                 <div className="hhs-list-thumb">
                   {s.coverImage
                     ? <Image src={s.coverImage} alt={s.name} fill sizes="120px" style={{ objectFit: 'cover' }} />
                     : <div className="hhs-list-thumb-fallback" />
                   }
-                  {/* bigLogo badge over thumb */}
-                  {/*{s.bigLogo && (
+                  // bigLogo badge over thumb
+                  {s.bigLogo && (
                     <div className="hhs-list-thumb-logo">
                       <Image src={s.bigLogo} alt="" fill style={{ objectFit: 'contain' }} />
                     </div>
-                  )}*/}
+                  )}
                 </div>
               </button>
             ))}
