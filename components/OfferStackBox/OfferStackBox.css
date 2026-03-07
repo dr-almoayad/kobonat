@@ -1,6 +1,6 @@
 /* components/OfferStackBox/OfferStackBox.css */
 
-/* ─── Container ────────────────────────────────────────────────────────────── */
+/* ─── Container ─────────────────────────────────────────────────────────────── */
 .stack-box {
   position: relative;
   background: linear-gradient(145deg, #1a0a4e 0%, #2d1280 45%, #3b1fa8 100%);
@@ -15,7 +15,7 @@
     0 1px 4px rgba(0, 0, 0, 0.15),
     inset 0 1px 0 rgba(255, 255, 255, 0.08);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
-  min-width: 0;
+  min-width: 380px;
 }
 
 .stack-box::before {
@@ -36,7 +36,7 @@
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
-/* ─── Top Row: store logo + name + savings badge ──────────────────────────── */
+/* ─── Header ────────────────────────────────────────────────────────────────── */
 .stack-box-header {
   display: flex;
   align-items: center;
@@ -64,7 +64,6 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  font-size: 1rem;
 }
 
 .stack-store-name {
@@ -94,7 +93,7 @@
   box-shadow: 0 2px 8px rgba(249, 115, 22, 0.35);
 }
 
-/* ─── Label: "Stack & Save" ─────────────────────────────────────────────────── */
+/* ─── Sub-label ─────────────────────────────────────────────────────────────── */
 .stack-label {
   font-family: 'Alexandria', 'Open Sans', sans-serif;
   font-size: 0.7rem;
@@ -107,17 +106,39 @@
   margin-top: -0.25rem;
 }
 
-/* ─── Items Row ─────────────────────────────────────────────────────────────── */
-.stack-items-row {
-  display: flex;
-  align-items: stretch;
-  gap: 0;
+/* ─── Items grid ─────────────────────────────────────────────────────────────── */
+/*
+  2×2 grid:
+    div1 = top-left   (CODE)
+    div2 = top-right  (DEAL)
+    div3 = bottom row, full width (BANK_OFFER)
+
+  Plus signs are absolutely positioned overlays:
+    stack-plus--h  = horizontal connector between div1 and div2
+    stack-plus--v  = vertical connector between top row and div3
+*/
+.stack-items-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: 1fr;          /* single row when no bottom item */
+  grid-column-gap: 0;
+  grid-row-gap: 0;
   position: relative;
   z-index: 1;
 }
 
+/* Two-row layout when a bank offer (div3) is present */
+.stack-items-grid.has-bottom {
+  grid-template-rows: repeat(2, 1fr);
+}
+
+.stack-grid-div1 { grid-area: 1 / 1 / 2 / 2; padding: 4px 4px 4px 0; }
+.stack-grid-div2 { grid-area: 1 / 2 / 2 / 3; padding: 4px 0 4px 4px; }
+.stack-grid-div3 { grid-area: 2 / 1 / 3 / 3; padding: 4px 0 0 0; }
+
+/* ─── Individual item card ───────────────────────────────────────────────────── */
 .stack-item {
-  flex: 1;
+  height: 100%;
   background: rgba(255, 255, 255, 0.09);
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 10px;
@@ -127,12 +148,14 @@
   gap: 0.3rem;
   min-width: 0;
   transition: background 0.15s ease;
+  box-sizing: border-box;
 }
 
 .stack-item:hover {
   background: rgba(255, 255, 255, 0.14);
 }
 
+/* ─── Type badge ─────────────────────────────────────────────────────────────── */
 .stack-item-type-badge {
   display: inline-flex;
   align-items: center;
@@ -164,6 +187,7 @@
   border: 1px solid rgba(245, 158, 11, 0.25);
 }
 
+/* ─── Item text ──────────────────────────────────────────────────────────────── */
 .stack-item-title {
   font-family: 'Alexandria', 'Open Sans', sans-serif;
   font-size: 0.78rem;
@@ -201,49 +225,49 @@
   margin-top: auto;
 }
 
-/* ─── Plus connector ─────────────────────────────────────────────────────────── */
+/* ─── Plus connectors ────────────────────────────────────────────────────────── */
 .stack-plus {
+  position: absolute;
+  z-index: 2;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 22px;
-  flex-shrink: 0;
-  color: rgba(255, 255, 255, 0.45);
-  font-size: 0.9rem;
-  font-weight: 700;
-  z-index: 1;
-}
-
-/* ─── Equals row ─────────────────────────────────────────────────────────────── */
-.stack-total-row {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  position: relative;
-  z-index: 1;
-}
-
-.stack-total-label {
-  font-family: 'Alexandria', 'Open Sans', sans-serif;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.7);
   font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.5);
-  font-weight: 600;
-}
-
-.stack-total-value {
-  font-family: 'Alexandria', 'Open Sans', sans-serif;
-  font-size: 1.35rem;
   font-weight: 800;
-  color: #fff;
-  line-height: 1;
+  pointer-events: none;
+  backdrop-filter: blur(4px);
 }
 
-.stack-total-value .superscript {
-  font-size: 0.75rem;
-  vertical-align: super;
-  font-weight: 700;
-  opacity: 0.8;
+/* Horizontal +: centered between div1 and div2, vertically centered in top row */
+.stack-plus--h {
+  left: 50%;
+  top: calc(50% / var(--stack-rows, 1));  /* fallback; JS-free approach below */
+  transform: translate(-50%, -50%);
+}
+
+/* When there's a bottom row, the top row is 50% of total height */
+.has-bottom .stack-plus--h {
+  top: 25%;        /* middle of the top half */
+  transform: translate(-50%, -50%);
+}
+
+/* No bottom row — single row, + is vertically centered */
+.stack-items-grid:not(.has-bottom) .stack-plus--h {
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+/* Vertical +: centered between top row and div3 */
+.stack-plus--v {
+  left: 50%;
+  top: 50%;        /* exactly at the row boundary */
+  transform: translate(-50%, -50%);
 }
 
 /* ─── CTA ────────────────────────────────────────────────────────────────────── */
@@ -278,10 +302,10 @@
   font-variation-settings: 'FILL' 1;
 }
 
-/* ─── RTL ─────────────────────────────────────────────────────────────────────── */
-[dir="rtl"] .stack-items-row {
-  flex-direction: row-reverse;
-}
+/* ─── RTL ────────────────────────────────────────────────────────────────────── */
+[dir="rtl"] .stack-grid-div1 { grid-area: 1 / 2 / 2 / 3; padding: 4px 0 4px 4px; }
+[dir="rtl"] .stack-grid-div2 { grid-area: 1 / 1 / 2 / 2; padding: 4px 4px 4px 0; }
+[dir="rtl"] .stack-grid-div3 { grid-area: 2 / 1 / 3 / 3; padding: 4px 0 0 0; }
 
 [dir="rtl"] .stack-store-logo,
 [dir="rtl"] .stack-store-logo-placeholder {
