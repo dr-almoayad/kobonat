@@ -353,6 +353,7 @@ model Voucher {
   isCapped           Boolean              @default(false)
   maxDiscountAmount  Float?               // SAR ceiling
   minSpendAmount     Float?               // SAR minimum basket
+  isFeaturedStack    Boolean  @default(false)
 
   // Image for featured deals
   image String? // Hero image for visual deals
