@@ -1,32 +1,25 @@
 // app/api/admin/stacks/route.js
-// GET — Returns all stores that have ≥2 stackable offers (any combination of
-//        CODE/DEAL voucher + DEAL voucher + BANK_OFFER promo).
-//        Used by the /admin/stacks manager page.
+// GET — for every store that has ≥2 stackable offers (any mix of CODE/DEAL
+//        vouchers + BANK_OFFER promos), returns ALL of those items so the
+//        stacks manager page can render them faithfully.
 //
-// Response shape:
-//   { data: StackEntry[], meta: { total, homepageFeatured } }
+// Nothing is computed or filtered here beyond "is this offer stackable and
+// active?". The isFeaturedStack flag on vouchers is the only thing this
+// endpoint is the authority on writing (via the PATCH below).
 //
-// StackEntry:
-//   {
-//     storeId, storeName, storeSlug, storeLogo,
-//     items: [ { id, source:'voucher'|'promo', itemType, title, discount,
-//                discountPercent, code, isFeaturedStack } ],
-//     combinedSavingsPercent,
-//     anyFeaturedStack,   // true if ANY item.isFeaturedStack = true
-//   }
+// Response: { data: StoreStack[], meta: { total, homepageFeatured } }
 
-import { NextResponse } from 'next/server';
-import { prisma }       from '@/lib/prisma';
+import { NextResponse }     from 'next/server';
+import { prisma }           from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
-import { authOptions }  from '@/app/api/auth/[...nextauth]/route';
+import { authOptions }      from '@/app/api/auth/[...nextauth]/route';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(request) {
   const session = await getServerSession(authOptions);
-  if (!session?.user?.isAdmin) {
+  if (!session?.user?.isAdmin)
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
 
   const { searchParams } = new URL(request.url);
   const search       = searchParams.get('search')?.trim().toLowerCase() || '';
@@ -34,10 +27,10 @@ export async function GET(request) {
 
   const now = new Date();
 
-  // ── Fetch stackable vouchers + promos in parallel ──────────────────────────
   const [vouchers, promos] = await Promise.all([
     prisma.voucher.findMany({
       where: {
+        isActive:    true,
         isStackable: true,
         stackGroup:  { in: ['CODE', 'DEAL'] },
         OR: [{ expiryDate: null }, { expiryDate: { gte: now } }],
@@ -45,7 +38,6 @@ export async function GET(request) {
       select: {
         id:                 true,
         code:               true,
-        type:               true,
         discount:           true,
         discountPercent:    true,
         verifiedAvgPercent: true,
@@ -56,162 +48,122 @@ export async function GET(request) {
         translations: { where: { locale: 'en' }, select: { title: true } },
         store: {
           select: {
-            id:    true,
-            logo:  true,
+            id:   true,
+            logo: true,
             translations: { where: { locale: 'en' }, select: { name: true, slug: true } },
           },
         },
       },
-      orderBy: [{ isFeaturedStack: 'desc' }, { storeId: 'asc' }],
+      orderBy: [{ storeId: 'asc' }, { stackGroup: 'asc' }, { verifiedAvgPercent: 'desc' }],
     }),
 
     prisma.otherPromo.findMany({
       where: {
+        isActive:    true,
         isStackable: true,
         stackGroup:  'BANK_OFFER',
         OR: [{ expiryDate: null }, { expiryDate: { gte: now } }],
       },
       select: {
         id:                 true,
-        type:               true,
         discountPercent:    true,
         verifiedAvgPercent: true,
-        stackGroup:         true,
         storeId:            true,
         translations: { where: { locale: 'en' }, select: { title: true } },
         store: {
           select: {
-            id:    true,
-            logo:  true,
+            id:   true,
+            logo: true,
             translations: { where: { locale: 'en' }, select: { name: true, slug: true } },
           },
         },
-        bank: { select: { name: true } },
+        bank: { select: { name: true, logo: true } },
       },
+      orderBy: [{ storeId: 'asc' }, { verifiedAvgPercent: 'desc' }],
     }),
   ]);
 
   // ── Group by storeId ───────────────────────────────────────────────────────
-  const byStore = new Map(); // storeId → { store, code, deal, bankOffer }
+  const byStore = new Map();
+
+  const ensureStore = (storeId, storeRel) => {
+    if (!byStore.has(storeId)) {
+      const t = storeRel?.translations?.[0] || {};
+      byStore.set(storeId, {
+        storeId,
+        storeName: t.name || `Store #${storeId}`,
+        storeSlug: t.slug || '',
+        storeLogo: storeRel?.logo || null,
+        vouchers:  [],
+        promos:    [],
+      });
+    }
+    return byStore.get(storeId);
+  };
 
   for (const v of vouchers) {
-    if (!byStore.has(v.storeId)) {
-      byStore.set(v.storeId, { store: v.store, code: null, deal: null, bankOffer: null });
-    }
-    const entry = byStore.get(v.storeId);
-    if (v.stackGroup === 'CODE' && !entry.code) entry.code = v;
-    if (v.stackGroup === 'DEAL' && !entry.deal) entry.deal = v;
+    ensureStore(v.storeId, v.store).vouchers.push({
+      id:              v.id,
+      itemType:        v.stackGroup,
+      title:           v.translations?.[0]?.title || v.discount || '—',
+      discount:        v.discount || null,
+      discountPercent: v.verifiedAvgPercent ?? v.discountPercent ?? null,
+      code:            v.code || null,
+      isFeaturedStack: v.isFeaturedStack,
+      expiryDate:      v.expiryDate,
+    });
   }
 
   for (const p of promos) {
-    if (!byStore.has(p.storeId)) {
-      byStore.set(p.storeId, { store: p.store, code: null, deal: null, bankOffer: null });
-    }
-    const entry = byStore.get(p.storeId);
-    if (!entry.bankOffer) entry.bankOffer = p;
+    ensureStore(p.storeId, p.store).promos.push({
+      id:              p.id,
+      itemType:        'BANK_OFFER',
+      title:           p.translations?.[0]?.title || p.bank?.name || 'Bank Offer',
+      discountPercent: p.verifiedAvgPercent ?? p.discountPercent ?? null,
+      bankName:        p.bank?.name || null,
+      bankLogo:        p.bank?.logo || null,
+    });
   }
 
-  // ── Build stack entries ────────────────────────────────────────────────────
+  // ── Build final list ───────────────────────────────────────────────────────
   let stacks = [];
 
-  for (const [storeId, data] of byStore) {
-    const storeTrans = data.store?.translations?.[0] || {};
-    const storeName  = storeTrans.name || `Store #${storeId}`;
-    const storeSlug  = storeTrans.slug || '';
+  for (const entry of byStore.values()) {
+    if (entry.vouchers.length + entry.promos.length < 2) continue;
+    if (search && !entry.storeName.toLowerCase().includes(search)) continue;
 
-    // Search filter
-    if (search && !storeName.toLowerCase().includes(search)) continue;
+    const isFeaturedStack = entry.vouchers.some(v => v.isFeaturedStack);
+    if (featuredOnly && !isFeaturedStack) continue;
 
-    const items = [];
-
-    if (data.code) {
-      const t    = data.code.translations?.[0] || {};
-      const pct  = data.code.verifiedAvgPercent ?? data.code.discountPercent ?? null;
-      items.push({
-        id:              data.code.id,
-        source:          'voucher',
-        itemType:        'CODE',
-        title:           t.title || data.code.discount || 'Coupon Code',
-        discount:        data.code.discount || null,
-        discountPercent: pct,
-        code:            data.code.code || null,
-        isFeaturedStack: data.code.isFeaturedStack,
-        expiryDate:      data.code.expiryDate,
-      });
+    // Best-case combined savings across all stackable items
+    const bestByType = {};
+    for (const v of entry.vouchers) {
+      const pct = v.discountPercent || 0;
+      if (pct > (bestByType[v.itemType] || 0)) bestByType[v.itemType] = pct;
     }
-
-    if (data.deal) {
-      const t   = data.deal.translations?.[0] || {};
-      const pct = data.deal.verifiedAvgPercent ?? data.deal.discountPercent ?? null;
-      items.push({
-        id:              data.deal.id,
-        source:          'voucher',
-        itemType:        'DEAL',
-        title:           t.title || data.deal.discount || 'Deal',
-        discount:        data.deal.discount || null,
-        discountPercent: pct,
-        code:            null,
-        isFeaturedStack: data.deal.isFeaturedStack,
-        expiryDate:      data.deal.expiryDate,
-      });
+    for (const p of entry.promos) {
+      const pct = p.discountPercent || 0;
+      if (pct > (bestByType['BANK_OFFER'] || 0)) bestByType['BANK_OFFER'] = pct;
     }
-
-    if (data.bankOffer) {
-      const t   = data.bankOffer.translations?.[0] || {};
-      const pct = data.bankOffer.verifiedAvgPercent ?? data.bankOffer.discountPercent ?? null;
-      items.push({
-        id:              data.bankOffer.id,
-        source:          'promo',
-        itemType:        'BANK_OFFER',
-        title:           t.title || data.bankOffer.bank?.name || 'Bank Offer',
-        discount:        null,
-        discountPercent: pct,
-        code:            null,
-        isFeaturedStack: false, // promos don't have this field
-        expiryDate:      null,
-      });
-    }
-
-    if (items.length < 2) continue;
-
-    const percents = items
-      .map(i => (i.discountPercent || 0) / 100)
-      .filter(p => p > 0);
-
+    const percents = Object.values(bestByType).filter(p => p > 0).map(p => p / 100);
     const combinedSavingsPercent =
       percents.length >= 2
         ? Math.round((1 - percents.reduce((acc, p) => acc * (1 - p), 1)) * 100)
         : null;
 
-    // A stack is "homepage featured" if any CODE or DEAL voucher in it is isFeaturedStack
-    const anyFeaturedStack = items
-      .filter(i => i.source === 'voucher')
-      .some(i => i.isFeaturedStack);
-
-    if (featuredOnly && !anyFeaturedStack) continue;
-
-    stacks.push({
-      storeId,
-      storeName,
-      storeSlug,
-      storeLogo: data.store?.logo || null,
-      items,
-      combinedSavingsPercent,
-      anyFeaturedStack,
-    });
+    stacks.push({ ...entry, isFeaturedStack, combinedSavingsPercent });
   }
 
-  // Sort: homepage-featured first, then by combined savings
   stacks.sort((a, b) => {
-    if (a.anyFeaturedStack !== b.anyFeaturedStack)
-      return a.anyFeaturedStack ? -1 : 1;
+    if (a.isFeaturedStack !== b.isFeaturedStack) return a.isFeaturedStack ? -1 : 1;
     return (b.combinedSavingsPercent || 0) - (a.combinedSavingsPercent || 0);
   });
 
-  const homepageFeatured = stacks.filter(s => s.anyFeaturedStack).length;
-
   return NextResponse.json({
     data: stacks,
-    meta: { total: stacks.length, homepageFeatured },
+    meta: {
+      total:            stacks.length,
+      homepageFeatured: stacks.filter(s => s.isFeaturedStack).length,
+    },
   });
 }
