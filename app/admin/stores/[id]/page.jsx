@@ -12,7 +12,7 @@ import {
   deleteFAQ,
   createOtherPromo,
   updateOtherPromo,
-  deleteOtherPromo  // ✅ ADDED THIS IMPORT
+  deleteOtherPromo,
 } from '../../_lib/actions';
 import { FormField, FormRow, FormSection } from '../../_components/FormField';
 import { DataTable } from '../../_components/DataTable';
@@ -25,34 +25,35 @@ export default function StoreEditPage({ params }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const tab = searchParams.get('tab') || 'basic';
-  
+
   // Data States
-  const [store, setStore] = useState(null);
-  const [products, setProducts] = useState([]);
-  const [allCountries, setAllCountries] = useState([]);
-  const [allCategories, setAllCategories] = useState([]);
+  const [store,             setStore]             = useState(null);
+  const [products,          setProducts]          = useState([]);
+  const [allCountries,      setAllCountries]      = useState([]);
+  const [allCategories,     setAllCategories]     = useState([]);
   const [allPaymentMethods, setAllPaymentMethods] = useState([]);
-  const [otherPromos, setOtherPromos] = useState([]);
-  const [editingFAQ, setEditingFAQ] = useState(null);
-  const [showFAQForm, setShowFAQForm] = useState(false);
+  const [allBanks,          setAllBanks]          = useState([]);   // ← new
+  const [otherPromos,       setOtherPromos]       = useState([]);
+  const [editingFAQ,        setEditingFAQ]        = useState(null);
+  const [showFAQForm,       setShowFAQForm]       = useState(false);
+
+  // Bank/card cascade state for Other Promos form
+  const [selectedBankId,    setSelectedBankId]    = useState('');
+  const [bankCards,         setBankCards]         = useState([]);
 
   // UI States
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [isPending, startTransition] = useTransition();
+  const [loading,    setLoading]    = useState(true);
+  const [error,      setError]      = useState('');
+  const [isPending,  startTransition] = useTransition();
 
-  // Temporary states for batched updates
-  const [selectedCountries, setSelectedCountries] = useState([]);
+  const [selectedCountries,  setSelectedCountries]  = useState([]);
   const [selectedCategories, setSelectedCategories] = useState([]);
 
   function getOfferTypeIcon(type) {
     const icons = {
-      CODE: 'confirmation_number',
-      DEAL: 'local_fire_department',
-      DISCOUNT: 'sell',
-      FREE_SHIPPING: 'local_shipping', // ✅ Changed from FREE_DELIVERY
-      CASHBACK: 'attach_money',
-      OFFER: 'redeem'
+      CODE: 'confirmation_number', DEAL: 'local_fire_department',
+      DISCOUNT: 'sell', FREE_SHIPPING: 'local_shipping',
+      CASHBACK: 'attach_money', OFFER: 'redeem',
     };
     return icons[type] || 'redeem';
   }
@@ -64,37 +65,37 @@ export default function StoreEditPage({ params }) {
       DISCOUNT: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
       FREE_SHIPPING: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
       CASHBACK: 'linear-gradient(135deg, #30cfd0 0%, #330867 100%)',
-      OFFER: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)'
+      OFFER: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)',
     };
     return gradients[type] || gradients.OFFER;
   }
 
+  // ── Fetch all page data ─────────────────────────────────────────────────────
   useEffect(() => {
     async function fetchData() {
       try {
         setLoading(true);
         setError('');
-        
-        const [storeRes, countriesRes, categoriesRes, pmRes, productsRes, promosRes] = await Promise.all([
-          fetch(`/api/admin/stores/${id}?locale=en`),
-          fetch('/api/admin/countries?locale=en'),
-          fetch('/api/admin/categories?locale=en'),
-          fetch('/api/admin/payment-methods?locale=en'),
-          fetch(`/api/admin/stores/${id}/products?locale=en`),
-          fetch(`/api/admin/stores/${id}/other-promos?locale=en`)
-        ]);
+
+        const [storeRes, countriesRes, categoriesRes, pmRes, productsRes, promosRes, banksRes] =
+          await Promise.all([
+            fetch(`/api/admin/stores/${id}?locale=en`),
+            fetch('/api/admin/countries?locale=en'),
+            fetch('/api/admin/categories?locale=en'),
+            fetch('/api/admin/payment-methods?locale=en'),
+            fetch(`/api/admin/stores/${id}/products?locale=en`),
+            fetch(`/api/admin/stores/${id}/other-promos?locale=en`),
+            fetch('/api/admin/banks?locale=en'),              // ← new
+          ]);
 
         if (!storeRes.ok) throw new Error(`Store fetch failed: ${storeRes.status}`);
-        
-        const storeData = await storeRes.json();
+
+        const storeData     = await storeRes.json();
         const countriesData = await countriesRes.json();
         const categoriesData = await categoriesRes.json();
-        const pmData = await pmRes.json();
-        
-        let productsData = { products: [] };
-        if (productsRes.ok) {
-          productsData = await productsRes.json();
-        }
+        const pmData        = await pmRes.json();
+        const productsData  = productsRes.ok ? await productsRes.json() : { products: [] };
+        const banksData     = banksRes.ok    ? await banksRes.json()    : [];  // ← new
 
         if (promosRes.ok) {
           const promosData = await promosRes.json();
@@ -106,11 +107,10 @@ export default function StoreEditPage({ params }) {
         setAllCategories(categoriesData || []);
         setAllPaymentMethods(pmData.paymentMethods || []);
         setProducts(productsData.products || []);
+        setAllBanks(Array.isArray(banksData) ? banksData : []);  // ← new
 
-        // Initialize selected states with current store data
         setSelectedCountries(storeData.countries?.map(c => c.countryId) || []);
         setSelectedCategories(storeData.categories?.map(c => c.categoryId) || []);
-
       } catch (err) {
         console.error('Fetch error:', err);
         setError(err.message);
@@ -118,85 +118,59 @@ export default function StoreEditPage({ params }) {
         setLoading(false);
       }
     }
-    
     if (id) fetchData();
   }, [id]);
 
-  // Handler for category checkbox changes
+  // ── When bank picker changes, load that bank's cards ────────────────────────
+  async function handleBankChange(bankId) {
+    setSelectedBankId(bankId);
+    setBankCards([]);
+    if (!bankId) return;
+    try {
+      const res  = await fetch(`/api/admin/banks/${bankId}/cards`);
+      const data = res.ok ? await res.json() : [];
+      setBankCards(Array.isArray(data) ? data : []);
+    } catch {
+      setBankCards([]);
+    }
+  }
+
+  // ── Country/Category handlers (unchanged) ───────────────────────────────────
   const handleCategoryChange = (categoryId, isChecked) => {
-    setSelectedCategories(prev => 
-      isChecked 
-        ? [...prev, categoryId]
-        : prev.filter(id => id !== categoryId)
+    setSelectedCategories(prev =>
+      isChecked ? [...prev, categoryId] : prev.filter(i => i !== categoryId)
     );
   };
-
-  // Handler for country checkbox changes
   const handleCountryChange = (countryId, isChecked) => {
-    setSelectedCountries(prev => 
-      isChecked 
-        ? [...prev, countryId]
-        : prev.filter(id => id !== countryId)
+    setSelectedCountries(prev =>
+      isChecked ? [...prev, countryId] : prev.filter(i => i !== countryId)
     );
   };
 
-  // Apply categories changes
   const handleApplyCategories = async () => {
     startTransition(async () => {
-      try {
-        // Create FormData object as expected by the server action
-        const formData = new FormData();
-        selectedCategories.forEach(categoryId => {
-          formData.append('categoryIds', categoryId.toString());
-        });
-        
-        const result = await updateStoreCategories(store.id, formData);
-        if (result.success) {
-          // Update local store state to reflect changes
-          setStore(prev => ({
-            ...prev,
-            categories: selectedCategories.map(catId => ({
-              categoryId: catId,
-              storeId: store.id
-            }))
-          }));
-          alert('Categories updated successfully!');
-        } else {
-          alert('Failed to update categories: ' + (result.error || 'Unknown error'));
-        }
-      } catch (err) {
-        console.error('Error updating categories:', err);
-        alert('Error updating categories: ' + err.message);
+      const formData = new FormData();
+      selectedCategories.forEach(id => formData.append('categoryIds', id.toString()));
+      const result = await updateStoreCategories(store.id, formData);
+      if (result.success) {
+        setStore(prev => ({ ...prev, categories: selectedCategories.map(id => ({ categoryId: id, storeId: store.id })) }));
+        alert('Categories updated successfully!');
+      } else {
+        alert('Failed to update categories: ' + (result.error || 'Unknown error'));
       }
     });
   };
 
-  // Apply countries changes
   const handleApplyCountries = async () => {
     startTransition(async () => {
-      try {
-        // Create FormData object as expected by the server action
-        const formData = new FormData();
-        selectedCountries.forEach(countryId => {
-          formData.append('countryIds', countryId.toString());
-        });
-        
-        const result = await updateStoreCountries(store.id, formData);
-        if (result.success) {
-          setStore(prev => ({
-            ...prev,
-            countries: selectedCountries.map(countryId => ({
-              countryId: countryId,
-              storeId: store.id
-            }))
-          }));
-          alert('Countries updated successfully!');
-        } else {
-          alert('Failed to update countries: ' + (result.error || 'Unknown error'));
-        }
-      } catch (err) {
-        console.error('Error updating countries:', err);
-        alert('Error updating countries: ' + err.message);
+      const formData = new FormData();
+      selectedCountries.forEach(id => formData.append('countryIds', id.toString()));
+      const result = await updateStoreCountries(store.id, formData);
+      if (result.success) {
+        setStore(prev => ({ ...prev, countries: selectedCountries.map(id => ({ countryId: id, storeId: store.id })) }));
+        alert('Countries updated successfully!');
+      } else {
+        alert('Failed to update countries: ' + (result.error || 'Unknown error'));
       }
     });
   };
@@ -207,105 +181,90 @@ export default function StoreEditPage({ params }) {
   const enTranslation = store.translations?.find(t => t.locale === 'en') || {};
   const arTranslation = store.translations?.find(t => t.locale === 'ar') || {};
 
-  // Check if there are unsaved changes
-  const categoriesChanged = JSON.stringify(selectedCategories.sort()) !== 
+  const categoriesChanged = JSON.stringify(selectedCategories.sort()) !==
     JSON.stringify(store.categories?.map(c => c.categoryId).sort() || []);
-  const countriesChanged = JSON.stringify(selectedCountries.sort()) !== 
+  const countriesChanged = JSON.stringify(selectedCountries.sort()) !==
     JSON.stringify(store.countries?.map(c => c.countryId).sort() || []);
 
   return (
     <div className={styles.page}>
-       <div className={styles.pageHeader}>
+      <div className={styles.pageHeader}>
         <h1>Edit Store: {enTranslation.name || `Store #${id}`}</h1>
         <button onClick={() => router.push('/admin/stores')} className={styles.btnSecondary}>← Back</button>
         <button onClick={() => router.push(`/admin/stores/${id}/intelligence`)} className={styles.btnPrimary}>Intelligence</button>
         <button onClick={() => router.push(`/admin/stores/${id}/offers`)} className={styles.btnPrimary}>Offers</button>
       </div>
-      {/* Tabs Navigation */}
+
+      {/* ── Tabs ──────────────────────────────────────────────────────────────── */}
       <div className={styles.tabs}>
         {[
-          { id: 'basic', label: 'Basic Info' },
-          { id: 'translations', label: 'Translations' },
-          { id: 'countries', label: 'Countries' },
-          { id: 'categories', label: 'Categories' },
-          { id: 'products', label: 'Products' },
-          { id: 'other-promos', label: 'Other Promos' },
+          { id: 'basic',           label: 'Basic Info' },
+          { id: 'translations',    label: 'Translations' },
+          { id: 'countries',       label: 'Countries' },
+          { id: 'categories',      label: 'Categories' },
+          { id: 'products',        label: 'Products' },
+          { id: 'other-promos',    label: 'Other Promos' },
           { id: 'payment-methods', label: 'Payments' },
-          { id: 'faqs', label: 'FAQs' }
-        ].map((t) => (
-          <button 
+          { id: 'faqs',            label: 'FAQs' },
+        ].map(t => (
+          <button
             key={t.id}
             onClick={() => router.push(`/admin/stores/${id}?tab=${t.id}`)}
             className={`${styles.tab} ${tab === t.id ? styles.tabActive : ''}`}
           >
             {t.label}
-            {/* Show indicator for unsaved changes */}
             {t.id === 'categories' && categoriesChanged && ' *'}
-            {t.id === 'countries' && countriesChanged && ' *'}
+            {t.id === 'countries'  && countriesChanged  && ' *'}
           </button>
         ))}
       </div>
 
-      {/* BASIC INFO */}
+      {/* ── BASIC INFO ────────────────────────────────────────────────────────── */}
       {tab === 'basic' && (
-         <form action={(formData) => startTransition(async () => {
-    const result = await updateStore(store.id, formData);
-    if (result.success) {
-      // Update local state
-      const updatedStore = {
-        ...store,
-        logo: formData.get('logo') || store.logo,
-        bigLogo: formData.get('bigLogo') || store.bigLogo,
-        coverImage: formData.get('coverImage') || store.coverImage,
-        backgroundImage: formData.get('backgroundImage') || store.backgroundImage,
-        color: formData.get('color') || store.color,
-        websiteUrl: formData.get('websiteUrl') || store.websiteUrl,
-        affiliateNetwork: formData.get('affiliateNetwork') || store.affiliateNetwork,
-        trackingUrl: formData.get('trackingUrl') || store.trackingUrl,
-        isActive: formData.has('isActive') ? formData.get('isActive') === 'on' : store.isActive,
-        isFeatured: formData.has('isFeatured') ? formData.get('isFeatured') === 'on' : store.isFeatured,
-        showOfferType: formData.get('showOfferType') || store.showOfferType,
-      };
-      setStore(updatedStore);
-      router.refresh();
-      alert('Store updated successfully!');
-    } else {
-      alert('Failed to update store: ' + result.error);
-    }
-  })} className={styles.form}>
+        <form action={(formData) => startTransition(async () => {
+          const result = await updateStore(store.id, formData);
+          if (result.success) {
+            setStore(prev => ({
+              ...prev,
+              logo: formData.get('logo') || prev.logo,
+              bigLogo: formData.get('bigLogo') || prev.bigLogo,
+              coverImage: formData.get('coverImage') || prev.coverImage,
+              backgroundImage: formData.get('backgroundImage') || prev.backgroundImage,
+              color: formData.get('color') || prev.color,
+              websiteUrl: formData.get('websiteUrl') || prev.websiteUrl,
+              affiliateNetwork: formData.get('affiliateNetwork') || prev.affiliateNetwork,
+              trackingUrl: formData.get('trackingUrl') || prev.trackingUrl,
+              isActive: formData.has('isActive') ? formData.get('isActive') === 'on' : prev.isActive,
+              isFeatured: formData.has('isFeatured') ? formData.get('isFeatured') === 'on' : prev.isFeatured,
+              showOfferType: formData.get('showOfferType') || prev.showOfferType,
+            }));
+            router.refresh();
+            alert('Store updated successfully!');
+          } else {
+            alert('Failed to update store: ' + result.error);
+          }
+        })} className={styles.form}>
           <FormSection title="Store Visuals">
             <FormRow>
-              <FormField label="Logo URL" name="logo" defaultValue={store.logo} />
+              <FormField label="Logo URL"     name="logo"    defaultValue={store.logo} />
               <FormField label="Big Logo URL" name="bigLogo" defaultValue={store.bigLogo} />
               <FormField
-  label="Hero Slot (1–5)"
-  name="color"
-  type="select"
-  defaultValue={store.color}
-  helpText="Set a slot to pin this store to the homepage hero. Leave empty to exclude."
-  options={[
-    { value: '',  label: '— Not in hero —' },
-    { value: '1', label: 'Slot 1 (leftmost / first)' },
-    { value: '2', label: 'Slot 2' },
-    { value: '3', label: 'Slot 3' },
-    { value: '4', label: 'Slot 4' },
-    { value: '5', label: 'Slot 5 (rightmost / last)' },
-  ]}
-/>
+                label="Hero Slot (1–5)" name="color" type="select"
+                defaultValue={store.color}
+                helpText="Pin to homepage hero. Leave empty to exclude."
+                options={[
+                  { value: '',  label: '— Not in hero —' },
+                  { value: '1', label: 'Slot 1' },
+                  { value: '2', label: 'Slot 2' },
+                  { value: '3', label: 'Slot 3' },
+                  { value: '4', label: 'Slot 4' },
+                  { value: '5', label: 'Slot 5' },
+                ]}
+              />
             </FormRow>
             <FormRow>
-              <FormField 
-                label="Cover Image URL" 
-                name="coverImage" 
-                defaultValue={store.coverImage} 
-                helpText="Main banner image for the store page"
-              />
-              <FormField 
-                label="Background Image URL" 
-                name="backgroundImage" 
-                defaultValue={store.backgroundImage} 
-                helpText="Background pattern or image"
-              />
+              <FormField label="Cover Image URL"      name="coverImage"      defaultValue={store.coverImage} />
+              <FormField label="Background Image URL" name="backgroundImage" defaultValue={store.backgroundImage} />
             </FormRow>
           </FormSection>
 
@@ -313,173 +272,73 @@ export default function StoreEditPage({ params }) {
             <FormField label="Website URL" name="websiteUrl" type="url" defaultValue={store.websiteUrl} required />
             <FormRow>
               <FormField label="Affiliate Network" name="affiliateNetwork" defaultValue={store.affiliateNetwork} />
-              <FormField label="Tracking URL" name="trackingUrl" defaultValue={store.trackingUrl} />
+              <FormField label="Tracking URL"      name="trackingUrl"      defaultValue={store.trackingUrl} />
             </FormRow>
             <FormRow>
-              <FormField label="Active" name="isActive" type="checkbox" defaultValue={store.isActive} />
+              <FormField label="Active"   name="isActive"   type="checkbox" defaultValue={store.isActive} />
               <FormField label="Featured" name="isFeatured" type="checkbox" defaultValue={store.isFeatured} />
             </FormRow>
           </FormSection>
 
-          {/* ✅ UPDATED: Show Offer Type (single, not translated) */}
           <FormSection title="Show Offer Badge">
             <FormField
-              label="Show Offer Type"
-              name="showOfferType"
-              type="select"
+              label="Show Offer Type" name="showOfferType" type="select"
               defaultValue={store.showOfferType}
               options={[
-                { value: '', label: '-- None --' },
-                { value: 'CODE', label: '💳 Code' },
-                { value: 'DEAL', label: '🔥 Deal' },
-                { value: 'DISCOUNT', label: '💰 Discount' },
-                { value: 'FREE_SHIPPING', label: '📦 Free Shipping' }, // ✅ Removed FREE_DELIVERY
-                { value: 'CASHBACK', label: '💵 Cashback' },
-                { value: 'OFFER', label: '🎁 Special Offer' }
+                { value: '',             label: '-- None --' },
+                { value: 'CODE',         label: '💳 Code' },
+                { value: 'DEAL',         label: '🔥 Deal' },
+                { value: 'DISCOUNT',     label: '💰 Discount' },
+                { value: 'FREE_SHIPPING',label: '📦 Free Shipping' },
+                { value: 'CASHBACK',     label: '💵 Cashback' },
+                { value: 'OFFER',        label: '🎁 Special Offer' },
               ]}
-              helpText="Badge type shown on store card. The offer text is set in Translations tab."
+              helpText="Badge shown on store card."
             />
-            
-            {/* Preview */}
             {store.showOfferType && (
-              <div style={{ 
-                marginTop: '1rem', 
-                padding: '1rem', 
-                background: '#f8fafc', 
-                borderRadius: '8px',
-                border: '1px solid #e2e8f0'
-              }}>
-                <p style={{ fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.5rem', color: '#64748b' }}>
-                  Preview:
-                </p>
-                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                  <div 
-                    style={{ 
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '0.5rem',
-                      padding: '0.5rem 1rem',
-                      borderRadius: '20px',
-                      color: '#ffffff',
-                      fontSize: '0.875rem',
-                      fontWeight: 600,
-                      background: getOfferTypeGradient(store.showOfferType)
-                    }}
-                  >
-                    <span className="material-symbols-sharp" style={{ fontSize: '1.125rem' }}>
-                      {getOfferTypeIcon(store.showOfferType)}
-                    </span>
-                    <span>{store.showOfferType}</span>
-                  </div>
+              <div style={{ marginTop: '1rem', padding: '1rem', background: '#f8fafc', borderRadius: 8, border: '1px solid #e2e8f0' }}>
+                <p style={{ fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.5rem', color: '#64748b' }}>Preview:</p>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem', borderRadius: 20, color: '#fff', fontSize: '0.875rem', fontWeight: 600, background: getOfferTypeGradient(store.showOfferType) }}>
+                  <span className="material-symbols-sharp" style={{ fontSize: '1.125rem' }}>{getOfferTypeIcon(store.showOfferType)}</span>
+                  <span>{store.showOfferType}</span>
                 </div>
               </div>
             )}
           </FormSection>
-          
+
           <div className={styles.formActions}>
             <button type="submit" className={styles.btnPrimary} disabled={isPending}>Save Changes</button>
           </div>
         </form>
       )}
 
-      {/* TRANSLATIONS */}
+      {/* ── TRANSLATIONS ──────────────────────────────────────────────────────── */}
       {tab === 'translations' && (
-          <form action={(formData) => startTransition(async () => {
-    const result = await updateStore(store.id, formData);
-    if (result.success) {
-      // Update local state for translations
-      const updatedTranslations = store.translations?.map(trans => {
-        const locale = trans.locale;
-        return {
-          ...trans,
-          name: formData.get(`name_${locale}`) || trans.name,
-          slug: formData.get(`slug_${locale}`) || trans.slug,
-          description: formData.get(`description_${locale}`) || trans.description,
-          seoTitle: formData.get(`seoTitle_${locale}`) || trans.seoTitle,
-          seoDescription: formData.get(`seoDescription_${locale}`) || trans.seoDescription,
-          showOffer: formData.get(`showOffer_${locale}`) || trans.showOffer,
-        };
-      }) || [];
-      
-      setStore(prev => ({
-        ...prev,
-        translations: updatedTranslations
-      }));
-      
-      router.refresh();
-      alert('Translations updated successfully!');
-    } else {
-      alert('Failed to update translations: ' + result.error);
-    }
-  })} className={styles.form}>
+        <form action={(formData) => startTransition(async () => {
+          const result = await updateStore(store.id, formData);
+          if (result.success) {
+            router.refresh();
+            alert('Translations updated successfully!');
+          } else {
+            alert('Failed to update translations: ' + result.error);
+          }
+        })} className={styles.form}>
           <FormRow>
             <FormSection title="English (EN)">
-              <FormField label="Name" name="name_en" defaultValue={enTranslation.name} required />
-              <FormField label="Slug" name="slug_en" defaultValue={enTranslation.slug} required />
+              <FormField label="Name"  name="name_en"  defaultValue={enTranslation.name}  required />
+              <FormField label="Slug"  name="slug_en"  defaultValue={enTranslation.slug}  required />
               <FormField label="Description" name="description_en" type="textarea" defaultValue={enTranslation.description} />
-              
-              {/* ✅ NEW: Show Offer in English */}
-              <FormField 
-                label="Show Offer Text (English)" 
-                name="showOffer_en" 
-                defaultValue={enTranslation.showOffer}
-                placeholder="Get 15% off all orders + free shipping"
-                helpText="Appears below the store logo on cards. Leave empty to auto-calculate from vouchers."
-              />
-              
-              {/* SEO Fields */}
-              <FormField 
-                label="SEO Title" 
-                name="seoTitle_en" 
-                defaultValue={enTranslation.seoTitle}
-                placeholder="Store Name - Coupons & Deals"
-                helpText="Recommended: 50-60 characters"
-              />
-              <FormField 
-                label="SEO Description" 
-                name="seoDescription_en" 
-                type="textarea"
-                rows={3}
-                defaultValue={enTranslation.seoDescription}
-                placeholder="Get the best deals and coupons for Store Name..."
-                helpText="Recommended: 150-160 characters"
-              />
+              <FormField label="Show Offer Text (English)" name="showOffer_en" defaultValue={enTranslation.showOffer} placeholder="Get 15% off all orders + free shipping" helpText="Appears below logo on cards." />
+              <FormField label="SEO Title"       name="seoTitle_en"       defaultValue={enTranslation.seoTitle} />
+              <FormField label="SEO Description" name="seoDescription_en" type="textarea" rows={3} defaultValue={enTranslation.seoDescription} />
             </FormSection>
-            
             <FormSection title="Arabic (AR)">
-              <FormField label="Name" name="name_ar" defaultValue={arTranslation.name} required dir="rtl" />
-              <FormField label="Slug" name="slug_ar" defaultValue={arTranslation.slug} required dir="rtl" />
+              <FormField label="Name"  name="name_ar"  defaultValue={arTranslation.name}  required dir="rtl" />
+              <FormField label="Slug"  name="slug_ar"  defaultValue={arTranslation.slug}  required dir="rtl" />
               <FormField label="Description" name="description_ar" type="textarea" defaultValue={arTranslation.description} dir="rtl" />
-              
-              {/* ✅ NEW: Show Offer in Arabic */}
-              <FormField 
-                label="Show Offer Text (Arabic)" 
-                name="showOffer_ar" 
-                defaultValue={arTranslation.showOffer}
-                dir="rtl"
-                placeholder="احصل على خصم 15% على جميع الطلبات + شحن مجاني"
-                helpText="يظهر أسفل شعار المتجر على البطاقات. اتركه فارغًا للحساب التلقائي من القسائم."
-              />
-              
-              {/* SEO Fields */}
-              <FormField 
-                label="SEO Title" 
-                name="seoTitle_ar" 
-                defaultValue={arTranslation.seoTitle}
-                dir="rtl"
-                placeholder="اسم المتجر - كوبونات وعروض"
-                helpText="موصى به: 50-60 حرف"
-              />
-              <FormField 
-                label="SEO Description" 
-                name="seoDescription_ar" 
-                type="textarea"
-                rows={3}
-                defaultValue={arTranslation.seoDescription}
-                dir="rtl"
-                placeholder="احصل على أفضل الصفقات والكوبونات لـ اسم المتجر..."
-                helpText="موصى به: 150-160 حرف"
-              />
+              <FormField label="Show Offer Text (Arabic)" name="showOffer_ar" defaultValue={arTranslation.showOffer} dir="rtl" />
+              <FormField label="SEO Title"       name="seoTitle_ar"       defaultValue={arTranslation.seoTitle}       dir="rtl" />
+              <FormField label="SEO Description" name="seoDescription_ar" type="textarea" rows={3} defaultValue={arTranslation.seoDescription} dir="rtl" />
             </FormSection>
           </FormRow>
           <div className={styles.formActions}>
@@ -487,141 +346,195 @@ export default function StoreEditPage({ params }) {
           </div>
         </form>
       )}
-      
-      {/* COUNTRIES */}
+
+      {/* ── COUNTRIES ─────────────────────────────────────────────────────────── */}
       {tab === 'countries' && (
         <div className={styles.section}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
             <h3>Target Countries</h3>
             <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-              {countriesChanged && (
-                <span style={{ color: '#f59e0b', fontSize: '0.875rem' }}>
-                  ⚠️ You have unsaved changes
-                </span>
-              )}
-              <button 
-                onClick={handleApplyCountries}
-                className={styles.btnPrimary}
-                disabled={isPending || !countriesChanged}
-                style={{ opacity: !countriesChanged ? 0.5 : 1 }}
-              >
-                {isPending ? 'Applying...' : 'Apply Changes'}
+              {countriesChanged && <span style={{ color: '#f59e0b', fontSize: '0.875rem' }}>⚠️ Unsaved changes</span>}
+              <button onClick={handleApplyCountries} className={styles.btnPrimary} disabled={isPending || !countriesChanged} style={{ opacity: !countriesChanged ? 0.5 : 1 }}>
+                {isPending ? 'Applying…' : 'Apply Changes'}
               </button>
             </div>
           </div>
-          
           <div className={styles.checkboxGrid}>
             {allCountries.map(country => (
               <label key={country.id} className={styles.checkboxLabel}>
-                <input 
-                  type="checkbox" 
-                  checked={selectedCountries.includes(country.id)}
-                  onChange={(e) => handleCountryChange(country.id, e.target.checked)}
-                />
+                <input type="checkbox" checked={selectedCountries.includes(country.id)} onChange={e => handleCountryChange(country.id, e.target.checked)} />
                 {country.flag} {country.translations[0]?.name}
               </label>
             ))}
           </div>
-          
           <div style={{ marginTop: '1rem', fontSize: '0.875rem', color: '#666' }}>
             Selected: {selectedCountries.length} / {allCountries.length} countries
           </div>
         </div>
       )}
 
-      {/* CATEGORIES */}
+      {/* ── CATEGORIES ────────────────────────────────────────────────────────── */}
       {tab === 'categories' && (
         <div className={styles.section}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
             <h3>Store Categories</h3>
             <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-              {categoriesChanged && (
-                <span style={{ color: '#f59e0b', fontSize: '0.875rem' }}>
-                  ⚠️ You have unsaved changes
-                </span>
-              )}
-              <button 
-                onClick={handleApplyCategories}
-                className={styles.btnPrimary}
-                disabled={isPending || !categoriesChanged}
-                style={{ opacity: !categoriesChanged ? 0.5 : 1 }}
-              >
-                {isPending ? 'Applying...' : 'Apply Changes'}
+              {categoriesChanged && <span style={{ color: '#f59e0b', fontSize: '0.875rem' }}>⚠️ Unsaved changes</span>}
+              <button onClick={handleApplyCategories} className={styles.btnPrimary} disabled={isPending || !categoriesChanged} style={{ opacity: !categoriesChanged ? 0.5 : 1 }}>
+                {isPending ? 'Applying…' : 'Apply Changes'}
               </button>
             </div>
           </div>
-          
           <div className={styles.checkboxGrid}>
             {allCategories.map(cat => (
               <label key={cat.id} className={styles.checkboxLabel}>
-                <input 
-                  type="checkbox" 
-                  checked={selectedCategories.includes(cat.id)}
-                  onChange={(e) => handleCategoryChange(cat.id, e.target.checked)}
-                />
+                <input type="checkbox" checked={selectedCategories.includes(cat.id)} onChange={e => handleCategoryChange(cat.id, e.target.checked)} />
                 {cat.translations[0]?.name}
+                {/* Show niche badge so admin can see which categories are bank niches */}
+                {cat.bankScoringWeights && Object.keys(cat.bankScoringWeights).length > 0 && (
+                  <span style={{ marginLeft: 6, fontSize: 10, padding: '1px 5px', borderRadius: 8, background: '#dbeafe', color: '#1d4ed8', fontWeight: 600 }}>niche</span>
+                )}
               </label>
             ))}
           </div>
-          
           <div style={{ marginTop: '1rem', fontSize: '0.875rem', color: '#666' }}>
             Selected: {selectedCategories.length} / {allCategories.length} categories
           </div>
         </div>
       )}
 
-      {/* PRODUCTS */}
+      {/* ── PRODUCTS ──────────────────────────────────────────────────────────── */}
       {tab === 'products' && (
         <ProductsSection storeId={store.id} products={products} />
       )}
 
-      {/* OTHER PROMOS */}
+      {/* ── OTHER PROMOS ──────────────────────────────────────────────────────── */}
       {tab === 'other-promos' && (
         <div className={styles.section}>
-          <form action={(formData) => startTransition(async () => {
-            const result = await createOtherPromo(formData);
-            if (result.success) router.refresh();
-          })} className={styles.form}>
+          <form
+            action={(formData) => startTransition(async () => {
+              const result = await createOtherPromo(formData);
+              if (result.success) {
+                // Reset bank cascade
+                setSelectedBankId('');
+                setBankCards([]);
+                router.refresh();
+              } else {
+                alert('Failed to create promo: ' + result.error);
+              }
+            })}
+            className={styles.form}
+          >
             <FormSection title="Add Other Promo">
               <input type="hidden" name="storeId" value={store.id} />
+
+              {/* ── Core fields ──────────────────────────────────────────────── */}
               <FormRow>
-                <FormField 
-                  label="Country" 
-                  name="countryId" 
-                  type="select" 
-                  options={allCountries.map(c => ({ 
-                    label: c.translations[0]?.name, 
-                    value: c.id 
-                  }))} 
-                  required 
+                <FormField
+                  label="Country" name="countryId" type="select" required
+                  options={allCountries.map(c => ({ label: c.translations[0]?.name, value: c.id }))}
                 />
-                <FormField 
-                  label="Type" 
-                  name="type" 
-                  type="select" 
+                <FormField
+                  label="Type" name="type" type="select" required
                   options={[
-                    { label: 'Bank Offer', value: 'BANK_OFFER' },
-                    { label: 'Card Offer', value: 'CARD_OFFER' },
+                    { label: 'Bank Offer',    value: 'BANK_OFFER' },
+                    { label: 'Card Offer',    value: 'CARD_OFFER' },
                     { label: 'Payment Offer', value: 'PAYMENT_OFFER' },
-                    { label: 'Seasonal', value: 'SEASONAL' },
-                    { label: 'Bundle', value: 'BUNDLE' },
-                    { label: 'Other', value: 'OTHER' }
-                  ]} 
-                  required 
+                    { label: 'Seasonal',      value: 'SEASONAL' },
+                    { label: 'Bundle',        value: 'BUNDLE' },
+                    { label: 'Other',         value: 'OTHER' },
+                  ]}
                 />
               </FormRow>
+
+              {/* ── Bank / Card cascade ───────────────────────────────────────── */}
+              <div style={{ padding: '1rem', background: '#f8fafc', borderRadius: 8, border: '1px solid #e2e8f0', marginBottom: '1rem' }}>
+                <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#334155', marginBottom: '0.75rem' }}>
+                  Bank / Card Link <span style={{ fontWeight: 400, color: '#64748b' }}>(optional — links this promo to a specific bank)</span>
+                </div>
+                <FormRow>
+                  {/* Bank picker — onChange triggers card fetch */}
+                  <div style={{ flex: 1 }}>
+                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, marginBottom: 4, color: '#374151' }}>Bank</label>
+                    <select
+                      name="bankId"
+                      value={selectedBankId}
+                      onChange={e => handleBankChange(e.target.value)}
+                      style={{ width: '100%', padding: '0.5rem 0.75rem', border: '1px solid #d1d5db', borderRadius: 6, fontSize: '0.875rem', background: '#fff' }}
+                    >
+                      <option value="">— No bank —</option>
+                      {allBanks.map(bank => (
+                        <option key={bank.id} value={bank.id}>
+                          {bank.translations?.[0]?.name || bank.slug}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Card picker — only shown after a bank is selected */}
+                  <div style={{ flex: 1, opacity: selectedBankId ? 1 : 0.4, pointerEvents: selectedBankId ? 'auto' : 'none' }}>
+                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, marginBottom: 4, color: '#374151' }}>Card</label>
+                    <select
+                      name="cardId"
+                      disabled={!selectedBankId}
+                      style={{ width: '100%', padding: '0.5rem 0.75rem', border: '1px solid #d1d5db', borderRadius: 6, fontSize: '0.875rem', background: '#fff' }}
+                    >
+                      <option value="">— Any card —</option>
+                      {bankCards.map(card => {
+                        const cardName = card.translations?.find(t => t.locale === 'en')?.name || `${card.network} ${card.tier}`;
+                        return (
+                          <option key={card.id} value={card.id}>{cardName}</option>
+                        );
+                      })}
+                    </select>
+                  </div>
+                </FormRow>
+
+                <FormRow>
+                  {/* Card Network — useful when no specific card is selected */}
+                  <div style={{ flex: 1 }}>
+                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, marginBottom: 4, color: '#374151' }}>Card Network</label>
+                    <select
+                      name="cardNetwork"
+                      style={{ width: '100%', padding: '0.5rem 0.75rem', border: '1px solid #d1d5db', borderRadius: 6, fontSize: '0.875rem', background: '#fff' }}
+                    >
+                      <option value="">— Any network —</option>
+                      <option value="VISA">Visa</option>
+                      <option value="MASTERCARD">Mastercard</option>
+                      <option value="MADA">Mada</option>
+                      <option value="AMEX">Amex</option>
+                      <option value="UNIONPAY">UnionPay</option>
+                    </select>
+                  </div>
+
+                  {/* Installment months */}
+                  <div style={{ flex: 1 }}>
+                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, marginBottom: 4, color: '#374151' }}>Installment Months</label>
+                    <input
+                      type="number" name="installmentMonths" min="0" max="60"
+                      placeholder="e.g. 12"
+                      style={{ width: '100%', padding: '0.5rem 0.75rem', border: '1px solid #d1d5db', borderRadius: 6, fontSize: '0.875rem', background: '#fff' }}
+                    />
+                    <p style={{ fontSize: '0.72rem', color: '#6b7280', marginTop: 3 }}>0% installment plan months (leave empty if N/A)</p>
+                  </div>
+                </FormRow>
+              </div>
+
+              {/* ── Media & dates ─────────────────────────────────────────────── */}
               <FormRow>
-                <FormField label="Image URL" name="image" />
+                <FormField label="Image URL"    name="image" />
                 <FormField label="External URL" name="url" type="url" />
               </FormRow>
               <FormRow>
-                <FormField label="Start Date" name="startDate" type="date" />
+                <FormField label="Start Date"  name="startDate"  type="date" />
                 <FormField label="Expiry Date" name="expiryDate" type="date" />
               </FormRow>
               <FormRow>
-                <FormField label="Order" name="order" type="number" defaultValue="0" />
+                <FormField label="Order"  name="order"    type="number" defaultValue="0" />
                 <FormField label="Active" name="isActive" type="checkbox" defaultValue={true} />
               </FormRow>
+
+              {/* ── Translations ─────────────────────────────────────────────── */}
               <FormRow>
                 <FormField label="Title (EN)" name="title_en" required />
                 <FormField label="Title (AR)" name="title_ar" required dir="rtl" />
@@ -634,195 +547,117 @@ export default function StoreEditPage({ params }) {
                 <FormField label="Terms (EN)" name="terms_en" type="textarea" />
                 <FormField label="Terms (AR)" name="terms_ar" type="textarea" dir="rtl" />
               </FormRow>
+
               <button type="submit" className={styles.btnPrimary} disabled={isPending}>
-                Add Other Promo
+                {isPending ? 'Adding…' : 'Add Other Promo'}
               </button>
             </FormSection>
           </form>
 
+          {/* ── Promo list ─────────────────────────────────────────────────────── */}
           <DataTable
             data={otherPromos || []}
             columns={[
-              { 
-                key: 'translations', 
-                label: 'Title', 
-                render: (t) => t?.[0]?.title || '—' 
+              {
+                key: 'translations',
+                label: 'Title',
+                render: (t) => t?.[0]?.title || '—',
               },
               { key: 'type', label: 'Type' },
-              { 
-                key: 'expiryDate', 
-                label: 'Expires', 
-                render: (date) => date ? new Date(date).toLocaleDateString() : 'No expiry' 
+              {
+                key: 'bankId',
+                label: 'Bank',
+                render: (bankId) => {
+                  if (!bankId) return <span style={{ color: '#ccc' }}>—</span>;
+                  const bank = allBanks.find(b => b.id === bankId);
+                  return bank ? (
+                    <span style={{ fontSize: 12, padding: '2px 8px', borderRadius: 8, background: '#dbeafe', color: '#1d4ed8', fontWeight: 600 }}>
+                      {bank.translations?.[0]?.name || bank.slug}
+                    </span>
+                  ) : `#${bankId}`;
+                },
               },
-              { 
-                key: 'isActive', 
-                label: 'Status', 
-                render: (val) => val ? 'Active' : 'Inactive' 
-              }
+              {
+                key: 'cardNetwork',
+                label: 'Network',
+                render: (v) => v || <span style={{ color: '#ccc' }}>—</span>,
+              },
+              {
+                key: 'expiryDate',
+                label: 'Expires',
+                render: (d) => d ? new Date(d).toLocaleDateString() : 'No expiry',
+              },
+              {
+                key: 'isActive',
+                label: 'Status',
+                render: (v) => (
+                  <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 8, background: v ? '#dcfce7' : '#fee2e2', color: v ? '#16a34a' : '#dc2626' }}>
+                    {v ? 'Active' : 'Inactive'}
+                  </span>
+                ),
+              },
             ]}
             onDelete={async (promoId) => {
-              if (!confirm('Are you sure you want to delete this promo?')) return;
-              
-              try {
-                const result = await deleteOtherPromo(promoId);
-                if (result.success) {
-                  // Remove the deleted promo from local state
-                  setOtherPromos(prev => prev.filter(promo => promo.id !== promoId));
-                  alert('Promo deleted successfully!');
-                } else {
-                  alert('Failed to delete promo: ' + (result.error || 'Unknown error'));
-                }
-              } catch (error) {
-                console.error('Error deleting promo:', error);
-                alert('Error deleting promo: ' + error.message);
+              if (!confirm('Delete this promo?')) return;
+              const result = await deleteOtherPromo(promoId);
+              if (result.success) {
+                setOtherPromos(prev => prev.filter(p => p.id !== promoId));
+              } else {
+                alert('Failed to delete: ' + (result.error || 'Unknown error'));
               }
             }}
           />
         </div>
       )}
 
-      {/* PAYMENT METHODS */}
+      {/* ── PAYMENT METHODS ───────────────────────────────────────────────────── */}
       {tab === 'payment-methods' && (
-        <StorePaymentMethods 
-          store={store} 
-          countries={allCountries} 
-          paymentMethods={allPaymentMethods} 
-        />
+        <StorePaymentMethods store={store} countries={allCountries} paymentMethods={allPaymentMethods} />
       )}
 
-      {/* FAQS */}
+      {/* ── FAQS ──────────────────────────────────────────────────────────────── */}
       {tab === 'faqs' && (
         <div className={styles.section}>
           <div className={styles.sectionHeader}>
             <h2>Store FAQs ({store.faqs?.length || 0})</h2>
             {!showFAQForm && (
-              <button 
-                onClick={() => {
-                  setShowFAQForm(true);
-                  setEditingFAQ(null);
-                }} 
-                className={styles.btnPrimary}
-              >
+              <button onClick={() => { setShowFAQForm(true); setEditingFAQ(null); }} className={styles.btnPrimary}>
                 + Add FAQ
               </button>
             )}
           </div>
 
-          {/* FAQ FORM - CREATE/EDIT */}
           {showFAQForm && (
-            <form 
-              action={(formData) => startTransition(async () => {
-                // Add FAQ ID if editing
-                if (editingFAQ) {
-                  formData.append('faqId', editingFAQ.id);
-                }
-                
-                const result = await upsertFAQ(formData);
-                
-                if (result.success) {
-                  setShowFAQForm(false);
-                  setEditingFAQ(null);
-                  router.refresh();
-                  alert(editingFAQ ? 'FAQ updated successfully!' : 'FAQ created successfully!');
-                } else {
-                  alert(result.error || 'Failed to save FAQ');
-                }
-              })} 
-              className={styles.form}
-            >
-              <FormSection title={editingFAQ ? "Edit FAQ" : "Add New FAQ"}>
+            <form action={(formData) => startTransition(async () => {
+              if (editingFAQ) formData.append('faqId', editingFAQ.id);
+              const result = await upsertFAQ(formData);
+              if (result.success) {
+                setShowFAQForm(false);
+                setEditingFAQ(null);
+                router.refresh();
+                alert(editingFAQ ? 'FAQ updated!' : 'FAQ created!');
+              } else {
+                alert(result.error || 'Failed to save FAQ');
+              }
+            })} className={styles.form}>
+              <FormSection title={editingFAQ ? 'Edit FAQ' : 'Add New FAQ'}>
                 <input type="hidden" name="storeId" value={store.id} />
-                
-                {/* Country and Order */}
                 <FormRow>
-                  <FormField 
-                    label="Country" 
-                    name="countryId" 
-                    type="select" 
-                    defaultValue={editingFAQ?.countryId}
-                    options={allCountries.map(c => ({ 
-                      label: `${c.flag || ''} ${c.translations[0]?.name || c.code}`, 
-                      value: c.id 
-                    }))} 
-                    required 
-                  />
-                  <FormField 
-                    label="Display Order" 
-                    name="order" 
-                    type="number" 
-                    defaultValue={editingFAQ?.order || 0}
-                    helpText="Lower numbers appear first"
-                  />
+                  <FormField label="Country" name="countryId" type="select" defaultValue={editingFAQ?.countryId} options={allCountries.map(c => ({ label: `${c.flag || ''} ${c.translations[0]?.name || c.code}`, value: c.id }))} required />
+                  <FormField label="Display Order" name="order" type="number" defaultValue={editingFAQ?.order || 0} helpText="Lower = first" />
                 </FormRow>
-                
-                {/* Active Status */}
-                <FormField 
-                  label="Active" 
-                  name="isActive" 
-                  type="checkbox" 
-                  defaultValue={editingFAQ?.isActive ?? true}
-                  helpText="FAQ will be visible to users on the store page"
-                />
-                
-                {/* Questions */}
+                <FormField label="Active" name="isActive" type="checkbox" defaultValue={editingFAQ?.isActive ?? true} />
                 <FormRow>
-                  <FormField 
-                    label="Question (English)" 
-                    name="question_en" 
-                    defaultValue={editingFAQ?.translations?.find(t => t.locale === 'en')?.question}
-                    required 
-                    placeholder="How do I use the coupon code?"
-                  />
-                  <FormField 
-                    label="Question (Arabic)" 
-                    name="question_ar" 
-                    defaultValue={editingFAQ?.translations?.find(t => t.locale === 'ar')?.question}
-                    required 
-                    dir="rtl"
-                    placeholder="كيف أستخدم كود الخصم؟"
-                  />
+                  <FormField label="Question (English)" name="question_en" defaultValue={editingFAQ?.translations?.find(t => t.locale === 'en')?.question} required />
+                  <FormField label="Question (Arabic)"  name="question_ar" defaultValue={editingFAQ?.translations?.find(t => t.locale === 'ar')?.question} required dir="rtl" />
                 </FormRow>
-                
-                {/* Answers */}
-                <FormField 
-                  label="Answer (English)" 
-                  name="answer_en" 
-                  type="textarea"
-                  rows={5}
-                  defaultValue={editingFAQ?.translations?.find(t => t.locale === 'en')?.answer}
-                  required 
-                  placeholder="Copy the code and paste it at checkout before completing your purchase..."
-                />
-                
-                <FormField 
-                  label="Answer (Arabic)" 
-                  name="answer_ar" 
-                  type="textarea"
-                  rows={5}
-                  defaultValue={editingFAQ?.translations?.find(t => t.locale === 'ar')?.answer}
-                  required 
-                  dir="rtl"
-                  placeholder="انسخ الكود والصقه عند الدفع قبل إتمام الشراء..."
-                />
-                
-                {/* Action Buttons */}
+                <FormField label="Answer (English)" name="answer_en" type="textarea" rows={5} defaultValue={editingFAQ?.translations?.find(t => t.locale === 'en')?.answer} required />
+                <FormField label="Answer (Arabic)"  name="answer_ar" type="textarea" rows={5} defaultValue={editingFAQ?.translations?.find(t => t.locale === 'ar')?.answer} required dir="rtl" />
                 <div className={styles.formActions}>
-                  <button 
-                    type="submit" 
-                    className={styles.btnPrimary} 
-                    disabled={isPending}
-                  >
-                    {isPending ? 'Saving...' : (editingFAQ ? 'Update FAQ' : 'Create FAQ')}
+                  <button type="submit" className={styles.btnPrimary} disabled={isPending}>
+                    {isPending ? 'Saving…' : editingFAQ ? 'Update FAQ' : 'Create FAQ'}
                   </button>
-                  <button 
-                    type="button"
-                    onClick={() => {
-                      setShowFAQForm(false);
-                      setEditingFAQ(null);
-                    }}
-                    className={styles.btnSecondary}
-                    disabled={isPending}
-                  >
+                  <button type="button" onClick={() => { setShowFAQForm(false); setEditingFAQ(null); }} className={styles.btnSecondary} disabled={isPending}>
                     Cancel
                   </button>
                 </div>
@@ -830,101 +665,47 @@ export default function StoreEditPage({ params }) {
             </form>
           )}
 
-          {/* FAQ LIST TABLE */}
-          {!showFAQForm && store.faqs && store.faqs.length > 0 ? (
+          {!showFAQForm && store.faqs?.length > 0 ? (
             <DataTable
-              data={store.faqs || []}
+              data={store.faqs}
               columns={[
-                { 
-                  key: 'id', 
-                  label: 'ID',
-                  sortable: true
-                },
-                { 
-                  key: 'country', 
-                  label: 'Country',
-                  sortable: false,
-                  render: (country) => (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ fontSize: '20px' }}>{country?.flag || '🌍'}</span>
-                      <span>{country?.translations?.[0]?.name || country?.code || '—'}</span>
-                    </div>
-                  )
-                },
-                { 
-                  key: 'translations', 
-                  label: 'Question', 
-                  sortable: false,
+                { key: 'id', label: 'ID', sortable: true },
+                { key: 'country', label: 'Country', render: (c) => `${c?.flag || '🌍'} ${c?.translations?.[0]?.name || c?.code || '—'}` },
+                {
+                  key: 'translations', label: 'Question',
                   render: (trans) => {
-                    const enQuestion = trans?.find(t => t.locale === 'en')?.question;
-                    const arQuestion = trans?.find(t => t.locale === 'ar')?.question;
+                    const en = trans?.find(t => t.locale === 'en')?.question;
+                    const ar = trans?.find(t => t.locale === 'ar')?.question;
                     return (
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                        <div style={{ fontWeight: 500 }}>{enQuestion || '—'}</div>
-                        {arQuestion && (
-                          <div style={{ fontSize: '12px', color: '#666', direction: 'rtl' }}>
-                            {arQuestion}
-                          </div>
-                        )}
+                      <div>
+                        <div style={{ fontWeight: 500 }}>{en || '—'}</div>
+                        {ar && <div style={{ fontSize: 12, color: '#666', direction: 'rtl', marginTop: 2 }}>{ar}</div>}
                       </div>
                     );
-                  }
+                  },
                 },
-                { 
-                  key: 'order', 
-                  label: 'Order',
-                  sortable: true,
-                  render: (order) => (
-                    <span className={styles.badge}>#{order}</span>
-                  )
-                },
-                { 
-                  key: 'isActive', 
-                  label: 'Status',
-                  sortable: true,
-                  render: (val) => (
-                    <span className={val ? styles.badgeSuccess : styles.badgeDanger}>
-                      {val ? 'Active' : 'Inactive'}
-                    </span>
-                  )
-                }
+                { key: 'order', label: 'Order', sortable: true, render: (o) => <span className={styles.badge}>#{o}</span> },
+                { key: 'isActive', label: 'Status', sortable: true, render: (v) => <span className={v ? styles.badgeSuccess : styles.badgeDanger}>{v ? 'Active' : 'Inactive'}</span> },
               ]}
               onEdit={(faqId) => {
                 const faq = store.faqs.find(f => f.id === faqId);
-                if (faq) {
-                  setEditingFAQ(faq);
-                  setShowFAQForm(true);
-                  // Scroll to top to show form
-                  window.scrollTo({ top: 0, behavior: 'smooth' });
-                }
+                if (faq) { setEditingFAQ(faq); setShowFAQForm(true); window.scrollTo({ top: 0, behavior: 'smooth' }); }
               }}
               onDelete={async (faqId) => {
-                if (!confirm('Are you sure you want to delete this FAQ? This action cannot be undone.')) {
-                  return;
-                }
-                
+                if (!confirm('Delete this FAQ?')) return;
                 startTransition(async () => {
                   const fd = new FormData();
                   fd.append('id', faqId);
                   fd.append('storeId', store.id);
-                  
                   const result = await deleteFAQ(fd);
-                  
-                  if (result.success) {
-                    router.refresh();
-                    alert('FAQ deleted successfully!');
-                  } else {
-                    alert(result.error || 'Failed to delete FAQ');
-                  }
+                  if (result.success) { router.refresh(); } else { alert(result.error || 'Failed to delete FAQ'); }
                 });
               }}
             />
           ) : !showFAQForm ? (
             <div className={styles.emptyState}>
-              <span className="material-symbols-sharp" style={{ fontSize: '48px', color: '#ccc' }}>
-                help_outline
-              </span>
-              <p>No FAQs yet. Click "Add FAQ" to create your first one.</p>
+              <span className="material-symbols-sharp" style={{ fontSize: 48, color: '#ccc' }}>help_outline</span>
+              <p>No FAQs yet. Click "Add FAQ" to get started.</p>
             </div>
           ) : null}
         </div>
