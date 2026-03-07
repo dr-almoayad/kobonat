@@ -604,60 +604,54 @@ export async function deleteVoucher(id) {
 // CATEGORIES
 // ============================================================================
 
+// PATCH: app/admin/_lib/actions.js
+// Replace the existing upsertCategory function with this version.
+// Only change: reads bankScoringWeights from formData and saves it to the Category row.
+
 export async function upsertCategory(id, formData) {
   try {
-    const isUpdate = id && id !== 'undefined' && id !== '';
+    const isUpdate   = id && id !== 'undefined' && id !== '';
     const categoryId = isUpdate ? parseInt(id) : undefined;
 
+    // Parse bankScoringWeights — empty string or missing → null (not a bank niche)
+    const rawWeights = formData.get('bankScoringWeights');
+    let bankScoringWeights = null;
+    if (rawWeights) {
+      try {
+        const parsed = JSON.parse(rawWeights);
+        bankScoringWeights = Object.keys(parsed).length > 0 ? parsed : null;
+      } catch {
+        bankScoringWeights = null;
+      }
+    }
+
     const data = {
-      icon: formData.get('icon'),
-      image: formData.get('image'), // NEW
-      color: formData.get('color'),
+      icon:               formData.get('icon')  || null,
+      image:              formData.get('image') || null,
+      color:              formData.get('color') || null,
+      bankScoringWeights,   // ← new
     };
 
     let category;
-
     if (isUpdate) {
-      category = await prisma.category.update({
-        where: { id: categoryId },
-        data
-      });
+      category = await prisma.category.update({ where: { id: categoryId }, data });
     } else {
       category = await prisma.category.create({ data });
     }
 
-    // Update Translations
+    // Translations (unchanged)
     for (const locale of ['en', 'ar']) {
-      const name = formData.get(`name_${locale}`);
-      const slug = formData.get(`slug_${locale}`);
-      const description = formData.get(`description_${locale}`);
-      const seoTitle = formData.get(`seoTitle_${locale}`);
+      const name         = formData.get(`name_${locale}`);
+      const slug         = formData.get(`slug_${locale}`);
+      const description  = formData.get(`description_${locale}`);
+      const seoTitle     = formData.get(`seoTitle_${locale}`);
       const seoDescription = formData.get(`seoDescription_${locale}`);
 
       if (name && slug) {
         await prisma.categoryTranslation.upsert({
-          where: {
-            categoryId_locale: {
-              categoryId: category.id,
-              locale
-            }
-          },
-          create: {
-            categoryId: category.id,
-            locale,
-            name,
-            slug,
-            description,
-            seoTitle,
-            seoDescription
-          },
-          update: {
-            name,
-            slug,
-            description,
-            seoTitle,
-            seoDescription
-          }
+          where:  { categoryId_locale: { categoryId: category.id, locale } },
+          create: { categoryId: category.id, locale, name, slug, description, seoTitle, seoDescription },
+          update: { name, slug, description, seoTitle, seoDescription },
         });
       }
     }
