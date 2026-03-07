@@ -17,6 +17,7 @@ import PromoCodesFAQ from "@/components/PromoCodesFAQ/PromoCodesFAQ";
 import StoreLeaderboardSidebar from "@/components/leaderboard/StoreLeaderboardSidebar";
 import RelatedPostsSidebar from "@/components/blog/RelatedPostsSidebar";
 import StoreIntelligenceCard from "@/components/StoreIntelligenceCard/StoreIntelligenceCard";
+import StoreOfferStacks from '@/components/StoreOfferStacks/StoreOfferStacks';
 import { getCategoryData } from "@/lib/storeCategories";
 import { getStoresData, getStoreData } from "@/lib/stores";
 import { getStoreRelatedPosts } from "@/app/admin/_lib/queries";
@@ -430,6 +431,12 @@ export default async function StorePage({ params }) {
                       <VouchersGrid vouchers={shippingVouchers} hideStoreBranding={true} />
                     </section>
                   )}
+
+                  <StoreOfferStacks
+                    storeId={store.id}
+                    locale={locale}
+                    countryCode={countryCode || 'SA'}
+                  />
 
                   <OtherPromosSection
                     storeSlug={transformedStore.slug}
