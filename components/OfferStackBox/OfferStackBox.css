@@ -181,8 +181,9 @@
 
 /* Bank logo — bigger, no bg, no border */
 .stack-bank-logo {
-  width: 36px;
-  height: 36px;
+  width: auto;
+  max-width: 90px;
+  height: 44px;
   object-fit: contain;
   flex-shrink: 0;
 }
