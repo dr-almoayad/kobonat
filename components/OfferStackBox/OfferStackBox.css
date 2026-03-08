@@ -271,7 +271,25 @@
 }
 
 /* ─── CTA ────────────────────────────────────────────────────────────────────── */
+ /* HTML: <div class="ribbon">Your text content</div> */
 .stack-cta {
+  font-size: 28px;
+  font-weight: bold;
+  color: #fff;
+  --r: .4em; /* control the ribbon shape (the radius) */
+  --c: #E3AD40;
+
+  position: absolute;
+  bottom: 0;
+  right: calc(-1*var(--r));
+  line-height: 1.8; 
+  padding: calc(2*var(--r)) .5em 0;
+  border-radius: 0 var(--r) var(--r) 0;
+  background: linear-gradient(135deg, #f59e0b 0%, #f97316 100%);
+  background-repeat: no-repeat;   
+}
+
+/*.stack-cta {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -295,7 +313,7 @@
   filter: brightness(1.08);
   transform: translateY(-1px);
   box-shadow: 0 4px 16px rgba(249, 115, 22, 0.45);
-}
+}*/
 
 .stack-cta .material-symbols-sharp {
   font-size: 1rem;
