@@ -20,6 +20,7 @@ import styles from '../../admin.module.css';
 import StorePaymentMethods from './StorePaymentMethods';
 import ProductsSection from './products/ProductsSection';
 import OtherPromosTab from '@/components/admin/OtherPromosTab/OtherPromosTab';
+import OfferStacksTab from '@/components/admin/OfferStacksTab/OfferStacksTab';
 
 export default function StoreEditPage({ params }) {
   const { id } = use(params);
@@ -205,6 +206,7 @@ export default function StoreEditPage({ params }) {
           { id: 'categories',      label: 'Categories' },
           { id: 'products',        label: 'Products' },
           { id: 'other-promos',    label: 'Other Promos' },
+          { id: 'offer-stacks',    label: 'Offer Stacks' },
           { id: 'payment-methods', label: 'Payments' },
           { id: 'faqs',            label: 'FAQs' },
         ].map(t => (
@@ -414,6 +416,10 @@ export default function StoreEditPage({ params }) {
         <OtherPromosTab storeId={store.id} allCountries={allCountries} allBanks={allBanks} />
       )}
 
+      {/* ── OFFER STACKS ──────────────────────────────────────────────────────── */}
+      {tab === 'offer-stacks' && (
+        <OfferStacksTab storeId={store.id} />
+      )}
       
       {/* ── PAYMENT METHODS ───────────────────────────────────────────────────── */}
       {tab === 'payment-methods' && (
