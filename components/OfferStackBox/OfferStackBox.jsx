@@ -118,22 +118,16 @@ export default function OfferStackBox({ stack, locale }) {
           <div className="stack-store-text">
             <span className="stack-store-name">{store.name}</span>
             <span className="stack-sub-label">
-              {isAr ? 'عروض قابلة للدمج' : 'Stackable Offers'}
+              {isAr ? 'عروض قابلة للجمع' : 'Stackable Offers'}
             </span>
           </div>
         </div>
       </div>
 
-      {/* ── Savings strip ──────────────────────────────────────────────── */}
+      {/* ── Savings ribbon ─────────────────────────────────────────────── */}
       {combinedSavingsPercent != null && combinedSavingsPercent > 0 && (
-        <div className="stack-savings-strip">
-          {/*<span className="material-symbols-sharp stack-savings-icon">savings</span>*/}
-          <span className="stack-savings-text">
-            {isAr
-              ? <>{isAr ? 'وفّر حتى' : 'Save up to'} <strong>{combinedSavingsPercent}%</strong></>
-              : <>Save up to <strong>{combinedSavingsPercent}%</strong></>
-            }
-          </span>
+        <div className={`stack-ribbon${isAr ? ' stack-ribbon--rtl' : ''}`}>
+          {isAr ? `وفر ${combinedSavingsPercent}%` : `Save ${combinedSavingsPercent}%`}
         </div>
       )}
 
