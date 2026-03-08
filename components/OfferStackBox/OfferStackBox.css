@@ -9,7 +9,7 @@
   display: flex;
   flex-direction: column;
   gap: 0.875rem;
-  overflow: hidden;
+  overflow: visible;
   box-shadow:
     0 4px 24px rgba(71, 10, 226, 0.25),
     0 1px 4px rgba(0, 0, 0, 0.15),
@@ -121,7 +121,7 @@
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   grid-template-rows: 1fr;          /* single row when no bottom item */
-  grid-column-gap: 0;
+  grid-column-gap: 0.5rem;
   grid-row-gap: 0;
   position: relative;
   z-index: 1;
@@ -272,15 +272,17 @@
 
 /* ─── CTA ────────────────────────────────────────────────────────────────────── */
  /* HTML: <div class="ribbon">Your text content</div> */
+
 .stack-cta {
-  font-size: 28px;
+  font-size: 18px;
   font-weight: bold;
   color: #fff;
+}
+.stack-cta {
   --r: .4em; /* control the ribbon shape (the radius) */
   --c: #E3AD40;
-
   position: absolute;
-  bottom: 0;
+  bottom: -30px;
   right: calc(-1*var(--r));
   line-height: 1.8; 
   padding: calc(2*var(--r)) .5em 0;
