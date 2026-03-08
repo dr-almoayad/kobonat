@@ -316,6 +316,7 @@
   box-shadow: 0 2px 12px rgba(249, 115, 22, 0.3);
   letter-spacing: 0.01em;
   margin-top: auto;
+  border: none;
 }
 
 .stack-cta .material-symbols-sharp {
