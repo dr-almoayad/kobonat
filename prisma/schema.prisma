@@ -253,6 +253,8 @@ model Store {
   savingsMetrics      StoreSavingsMetrics[]
   upcomingEvents      StoreUpcomingEvent[]
   peakSeasons         StorePeakSeason[]
+  // Offer stacks
+  offerStacks         OfferStack[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -378,6 +380,9 @@ model Voucher {
   countries    VoucherCountry[]
   store        Store        @relation(fields: [storeId], references: [id], onDelete: Cascade)
   clicks       VoucherClick[]
+  // Offer stacks
+  stackAsCode  OfferStack[] @relation("StackCode")
+  stackAsDeal  OfferStack[] @relation("StackDeal")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -522,6 +527,8 @@ model OtherPromo {
   country      Country @relation(fields: [countryId], references: [id], onDelete: Cascade)
   bank         Bank?     @relation(fields: [bankId], references: [id], onDelete: SetNull)
   card         BankCard? @relation(fields: [cardId], references: [id], onDelete: SetNull)
+  // Offer stacks
+  offerStacks  OfferStack[] @relation("StackPromo")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -548,6 +555,37 @@ model OtherPromoTranslation {
 
   @@unique([promoId, locale])
   @@index([locale])
+}
+
+// ============================================================================
+// OFFER STACKS — Admin-curated combinations of stackable offers
+// ============================================================================
+
+model OfferStack {
+  id      Int @id @default(autoincrement())
+  storeId Int
+
+  label String? // Optional admin label e.g. "Ramadan Stack"
+
+  // Each slot holds the ID of the chosen item (all nullable — need ≥ 2 filled)
+  codeVoucherId Int? // Voucher with stackGroup = CODE
+  dealVoucherId Int? // Voucher with stackGroup = DEAL
+  promoId       Int? // OtherPromo with stackGroup = BANK_OFFER
+
+  isActive Boolean @default(true)
+  order    Int     @default(0)
+
+  store       Store       @relation(fields: [storeId],       references: [id], onDelete: Cascade)
+  codeVoucher Voucher?    @relation("StackCode",             fields: [codeVoucherId], references: [id], onDelete: SetNull)
+  dealVoucher Voucher?    @relation("StackDeal",             fields: [dealVoucherId], references: [id], onDelete: SetNull)
+  promo       OtherPromo? @relation("StackPromo",            fields: [promoId],       references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([storeId])
+  @@index([isActive])
+  @@index([order])
 }
 
 // ============================================================================
