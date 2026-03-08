@@ -26,22 +26,38 @@ const TYPE_META = {
 
 function StackItem({ item, isAr }) {
   const meta = TYPE_META[item.itemType] || TYPE_META.DEAL;
+  const isBank = item.itemType === 'BANK_OFFER';
+
   return (
-    <div className="stack-item">
-      <span className={`stack-item-type-badge ${meta.cls}`}>
-        <span className="material-symbols-sharp" style={{ fontSize: '0.65rem' }}>{meta.icon}</span>
-        {isAr ? meta.labelAr : meta.labelEn}
-      </span>
+    <div className={`stack-item ${isBank ? 'stack-item--bank' : ''}`}>
+      <div className="stack-item-top-row">
+        {/* Bank logo if available */}
+        {isBank && item.bankLogo && (
+          <img
+            src={item.bankLogo}
+            alt={item.bankName || 'Bank'}
+            className="stack-bank-logo"
+          />
+        )}
+        <span className={`stack-item-type-badge ${meta.cls}`}>
+          <span className="material-symbols-sharp">{meta.icon}</span>
+          {isAr ? meta.labelAr : meta.labelEn}
+        </span>
+      </div>
+
       <span className="stack-item-title">{item.title}</span>
-      {item.discount && (
-        <span className="stack-item-discount">{item.discount}</span>
+
+      {/* Discount value */}
+      {(item.discount || item.discountPercent != null) && (
+        <span className="stack-item-discount">
+          {item.discount || `${item.discountPercent}%`}
+        </span>
       )}
-      {item.discountPercent != null && !item.discount && (
-        <span className="stack-item-discount">{item.discountPercent}%</span>
-      )}
+
+      {/* Code pill */}
       {item.code && (
         <span className="stack-item-code">
-          <span className="material-symbols-sharp" style={{ fontSize: '0.65rem', opacity: 0.7 }}>content_cut</span>
+          <span className="material-symbols-sharp">content_cut</span>
           {item.code}
         </span>
       )}
@@ -50,92 +66,111 @@ function StackItem({ item, isAr }) {
 }
 
 export default function OfferStackBox({ stack, locale }) {
-  const lang  = locale?.split('-')[0] || 'ar';
-  const isAr  = lang === 'ar';
+  const lang = locale?.split('-')[0] || 'ar';
+  const isAr = lang === 'ar';
 
   const { store, items, combinedSavingsPercent } = stack;
   const storeHref = `/${locale}/stores/${store.slug}`;
 
-  // Map items by type for deterministic slot placement
   const codeItem = items.find(i => i.itemType === 'CODE');
   const dealItem = items.find(i => i.itemType === 'DEAL');
   const bankItem = items.find(i => i.itemType === 'BANK_OFFER');
 
-  // Top row: CODE (div1) + DEAL (div2). If only one exists, show in div1.
+  // Layout logic:
+  //   3 items → 2×2 grid: CODE top-left, DEAL top-right, BANK full-width bottom
+  //             one + placed vertically between the top row and bottom row
+  //   2 items, both top (CODE+DEAL) → side by side
+  //             one + placed horizontally between them
+  //   2 items, one top + bank → stacked vertically
+  //             one + placed vertically between them
   const topLeft  = codeItem || dealItem;
-  const topRight = codeItem ? dealItem : null;
-  const hasBottom = !!bankItem;
-  const hasTopPair = !!(topLeft && topRight);
+  const topRight = codeItem && dealItem ? dealItem : null;
+  const hasTopPair = !!topRight;
+  const hasBottom  = !!bankItem;
+
+  // Which single + to show and where:
+  //   hasTopPair && hasBottom → vertical + between row 1 and row 2
+  //   hasTopPair && !hasBottom → horizontal + between div1 and div2
+  //   !hasTopPair && hasBottom → vertical + between single top item and bank
+  const plusPosition = hasTopPair && hasBottom
+    ? 'vertical'
+    : hasTopPair
+      ? 'horizontal'
+      : 'vertical';
 
   const ctaText = isAr ? 'احصل على الخصم' : 'Stack & Save';
 
   return (
     <div className="stack-box">
+
       {/* ── Header ── */}
       <div className="stack-box-header">
         {store.logo ? (
-          <Image
+          <img
             src={store.logo}
             alt={store.name}
-            width={36}
-            height={36}
             className="stack-store-logo"
-            unoptimized
           />
         ) : (
           <div className="stack-store-logo-placeholder">
-            <span className="material-symbols-sharp" style={{ color: 'rgba(255,255,255,0.6)', fontSize: '1rem' }}>storefront</span>
+            <span className="material-symbols-sharp">storefront</span>
           </div>
         )}
-        <span className="stack-store-name">{store.name}</span>
+
+        <div className="stack-store-info">
+          <span className="stack-store-name">{store.name}</span>
+          <span className="stack-label">
+            {isAr ? 'عروض قابلة للجمع' : 'Stackable Offers'}
+          </span>
+        </div>
+
         {combinedSavingsPercent != null && combinedSavingsPercent > 0 && (
           <span className="stack-savings-badge">
-            {isAr ? `وفر ${combinedSavingsPercent}%` : `Save ${combinedSavingsPercent}%`}
+            {isAr
+              ? <><strong>{combinedSavingsPercent}%</strong> توفير</>
+              : <>Save <strong>{combinedSavingsPercent}%</strong></>
+            }
           </span>
         )}
       </div>
 
-      {/* ── Sub-label ── */}
-      <div className="stack-label">
-        {isAr ? 'عروض قابلة للجمع' : 'Stackable Offers'}
-      </div>
-
       {/* ── Items grid ── */}
-      <div className={`stack-items-grid${hasBottom ? ' has-bottom' : ''}`}>
+      <div className={[
+        'stack-items-grid',
+        hasTopPair   ? 'has-top-pair'  : '',
+        hasBottom    ? 'has-bottom'    : '',
+      ].filter(Boolean).join(' ')}>
 
-        {/* div1 — top-left */}
+        {/* Top-left slot */}
         {topLeft && (
           <div className="stack-grid-div1">
             <StackItem item={topLeft} isAr={isAr} />
           </div>
         )}
 
-        {/* div2 — top-right */}
+        {/* Top-right slot (only when both CODE and DEAL exist) */}
         {topRight && (
           <div className="stack-grid-div2">
             <StackItem item={topRight} isAr={isAr} />
           </div>
         )}
 
-        {/* div3 — bottom full-width */}
+        {/* Bottom full-width slot */}
         {bankItem && (
           <div className="stack-grid-div3">
             <StackItem item={bankItem} isAr={isAr} />
           </div>
         )}
 
-        {/* ── Plus signs ── */}
-        {/* Horizontal + between div1 and div2 */}
-        {hasTopPair && (
-          <span className="stack-plus stack-plus--h" aria-hidden="true">+</span>
-        )}
-        {/* Vertical + between top row and div3 */}
-        {hasBottom && topLeft && (
-          <span className="stack-plus stack-plus--v" aria-hidden="true">+</span>
-        )}
+        {/* Single + connector — position depends on layout */}
+        <span
+          className={`stack-plus stack-plus--${plusPosition}`}
+          aria-hidden="true"
+        >+</span>
+
       </div>
 
-      {/* ── CTA ── */}
+      {/* ── CTA — always pinned to bottom via flex ── */}
       <Link href={storeHref} className="stack-cta">
         <span className="material-symbols-sharp">bolt</span>
         {ctaText}
@@ -143,6 +178,7 @@ export default function OfferStackBox({ stack, locale }) {
           {isAr ? 'chevron_left' : 'chevron_right'}
         </span>
       </Link>
+
     </div>
   );
 }
