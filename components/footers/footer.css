@@ -9,10 +9,10 @@
   --border-color: #eee;
   
   /* Layout Consistency */
-  --content-max-width: 1280px;
-  --header-padding-x-desktop: 1.5rem;
+  --content-max-width: 1312px;
+  --header-padding-x-desktop: 1rem;
   --header-padding-x-tablet: 1rem;
-  --header-padding-x-mobile: 0.75rem;
+  --header-padding-x-mobile: 1rem;
 }
 
 /* Main Footer Section */
