@@ -273,6 +273,7 @@
 /* ─── CTA ────────────────────────────────────────────────────────────────────── */
  /* HTML: <div class="ribbon">Your text content</div> */
 
+/* HTML: <div class="ribbon">Your text content</div> */
 .stack-cta {
   font-size: 18px;
   font-weight: bold;
@@ -280,14 +281,21 @@
 }
 .stack-cta {
   --r: .4em; /* control the ribbon shape (the radius) */
-  --c: #E3AD40;
+  --c: #FA6900;
+
   position: absolute;
-  bottom: -30px;
-  right: calc(-1*var(--r));
+  bottom: 20px;
+  left: calc(-1*var(--r));
   line-height: 1.8; 
   padding: calc(2*var(--r)) .5em 0;
-  border-radius: 0 var(--r) var(--r) 0;
-  background: linear-gradient(135deg, #f59e0b 0%, #f97316 100%);
+  border-radius: var(--r) 0 0 var(--r);
+  background: 
+    radial-gradient(100% 50% at left,var(--c) 98%,#0000 101%)
+     100% 100%/.5lh calc(100% - 2*var(--r)),
+    radial-gradient(100% 50% at right,#0005 98%,#0000 101%) 
+     0 0/var(--r) calc(2*var(--r)),
+    conic-gradient(at var(--r) calc(2*var(--r)),#0000 25%,var(--c) 0)
+     0 0/calc(101% - .5lh) 100%;
   background-repeat: no-repeat;   
 }
 
