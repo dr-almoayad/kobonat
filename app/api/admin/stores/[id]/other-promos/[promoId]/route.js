@@ -64,7 +64,7 @@ export async function PATCH(req, { params }) {
         order:              order       != null ? parseInt(order)       : undefined,
         bankId:             bankId      ? parseInt(bankId)             : null,
         cardId:             cardId      ? parseInt(cardId)             : null,
-        cardNetwork:        cardNetwork ?? null,
+        cardNetwork:        cardNetwork || null,
         installmentMonths:  installmentMonths ? parseInt(installmentMonths) : null,
       },
     });
