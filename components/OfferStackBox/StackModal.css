@@ -1,0 +1,323 @@
+/* components/OfferStackBox/StackModal.css */
+
+/* ─── Backdrop ───────────────────────────────────────────────────────────────*/
+.sm-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(3px);
+  z-index: 9999;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0;
+}
+
+@media (min-width: 640px) {
+  .sm-backdrop {
+    align-items: center;
+    padding: 1.5rem;
+  }
+}
+
+/* ─── Panel ──────────────────────────────────────────────────────────────────*/
+.sm-panel {
+  background: #fff;
+  width: 100%;
+  max-width: 520px;
+  max-height: 92dvh;
+  border-radius: 20px 20px 0 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 -4px 40px rgba(0, 0, 0, 0.18);
+}
+
+@media (min-width: 640px) {
+  .sm-panel {
+    border-radius: 20px;
+    max-height: 88dvh;
+    box-shadow: 0 8px 60px rgba(0, 0, 0, 0.22);
+  }
+}
+
+/* ─── Header ─────────────────────────────────────────────────────────────────*/
+.sm-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.1rem 0.85rem;
+  border-bottom: 1px solid #f1f5f9;
+  flex-shrink: 0;
+}
+
+.sm-header-left {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.sm-store-logo {
+  width: auto;
+  max-width: 70px;
+  height: 40px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.sm-store-name {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.2;
+}
+
+.sm-header-sub {
+  font-size: 0.72rem;
+  color: #64748b;
+  margin-top: 1px;
+}
+
+.sm-close {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  color: #475569;
+}
+
+.sm-close .material-symbols-sharp { font-size: 1rem; }
+
+/* ─── Savings banner ─────────────────────────────────────────────────────────*/
+.sm-savings-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: linear-gradient(90deg, #fff7ed 0%, #fef3c7 100%);
+  border-bottom: 1px solid #fde68a;
+  padding: 0.55rem 1.1rem;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: #92400e;
+  flex-shrink: 0;
+}
+
+.sm-savings-icon {
+  font-size: 1rem;
+  color: #d97706;
+  font-variation-settings: 'FILL' 1;
+  flex-shrink: 0;
+}
+
+.sm-savings-banner strong {
+  font-weight: 800;
+  color: #d97706;
+}
+
+/* ─── Body (scrollable) ──────────────────────────────────────────────────────*/
+.sm-body {
+  overflow-y: auto;
+  padding: 1rem 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  flex: 1;
+}
+
+.sm-steps-intro {
+  font-size: 0.8rem;
+  color: #64748b;
+  line-height: 1.5;
+  padding-bottom: 0.25rem;
+}
+
+/* ─── Step card ──────────────────────────────────────────────────────────────*/
+.sm-step {
+  background: var(--step-bg);
+  border: 1px solid var(--step-border);
+  border-radius: 14px;
+  padding: 0.9rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.sm-step-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.sm-step-num {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  font-size: 0.72rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.sm-step-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.sm-step-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.12rem 0.38rem;
+  border-radius: 5px;
+  border: 1px solid;
+}
+
+.sm-step-badge .material-symbols-sharp { font-size: 0.7rem; }
+
+.sm-step-pct {
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.sm-step-title {
+  font-size: 0.83rem;
+  font-weight: 600;
+  color: #1e293b;
+  line-height: 1.4;
+}
+
+.sm-step-bank-logo {
+  width: auto;
+  max-width: 70px;
+  height: 30px;
+  object-fit: contain;
+}
+
+/* Code row */
+.sm-step-code-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.sm-step-code {
+  font-family: 'Courier New', monospace;
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: #4338ca;
+  background: #ede9fe;
+  border: 1px dashed #a78bfa;
+  border-radius: 6px;
+  padding: 0.25rem 0.6rem;
+  letter-spacing: 0.06em;
+}
+
+.sm-step-copy {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.25rem 0.6rem;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  cursor: pointer;
+}
+
+.sm-step-copy .material-symbols-sharp { font-size: 0.78rem; }
+
+/* Instructions list */
+.sm-step-list {
+  margin: 0;
+  padding-inline-start: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.sm-step-list li {
+  font-size: 0.8rem;
+  color: #334155;
+  line-height: 1.5;
+}
+
+/* Link button */
+.sm-step-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.77rem;
+  font-weight: 700;
+  color: #4338ca;
+  text-decoration: none;
+  background: #eef2ff;
+  border: 1px solid #e0e7ff;
+  border-radius: 8px;
+  padding: 0.35rem 0.75rem;
+  width: fit-content;
+  margin-top: 0.2rem;
+}
+
+.sm-step-link .material-symbols-sharp { font-size: 0.8rem; }
+
+/* ─── Footer ─────────────────────────────────────────────────────────────────*/
+.sm-footer {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4rem;
+  padding: 0.75rem 1.1rem;
+  border-top: 1px solid #f1f5f9;
+  font-size: 0.72rem;
+  color: #94a3b8;
+  line-height: 1.5;
+  flex-shrink: 0;
+  background: #fafafa;
+}
+
+.sm-footer-icon {
+  font-size: 0.85rem;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+/* ─── stack-cta button (lives in StackCta.jsx, styles here) ──────────────────*/
+.stack-cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  background: #0f172a;
+  color: #fff;
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 0.7rem 1rem;
+  border-radius: 12px;
+  text-decoration: none;
+  letter-spacing: 0.01em;
+  margin-top: auto;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  border: none;
+  cursor: pointer;
+  width: 100%;
+}
+
+.stack-cta .material-symbols-sharp {
+  font-size: 1rem;
+  font-variation-settings: 'FILL' 1;
+}
