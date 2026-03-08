@@ -16,16 +16,17 @@ export default async function OfferStacksSection({ locale, countryCode = 'SA' })
       countryCode,
       language: lang,
       limit:    8,
+      homepageOnly: true,
     });
   } catch (err) {
     // Silently skip — this section is non-critical
     console.error('[OfferStacksSection] build error:', err?.message);
     return null;
   }
-
+  
   if (!stacks.length) return null;
 
-  return (
+ return (
     <section className="offer-stacks-section home-section">
       <div className="offer-stacks-header section-header">
         <div className="offer-stacks-header-content header-content">
@@ -41,7 +42,7 @@ export default async function OfferStacksSection({ locale, countryCode = 'SA' })
         </div>
       </div>
 
-      <div className="offer-stacks-scroll">
+       <div className="offer-stacks-scroll">
         {stacks.map((stack) => (
           <OfferStackBox
             key={stack.storeId}
