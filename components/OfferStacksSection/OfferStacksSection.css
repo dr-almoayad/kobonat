@@ -1,9 +1,9 @@
 /* components/OfferStacksSection/OfferStacksSection.css */
 
 .offer-stacks-section {
-  max-width: 1280px;
+  max-width: 1312px;
   margin: 0 auto;
-  padding: 1rem 0;
+  padding: 1rem;
 }
 
 /* ── Section header ─────────────────────────────────────────────────────────── */
@@ -42,7 +42,7 @@
 /* ── Scroll container ────────────────────────────────────────────────────────── */
 .offer-stacks-scroll {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
   gap: 1.25rem;
   width: 100%;
 }
