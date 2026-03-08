@@ -1,5 +1,5 @@
 // components/OfferStackBox/OfferStackBox.jsx
-import Link from 'next/link';
+import StackCta from './StackCta';
 import './OfferStackBox.css';
 
 const TYPE_META = {
@@ -160,11 +160,7 @@ export default function OfferStackBox({ stack, locale }) {
       </div>
 
       {/* ── CTA ────────────────────────────────────────────────────────── */}
-      <Link href={storeHref} className="stack-cta">
-        <span className="material-symbols-sharp">bolt</span>
-        {isAr ? 'احصل على الخصم' : 'Stack & Save'}
-        <span className="material-symbols-sharp">{isAr ? 'chevron_left' : 'chevron_right'}</span>
-      </Link>
+      <StackCta stack={stack} locale={locale} />
 
     </div>
   );
