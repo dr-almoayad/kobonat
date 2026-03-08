@@ -2,6 +2,7 @@
 
 /* ─── Container ─────────────────────────────────────────────────────────────── */
 .stack-box {
+  position: relative;
   background: #fff;
   border: 1px solid #e2e8f0;
   border-radius: 20px;
@@ -29,13 +30,12 @@
 }
 
 .stack-store-logo {
-  width: 44px;
-  height: 44px;
+  width: auto;
+  max-width: 100px;
+  height: 52px;
   border-radius: 12px;
   object-fit: contain;
   flex-shrink: 0;
-  border: 1px solid #f1f5f9;
-  background: #fff;
   padding: 2px;
 }
 
@@ -84,7 +84,7 @@
 
   position: absolute;
   top: 0;
-  left: 0;
+  right: 0;
 
   font-size: 0.72rem;
   font-weight: 800;
@@ -96,15 +96,15 @@
 
   border-image: conic-gradient(#0008 0 0) 51% / var(--f);
   clip-path: polygon(
-    100% calc(100% - var(--f)), 100% 100%,
-    calc(100% - var(--f)) calc(100% - var(--f)),
+    0 calc(100% - var(--f)), 0 100%,
     var(--f) calc(100% - var(--f)),
-    0 100%, 0 calc(100% - var(--f)),
-    999px calc(100% - var(--f) - 999px),
-    calc(100% - 999px) calc(100% - var(--f) - 999px)
+    calc(100% - var(--f)) calc(100% - var(--f)),
+    100% 100%, 100% calc(100% - var(--f)),
+    calc(100% - 999px) calc(100% - var(--f) - 999px),
+    999px calc(100% - var(--f) - 999px)
   );
-  transform: translate(calc((cos(45deg) - 1) * 100%), -100%) rotate(-45deg);
-  transform-origin: 100% 100%;
+  transform: translate(calc((1 - cos(45deg)) * 100%), -100%) rotate(45deg);
+  transform-origin: 0% 100%;
   background-color: #F07818;
 
   pointer-events: none;
@@ -113,17 +113,17 @@
 
 /* RTL: mirror to top-right corner */
 .stack-ribbon--rtl {
-  left: auto;
-  right: 0;
-  transform: translate(calc((1 - cos(45deg)) * 100%), -100%) rotate(45deg);
-  transform-origin: 0% 100%;
+  right: auto;
+  left: 0;
+  transform: translate(calc((cos(45deg) - 1) * 100%), -100%) rotate(-45deg);
+  transform-origin: 100% 100%;
   clip-path: polygon(
-    0 calc(100% - var(--f)), 0 100%,
-    var(--f) calc(100% - var(--f)),
+    100% calc(100% - var(--f)), 100% 100%,
     calc(100% - var(--f)) calc(100% - var(--f)),
-    100% 100%, 100% calc(100% - var(--f)),
-    calc(100% - 999px) calc(100% - var(--f) - 999px),
-    999px calc(100% - var(--f) - 999px)
+    var(--f) calc(100% - var(--f)),
+    0 100%, 0 calc(100% - var(--f)),
+    999px calc(100% - var(--f) - 999px),
+    calc(100% - 999px) calc(100% - var(--f) - 999px)
   );
 }
 
