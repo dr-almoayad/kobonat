@@ -234,6 +234,7 @@ export default async function StorePage({ params }) {
         storeProducts,
         leaderboardSnapshots,
         relatedPostsRaw,
+        otherPromos,
       ] = await Promise.all([
 
         // 1. Vouchers
@@ -314,6 +315,18 @@ export default async function StorePage({ params }) {
 
         // 7. Blog posts related to this store (max 6 → 2 full groups in RelatedPostsSidebar)
         getStoreRelatedPosts(store.id, language, 6),
+
+        // 8. Other promos (bank/card offers) — fetched here so they're crawler-visible in structured data
+        prisma.otherPromo.findMany({
+          where: {
+            storeId:  store.id,
+            countryId: country.id,
+            isActive: true,
+            OR: [{ expiryDate: null }, { expiryDate: { gte: new Date() } }],
+          },
+          include: { translations: { where: { locale: language } } },
+          orderBy: { order: 'asc' },
+        }),
       ]);
 
       // ── Transform data ────────────────────────────────────────────────
@@ -322,6 +335,18 @@ export default async function StorePage({ params }) {
         title:       v.translations[0]?.title       || '',
         description: v.translations[0]?.description || null,
         store:       transformedStore,
+      }));
+
+      const transformedOtherPromos = otherPromos.map(p => ({
+        id:          p.id,
+        type:        p.type,
+        image:       p.image,
+        url:         p.url,
+        startDate:   p.startDate,
+        expiryDate:  p.expiryDate,
+        title:       p.translations[0]?.title       || '',
+        description: p.translations[0]?.description || null,
+        terms:       p.translations[0]?.terms       || null,
       }));
 
       const allPaymentMethods = paymentMethodsData.map(spm => ({
@@ -386,6 +411,8 @@ export default async function StorePage({ params }) {
           <StoreStructuredData
             store={transformedStore}
             vouchers={transformedVouchers}
+            otherPromos={transformedOtherPromos}
+            storeProducts={transformedProducts}
             locale={locale}
             country={country}
             breadcrumbs={breadcrumbs}
