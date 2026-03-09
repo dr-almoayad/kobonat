@@ -1,6 +1,6 @@
 /* components/CuratedOffersSection/CuratedOffersSection.css */
 
-/* ── Base Section (Mobile First) ── */
+/* ── Section ─────────────────────────────────────────────────────────────── */
 .co-section {
   background-color: transparent;
 }
@@ -11,14 +11,13 @@
   margin: 0 auto;
 }
 
-/* ── Header ── */
+/* ── Header ─────────────────────────────────────────────────────────────── */
 .co-header {
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  margin-bottom: 1rem;
+  margin-bottom: 1.25rem;
   align-items: flex-start;
-  z-index: 1;
 }
 
 .co-header-content {
@@ -63,42 +62,16 @@
   letter-spacing: 0.02em;
 }
 
-/* ── Grid Layout ── */
-.co-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1.5rem;
-}
-
-/* ── Responsive Enhancements ── */
-@media (min-width: 640px) {
-  .co-section {
-    padding: 4rem 1.5rem;
-  }
-  
-  .co-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
+/* ── Desktop header layout ── */
 @media (min-width: 1024px) {
   .co-header {
     flex-direction: row;
     justify-content: space-between;
     align-items: flex-end;
-    margin-bottom: 2.5rem;
+    margin-bottom: 1.75rem;
   }
 
   .co-title {
     font-size: 1.875rem;
-  }
-
-  .co-badge-count {
-    margin-bottom: 0.25rem; /* Optical alignment with text */
-  }
-
-  .co-grid {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 2rem;
   }
 }
