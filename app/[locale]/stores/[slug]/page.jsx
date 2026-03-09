@@ -234,7 +234,9 @@ export default async function StorePage({ params }) {
         storeProducts,
         leaderboardSnapshots,
         relatedPostsRaw,
-        otherPromos,
+        otherPromos,       // ← from Step 1
+        curatedOffers,     // ← new
+        offerStacks,       // ← new
       ] = await Promise.all([
 
         // 1. Vouchers
@@ -327,6 +329,33 @@ export default async function StorePage({ params }) {
           include: { translations: { where: { locale: language } } },
           orderBy: { order: 'asc' },
         }),
+
+         prisma.curatedOffer.findMany({
+          where: {
+            storeId:  store.id,
+            isActive: true,
+            countries: { some: { country: { code: countryCode } } },
+            OR: [{ expiryDate: null }, { expiryDate: { gte: new Date() } }],
+          },
+          include: { translations: { where: { locale: language } } },
+          orderBy: [{ isFeatured: 'desc' }, { order: 'asc' }],
+        }),
+      
+        // 10. Offer stacks — fetched server-side for HowTo structured data
+        prisma.offerStack.findMany({
+          where:   { storeId: store.id, isActive: true },
+          include: {
+            codeVoucher: { include: { translations: { where: { locale: language } } } },
+            dealVoucher: { include: { translations: { where: { locale: language } } } },
+            promo: {
+              include: {
+                translations: { where: { locale: language } },
+                bank: { include: { translations: { where: { locale: language } } } },
+              },
+            },
+          },
+          orderBy: { order: 'asc' },
+        }),
       ]);
 
       // ── Transform data ────────────────────────────────────────────────
@@ -347,6 +376,41 @@ export default async function StorePage({ params }) {
         title:       p.translations[0]?.title       || '',
         description: p.translations[0]?.description || null,
         terms:       p.translations[0]?.terms       || null,
+      }));
+
+      const transformedCuratedOffers = curatedOffers.map(o => ({
+        id:          o.id,
+        type:        o.type,
+        offerImage:  o.offerImage,
+        code:        o.code,
+        ctaUrl:      o.ctaUrl,
+        startDate:   o.startDate,
+        expiryDate:  o.expiryDate,
+        title:       o.translations[0]?.title       || '',
+        description: o.translations[0]?.description || null,
+        ctaText:     o.translations[0]?.ctaText     || null,
+      }));
+      
+      const transformedOfferStacks = offerStacks.map(s => ({
+        id:    s.id,
+        label: s.label,
+        codeVoucher: s.codeVoucher ? {
+          id:              s.codeVoucher.id,
+          code:            s.codeVoucher.code,
+          discountPercent: s.codeVoucher.verifiedAvgPercent ?? s.codeVoucher.discountPercent,
+          title:           s.codeVoucher.translations[0]?.title || s.codeVoucher.discount || '',
+        } : null,
+        dealVoucher: s.dealVoucher ? {
+          id:              s.dealVoucher.id,
+          discountPercent: s.dealVoucher.verifiedAvgPercent ?? s.dealVoucher.discountPercent,
+          title:           s.dealVoucher.translations[0]?.title || s.dealVoucher.discount || '',
+        } : null,
+        promo: s.promo ? {
+          id:              s.promo.id,
+          discountPercent: s.promo.verifiedAvgPercent ?? s.promo.discountPercent,
+          title:           s.promo.translations[0]?.title || s.promo.bank?.translations[0]?.name || '',
+          bankName:        s.promo.bank?.translations[0]?.name || null,
+        } : null,
       }));
 
       const allPaymentMethods = paymentMethodsData.map(spm => ({
@@ -413,6 +477,8 @@ export default async function StorePage({ params }) {
             vouchers={transformedVouchers}
             otherPromos={transformedOtherPromos}
             storeProducts={transformedProducts}
+            curatedOffers={transformedCuratedOffers}   // ← new
+            offerStacks={transformedOfferStacks}       // ← new
             locale={locale}
             country={country}
             breadcrumbs={breadcrumbs}
