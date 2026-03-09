@@ -124,8 +124,20 @@ const StoreHeader = ({
             </div>
             
             <div className="sh-identity-text">
-              <h1 className="sh-store-name">{storeName}</h1>
-              
+              <h1 className="sh-store-name">
+                {isArabic ? (
+                  <>
+                    <span className="sh-store-name-keyword">عروض واكواد خصم </span>
+                    {storeName}
+                  </>
+                ) : (
+                  <>
+                    {storeName}
+                    <span className="sh-store-name-keyword"> Coupons & Deals</span>
+                  </>
+                )}
+              </h1>
+                            
               {/* ✅ LAST UPDATED TAG */}
               {lastUpdated && (
                 <div className="sh-last-updated">
