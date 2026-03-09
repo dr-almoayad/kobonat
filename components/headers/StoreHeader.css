@@ -124,13 +124,6 @@
   text-overflow: ellipsis;
 }
 
-.sh-store-name-keyword {
-  font-size: 0.65em;
-  font-weight: 500;
-  color: rgba(255, 255, 255, 0.7);
-  letter-spacing: 0.01em;
-}
-
 .sh-meta-row {
   display: flex;
   gap: 12px;
