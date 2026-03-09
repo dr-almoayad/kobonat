@@ -7,10 +7,12 @@
  */
 
 export default function StoreStructuredData({ 
-  store,              // Store with translations
-  vouchers = [],      // Regular coupons/deals
-  otherPromos = [],   // Bank/payment/seasonal offers
-  storeProducts = [], // ✅ Featured products
+  store,
+  vouchers = [],
+  otherPromos = [],
+  storeProducts = [],
+  curatedOffers = [],   // ← new
+  offerStacks = [],     // ← new
   locale,
   country,
   breadcrumbs = [],
@@ -250,10 +252,10 @@ export default function StoreStructuredData({
     "@id": `${baseUrl}/${locale}/stores/${storeTranslation?.slug}`,
     "url": `${baseUrl}/${locale}/stores/${storeTranslation?.slug}`,
     // ✅ Use SEO title if available, otherwise generate
-    "name": seoTitle || `${storeName} ${language === 'ar' ? 'كوبونات وعروض' : 'Coupons & Deals'}`,
-    "headline": seoTitle || `${storeName} ${language === 'ar' ? 'كوبونات وعروض' : 'Coupons & Deals'}`,
+    "name": seoTitle || `${storeName} ${language === 'ar' ? 'عروض واكواد خصم' : 'Coupons & Deals'}`,
+    "headline": seoTitle || `${storeName} ${language === 'ar' ? 'عروض واكواد خصم' : 'Coupons & Deals'}`,
     // ✅ Use SEO description if available, otherwise use store description
-    "description": seoDescription || storeDescription || `${language === 'ar' ? 'احصل على أفضل كوبونات' : 'Get the best coupons for'} ${storeName}`,
+    "description": seoDescription || storeDescription || `${language === 'ar' ? 'احصل على أفضل العروض على ' : 'Get the best deals at '} ${storeName}`,
     "inLanguage": language,
     "isPartOf": {
       "@type": "WebSite",
@@ -300,21 +302,145 @@ export default function StoreStructuredData({
   // ============================================================================
   // 8. AggregateRating Schema (if available)
   // ============================================================================
-  const ratingSchema = aggregateRating ? {
+    const ratingSchema = aggregateRating ? {
+      "@context": "https://schema.org",
+      "@type": "AggregateRating",
+      "itemReviewed": {
+        "@type": "Organization",
+        "@id": `${baseUrl}/${locale}/stores/${storeTranslation?.slug}/#merchant`
+      },
+      "ratingValue": aggregateRating.ratingValue,
+      "reviewCount": aggregateRating.reviewCount,
+      "bestRating": "5",
+      "worstRating": "1"
+    } : null;
+
+  
+  // ============================================================================
+  // 9. CURATED OFFERS — ItemList of featured promotional banners
+  // ============================================================================
+    const curatedOffersSchema = curatedOffers.length > 0 ? {
     "@context": "https://schema.org",
-    "@type": "AggregateRating",
-    "itemReviewed": {
-      "@type": "Organization",
-      "@id": `${baseUrl}/${locale}/stores/${storeTranslation?.slug}/#merchant`
-    },
-    "ratingValue": aggregateRating.ratingValue,
-    "reviewCount": aggregateRating.reviewCount,
-    "bestRating": "5",
-    "worstRating": "1"
+    "@type": "ItemList",
+    "@id": `${baseUrl}/${locale}/stores/${storeTranslation?.slug}/#curated-offers`,
+    "name": language === 'ar'
+      ? `العروض المميزة من ${storeName}`
+      : `Featured Offers from ${storeName}`,
+    "description": language === 'ar'
+      ? `عروض مختارة بعناية من ${storeName}`
+      : `Hand-picked exclusive offers from ${storeName}`,
+    "itemListElement": curatedOffers.map((offer, index) => ({
+      "@type": "ListItem",
+      "position": index + 1,
+      "item": {
+        "@type": "Offer",
+        "@id": `${baseUrl}/${locale}/stores/${storeTranslation?.slug}#curated-${offer.id}`,
+        "name": offer.title,
+        "description": offer.description,
+        "image": offer.offerImage,
+        "url": offer.ctaUrl,
+        "availability": "https://schema.org/InStock",
+        "validFrom":   offer.startDate,
+        "validThrough": offer.expiryDate,
+        ...(offer.code && { "serialNumber": offer.code }),
+        "seller": {
+          "@type": "Organization",
+          "@id": `${baseUrl}/${locale}/stores/${storeTranslation?.slug}/#merchant`,
+          "name": storeName,
+        },
+        "offeredBy": {
+          "@type": "Organization",
+          "@id": `${baseUrl}/#organization`,
+          "name": "Cobonat",
+        },
+      },
+    })),
   } : null;
+  
+  // ============================================================================
+  // 10. OFFER STACKS — HowTo schema ("How to save X% at [Store]")
+  // This is one of the few schema types that can generate rich result cards.
+  // Each stack becomes a step-by-step saving guide.
+  // ============================================================================
+  const offerStacksSchema = offerStacks.length > 0 ? offerStacks.map(stack => {
+    const steps = [];
+  
+    if (stack.codeVoucher) {
+      steps.push({
+        "@type": "HowToStep",
+        "name": language === 'ar' ? 'تطبيق كود الخصم' : 'Apply the coupon code',
+        "text": stack.codeVoucher.code
+          ? (language === 'ar'
+              ? `أدخل كود الخصم ${stack.codeVoucher.code} عند الدفع${stack.codeVoucher.discountPercent ? ` للحصول على خصم ${stack.codeVoucher.discountPercent}%` : ''}`
+              : `Enter code ${stack.codeVoucher.code} at checkout${stack.codeVoucher.discountPercent ? ` to get ${stack.codeVoucher.discountPercent}% off` : ''}`)
+          : stack.codeVoucher.title,
+        "url": `${baseUrl}/${locale}/stores/${storeTranslation?.slug}#voucher-${stack.codeVoucher.id}`,
+      });
+    }
+  
+    if (stack.dealVoucher) {
+      steps.push({
+        "@type": "HowToStep",
+        "name": language === 'ar' ? 'احصل على العرض' : 'Get deal',
+        "text": stack.dealVoucher.title,
+        "url": `${baseUrl}/${locale}/stores/${storeTranslation?.slug}#voucher-${stack.dealVoucher.id}`,
+      });
+    }
+  
+    if (stack.promo) {
+      steps.push({
+        "@type": "HowToStep",
+        "name": language === 'ar' ? 'الدفع بالبطاقة المؤهلة' : 'Pay with the qualifying card',
+        "text": stack.promo.bankName
+          ? (language === 'ar'
+              ? `ادفع ببطاقة ${stack.promo.bankName}${stack.promo.discountPercent ? ` للحصول على استرداد نقدي إضافي ${stack.promo.discountPercent}%` : ''}`
+              : `Pay with ${stack.promo.bankName} card${stack.promo.discountPercent ? ` for an extra ${stack.promo.discountPercent}% cashback` : ''}`)
+          : stack.promo.title,
+        "url": `${baseUrl}/${locale}/stores/${storeTranslation?.slug}#promo-${stack.promo.id}`,
+      });
+    }
+  
+    if (steps.length < 2) return null;
+  
+    // Calculate combined savings % multiplicatively
+    const percents = [
+      stack.codeVoucher?.discountPercent,
+      stack.dealVoucher?.discountPercent,
+      stack.promo?.discountPercent,
+    ].filter(Boolean).map(p => p / 100);
+    const combinedPct = percents.length >= 2
+      ? Math.round((1 - percents.reduce((acc, p) => acc * (1 - p), 1)) * 100)
+      : null;
+  
+    return {
+      "@context": "https://schema.org",
+      "@type": "HowTo",
+      "@id": `${baseUrl}/${locale}/stores/${storeTranslation?.slug}/#stack-${stack.id}`,
+      "name": stack.label
+        ? (language === 'ar' ? `طريقة التوفير: ${stack.label}` : `Savings guide: ${stack.label}`)
+        : (language === 'ar'
+            ? `كيف توفر${combinedPct ? ` ${combinedPct}%` : ''} في ${storeName}`
+            : `How to save${combinedPct ? ` ${combinedPct}%` : ''} at ${storeName}`),
+      "description": language === 'ar'
+        ? `وفّر زيادة بتطبيق أكثر من عرض في نفس الوقت على ${storeName}`
+        : `Maximise your savings by stacking multiple offers at ${storeName}`,
+      "step": steps,
+      ...(combinedPct && {
+        "estimatedCost": {
+          "@type": "MonetaryAmount",
+          "currency": country?.currency || "SAR",
+          "value": "0",
+        },
+        "supply": [{
+          "@type": "HowToSupply",
+          "name": language === 'ar' ? `حساب في ${storeName}` : `${storeName} account`,
+        }],
+      }),
+    };
+  }).filter(Boolean) : null;
 
   // ============================================================================
-  // 9. LocalBusiness Schema (if store has physical presence)
+  // 11. LocalBusiness Schema (if store has physical presence)
   // ============================================================================
   const localBusinessSchema = store.hasPhysicalStore ? {
     "@context": "https://schema.org",
@@ -339,6 +465,8 @@ export default function StoreStructuredData({
     voucherListSchema,           // Regular vouchers/coupons
     otherPromosSchema,           // Bank/payment/seasonal offers
     storeProductsSchema,         // ✅ Featured products
+    curatedOffersSchema,                              // ← new
+    ...(offerStacksSchema ? offerStacksSchema : []),
     webPageSchema,               // Page metadata (links everything)
     ratingSchema,
     localBusinessSchema
