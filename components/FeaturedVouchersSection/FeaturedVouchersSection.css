@@ -1,0 +1,11 @@
+/* components/FeaturedVouchersSection/FeaturedVouchersSection.css */
+
+/*
+  Layout and header styles are inherited from .home-section and
+  .section-header in app/[locale]/page.css.
+  This file holds only section-specific overrides if needed in the future.
+*/
+
+.fvs-section .btn-view-all {
+  /* btn-view-all is defined globally in page.css */
+}
