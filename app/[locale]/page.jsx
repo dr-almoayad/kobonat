@@ -1,12 +1,9 @@
-// app/[locale]/page.js
+// app/[locale]/page.jsx
 import { prisma } from "@/lib/prisma";
 import { getTranslations } from 'next-intl/server';
-import Link from "next/link";
 import "./page.css";
 import { notFound } from "next/navigation";
 import { allLocaleCodes } from "@/i18n/locales";
-import VoucherCard from "@/components/VoucherCard/VoucherCard";
-import StoreCard from "@/components/StoreCard/StoreCard";
 import BrandsCarousel from "@/components/BrandsCarousel/BrandsCarousel";
 import CuratedOffersSection from '@/components/CuratedOffersSection/CuratedOffersSection';
 import HomeFeaturedProductsSection from '@/components/HomeFeaturedProducts/HomeFeaturedProductsSection';
@@ -14,6 +11,8 @@ import HomepageBlogSection from '@/components/blog/HomepageBlogSection';
 import HelpBox from "@/components/help/HelpBox";
 import HomepageHeroSection from '@/components/HomepageHeroSection/HomepageHeroSection';
 import OfferStacksSection from '@/components/OfferStacksSection/OfferStacksSection';
+import FeaturedVouchersSection from '@/components/FeaturedVouchersSection/FeaturedVouchersSection';
+import FeaturedStoresSection from '@/components/FeaturedStoresSection/FeaturedStoresSection';
 import { getCurrentWeekIdentifier } from '@/lib/leaderboard/calculateStoreSavings';
 
 // ✅ PERF FIX: Removed `import WebSiteStructuredData` — it was being rendered
@@ -70,90 +69,41 @@ export default async function Home({ params }) {
 
   if (!allLocaleCodes.includes(locale)) notFound();
 
-  const t = await getTranslations('HomePage');
   const [language, countryCode] = locale.split('-');
   const currentWeek = getCurrentWeekIdentifier();
 
-  // ── Data fetching ─────────────────────────────────────────────────────────
+  // ── Data fetching — only what the hero section needs ──────────────────────
+  // All other sections are self-fetching RSCs.
   const [
     featuredStoresWithCovers,
-    topVouchers,
-    featuredStores,
     allActiveBrands,
     leaderboardSnapshots,
   ] = await Promise.all([
 
-    // 1. Hero stores — max 5, full fields for the 3-panel hero section
+    // 1. Hero stores
     prisma.store.findMany({
       where: {
-        isActive:    true,
-        // isFeatured:  true,
+        isActive:   true,
         color:      { in: ['1', '2', '3', '4', '5'] },
-        coverImage:  { not: null },
-        countries:   { some: { country: { code: countryCode || 'SA' } } },
+        coverImage: { not: null },
+        countries:  { some: { country: { code: countryCode || 'SA' } } },
       },
       select: {
         id:         true,
         logo:       true,
-        bigLogo:    true,       // used in thumbnail cards + list thumb + lb
+        bigLogo:    true,
         coverImage: true,
-        color:      true,       // brand colour (future use for card bar tint)
+        color:      true,
         translations: {
-          where: { locale: language },
-          select: {
-            name:        true,
-            slug:        true,
-            showOffer:   true,
-            seoTitle:    true,  // shown in list panel (next to thumb) + info section
-            description: true,  // shown below cover in dark info section
-          },
+          where:  { locale: language },
+          select: { name: true, slug: true, showOffer: true, seoTitle: true, description: true },
         },
       },
       orderBy: { color: 'asc' },
-      take: 5,                  // MAX_THUMBNAILS = 5
+      take: 5,
     }),
 
-    // 2. Top Vouchers
-    prisma.voucher.findMany({
-      where: {
-        expiryDate: { gte: new Date() },
-        store:      { isActive: true },
-        countries:  { some: { country: { code: countryCode || 'SA' } } },
-      },
-      include: {
-        translations: {
-          where: { locale: language },
-          select: { title: true, description: true },
-        },
-        store: {
-          include: {
-            translations: {
-              where: { locale: language },
-              select: { name: true, slug: true },
-            },
-          },
-        },
-      },
-      orderBy: [{ isExclusive: 'desc' }, { popularityScore: 'desc' }],
-      take: 21,
-    }),
-
-    // 3. Featured Stores grid section (below the fold)
-    prisma.store.findMany({
-      where: { isActive: true, isFeatured: true },
-      include: {
-        translations: {
-          where: { locale: language },
-          select: { name: true, slug: true, showOffer: true },
-        },
-        _count: {
-          select: { vouchers: { where: { expiryDate: { gte: new Date() } } } },
-        },
-      },
-      take: 16,
-    }),
-
-    // 4. Brands Carousel
+    // 2. Brands Carousel
     prisma.store.findMany({
       where: {
         isActive:  true,
@@ -161,7 +111,7 @@ export default async function Home({ params }) {
       },
       include: {
         translations: {
-          where: { locale: language },
+          where:  { locale: language },
           select: { name: true, slug: true },
         },
         _count: {
@@ -172,11 +122,11 @@ export default async function Home({ params }) {
       take: 20,
     }),
 
-    // 5. Leaderboard — global top 10 for current ISO week
+    // 3. Leaderboard — global top 10 for current ISO week
     prisma.storeSavingsSnapshot.findMany({
-      where: { weekIdentifier: currentWeek, categoryId: null },
+      where:   { weekIdentifier: currentWeek, categoryId: null },
       orderBy: { rank: 'asc' },
-      take: 10,
+      take:    10,
       select: {
         id: true, rank: true, previousRank: true, movement: true,
         calculatedMaxSavingsPercent: true, savingsOverridePercent: true,
@@ -184,7 +134,7 @@ export default async function Home({ params }) {
           select: {
             id: true, logo: true, bigLogo: true,
             translations: {
-              where: { locale: language },
+              where:  { locale: language },
               select: { name: true, slug: true },
             },
           },
@@ -192,8 +142,6 @@ export default async function Home({ params }) {
       },
     }),
   ]);
-
-  // ── Data transformations ──────────────────────────────────────────────────
 
   const transformStore = (store) => {
     const t = store.translations?.[0] || {};
@@ -208,22 +156,7 @@ export default async function Home({ params }) {
     };
   };
 
-  const transformVoucher = (v) => {
-    const vt = v.translations?.[0]   || {};
-    const st = v.store?.translations?.[0] || {};
-    return {
-      ...v,
-      title:       vt.title       || 'Special Offer',
-      description: vt.description || null,
-      store: v.store ? { ...v.store, name: st.name || '', slug: st.slug || '', translations: undefined } : null,
-      translations: undefined,
-    };
-  };
-
   const transformedCarouselStores = featuredStoresWithCovers.map(transformStore);
-  const transformedFeaturedStores = featuredStores.map(transformStore);
-  const transformedTopVouchers    = topVouchers.map(transformVoucher);
-
   const transformedBrands = allActiveBrands.map(b => ({
     id:                  b.id,
     name:                b.translations?.[0]?.name || '',
@@ -236,7 +169,7 @@ export default async function Home({ params }) {
   return (
     <main className="homepage-wrapper">
 
-      {/* ── 3-Panel Hero: cover + card strip + list + leaderboard ── */}
+      {/* Hero */}
       {transformedCarouselStores.length > 0 && (
         <HomepageHeroSection
           stores={transformedCarouselStores}
@@ -253,55 +186,22 @@ export default async function Home({ params }) {
       {/* Curated Offers */}
       <CuratedOffersSection locale={locale} countryCode={countryCode || 'SA'} />
 
-      {/* ── Stackable Offers ── */}
+      {/* Stackable Offers */}
       <OfferStacksSection locale={locale} countryCode={countryCode || 'SA'} />
 
-      {/* Blog Section */}
+      {/* Blog */}
       <HomepageBlogSection locale={locale} count={3} />
 
       {/* Featured Products */}
       <HomeFeaturedProductsSection locale={locale} countryCode={countryCode || 'SA'} />
 
-      {/* Top Deals Grid */}
-      <section className="home-section">
-        <div className="section-header">
-          <div className="header-content">
-            <h2>
-              <span className="material-symbols-sharp">local_fire_department</span>
-              {t('topDealsTitle', { defaultMessage: 'Trending Deals' })}
-            </h2>
-            <p>{t('topDealsSubtitle', { defaultMessage: 'Verified codes saving you money today' })}</p>
-          </div>
-        </div>
-        <div className="vouchers-grid-home">
-          {transformedTopVouchers.map(v => <VoucherCard key={v.id} voucher={v} />)}
-        </div>
-        <Link href={`/${locale}/stores`} className="btn-view-all">
-          {t('viewAll', { defaultValue: 'View All' })}
-          <span className="material-symbols-sharp">arrow_forward</span>
-        </Link>
-      </section>
+      {/* Featured Vouchers */}
+      <FeaturedVouchersSection locale={locale} countryCode={countryCode || 'SA'} />
 
-      {/* Featured Stores Grid */}
-      <section className="home-section alt-bg">
-        <div className="section-header">
-          <div className="header-content">
-            <h2>
-              <span className="material-symbols-sharp">storefront</span>
-              {t('featuredStoresTitle', { defaultValue: 'Featured Stores' })}
-            </h2>
-          </div>
-        </div>
-        <div className="stores-grid-home">
-          {transformedFeaturedStores.map(s => <StoreCard key={s.id} store={s} />)}
-        </div>
-        <Link href={`/${locale}/stores`} className="btn-view-all">
-          {t('browseStores', { defaultValue: 'Browse Stores' })}
-          <span className="material-symbols-sharp">arrow_forward</span>
-        </Link>
-      </section>
+      {/* Featured Stores */}
+      <FeaturedStoresSection locale={locale} />
 
       <HelpBox locale={locale} />
     </main>
   );
-            }
+}
