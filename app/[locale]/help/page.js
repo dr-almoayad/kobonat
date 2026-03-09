@@ -9,6 +9,7 @@ export async function generateMetadata({ params }) {
   const isArabic = locale.startsWith("ar");
 
   return {
+    metadataBase: new URL(BASE_URL), 
     title: isArabic ? "مركز المساعدة - كوبونات" : "Help Center - Cobonat",
     description: isArabic
       ? "اعثر على إجابات لأسئلتك حول الكوبونات والعروض والمشاكل الشائعة."
