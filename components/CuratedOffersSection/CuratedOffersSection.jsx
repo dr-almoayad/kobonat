@@ -1,14 +1,15 @@
 // components/CuratedOffersSection/CuratedOffersSection.jsx
 import { prisma } from '@/lib/prisma';
 import CuratedOfferCard from '../CuratedOfferCard/CuratedOfferCard';
+import EmblaCarousel from '@/components/EmblaCarousel/EmblaCarousel';
 import './CuratedOffersSection.css';
 
 // ── Data fetcher ──────────────────────────────────────────────────────────────
 async function getCuratedOffers(locale, countryCode) {
-  const lang = locale.split('-')[0]; // 'ar' | 'en'
+  const lang = locale.split('-')[0];
   const now  = new Date();
 
-  const offers = await prisma.curatedOffer.findMany({
+  return prisma.curatedOffer.findMany({
     where: {
       isActive: true,
       OR: [
@@ -37,31 +38,24 @@ async function getCuratedOffers(locale, countryCode) {
       { order: 'asc' },
       { createdAt: 'desc' }
     ],
-    take: 3
+    take: 12,
   });
-
-  return offers;
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
-export default async function CuratedOffersSection({
-  locale,
-  countryCode,
-  title,
-  subtitle,
-}) {
+export default async function CuratedOffersSection({ locale, countryCode, title, subtitle }) {
   const lang   = locale.split('-')[0];
   const offers = await getCuratedOffers(locale, countryCode);
 
   if (!offers.length) return null;
 
-  const sectionTitle    = title    || (lang === 'ar' ? 'العروض المميزة' : 'Curated Offers');
+  const sectionTitle    = title    || (lang === 'ar' ? 'العروض المميزة'               : 'Curated Offers');
   const sectionSubtitle = subtitle || (lang === 'ar' ? 'أفضل الصفقات المختارة بعناية لك' : 'Hand-picked deals, just for you');
 
   return (
     <section className="co-section" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
       <div className="co-section-inner">
-        
+
         {/* ── Header ── */}
         <header className="co-header">
           <div className="co-header-content">
@@ -69,21 +63,19 @@ export default async function CuratedOffersSection({
               <span className="material-symbols-sharp co-title-icon" aria-hidden="true">verified</span>
               {sectionTitle}
             </h2>
-            {sectionSubtitle && (
-              <p className="co-subtitle">{sectionSubtitle}</p>
-            )}
+            {sectionSubtitle && <p className="co-subtitle">{sectionSubtitle}</p>}
           </div>
           <div className="co-badge-count">
             {offers.length} {lang === 'ar' ? 'عروض' : 'offers'}
           </div>
         </header>
 
-        {/* ── Grid ── */}
-        <div className="co-grid">
+        {/* ── Carousel (replaces co-grid) ── */}
+        <EmblaCarousel locale={locale} slideWidth="300px" slideGap="1.25rem">
           {offers.map((offer) => (
             <CuratedOfferCard key={offer.id} offer={offer} />
           ))}
-        </div>
+        </EmblaCarousel>
 
       </div>
     </section>
