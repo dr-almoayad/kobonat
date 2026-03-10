@@ -30,9 +30,9 @@
 
 /* ── Wrapper ─────────────────────────────────────────────────────────────── */
 .bp-main {
-  max-width: 1160px;
+  max-width: 1312px;
   margin: 0 auto;
-  padding: 1.5rem 1rem 4rem;
+  padding: 1.5rem 1rem 3rem;
   font-family: var(--bp-font-en);
   color: var(--bp-text-body);
 }
@@ -581,14 +581,13 @@
 
 @media (min-width: 1024px) {
   .bp-sidebar {
-    position: sticky;
     top: 1.5rem;
   }
 }
 
 .bp-sidebar-heading {
-  font-size: 0.68rem;
-  font-weight: 800;
+  font-size: 0.9rem;
+  font-weight: 600;
   color: var(--bp-text-muted);
   text-transform: uppercase;
   letter-spacing: 0.1em;
@@ -630,5 +629,5 @@
 }
 
 @media (min-width: 1024px) {
-  .bp-main { padding: 3rem 2rem 6rem; }
+  .bp-main { padding: 3rem 1rem; }
 }
