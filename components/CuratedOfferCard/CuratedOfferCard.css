@@ -21,12 +21,7 @@
   position: relative;
   transition: border-color var(--transition), box-shadow var(--transition);
   height: 100%; /* Ensures uniform grid height */
-}
-
-/* Subtle interaction state (No flashy scaling) */
-.card-wrapper:hover {
-  border-color: #d1d5db;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+  margin: 0 0.3rem;
 }
 
 .card-wrapper:focus-visible {
@@ -36,13 +31,22 @@
 
 /* ── Top: Media Area ── */
 .card-media {
-  position: relative;
-  width: 110%;
-  aspect-ratio: 2 / 1;
-  border-radius: 16px;
-  background-color: #faf9fa;
-  border: 1px solid var(--border-color);
-  overflow: visible;
+    position: relative;
+    width: 106%;
+    height: auto;
+    aspect-ratio: 2 / 1;
+    border-radius: 16px;
+    background-color: #faf9fa;
+    border: 1px solid var(--border-color);
+    overflow: hidden;
+    margin: auto -3%;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+
+}
+
+/* Subtle interaction state (No flashy scaling) */
+.card-wrapper:hover .card-media {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
 }
 
 .card-image {
