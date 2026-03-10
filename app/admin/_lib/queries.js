@@ -559,30 +559,35 @@ export async function getBlogPost(id, locale = 'en') {
 //   • category: removed select restriction so `color` field comes through on the category itself
 //   • orderBy: primary posts first, then by date descending (unchanged)
 
+// ── DROP-IN REPLACEMENT for getStoreRelatedPosts in app/admin/_lib/queries.js ──
+//
+// Two fixes vs the previous version:
+//   1. Removed `publishedAt: { lte: new Date() }` — posts with publishedAt: null
+//      were silently excluded even when status = PUBLISHED. Status check is enough.
+//   2. Category translations: removed `select: { name: true }` restriction so the
+//      `color` field is also returned (needed by RelatedPostsSidebar tag pills).
+
 export async function getStoreRelatedPosts(storeId, locale = 'en', limit = 6) {
   try {
     if (!prisma.blogPost) return [];
     return await prisma.blogPost.findMany({
       where: {
-        status:      'PUBLISHED',
-        publishedAt: { lte: new Date() },
+        status: 'PUBLISHED',          // ← no publishedAt filter here
         OR: [
           { primaryStoreId: parseInt(storeId) },
           { linkedStores:   { some: { storeId: parseInt(storeId) } } },
         ],
       },
       include: {
-        // Full translation row — title, excerpt, metaTitle, etc.
         translations: { where: { locale } },
-        // Category with color + translated name
         category: {
           include: {
-            translations: { where: { locale }, select: { name: true } },
+            // No `select` restriction — returns name AND color
+            translations: { where: { locale } },
           },
         },
       },
       orderBy: [
-        // Posts where this store is the primary cluster come first
         { primaryStoreId: 'asc' },
         { publishedAt:    'desc' },
       ],
@@ -593,7 +598,6 @@ export async function getStoreRelatedPosts(storeId, locale = 'en', limit = 6) {
     return [];
   }
 }
-
 
 export async function getBlogAuthors() {
   try {
