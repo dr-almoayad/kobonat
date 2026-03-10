@@ -16,7 +16,7 @@
   background-color: var(--bg-color);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
-  overflow: hidden;
+  overflow: visible;
   text-decoration: none;
   position: relative;
   transition: border-color var(--transition), box-shadow var(--transition);
@@ -37,11 +37,12 @@
 /* ── Top: Media Area ── */
 .card-media {
   position: relative;
-  width: 100%;
-  aspect-ratio: 16 / 9; /* Modern, cinematic aspect ratio */
-  background-color: #f9fafb;
-  border-bottom: 1px solid var(--border-color);
-  overflow: hidden;
+  width: 110%;
+  aspect-ratio: 2 / 1;
+  border-radius: 16px;
+  background-color: #faf9fa;
+  border: 1px solid var(--border-color);
+  overflow: visible;
 }
 
 .card-image {
@@ -104,11 +105,16 @@
 
 /* ── Bottom: Content Area ── */
 .card-content {
-  padding: 1.25rem;
-  display: flex;
-  flex-direction: column;
-  flex: 1; /* Pushes footer down if titles vary in length */
-  gap: 0.875rem;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    flex: 1 1;
+    gap: .5rem;
+    width: 100%;
+    background: #f9f8f9;
+    margin: -5px auto 0;
+    /* border: 1px solid var(--border-color); */
+    border-radius: 0 0 16px 16px;
 }
 
 /* Meta Row */
@@ -163,10 +169,10 @@
 /* Title */
 .card-title {
   margin: 0;
-  font-size: 1.0625rem;
+  font-size: 0.9rem;
   font-weight: 700;
   color: var(--text-main);
-  line-height: 1.4;
+  line-height: 1.2;
   font-family: var(--font-alexandria), sans-serif;
   
   /* Truncate at 2 lines strictly */
