@@ -1,11 +1,11 @@
 // app/admin/blog/[id]/page.jsx
-// Full blog post editor covering every BlogPost schema field.
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import styles from '../../admin.module.css';
+import RichTextEditor from '@/components/admin/RichTextEditor/RichTextEditor';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Constants from schema enums
@@ -61,30 +61,33 @@ function Section({ title, children, defaultOpen = true }) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Sections manager
+// Sections manager — uses RichTextEditor for section content fields
 // ─────────────────────────────────────────────────────────────────────────────
 function SectionsManager({ postId, initial = [] }) {
-  const [sections, setSections]   = useState(initial);
-  const [adding, setAdding]       = useState(false);
+  const [sections,   setSections]   = useState(initial);
+  const [adding,     setAdding]     = useState(false);
   const [newSection, setNewSection] = useState({ subtitleEn: '', subtitleAr: '', contentEn: '', contentAr: '', image: '' });
-  const [saving, setSaving]       = useState(false);
-  const [editingId, setEditingId] = useState(null);
-  const [editForm, setEditForm]   = useState({});
+  const [saving,     setSaving]     = useState(false);
+  const [editingId,  setEditingId]  = useState(null);
+  const [editForm,   setEditForm]   = useState({});
 
   async function handleAdd() {
     setSaving(true);
     try {
       const res = await fetch(`/api/admin/blog/${postId}/sections`, {
-        method: 'POST',
+        method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newSection),
+        body:    JSON.stringify(newSection),
       });
       const data = await res.json();
       if (data.id) {
-        setSections(prev => [...prev, { ...data, translations: [
-          { locale: 'en', subtitle: newSection.subtitleEn, content: newSection.contentEn },
-          { locale: 'ar', subtitle: newSection.subtitleAr, content: newSection.contentAr },
-        ]}]);
+        setSections(prev => [...prev, {
+          ...data,
+          translations: [
+            { locale: 'en', subtitle: newSection.subtitleEn, content: newSection.contentEn },
+            { locale: 'ar', subtitle: newSection.subtitleAr, content: newSection.contentAr },
+          ],
+        }]);
         setNewSection({ subtitleEn: '', subtitleAr: '', contentEn: '', contentAr: '', image: '' });
         setAdding(false);
       }
@@ -95,14 +98,18 @@ function SectionsManager({ postId, initial = [] }) {
     setSaving(true);
     try {
       await fetch(`/api/admin/blog/${postId}/sections/${sectionId}`, {
-        method: 'PATCH',
+        method:  'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(editForm),
+        body:    JSON.stringify(editForm),
       });
-      setSections(prev => prev.map(s => s.id === sectionId ? { ...s, image: editForm.image, translations: [
-        { locale: 'en', subtitle: editForm.subtitleEn, content: editForm.contentEn },
-        { locale: 'ar', subtitle: editForm.subtitleAr, content: editForm.contentAr },
-      ]} : s));
+      setSections(prev => prev.map(s => s.id === sectionId ? {
+        ...s,
+        image: editForm.image,
+        translations: [
+          { locale: 'en', subtitle: editForm.subtitleEn, content: editForm.contentEn },
+          { locale: 'ar', subtitle: editForm.subtitleAr, content: editForm.contentAr },
+        ],
+      } : s));
       setEditingId(null);
     } finally { setSaving(false); }
   }
@@ -116,20 +123,37 @@ function SectionsManager({ postId, initial = [] }) {
   return (
     <div>
       {sections.length === 0 && (
-        <p style={{ color: 'var(--admin-text-muted)', fontSize: '0.85rem', marginBottom: '1rem' }}>No sections yet. Sections are structured content blocks that appear below the main article body.</p>
+        <p style={{ color: 'var(--admin-text-muted)', fontSize: '0.85rem', marginBottom: '1rem' }}>
+          No sections yet. Sections are structured content blocks that appear below the main article body.
+        </p>
       )}
 
       {sections.map((sec, idx) => {
-        const tEn = sec.translations?.find(t => t.locale === 'en') || {};
-        const tAr = sec.translations?.find(t => t.locale === 'ar') || {};
+        const tEn      = sec.translations?.find(t => t.locale === 'en') || {};
+        const tAr      = sec.translations?.find(t => t.locale === 'ar') || {};
         const isEditing = editingId === sec.id;
 
         return (
           <div key={sec.id} className={styles.card} style={{ marginBottom: '0.75rem', padding: '1rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: isEditing ? '1rem' : 0 }}>
-              <span style={{ fontWeight: 600, fontSize: '0.85rem' }}>Section {idx + 1} {tEn.subtitle ? `— ${tEn.subtitle}` : ''}</span>
+              <span style={{ fontWeight: 600, fontSize: '0.85rem' }}>
+                Section {idx + 1} {tEn.subtitle ? `— ${tEn.subtitle}` : ''}
+              </span>
               <div style={{ display: 'flex', gap: '0.5rem' }}>
-                <button type="button" className={styles.btnEdit} onClick={() => { setEditingId(isEditing ? null : sec.id); setEditForm({ subtitleEn: tEn.subtitle || '', subtitleAr: tAr.subtitle || '', contentEn: tEn.content || '', contentAr: tAr.content || '', image: sec.image || '' }); }}>
+                <button
+                  type="button"
+                  className={styles.btnEdit}
+                  onClick={() => {
+                    setEditingId(isEditing ? null : sec.id);
+                    setEditForm({
+                      subtitleEn: tEn.subtitle || '',
+                      subtitleAr: tAr.subtitle || '',
+                      contentEn:  tEn.content  || '',
+                      contentAr:  tAr.content  || '',
+                      image:      sec.image    || '',
+                    });
+                  }}
+                >
                   {isEditing ? 'Cancel' : 'Edit'}
                 </button>
                 <button type="button" className={styles.btnDelete} onClick={() => handleDelete(sec.id)}>Delete</button>
@@ -146,15 +170,29 @@ function SectionsManager({ postId, initial = [] }) {
                     <input className={styles.formInput} dir="rtl" value={editForm.subtitleAr || ''} onChange={e => setEditForm(f => ({ ...f, subtitleAr: e.target.value }))} />
                   </Field>
                 </div>
-                <Field label="Content (EN) — HTML">
-                  <textarea className={styles.formTextarea} rows={6} value={editForm.contentEn || ''} onChange={e => setEditForm(f => ({ ...f, contentEn: e.target.value }))} />
+
+                <Field label="Content (EN)">
+                  <RichTextEditor
+                    value={editForm.contentEn || ''}
+                    onChange={v => setEditForm(f => ({ ...f, contentEn: v }))}
+                    dir="ltr"
+                    minHeight="200px"
+                  />
                 </Field>
-                <Field label="Content (AR) — HTML">
-                  <textarea className={styles.formTextarea} rows={6} dir="rtl" value={editForm.contentAr || ''} onChange={e => setEditForm(f => ({ ...f, contentAr: e.target.value }))} />
+
+                <Field label="Content (AR)">
+                  <RichTextEditor
+                    value={editForm.contentAr || ''}
+                    onChange={v => setEditForm(f => ({ ...f, contentAr: v }))}
+                    dir="rtl"
+                    minHeight="200px"
+                  />
                 </Field>
+
                 <Field label="Section image URL">
                   <input className={styles.formInput} value={editForm.image || ''} onChange={e => setEditForm(f => ({ ...f, image: e.target.value }))} placeholder="https://..." />
                 </Field>
+
                 <div style={{ marginTop: '0.75rem' }}>
                   <button type="button" className={styles.btnPrimary} disabled={saving} onClick={() => handleUpdate(sec.id)}>
                     {saving ? 'Saving…' : 'Save Section'}
@@ -169,6 +207,7 @@ function SectionsManager({ postId, initial = [] }) {
       {adding ? (
         <div className={styles.card} style={{ marginBottom: '0.75rem', padding: '1rem', borderColor: 'var(--admin-primary)' }}>
           <h4 style={{ margin: '0 0 0.75rem', fontSize: '0.9rem' }}>New Section</h4>
+
           <div className={styles.formRow}>
             <Field label="Subtitle (EN)">
               <input className={styles.formInput} value={newSection.subtitleEn} onChange={e => setNewSection(f => ({ ...f, subtitleEn: e.target.value }))} />
@@ -177,15 +216,29 @@ function SectionsManager({ postId, initial = [] }) {
               <input className={styles.formInput} dir="rtl" value={newSection.subtitleAr} onChange={e => setNewSection(f => ({ ...f, subtitleAr: e.target.value }))} />
             </Field>
           </div>
+
           <Field label="Content (EN)">
-            <textarea className={styles.formTextarea} rows={5} value={newSection.contentEn} onChange={e => setNewSection(f => ({ ...f, contentEn: e.target.value }))} />
+            <RichTextEditor
+              value={newSection.contentEn}
+              onChange={v => setNewSection(f => ({ ...f, contentEn: v }))}
+              dir="ltr"
+              minHeight="200px"
+            />
           </Field>
+
           <Field label="Content (AR)">
-            <textarea className={styles.formTextarea} rows={5} dir="rtl" value={newSection.contentAr} onChange={e => setNewSection(f => ({ ...f, contentAr: e.target.value }))} />
+            <RichTextEditor
+              value={newSection.contentAr}
+              onChange={v => setNewSection(f => ({ ...f, contentAr: v }))}
+              dir="rtl"
+              minHeight="200px"
+            />
           </Field>
+
           <Field label="Image URL">
             <input className={styles.formInput} value={newSection.image} onChange={e => setNewSection(f => ({ ...f, image: e.target.value }))} placeholder="https://..." />
           </Field>
+
           <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.75rem' }}>
             <button type="button" className={styles.btnPrimary} disabled={saving} onClick={handleAdd}>{saving ? 'Adding…' : 'Add Section'}</button>
             <button type="button" className={styles.btnSecondary} onClick={() => setAdding(false)}>Cancel</button>
@@ -201,10 +254,10 @@ function SectionsManager({ postId, initial = [] }) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Store multi-select (for linkedStores)
+// Store multi-select
 // ─────────────────────────────────────────────────────────────────────────────
 function StoreSelector({ label, selected, onChange }) {
-  const [query, setQuery]   = useState('');
+  const [query,   setQuery]   = useState('');
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -227,10 +280,8 @@ function StoreSelector({ label, selected, onChange }) {
     if (selected.find(s => s.id === store.id)) return;
     const name = store.translations?.find(t => t.locale === 'en')?.name || `Store #${store.id}`;
     onChange([...selected, { id: store.id, name }]);
-    setQuery('');
-    setResults([]);
+    setQuery(''); setResults([]);
   }
-
   function remove(id) { onChange(selected.filter(s => s.id !== id)); }
 
   return (
@@ -262,10 +313,10 @@ function StoreSelector({ label, selected, onChange }) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Post multi-select (for relatedPosts)
+// Post multi-select
 // ─────────────────────────────────────────────────────────────────────────────
 function PostSelector({ label, selected, onChange, excludeId }) {
-  const [query, setQuery]   = useState('');
+  const [query,   setQuery]   = useState('');
   const [results, setResults] = useState([]);
 
   useEffect(() => {
@@ -291,10 +342,8 @@ function PostSelector({ label, selected, onChange, excludeId }) {
   function add(post) {
     const title = post.translations?.[0]?.title || post.slug;
     onChange([...selected, { id: post.id, title }]);
-    setQuery('');
-    setResults([]);
+    setQuery(''); setResults([]);
   }
-
   function remove(id) { onChange(selected.filter(s => s.id !== id)); }
 
   return (
@@ -336,9 +385,8 @@ function FaqEditor({ value, onChange }) {
     setItems(newItems);
     onChange(newItems.length ? JSON.stringify(newItems) : '');
   }
-
-  function add()         { sync([...items, { q: '', a: '' }]); }
-  function remove(i)     { sync(items.filter((_, idx) => idx !== i)); }
+  function add()           { sync([...items, { q: '', a: '' }]); }
+  function remove(i)       { sync(items.filter((_, idx) => idx !== i)); }
   function update(i, k, v) { const next = items.map((it, idx) => idx === i ? { ...it, [k]: v } : it); sync(next); }
 
   return (
@@ -367,18 +415,17 @@ function FaqEditor({ value, onChange }) {
 // Main editor page
 // ─────────────────────────────────────────────────────────────────────────────
 export default function EditBlogPostPage() {
-  const { id }   = useParams();
-  const router   = useRouter();
+  const { id } = useParams();
+  const router = useRouter();
 
-  const [post, setPost]           = useState(null);
-  const [authors, setAuthors]     = useState([]);
+  const [post,       setPost]       = useState(null);
+  const [authors,    setAuthors]    = useState([]);
   const [categories, setCategories] = useState([]);
-  const [tags, setTags]           = useState([]);
-  const [loading, setLoading]     = useState(true);
-  const [saving, setSaving]       = useState(false);
-  const [alert, setAlert]         = useState(null);
+  const [tags,       setTags]       = useState([]);
+  const [loading,    setLoading]    = useState(true);
+  const [saving,     setSaving]     = useState(false);
+  const [alert,      setAlert]      = useState(null);
 
-  // Form state — all schema fields
   const [form, setForm] = useState({
     slug: '', featuredImage: '', isFeatured: false,
     status: 'DRAFT', publishedAt: '',
@@ -388,19 +435,18 @@ export default function EditBlogPostPage() {
     title_en: '', excerpt_en: '', content_en: '', metaTitle_en: '', metaDescription_en: '',
     title_ar: '', excerpt_ar: '', content_ar: '', metaTitle_ar: '', metaDescription_ar: '',
   });
-  const [activeTags, setActiveTags]           = useState(new Set());
-  const [linkedStores, setLinkedStores]       = useState([]);
-  const [relatedPosts, setRelatedPosts]       = useState([]);
-  const [primaryStoreName, setPrimaryStoreName] = useState('');
+
+  const [activeTags,        setActiveTags]        = useState(new Set());
+  const [linkedStores,      setLinkedStores]      = useState([]);
+  const [relatedPosts,      setRelatedPosts]      = useState([]);
+  const [primaryStoreName,  setPrimaryStoreName]  = useState('');
 
   function flash(type, msg) {
     setAlert({ type, msg });
     setTimeout(() => setAlert(null), 4000);
   }
-
   function set(k, v) { setForm(f => ({ ...f, [k]: v })); }
 
-  // ── Load post + metadata ─────────────────────────────────────────────────
   useEffect(() => {
     async function load() {
       try {
@@ -418,16 +464,16 @@ export default function EditBlogPostPage() {
         const tAr = p.translations?.find(t => t.locale === 'ar') || {};
 
         setForm({
-          slug:           p.slug || '',
-          featuredImage:  p.featuredImage || '',
-          isFeatured:     p.isFeatured || false,
-          status:         p.status || 'DRAFT',
-          publishedAt:    p.publishedAt ? new Date(p.publishedAt).toISOString().slice(0, 16) : '',
-          contentType:    p.contentType  || 'GUIDE',
-          searchIntent:   p.searchIntent || 'INFORMATIONAL',
-          faqJson:        p.faqJson || '',
-          authorId:       p.authorId   ? String(p.authorId)   : '',
-          categoryId:     p.categoryId  ? String(p.categoryId) : '',
+          slug:           p.slug           || '',
+          featuredImage:  p.featuredImage  || '',
+          isFeatured:     p.isFeatured     || false,
+          status:         p.status         || 'DRAFT',
+          publishedAt:    p.publishedAt    ? new Date(p.publishedAt).toISOString().slice(0, 16) : '',
+          contentType:    p.contentType    || 'GUIDE',
+          searchIntent:   p.searchIntent   || 'INFORMATIONAL',
+          faqJson:        p.faqJson        || '',
+          authorId:       p.authorId       ? String(p.authorId)       : '',
+          categoryId:     p.categoryId     ? String(p.categoryId)     : '',
           primaryStoreId: p.primaryStoreId ? String(p.primaryStoreId) : '',
           title_en:           tEn.title           || '',
           excerpt_en:         tEn.excerpt         || '',
@@ -442,27 +488,20 @@ export default function EditBlogPostPage() {
         });
 
         setActiveTags(new Set(p.tags?.map(pt => pt.tag.slug) || []));
-
         setLinkedStores(p.linkedStores?.map(ls => ({
-          id: ls.store.id,
+          id:   ls.store.id,
           name: ls.store.translations?.[0]?.name || `Store #${ls.store.id}`,
         })) || []);
-
         setRelatedPosts(p.relatedPosts?.map(rp => ({
-          id: rp.relatedPost.id,
+          id:    rp.relatedPost.id,
           title: rp.relatedPost.translations?.[0]?.title || rp.relatedPost.slug || `Post #${rp.relatedPost.id}`,
         })) || []);
-
-        if (p.primaryStore) {
-          setPrimaryStoreName(p.primaryStore.translations?.[0]?.name || `Store #${p.primaryStoreId}`);
-        }
+        if (p.primaryStore) setPrimaryStoreName(p.primaryStore.translations?.[0]?.name || `Store #${p.primaryStoreId}`);
 
         const authorsData = await authorsRes.json();
         setAuthors(Array.isArray(authorsData) ? authorsData : []);
-
         const catsData = await catsRes.json();
         setCategories(Array.isArray(catsData) ? catsData : []);
-
         const tagsData = await tagsRes.json();
         setTags(Array.isArray(tagsData) ? tagsData : []);
       } catch (e) {
@@ -474,7 +513,6 @@ export default function EditBlogPostPage() {
     load();
   }, [id]);
 
-  // ── Save ─────────────────────────────────────────────────────────────────
   async function handleSave() {
     setSaving(true);
     try {
@@ -487,23 +525,19 @@ export default function EditBlogPostPage() {
         contentType:   form.contentType,
         searchIntent:  form.searchIntent,
         faqJson:       form.faqJson || null,
-        authorId:      form.authorId      ? parseInt(form.authorId)      : null,
-        categoryId:    form.categoryId    ? parseInt(form.categoryId)    : null,
+        authorId:       form.authorId       ? parseInt(form.authorId)       : null,
+        categoryId:     form.categoryId     ? parseInt(form.categoryId)     : null,
         primaryStoreId: form.primaryStoreId ? parseInt(form.primaryStoreId) : null,
         translations: {
           en: { title: form.title_en, excerpt: form.excerpt_en, content: form.content_en, metaTitle: form.metaTitle_en || null, metaDescription: form.metaDescription_en || null },
           ar: { title: form.title_ar, excerpt: form.excerpt_ar, content: form.content_ar, metaTitle: form.metaTitle_ar || null, metaDescription: form.metaDescription_ar || null },
         },
-        tagIds:          tags.filter(t => activeTags.has(t.slug)).map(t => t.id),
-        linkedStoreIds:  linkedStores.map(s => s.id),
-        relatedPostIds:  relatedPosts.map(p => p.id),
+        tagIds:         tags.filter(t => activeTags.has(t.slug)).map(t => t.id),
+        linkedStoreIds: linkedStores.map(s => s.id),
+        relatedPostIds: relatedPosts.map(p => p.id),
       };
 
-      const res = await fetch(`/api/admin/blog/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      });
+      const res  = await fetch(`/api/admin/blog/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Save failed');
       flash('success', 'Post saved successfully.');
@@ -520,7 +554,6 @@ export default function EditBlogPostPage() {
     router.push('/admin/blog');
   }
 
-  // ── Tag toggle ────────────────────────────────────────────────────────────
   function toggleTag(slug) {
     setActiveTags(prev => {
       const next = new Set(prev);
@@ -532,11 +565,9 @@ export default function EditBlogPostPage() {
   if (loading) return <div className={styles.page}><div className={styles.loading}>Loading post…</div></div>;
   if (!post)   return <div className={styles.page}><div className={styles.errorCard}>Post not found</div></div>;
 
-  const tEn = post.translations?.find(t => t.locale === 'en') || {};
-
   return (
     <div className={styles.page}>
-      {/* ── Header ─────────────────────────────────────────────────────── */}
+      {/* ── Header ── */}
       <div className={styles.pageHeader}>
         <div>
           <h1 style={{ margin: 0, fontSize: '1.1rem' }}>Edit Post #{post.id}</h1>
@@ -554,17 +585,17 @@ export default function EditBlogPostPage() {
         </div>
       </div>
 
-      {/* ── Alert ─────────────────────────────────────────────────────── */}
+      {/* ── Alert ── */}
       {alert && (
         <div className={alert.type === 'success' ? styles.alertSuccess : styles.errorMessage} style={{ marginBottom: '1rem' }}>
           {alert.msg}
         </div>
       )}
 
-      {/* ── Two-column layout ──────────────────────────────────────────── */}
+      {/* ── Two-column layout ── */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: '1.5rem', alignItems: 'start' }}>
 
-        {/* ── LEFT COLUMN ──────────────────────────────────────────────── */}
+        {/* ── LEFT COLUMN ── */}
         <div>
 
           {/* English Content */}
@@ -575,8 +606,14 @@ export default function EditBlogPostPage() {
             <Field label="Excerpt (EN) *" hint="Shown on listing cards and meta description fallback.">
               <textarea className={styles.formTextarea} rows={3} value={form.excerpt_en} onChange={e => set('excerpt_en', e.target.value)} />
             </Field>
-            <Field label="Content (EN) — HTML">
-              <textarea className={styles.formTextarea} rows={20} value={form.content_en} onChange={e => set('content_en', e.target.value)} />
+            <Field label="Content (EN)">
+              <RichTextEditor
+                value={form.content_en}
+                onChange={v => set('content_en', v)}
+                dir="ltr"
+                placeholder="Write your English content here…"
+                minHeight="400px"
+              />
             </Field>
             <div className={styles.formRow}>
               <Field label="Meta Title (EN)">
@@ -596,8 +633,14 @@ export default function EditBlogPostPage() {
             <Field label="الملخص (AR) *">
               <textarea className={styles.formTextarea} rows={3} dir="rtl" value={form.excerpt_ar} onChange={e => set('excerpt_ar', e.target.value)} />
             </Field>
-            <Field label="المحتوى (AR) — HTML">
-              <textarea className={styles.formTextarea} rows={20} dir="rtl" value={form.content_ar} onChange={e => set('content_ar', e.target.value)} />
+            <Field label="المحتوى (AR)">
+              <RichTextEditor
+                value={form.content_ar}
+                onChange={v => set('content_ar', v)}
+                dir="rtl"
+                placeholder="اكتب محتواك باللغة العربية هنا…"
+                minHeight="400px"
+              />
             </Field>
             <div className={styles.formRow}>
               <Field label="عنوان SEO (AR)">
@@ -611,7 +654,9 @@ export default function EditBlogPostPage() {
 
           {/* Structured Sections */}
           <Section title="Content Sections" defaultOpen={false}>
-            <p className={styles.helpText} style={{ marginBottom: '0.75rem' }}>Sections are additional structured content blocks rendered below the main article body. Each has its own subtitle, body HTML, and optional image.</p>
+            <p className={styles.helpText} style={{ marginBottom: '0.75rem' }}>
+              Sections are additional structured content blocks rendered below the main article body. Each has its own subtitle, body, and optional image.
+            </p>
             <SectionsManager postId={id} initial={post.sections || []} />
           </Section>
 
@@ -640,10 +685,9 @@ export default function EditBlogPostPage() {
 
         </div>
 
-        {/* ── RIGHT SIDEBAR ─────────────────────────────────────────────── */}
+        {/* ── RIGHT SIDEBAR ── */}
         <div>
 
-          {/* Publish settings */}
           <div className={styles.formSection} style={{ marginBottom: '1rem' }}>
             <h3 className={styles.formSectionTitle}>Publish</h3>
             <Field label="Status">
@@ -663,7 +707,6 @@ export default function EditBlogPostPage() {
             </button>
           </div>
 
-          {/* Basics */}
           <div className={styles.formSection} style={{ marginBottom: '1rem' }}>
             <h3 className={styles.formSectionTitle}>Basics</h3>
             <Field label="Slug" hint="URL path — must be unique.">
@@ -677,7 +720,6 @@ export default function EditBlogPostPage() {
             )}
           </div>
 
-          {/* SEO Strategy */}
           <div className={styles.formSection} style={{ marginBottom: '1rem' }}>
             <h3 className={styles.formSectionTitle}>SEO Strategy</h3>
             <Field label="Content Type" hint="Affects internal linking and category display.">
@@ -692,7 +734,6 @@ export default function EditBlogPostPage() {
             </Field>
           </div>
 
-          {/* Taxonomy */}
           <div className={styles.formSection} style={{ marginBottom: '1rem' }}>
             <h3 className={styles.formSectionTitle}>Taxonomy</h3>
             <Field label="Author">
@@ -719,9 +760,9 @@ export default function EditBlogPostPage() {
                       style={{
                         padding: '0.2rem 0.6rem', borderRadius: '999px', fontSize: '0.75rem',
                         border: '1px solid', cursor: 'pointer',
-                        background: active ? 'var(--admin-primary)' : 'transparent',
-                        color: active ? '#fff' : 'var(--admin-text-light)',
-                        borderColor: active ? 'var(--admin-primary)' : 'var(--admin-border)',
+                        background:   active ? 'var(--admin-primary)' : 'transparent',
+                        color:        active ? '#fff' : 'var(--admin-text-light)',
+                        borderColor:  active ? 'var(--admin-primary)' : 'var(--admin-border)',
                       }}
                     >
                       {t.translations?.[0]?.name || t.slug}
@@ -732,17 +773,10 @@ export default function EditBlogPostPage() {
             </Field>
           </div>
 
-          {/* Merchant Cluster */}
           <div className={styles.formSection} style={{ marginBottom: '1rem' }}>
             <h3 className={styles.formSectionTitle}>Merchant Cluster</h3>
-            <Field label="Primary Store ID" hint="This post's main store. Used for store-page article listings and content clustering. Enter store ID.">
-              <input
-                type="number"
-                className={styles.formInput}
-                value={form.primaryStoreId}
-                onChange={e => set('primaryStoreId', e.target.value)}
-                placeholder="e.g. 42"
-              />
+            <Field label="Primary Store ID" hint="This post's main store. Used for store-page article listings and content clustering.">
+              <input type="number" className={styles.formInput} value={form.primaryStoreId} onChange={e => set('primaryStoreId', e.target.value)} placeholder="e.g. 42" />
               {primaryStoreName && <p className={styles.helpText}>Currently: {primaryStoreName}</p>}
             </Field>
           </div>
