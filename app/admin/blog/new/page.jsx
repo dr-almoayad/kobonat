@@ -1,11 +1,12 @@
-// app/admin/blog/new/page.jsx  (also used as the shape for [id]/page.jsx)
+// app/admin/blog/new/page.jsx
 import { redirect } from 'next/navigation';
 import { getBlogAuthors, getBlogCategories, getBlogTags } from '@/app/admin/_lib/queries';
 import { createBlogPost } from '@/app/admin/_lib/blog-actions';
 import { FormField, FormRow, FormSection } from '@/app/admin/_components/FormField';
+import NewPostContentFields from '@/components/admin/RichTextEditor/NewPostContentFields';
 import styles from '../../admin.module.css';
 
-// ── Slug auto-generator (client utility injected inline) ───────────────────
+// ── Slug auto-generator ───────────────────────────────────────────────────────
 const slugScript = `
   function slugify(text) {
     return text.toLowerCase().trim()
@@ -30,7 +31,7 @@ export default async function NewBlogPostPage({ searchParams }) {
   const [authors, categories, tags] = await Promise.all([
     getBlogAuthors(),
     getBlogCategories('en'),
-    getBlogTags('en')
+    getBlogTags('en'),
   ]);
 
   async function handleCreate(formData) {
@@ -45,22 +46,23 @@ export default async function NewBlogPostPage({ searchParams }) {
 
   const authorOptions = [
     { value: '', label: '— No Author —' },
-    ...authors.map(a => ({ value: a.id, label: a.name }))
+    ...authors.map(a => ({ value: a.id, label: a.name })),
   ];
 
   const categoryOptions = [
     { value: '', label: '— No Category —' },
-    ...categories.map(c => ({ value: c.id, label: c.translations?.[0]?.name || c.slug }))
+    ...categories.map(c => ({ value: c.id, label: c.translations?.[0]?.name || c.slug })),
   ];
 
   const statusOptions = [
     { value: 'DRAFT',     label: 'Draft' },
     { value: 'PUBLISHED', label: 'Published' },
-    { value: 'ARCHIVED',  label: 'Archived' }
+    { value: 'ARCHIVED',  label: 'Archived' },
   ];
 
   return (
     <div className={styles.page}>
+
       {/* ── Header ── */}
       <div className={styles.pageHeader}>
         <h1>New Blog Post</h1>
@@ -71,10 +73,10 @@ export default async function NewBlogPostPage({ searchParams }) {
         <div style={{
           marginBottom: 20, padding: '12px 16px', borderRadius: 8,
           background: '#fef2f2', border: '1px solid #fecaca', color: '#dc2626',
-          fontSize: 14, display: 'flex', gap: 8, alignItems: 'center'
+          fontSize: 14, display: 'flex', gap: 8, alignItems: 'center',
         }}>
           <span>⚠️</span>
-          <span>Post could not be created. Check that the <strong>slug</strong> is unique and all required fields are filled in. Check Vercel logs for the exact error.</span>
+          <span>Post could not be created. Check that the <strong>slug</strong> is unique and all required fields are filled in.</span>
         </div>
       )}
 
@@ -83,14 +85,15 @@ export default async function NewBlogPostPage({ searchParams }) {
 
           {/* ── LEFT: Main content ── */}
           <div>
-            {/* English content */}
+
+            {/* ── English content ── */}
             <FormSection title="English Content">
               <FormField
                 label="Title (EN)"
                 name="title_en"
+                id="title_en"
                 required
                 placeholder="Best Noon Coupons for 2025"
-                id="title_en"
               />
               <FormField
                 label="Excerpt (EN)"
@@ -100,13 +103,18 @@ export default async function NewBlogPostPage({ searchParams }) {
                 required
                 placeholder="Short summary shown in cards and search results (1–2 sentences)"
               />
-              <FormField
-                label="Content (EN)"
-                name="content_en"
-                type="textarea"
-                rows={18}
-                placeholder="Full HTML content. Use your rich text editor output here."
-              />
+
+              {/*
+                ── Rich text content fields ──────────────────────────────────
+                NewPostContentFields is a 'use client' component.
+                Each RichTextEditor inside it renders:
+                  <div contenteditable …>   ← what the user types in
+                  <input type="hidden" name="content_en|content_ar" …>  ← what the form submits
+                So the server action receives the HTML string exactly like
+                a regular textarea would.
+              */}
+              <NewPostContentFields />
+
               <FormRow>
                 <FormField
                   label="Meta Title (EN)"
@@ -121,7 +129,7 @@ export default async function NewBlogPostPage({ searchParams }) {
               </FormRow>
             </FormSection>
 
-            {/* Arabic content */}
+            {/* ── Arabic content ── */}
             <FormSection title="Arabic Content (المحتوى بالعربية)">
               <FormField
                 label="العنوان (AR)"
@@ -137,14 +145,12 @@ export default async function NewBlogPostPage({ searchParams }) {
                 dir="rtl"
                 placeholder="ملخص قصير يظهر في البطاقات ونتائج البحث"
               />
-              <FormField
-                label="المحتوى (AR)"
-                name="content_ar"
-                type="textarea"
-                rows={18}
-                dir="rtl"
-                placeholder="المحتوى الكامل بصيغة HTML"
-              />
+              {/*
+                NOTE: The Arabic content RTE is already rendered by
+                NewPostContentFields above (it outputs both EN and AR together
+                so both hidden inputs sit inside the same <form> subtree).
+                The AR meta fields below are plain text — no RTE needed.
+              */}
               <FormRow>
                 <FormField
                   label="عنوان SEO (AR)"
@@ -160,12 +166,13 @@ export default async function NewBlogPostPage({ searchParams }) {
                 />
               </FormRow>
             </FormSection>
+
           </div>
 
-          {/* ── RIGHT: Sidebar settings ── */}
+          {/* ── RIGHT: Sidebar ── */}
           <div style={{ position: 'sticky', top: 20, display: 'flex', flexDirection: 'column', gap: 16 }}>
 
-            {/* Publish panel */}
+            {/* Publish */}
             <div className={styles.card}>
               <div className={styles.cardHeader}>
                 <h3 className={styles.cardTitle}>Publish</h3>
@@ -205,10 +212,10 @@ export default async function NewBlogPostPage({ searchParams }) {
                 <FormField
                   label="Slug"
                   name="slug"
+                  id="slug"
                   required
                   placeholder="best-noon-coupons-2025"
                   helpText="Shared across all locales. Auto-generated from EN title."
-                  id="slug"
                 />
               </div>
             </div>
@@ -219,20 +226,8 @@ export default async function NewBlogPostPage({ searchParams }) {
                 <h3 className={styles.cardTitle}>Author & Category</h3>
               </div>
               <div className={styles.cardContent}>
-                <FormField
-                  label="Author"
-                  name="authorId"
-                  type="select"
-                  options={authorOptions}
-                  placeholder="— No Author —"
-                />
-                <FormField
-                  label="Category"
-                  name="categoryId"
-                  type="select"
-                  options={categoryOptions}
-                  placeholder="— No Category —"
-                />
+                <FormField label="Author"   name="authorId"   type="select" options={authorOptions}   />
+                <FormField label="Category" name="categoryId" type="select" options={categoryOptions} />
               </div>
             </div>
 
@@ -258,24 +253,19 @@ export default async function NewBlogPostPage({ searchParams }) {
               </div>
               <div className={styles.cardContent}>
                 <p style={{ fontSize: 12, color: '#888', marginBottom: 8 }}>
-                  Select existing tags or type new slugs (comma-separated in the input below).
+                  Select existing tags for this post.
                 </p>
-                {/* Existing tags as checkboxes */}
                 <div style={{ maxHeight: 200, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 6 }}>
                   {tags.map(tag => (
                     <label key={tag.id} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, cursor: 'pointer' }}>
-                      <input
-                        type="checkbox"
-                        name="tagSlugs"
-                        value={tag.slug}
-                      />
+                      <input type="checkbox" name="tagSlugs" value={tag.slug} />
                       {tag.translations?.[0]?.name || tag.slug}
                       <span style={{ color: '#aaa', fontSize: 11 }}>({tag._count?.posts || 0})</span>
                     </label>
                   ))}
                 </div>
                 {tags.length === 0 && (
-                  <p style={{ fontSize: 12, color: '#aaa' }}>No tags yet. Create tags in the Categories section.</p>
+                  <p style={{ fontSize: 12, color: '#aaa' }}>No tags yet.</p>
                 )}
               </div>
             </div>
@@ -284,7 +274,6 @@ export default async function NewBlogPostPage({ searchParams }) {
         </div>
       </form>
 
-      {/* Slug auto-generation script */}
       <script dangerouslySetInnerHTML={{ __html: slugScript }} />
     </div>
   );
