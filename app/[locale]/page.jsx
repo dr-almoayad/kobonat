@@ -14,6 +14,8 @@ import OfferStacksSection from '@/components/OfferStacksSection/OfferStacksSecti
 import FeaturedVouchersSection from '@/components/FeaturedVouchersSection/FeaturedVouchersSection';
 import FeaturedStoresSection from '@/components/FeaturedStoresSection/FeaturedStoresSection';
 import { getCurrentWeekIdentifier } from '@/lib/leaderboard/calculateStoreSavings';
+import HeroCuratedSection from '@/components/HeroCuratedCarousel/HeroCuratedSection';
+
 
 // ✅ PERF FIX: Removed `import WebSiteStructuredData` — it was being rendered
 // both here (page level) AND in layout.jsx, injecting duplicate JSON-LD into
@@ -170,13 +172,15 @@ export default async function Home({ params }) {
     <main className="homepage-wrapper">
 
       {/* Hero */}
-      {transformedCarouselStores.length > 0 && (
+      <HeroCuratedSection locale={locale} countryCode={countryCode || 'SA'} />
+      
+      {/*{transformedCarouselStores.length > 0 && (
         <HomepageHeroSection
           stores={transformedCarouselStores}
           leaderboard={leaderboardSnapshots}
           locale={locale}
         />
-      )}
+      )}*/}
 
       {/* Brands Ticker */}
       {/*{transformedBrands.length > 0 && (
