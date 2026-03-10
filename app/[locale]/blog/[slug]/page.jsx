@@ -1,6 +1,6 @@
 // app/[locale]/blog/[slug]/page.jsx
 // Renders: featured image, author, category, tags, main content,
-//          structured sections, linked stores sidebar, FAQ accordion, related posts.
+//          structured sections, linked stores (StoreCard grid), FAQ, related posts.
 
 import { prisma } from '@/lib/prisma';
 import { notFound } from 'next/navigation';
@@ -8,6 +8,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import BlogPostStructuredData from '@/components/StructuredData/BlogPostStructuredData';
 import RelatedPostsSidebar from '@/components/blog/RelatedPostsSidebar';
+import StoreCard from '@/components/StoreCard/StoreCard';
 import './BlogPost.css';
 
 export const dynamicParams = true;
@@ -84,6 +85,7 @@ async function getPost(slug, lang) {
         include: { translations: { where: { locale: lang }, select: { name: true, slug: true } } },
       },
       tags: { include: { tag: { include: { translations: { where: { locale: lang } } } } } },
+
       sections: {
         orderBy: { order: 'asc' },
         include: {
@@ -111,17 +113,27 @@ async function getPost(slug, lang) {
           },
         },
       },
+
       linkedStores: {
         orderBy: { order: 'asc' },
         include: {
           store: {
             include: {
-              translations: { where: { locale: lang }, select: { name: true, slug: true } },
-              _count: { select: { vouchers: { where: { expiryDate: { gte: new Date() } } } } },
+              // ── All fields StoreCard needs ───────────────────────────
+              // bigLogo, logo, color are direct store fields (no select restriction)
+              // showOffer lives in the translation row
+              translations: {
+                where: { locale: lang },
+                select: { name: true, slug: true, showOffer: true },
+              },
+              _count: {
+                select: { vouchers: { where: { expiryDate: { gte: new Date() } } } },
+              },
             },
           },
         },
       },
+
       relatedPosts: {
         orderBy: { order: 'asc' },
         take:    4,
@@ -137,6 +149,25 @@ async function getPost(slug, lang) {
       },
     },
   });
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Transform a linked store into the shape StoreCard expects
+// ─────────────────────────────────────────────────────────────────────────────
+function transformStoreForCard(ls) {
+  const st = ls.store;
+  return {
+    // Flat convenience fields StoreCard checks first
+    name:   st.translations?.[0]?.name  || '',
+    slug:   st.translations?.[0]?.slug  || String(st.id),
+    bigLogo:st.bigLogo || null,
+    logo:   st.logo    || null,
+    color:  st.color   || '#470ae2',
+    // Translations array (StoreCard falls back to this)
+    translations: st.translations || [],
+    // Voucher count badge
+    _count: st._count || { vouchers: 0 },
+  };
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -169,7 +200,7 @@ export default async function BlogPostPage({ params }) {
         id: rPost.id, slug: rPost.slug, featuredImage: rPost.featuredImage,
         isFeatured: rPost.isFeatured, publishedAt: rPost.publishedAt,
         title: rt.title || '', excerpt: rt.excerpt || '',
-        author:   rPost.author ? { name: lang === 'ar' ? (rPost.author.nameAr || rPost.author.name) : rPost.author.name, avatar: rPost.author.avatar } : null,
+        author:   rPost.author   ? { name: lang === 'ar' ? (rPost.author.nameAr || rPost.author.name) : rPost.author.name, avatar: rPost.author.avatar } : null,
         category: rPost.category ? { slug: rPost.category.slug, name: rPost.category.translations[0]?.name || rPost.category.slug, color: rPost.category.color } : null,
         tags: [],
       };
@@ -260,7 +291,7 @@ export default async function BlogPostPage({ params }) {
           {/* ── ARTICLE ── */}
           <article className="bp-article">
 
-            {/* Meta row: category + date + author + reading time */}
+            {/* Meta row */}
             <div className="bp-meta">
               {post.category && (
                 <Link
@@ -276,13 +307,13 @@ export default async function BlogPostPage({ params }) {
               )}
               {authorName && (
                 <>
-                  <span className="bp-meta__sep">·</span>
+                  <span className="bp-meta__dot" aria-hidden="true" />
                   <span className="bp-meta__item">{authorName}</span>
                 </>
               )}
               {post.readingTime && (
                 <>
-                  <span className="bp-meta__sep">·</span>
+                  <span className="bp-meta__dot" aria-hidden="true" />
                   <span className="bp-meta__item">
                     {lang === 'ar' ? `${post.readingTime} دقائق قراءة` : `${post.readingTime} min read`}
                   </span>
@@ -296,7 +327,7 @@ export default async function BlogPostPage({ params }) {
             {/* H1 */}
             <h1 className="bp-title">{t.title}</h1>
 
-            {/* Featured image */}
+            {/* Cover image */}
             {post.featuredImage && (
               <div className="bp-cover">
                 <Image
@@ -309,7 +340,7 @@ export default async function BlogPostPage({ params }) {
               </div>
             )}
 
-            {/* Lead / excerpt */}
+            {/* Lead */}
             {t.excerpt && (
               <p className="bp-excerpt">{t.excerpt}</p>
             )}
@@ -322,7 +353,7 @@ export default async function BlogPostPage({ params }) {
               />
             )}
 
-            {/* ── Structured sections ── */}
+            {/* ── Sections ── */}
             {post.sections?.length > 0 && (
               <div className="bp-sections">
                 {post.sections.map(section => {
@@ -352,7 +383,6 @@ export default async function BlogPostPage({ params }) {
                         />
                       )}
 
-                      {/* Product cards */}
                       {section.products?.length > 0 && (
                         <div className="bp-product-grid">
                           {section.products.map(sp => {
@@ -384,7 +414,6 @@ export default async function BlogPostPage({ params }) {
                         </div>
                       )}
 
-                      {/* Store chips */}
                       {section.stores?.length > 0 && (
                         <div className="bp-store-chips">
                           {section.stores.map(ss => {
@@ -408,7 +437,7 @@ export default async function BlogPostPage({ params }) {
               </div>
             )}
 
-            {/* ── FAQ accordion ── */}
+            {/* ── FAQ ── */}
             {faqItems.length > 0 && (
               <section className="bp-faq">
                 <h2 className="bp-faq__title">
@@ -418,10 +447,7 @@ export default async function BlogPostPage({ params }) {
                   <details key={i} className="bp-faq__item" open={i === 0}>
                     <summary>
                       {item.q}
-                      <span className="bp-faq__icon" aria-hidden="true">
-                        {/* CSS handles + → − via [open] state in parent */}
-                        +
-                      </span>
+                      <i className="bp-faq__icon" aria-hidden="true">+</i>
                     </summary>
                     <p className="bp-faq__answer">{item.a}</p>
                   </details>
@@ -469,38 +495,24 @@ export default async function BlogPostPage({ params }) {
           {hasSidebar && (
             <aside className="bp-sidebar">
 
-              {/* Linked stores */}
+              {/* Linked stores — rendered as StoreCards */}
               {hasLinkedStores && (
                 <div className="bp-stores-widget">
-                  <div className="bp-stores-widget__header">
-                    <h3 className="bp-stores-widget__title">
-                      {lang === 'ar' ? 'المتاجر في هذا المقال' : 'Stores in this article'}
-                    </h3>
-                  </div>
-                  {post.linkedStores.map(ls => {
-                    const st             = ls.store?.translations?.[0] || {};
-                    const activeVouchers = ls.store?._count?.vouchers ?? 0;
-                    return (
-                      <Link
+                  <p className="bp-sidebar-heading">
+                    {lang === 'ar' ? 'المتاجر في هذا المقال' : 'Stores in this article'}
+                  </p>
+                  <div className="bp-stores-grid">
+                    {post.linkedStores.map(ls => (
+                      <StoreCard
                         key={ls.storeId}
-                        href={`/${locale}/stores/${st.slug || ls.storeId}`}
-                        className="bp-store-row"
-                      >
-                        <span className="bp-store-row__name">
-                          {st.name || `Store #${ls.storeId}`}
-                        </span>
-                        {activeVouchers > 0 && (
-                          <span className="bp-store-row__badge">
-                            {activeVouchers} {lang === 'ar' ? 'كود' : 'codes'}
-                          </span>
-                        )}
-                      </Link>
-                    );
-                  })}
+                        store={transformStoreForCard(ls)}
+                      />
+                    ))}
+                  </div>
                 </div>
               )}
 
-              {/* Related posts sidebar */}
+              {/* Related posts */}
               {hasRelated && (
                 <RelatedPostsSidebar posts={relatedPosts} locale={locale} />
               )}
