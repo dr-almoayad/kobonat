@@ -1,0 +1,293 @@
+/* components/HeroCuratedCarousel/HeroCuratedCarousel.css */
+
+/* ── Root ────────────────────────────────────────────────────────────────── */
+.hcc-root {
+  width: 100%;
+  padding: 2rem 0 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  background: #fff;
+}
+
+/* ── Embla viewport — must be overflow:hidden ────────────────────────────── */
+.hcc-viewport {
+  overflow: hidden;
+  width: 100%;
+}
+
+/* ── Flex track ──────────────────────────────────────────────────────────── */
+.hcc-container {
+  display: flex;
+  gap: 1.25rem;
+  touch-action: pan-y pinch-zoom;
+  will-change: transform;
+}
+
+/* ── Slide wrapper — 75% so ~12.5% of adjacent slides peek on each side ──── */
+.hcc-slide {
+  flex: 0 0 75%;
+  min-width: 0;
+}
+
+/* ── Card (the visible rounded box) ─────────────────────────────────────── */
+.hcc-slide-card {
+  display: flex;
+  flex-direction: row;
+  height: 380px;
+  border-radius: 20px;
+  overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+  background: #fff;
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.06);
+  border: 1px solid #f1f5f9;
+  transition: box-shadow 0.2s;
+  cursor: pointer;
+}
+
+.hcc-slide-card:hover {
+  box-shadow: 0 6px 28px rgba(0, 0, 0, 0.10);
+}
+
+/* RTL — text panel on left, image on right */
+[dir='rtl'] .hcc-slide-card {
+  flex-direction: row-reverse;
+}
+
+/* ── Image panel — left 55% ──────────────────────────────────────────────── */
+.hcc-img-panel {
+  position: relative;
+  flex: 0 0 55%;
+  overflow: hidden;
+}
+
+.hcc-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+  /* Subtle zoom on hover */
+  transition: transform 0.5s ease;
+  draggable: false;
+}
+
+.hcc-slide-card:hover .hcc-img {
+  transform: scale(1.03);
+}
+
+/* ── Store logo badge — dark circle, bottom-left of image ───────────────── */
+.hcc-badge {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  background: #1c1c1c;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+  border: 2.5px solid rgba(255, 255, 255, 0.15);
+  flex-shrink: 0;
+}
+
+[dir='rtl'] .hcc-badge {
+  left: auto;
+  right: 20px;
+}
+
+.hcc-badge-img {
+  width: 78%;
+  height: 78%;
+  object-fit: contain;
+}
+
+.hcc-badge-initials {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -0.02em;
+  font-family: 'Alexandria', 'Open Sans', sans-serif;
+  user-select: none;
+}
+
+/* ── Text panel — right 45% ──────────────────────────────────────────────── */
+.hcc-text-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 2.5rem 2.75rem;
+  background: #fff;
+}
+
+/* Headline */
+.hcc-headline {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: #111827;
+  line-height: 1.25;
+  margin: 0 0 0.6rem 0;
+  font-family: 'Alexandria', 'Open Sans', sans-serif;
+  /* Clamp to 3 lines */
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* "at StoreName" */
+.hcc-store-name {
+  font-size: 0.9375rem;
+  color: #6b7280;
+  margin: 0 0 1.5rem 0;
+  font-family: 'Alexandria', 'Open Sans', sans-serif;
+}
+
+/* "SHOP NOW" CTA */
+.hcc-cta {
+  display: inline;
+  font-size: 0.875rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #111827;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  font-family: 'Alexandria', 'Open Sans', sans-serif;
+}
+
+/* ── Dots ────────────────────────────────────────────────────────────────── */
+.hcc-dots {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+}
+
+.hcc-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: none;
+  background: #d1d5db;
+  cursor: pointer;
+  padding: 0;
+  transition: background 0.2s, width 0.2s, border-radius 0.2s;
+  flex-shrink: 0;
+}
+
+.hcc-dot--active {
+  background: #111827;
+  width: 24px;
+  border-radius: 4px;
+}
+
+/* ── Responsive ──────────────────────────────────────────────────────────── */
+
+/* Medium — tighten text padding, slightly smaller headline */
+@media (max-width: 1024px) {
+  .hcc-slide {
+    flex: 0 0 82%;
+  }
+
+  .hcc-slide-card {
+    height: 320px;
+  }
+
+  .hcc-headline {
+    font-size: 1.5rem;
+  }
+
+  .hcc-text-panel {
+    padding: 1.75rem 2rem;
+  }
+
+  .hcc-badge {
+    width: 56px;
+    height: 56px;
+    bottom: 14px;
+    left: 14px;
+  }
+
+  [dir='rtl'] .hcc-badge {
+    left: auto;
+    right: 14px;
+  }
+}
+
+/* Tablet — slide takes more space */
+@media (max-width: 768px) {
+  .hcc-slide {
+    flex: 0 0 90%;
+  }
+
+  .hcc-slide-card {
+    height: 260px;
+  }
+
+  .hcc-headline {
+    font-size: 1.2rem;
+  }
+
+  .hcc-text-panel {
+    padding: 1.25rem 1.5rem;
+  }
+
+  .hcc-store-name {
+    font-size: 0.8125rem;
+    margin-bottom: 1rem;
+  }
+}
+
+/* Mobile — stack vertically, image on top, text below */
+@media (max-width: 520px) {
+  .hcc-slide {
+    flex: 0 0 92%;
+  }
+
+  .hcc-slide-card {
+    flex-direction: column;
+    height: auto;
+  }
+
+  /* RTL also stacks vertically on mobile */
+  [dir='rtl'] .hcc-slide-card {
+    flex-direction: column;
+  }
+
+  .hcc-img-panel {
+    flex: 0 0 auto;
+    height: 200px;
+    width: 100%;
+  }
+
+  .hcc-text-panel {
+    flex: 0 0 auto;
+    padding: 1.25rem;
+  }
+
+  .hcc-headline {
+    font-size: 1.125rem;
+  }
+
+  .hcc-store-name {
+    margin-bottom: 0.75rem;
+  }
+
+  .hcc-badge {
+    width: 52px;
+    height: 52px;
+    bottom: 12px;
+    left: 12px;
+  }
+
+  [dir='rtl'] .hcc-badge {
+    left: auto;
+    right: 12px;
+  }
+}
