@@ -75,7 +75,7 @@
 .rte-body {
   flex: 1;
   overflow-y: auto;
-  background: #0d1117;
+  background: #161b22;
 }
 
 /* The actual editable div Tiptap renders */
@@ -190,4 +190,87 @@
 /* Selected text highlight */
 .rte-content ::selection {
   background: rgba(71, 10, 226, 0.12);
+}
+
+/* ── Link in editor body ─────────────────────────────────────────────────── */
+.rte-content a,
+.rte-content .rte-link {
+  color: var(--admin-primary, #470ae2);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+/* ── Link button wrapper (positions the popover) ─────────────────────────── */
+.rte-link-wrapper {
+  position: relative;
+  display: inline-flex;
+}
+
+/* ── Link popover ────────────────────────────────────────────────────────── */
+.rte-link-popover {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 100;
+  background: #fff;
+  border: 1px solid var(--admin-border, #e2e8f0);
+  border-radius: 8px;
+  padding: 8px 10px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+  min-width: 320px;
+  white-space: nowrap;
+}
+
+.rte-link-input {
+  flex: 1;
+  height: 30px;
+  padding: 0 8px;
+  border: 1px solid var(--admin-border, #e2e8f0);
+  border-radius: 5px;
+  font-size: 0.82rem;
+  color: var(--admin-text, #374151);
+  outline: none;
+  min-width: 0;
+}
+
+.rte-link-input:focus {
+  border-color: var(--admin-primary, #470ae2);
+  box-shadow: 0 0 0 2px rgba(71, 10, 226, 0.1);
+}
+
+.rte-link-apply {
+  height: 30px;
+  padding: 0 10px;
+  background: var(--admin-primary, #470ae2);
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.rte-link-apply:hover {
+  opacity: 0.88;
+}
+
+.rte-link-remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--admin-border, #e2e8f0);
+  border-radius: 5px;
+  background: transparent;
+  color: var(--admin-danger, #dc2626);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.rte-link-remove:hover {
+  background: #fef2f2;
+  border-color: var(--admin-danger, #dc2626);
 }
