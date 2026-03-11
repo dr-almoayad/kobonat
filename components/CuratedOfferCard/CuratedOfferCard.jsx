@@ -30,7 +30,7 @@ export default function CuratedOfferCard({ offer }) {
   const ctaText = translation.ctaText || (isRtl ? 'تسوق الآن' : 'SHOP NOW');
 
   const storeName = offer.store?.translations?.find(t => t.locale === lang)?.name || offer.store?.translations?.[0]?.name || '';
-  const storeLogo = offer.store?.logo || null;
+  const storeLogo = offer.store?.bigLogo || null;
   const storeSlug = offer.store?.translations?.find(t => t.locale === lang)?.slug || offer.store?.translations?.[0]?.slug || 'store';
 
   const offerImage = offer.offerImage || null;
@@ -61,9 +61,9 @@ export default function CuratedOfferCard({ offer }) {
           // is the correct choice here — the original eslint-disable comment
           // was a deliberate signal of this constraint.
           // eslint-disable-next-line @next/next/no-img-element
-          <img
+          <Image
             src={offerImage}
-            alt=""
+            alt={`${storeName} – ${title}`}
             className="card-image"
             loading={offer.isFeatured ? 'eager' : 'lazy'}
             decoding="async"
