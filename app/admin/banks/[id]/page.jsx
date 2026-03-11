@@ -127,25 +127,67 @@ export default function BankDetailPage() {
 
   useEffect(() => { load(); }, [id]);
 
+  // ── PATCH: replace the load() function in app/admin/banks/[id]/page.jsx ──────
+//
+// Find the existing load() function (called inside useEffect) and replace it
+// entirely with this version. Two fixes:
+//
+//  1. Niches URL corrected: /api/admin/niches doesn't exist.
+//     The niches page fetches /api/admin/categories?locale=en and filters
+//     client-side for rows where bankScoringWeights is non-empty.
+//
+//  2. Wrapped in try/catch so a failing niches fetch never blocks bank data
+//     from rendering. The page shows the bank even if niches fail to load.
+
   async function load() {
-    const [bankRes, nichesRes] = await Promise.all([
-      fetch(`/api/admin/banks/${id}`),
-      fetch('/api/admin/niches?locale=en'),
-    ]);
-    const bankData   = await bankRes.json();
-    const nichesData = await nichesRes.json();
-    setBank(bankData);
-    setNiches(nichesData);
-    const en = bankData.translations?.find(t => t.locale === 'en') || {};
-    const ar = bankData.translations?.find(t => t.locale === 'ar') || {};
-    setInfo({
-      slug: bankData.slug, logo: bankData.logo, color: bankData.color,
-      websiteUrl: bankData.websiteUrl, type: bankData.type, appRating: bankData.appRating,
-      isActive: bankData.isActive,
-      name_en: en.name, description_en: en.description,
-      name_ar: ar.name, description_ar: ar.description,
-    });
+    try {
+      const [bankRes, categoriesRes] = await Promise.all([
+        fetch(`/api/admin/banks/${id}`),
+        fetch('/api/admin/categories?locale=en'),   // ← was /api/admin/niches (doesn't exist)
+      ]);
+
+      // Bank data is critical — surface the error if it fails
+      if (!bankRes.ok) {
+        console.error(`Bank fetch failed: ${bankRes.status}`);
+        setBank({});   // set to non-null so the loading screen ends and shows a useful state
+        return;
+      }
+
+      const bankData = await bankRes.json();
+      setBank(bankData);
+
+      const en = bankData.translations?.find(t => t.locale === 'en') || {};
+      const ar = bankData.translations?.find(t => t.locale === 'ar') || {};
+      setInfo({
+        slug:           bankData.slug,
+        logo:           bankData.logo,
+        color:          bankData.color,
+        websiteUrl:     bankData.websiteUrl,
+        type:           bankData.type,
+        appRating:      bankData.appRating,
+        isActive:       bankData.isActive,
+        name_en:        en.name,
+        description_en: en.description,
+        name_ar:        ar.name,
+        description_ar: ar.description,
+      });
+
+      // Niches are optional — if they fail the rest of the page still works
+      if (categoriesRes.ok) {
+        const allCategories = await categoriesRes.json();
+        // Filter to only categories that have bankScoringWeights defined
+        const nicheCategories = (allCategories || []).filter(
+          c => c.bankScoringWeights && Object.keys(c.bankScoringWeights).length > 0
+        );
+        setNiches(nicheCategories);
+      }
+    } catch (err) {
+      console.error('Bank page load error:', err);
+      // Ensure we exit the loading state even on unexpected errors
+      if (!bank) setBank({});
+    }
   }
+
 
   async function saveInfo(e) {
     e.preventDefault();
