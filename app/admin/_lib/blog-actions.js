@@ -64,6 +64,14 @@ function parseFaqJson(raw) {
   }
 }
 
+function revalidateBlogPost(slug) {
+  revalidatePath(`/ar-SA/blog/${slug}`);
+  revalidatePath(`/en-SA/blog/${slug}`);
+  // Also clear the blog index so listing pages reflect the change
+  revalidatePath('/ar-SA/blog');
+  revalidatePath('/en-SA/blog');
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // CREATE BLOG POST
 // ─────────────────────────────────────────────────────────────────────────────
