@@ -130,16 +130,22 @@
 }
 
 .card-logo {
-  height: 40px;
-  max-width: 100px;
+  position: absolute;
+  top: -45px;
+  left: calc(50% - 35px);
+  height: 70px;
+  max-width: 70px;
+  border-radius: 50%;
+  overflow: hidden;
   display: flex;
   align-items: center;
 }
 
 .card-logo img {
-  object-fit: contain;
-  object-position: right center;
-  height: 100%;
+  color: transparent;
+  object-fit: cover;
+  object-position: right;
+  transform: scale(1.25);
 }
 
 .card-store-name {
@@ -172,7 +178,7 @@
 
 /* Title */
 .card-title {
-  margin: 0;
+  margin: 1.4rem 0 0;
   font-size: 0.9rem;
   font-weight: 700;
   color: var(--text-main);
