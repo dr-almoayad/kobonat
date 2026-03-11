@@ -1,6 +1,4 @@
 // app/[locale]/blog/[slug]/page.jsx
-// Renders: featured image, author, category, tags, main content,
-//          structured sections, linked stores (StoreCard grid), FAQ, related posts.
 
 import { prisma } from '@/lib/prisma';
 import { notFound } from 'next/navigation';
@@ -12,6 +10,15 @@ import StoreCard from '@/components/StoreCard/StoreCard';
 import './BlogPost.css';
 
 export const dynamicParams = true;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// FIX: revalidate so admin changes (delete FAQ, remove store, etc.) are
+// reflected on the public page without a full redeploy.
+// 60 seconds is a safe balance between freshness and performance.
+// The real fix is revalidateBlogPost() in blog-actions.js — this is the
+// safety net for any mutation that doesn't call it.
+// ─────────────────────────────────────────────────────────────────────────────
+export const revalidate = 60;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Static params (SSG)
@@ -119,11 +126,8 @@ async function getPost(slug, lang) {
         include: {
           store: {
             include: {
-              // ── All fields StoreCard needs ───────────────────────────
-              // bigLogo, logo, color are direct store fields (no select restriction)
-              // showOffer lives in the translation row
               translations: {
-                where: { locale: lang },
+                where:  { locale: lang },
                 select: { name: true, slug: true, showOffer: true },
               },
               _count: {
@@ -157,16 +161,13 @@ async function getPost(slug, lang) {
 function transformStoreForCard(ls) {
   const st = ls.store;
   return {
-    // Flat convenience fields StoreCard checks first
-    name:   st.translations?.[0]?.name  || '',
-    slug:   st.translations?.[0]?.slug  || String(st.id),
-    bigLogo:st.bigLogo || null,
-    logo:   st.logo    || null,
-    color:  st.color   || '#470ae2',
-    // Translations array (StoreCard falls back to this)
+    name:         st.translations?.[0]?.name  || '',
+    slug:         st.translations?.[0]?.slug  || String(st.id),
+    bigLogo:      st.bigLogo || null,
+    logo:         st.logo    || null,
+    color:        st.color   || '#470ae2',
     translations: st.translations || [],
-    // Voucher count badge
-    _count: st._count || { vouchers: 0 },
+    _count:       st._count || { vouchers: 0 },
   };
 }
 
@@ -191,6 +192,7 @@ export default async function BlogPostPage({ params }) {
     : '';
 
   // ── Related posts ────────────────────────────────────────────────────────
+  // Map explicit editorial related posts
   const explicitRelated = post.relatedPosts
     .filter(rp => rp.relatedPost && rp.relatedPost.status === 'PUBLISHED')
     .map(rp => {
@@ -199,7 +201,8 @@ export default async function BlogPostPage({ params }) {
       return {
         id: rPost.id, slug: rPost.slug, featuredImage: rPost.featuredImage,
         isFeatured: rPost.isFeatured, publishedAt: rPost.publishedAt,
-        title: rt.title || '', excerpt: rt.excerpt || '',
+        title:    rt.title   || '',
+        excerpt:  rt.excerpt || '',
         author:   rPost.author   ? { name: lang === 'ar' ? (rPost.author.nameAr || rPost.author.name) : rPost.author.name, avatar: rPost.author.avatar } : null,
         category: rPost.category ? { slug: rPost.category.slug, name: rPost.category.translations[0]?.name || rPost.category.slug, color: rPost.category.color } : null,
         tags: [],
@@ -207,42 +210,58 @@ export default async function BlogPostPage({ params }) {
     });
 
   let relatedPosts = explicitRelated;
+
+  // Fill remaining slots with fallback posts (same category or tags)
   if (relatedPosts.length < 4) {
     const tagIds      = post.tags.map(pt => pt.tagId);
     const catId       = post.categoryId;
     const needed      = 4 - relatedPosts.length;
     const existingIds = [post.id, ...relatedPosts.map(r => r.id)];
-    const fallback    = await prisma.blogPost.findMany({
-      where: {
-        status: 'PUBLISHED',
-        id: { notIn: existingIds },
-        OR: [
-          tagIds.length > 0 ? { tags: { some: { tagId: { in: tagIds } } } } : undefined,
-          catId ? { categoryId: catId } : undefined,
-        ].filter(Boolean),
-      },
-      include: {
-        translations: { where: { locale: lang } },
-        author: true,
-        category: { include: { translations: { where: { locale: lang } } } },
-      },
-      orderBy: [{ isFeatured: 'desc' }, { publishedAt: 'desc' }],
-      take: needed,
-    });
-    relatedPosts = [
-      ...relatedPosts,
-      ...fallback.map(rp => {
-        const rt = rp.translations[0] || {};
-        return {
-          id: rp.id, slug: rp.slug, featuredImage: rp.featuredImage,
-          isFeatured: rp.isFeatured, publishedAt: rp.publishedAt,
-          title: rt.title || '', excerpt: rt.excerpt || '',
-          author:   rp.author   ? { name: lang === 'ar' ? (rp.author.nameAr || rp.author.name) : rp.author.name, avatar: rp.author.avatar } : null,
-          category: rp.category ? { slug: rp.category.slug, name: rp.category.translations[0]?.name || rp.category.slug, color: rp.category.color } : null,
-          tags: [],
-        };
-      }),
-    ];
+
+    // ── FIX: OR: [] crashes Prisma. Build conditions only when they exist,
+    //         and skip the fallback query entirely when we'd have nothing to OR.
+    const orConditions = [
+      tagIds.length > 0 ? { tags: { some: { tagId: { in: tagIds } } } } : null,
+      catId             ? { categoryId: catId }                          : null,
+    ].filter(Boolean);
+
+    if (orConditions.length > 0) {
+      try {
+        const fallback = await prisma.blogPost.findMany({
+          where: {
+            status: 'PUBLISHED',
+            id:     { notIn: existingIds.length ? existingIds : [0] },
+            OR:     orConditions,
+          },
+          include: {
+            translations: { where: { locale: lang } },
+            author: true,
+            category: { include: { translations: { where: { locale: lang } } } },
+          },
+          orderBy: [{ isFeatured: 'desc' }, { publishedAt: 'desc' }],
+          take: needed,
+        });
+
+        relatedPosts = [
+          ...relatedPosts,
+          ...fallback.map(rp => {
+            const rt = rp.translations[0] || {};
+            return {
+              id: rp.id, slug: rp.slug, featuredImage: rp.featuredImage,
+              isFeatured: rp.isFeatured, publishedAt: rp.publishedAt,
+              title:    rt.title   || '',
+              excerpt:  rt.excerpt || '',
+              author:   rp.author   ? { name: lang === 'ar' ? (rp.author.nameAr || rp.author.name) : rp.author.name, avatar: rp.author.avatar } : null,
+              category: rp.category ? { slug: rp.category.slug, name: rp.category.translations[0]?.name || rp.category.slug, color: rp.category.color } : null,
+              tags: [],
+            };
+          }),
+        ];
+      } catch (err) {
+        console.error('[BlogPostPage] related fallback query failed:', err.message);
+        // relatedPosts stays as whatever explicitRelated gave us
+      }
+    }
   }
 
   // FAQ items
@@ -261,7 +280,7 @@ export default async function BlogPostPage({ params }) {
   };
 
   const hasLinkedStores = post.linkedStores?.length > 0;
-  const hasRelated      = relatedPosts.length > 0;
+  const hasRelated      = relatedPosts.filter(p => p.title).length > 0;
   const hasSidebar      = hasLinkedStores || hasRelated;
 
   return (
@@ -495,7 +514,6 @@ export default async function BlogPostPage({ params }) {
           {hasSidebar && (
             <aside className="bp-sidebar">
 
-              {/* Linked stores — rendered as StoreCards */}
               {hasLinkedStores && (
                 <div className="bp-stores-widget">
                   <p className="bp-sidebar-heading">
@@ -512,7 +530,6 @@ export default async function BlogPostPage({ params }) {
                 </div>
               )}
 
-              {/* Related posts */}
               {hasRelated && (
                 <RelatedPostsSidebar posts={relatedPosts} locale={locale} />
               )}
