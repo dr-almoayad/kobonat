@@ -61,7 +61,7 @@ export default function CuratedOfferCard({ offer }) {
           // is the correct choice here — the original eslint-disable comment
           // was a deliberate signal of this constraint.
           // eslint-disable-next-line @next/next/no-img-element
-          <Image
+          <img
             src={offerImage}
             alt={`${storeName} – ${title}`}
             className="card-image"
@@ -103,10 +103,10 @@ export default function CuratedOfferCard({ offer }) {
             <span className="card-store-name">{storeName}</span>
           ) : <span />}
 
-          <span className="card-type-badge" style={{ '--type-color': typeCfg.hue }}>
+          {/*<span className="card-type-badge" style={{ '--type-color': typeCfg.hue }}>
             <span className="material-symbols-sharp">{typeCfg.icon}</span>
             {badgeLabel}
-          </span>
+          </span>*/}
         </div>
 
         {/* Title */}
