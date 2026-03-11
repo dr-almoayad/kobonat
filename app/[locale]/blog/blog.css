@@ -1,0 +1,144 @@
+/* app/[locale]/blog/blog.css
+   Blog index page — matches Cobonat design system
+   Accent #470ae2 | Fonts: var(--font-open-sans) / var(--font-alexandria)
+   ========================================================================= */
+
+/* ── Wrapper ─────────────────────────────────────────────────────────────── */
+.blog-index {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 5rem;
+  font-family: var(--font-open-sans), 'Segoe UI', sans-serif;
+}
+
+[dir='rtl'] .blog-index {
+  font-family: var(--font-alexandria), 'Noto Sans Arabic', sans-serif;
+}
+
+/* ── Header ──────────────────────────────────────────────────────────────── */
+.blog-index__header {
+  margin-bottom: 2.25rem;
+}
+
+.blog-index__title {
+  font-size: clamp(1.6rem, 4vw, 2.2rem);
+  font-weight: 800;
+  color: #0f041c;
+  letter-spacing: -0.025em;
+  margin: 0 0 1.25rem;
+}
+
+[dir='rtl'] .blog-index__title {
+  letter-spacing: 0;
+}
+
+/* ── Category pills ──────────────────────────────────────────────────────── */
+.blog-index__cats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.blog-index__cat {
+  display: inline-block;
+  padding: 0.35rem 1rem;
+  border-radius: 999px;
+  border: 1.5px solid #e0dcf5;
+  background: #fff;
+  color: #555;
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: border-color 0.18s ease, color 0.18s ease, background 0.18s ease;
+  white-space: nowrap;
+}
+
+.blog-index__cat:hover {
+  border-color: #470ae2;
+  color: #470ae2;
+}
+
+.blog-index__cat--active {
+  background: #470ae2;
+  border-color: #470ae2;
+  color: #fff;
+}
+
+.blog-index__cat--active:hover {
+  background: #3a08c0;
+  border-color: #3a08c0;
+  color: #fff;
+}
+
+/* ── Post grid ───────────────────────────────────────────────────────────── */
+.blog-index__grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.75rem;
+}
+
+@media (min-width: 560px) {
+  .blog-index__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 960px) {
+  .blog-index__grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 1200px) {
+  .blog-index__grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* ── Empty state ─────────────────────────────────────────────────────────── */
+.blog-index__empty {
+  text-align: center;
+  padding: 4rem 1rem;
+  color: #9ca3af;
+  font-size: 1rem;
+}
+
+/* ── Pagination ──────────────────────────────────────────────────────────── */
+.blog-index__pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 3rem;
+}
+
+.blog-index__page-btn {
+  display: inline-block;
+  padding: 0.55rem 1.5rem;
+  border-radius: 10px;
+  background: #fff;
+  border: 1.5px solid #e0dcf5;
+  color: #470ae2;
+  font-size: 0.88rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.18s ease, border-color 0.18s ease;
+}
+
+.blog-index__page-btn:hover {
+  background: #f0eaff;
+  border-color: #470ae2;
+}
+
+.blog-index__page-info {
+  font-size: 0.85rem;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+/* ── Responsive padding ──────────────────────────────────────────────────── */
+@media (max-width: 480px) {
+  .blog-index {
+    padding: 1.5rem 1rem 4rem;
+  }
+}
