@@ -11,6 +11,10 @@
   margin: 0 auto;
 }
 
+.co-section .ec-slide {
+    flex: 0 0 260px;
+}
+
 /* ── Header ─────────────────────────────────────────────────────────────── */
 .co-header {
   display: flex;
