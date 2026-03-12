@@ -123,35 +123,37 @@ async function getPost(slug, lang) {
                   translations:  { where: { locale: lang } },
                   author:        true,
                   category:      { include: { translations: { where: { locale: lang } } } },
-                  // coverImage:    true,
                 },
               },
               table: {
                 include: {
-                  translations: true,
+                  translations: { where: { locale: lang } }, // Fix
                   columns: {
                     orderBy: { order: 'asc' },
                     include: {
-                      translations: true,
+                      translations: { where: { locale: lang } }, // Fix
                       cells: true,
-                      store:    { include: { translations: true } },
-                      bank:     { include: { translations: true } },
-                      bankCard: { include: { translations: true } },
+                      store:    { include: { translations: { where: { locale: lang } } } }, // Fix
+                      bank:     { include: { translations: { where: { locale: lang } } } }, // Fix
+                      bankCard: { include: { translations: { where: { locale: lang } } } }, // Fix
                     },
                   },
                   rows: {
                     orderBy: { order: 'asc' },
-                    include: { translations: true, cells: true },
+                    include: { 
+                      translations: { where: { locale: lang } }, // Fix
+                      cells: true 
+                    },
                   },
                 },
               },
               product: { include: { translations: { where: { locale: lang } } } },
-              store:   { include: { translations: true } },
-              bank:    { include: { translations: true } },
+              store:   { include: { translations: { where: { locale: lang } } } }, // Fix
+              bank:    { include: { translations: { where: { locale: lang } } } }, // Fix
               card:    {
                 include: {
-                  translations: true,
-                  bank: { include: { translations: true } },
+                  translations: { where: { locale: lang } }, // Fix
+                  bank: { include: { translations: { where: { locale: lang } } } }, // Fix
                 },
               },
             },
