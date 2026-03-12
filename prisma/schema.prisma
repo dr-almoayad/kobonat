@@ -164,6 +164,16 @@ enum ComparisonRowType {
   BADGE
 }
 
+enum SectionBlockType {
+  TEXT
+  POST
+  TABLE
+  PRODUCT
+  STORE
+  BANK
+  CARD
+}
+
 // ============================================================================
 // CORE MODELS
 // ============================================================================
@@ -260,6 +270,9 @@ model Store {
 
   // NEW back‑relation for comparison tables
   comparisonColumns   ComparisonTableColumn[]
+
+  // Section block embeds
+  embeddedInSectionBlocks SectionBlock[] @relation("SectionEmbeddedStores")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -433,6 +446,9 @@ model StoreProduct {
   // NEW back‑relation for comparison tables
   comparisonColumns ComparisonTableColumn[]
 
+  // Section block embeds
+  embeddedInSectionBlocks SectionBlock[] @relation("SectionEmbeddedProducts")
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -507,6 +523,7 @@ model OtherPromo {
   cardId            Int?
   cardNetwork       CardNetwork?
   installmentMonths Int?
+  voucherCode       String?      // bank offer has its own code; blocks codeVoucher slot in OfferStack
 
   translations OtherPromoTranslation[]
   store        Store   @relation(fields: [storeId], references: [id], onDelete: Cascade)
@@ -924,6 +941,7 @@ model BlogPost {
   searchIntent  SearchIntent    @default(INFORMATIONAL)
   readingTime   Int?
   faqJson       String?         @db.Text
+  blockLayout   String?         @db.Text  // JSON: ordered list of {type, id} for top-level blocks
 
   primaryStoreId Int?
   primaryStore   Store? @relation("PrimaryStore", fields: [primaryStoreId], references: [id], onDelete: SetNull)
@@ -943,6 +961,9 @@ model BlogPost {
 
   // NEW back‑relation for comparison tables
   comparisonTables ComparisonTable[]
+
+  // Section block embeds
+  embeddedInSectionBlocks SectionBlock[] @relation("SectionEmbeddedPosts")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1031,6 +1052,7 @@ model BlogPostSection {
   translations BlogPostSectionTranslation[]
   products     BlogPostSectionProduct[]
   stores       BlogPostSectionStore[]
+  sectionBlocks SectionBlock[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1212,6 +1234,9 @@ model Bank {
   // NEW back‑relation for comparison tables
   comparisonColumns ComparisonTableColumn[]
 
+  // Section block embeds
+  embeddedInSectionBlocks SectionBlock[] @relation("SectionEmbeddedBanks")
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -1271,6 +1296,9 @@ model BankCard {
 
   // NEW back‑relation for comparison tables
   comparisonColumns ComparisonTableColumn[]
+
+  // Section block embeds
+  embeddedInSectionBlocks SectionBlock[] @relation("SectionEmbeddedCards")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1337,6 +1365,9 @@ model ComparisonTable {
   translations ComparisonTableTranslation[]
   columns      ComparisonTableColumn[]
   rows         ComparisonTableRow[]
+
+  // Section block embeds
+  embeddedInSectionBlocks SectionBlock[] @relation("SectionEmbeddedTables")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1458,4 +1489,38 @@ model ComparisonTableCell {
   @@unique([columnId, rowId])
   @@index([columnId])
   @@index([rowId])
+}
+
+// ============================================================================
+// SECTION BLOCKS
+// ============================================================================
+
+model SectionBlock {
+  id        Int             @id @default(autoincrement())
+  sectionId Int
+  type      SectionBlockType
+  order     Int             @default(0)
+
+  // Populated when type = TEXT
+  textEn String? @db.Text
+  textAr String? @db.Text
+
+  // Entity references — at most one populated per block
+  postId    Int?
+  tableId   Int?
+  productId Int?
+  storeId   Int?
+  bankId    Int?
+  cardId    Int?
+
+  section BlogPostSection  @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  post    BlogPost?        @relation("SectionEmbeddedPosts",    fields: [postId],    references: [id], onDelete: SetNull)
+  table   ComparisonTable? @relation("SectionEmbeddedTables",   fields: [tableId],   references: [id], onDelete: SetNull)
+  product StoreProduct?    @relation("SectionEmbeddedProducts", fields: [productId], references: [id], onDelete: SetNull)
+  store   Store?           @relation("SectionEmbeddedStores",   fields: [storeId],   references: [id], onDelete: SetNull)
+  bank    Bank?            @relation("SectionEmbeddedBanks",    fields: [bankId],    references: [id], onDelete: SetNull)
+  card    BankCard?        @relation("SectionEmbeddedCards",    fields: [cardId],    references: [id], onDelete: SetNull)
+
+  @@index([sectionId, order])
+  @@index([type])
 }
