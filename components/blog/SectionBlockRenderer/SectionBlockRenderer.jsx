@@ -1,73 +1,62 @@
 // components/blog/SectionBlockRenderer/SectionBlockRenderer.jsx
-// RSC — renders a single SectionBlock by type
 import Link from 'next/link';
 import Image from 'next/image';
 import EmbeddedPostCard from '@/components/blog/EmbeddedPostCard/EmbeddedPostCard';
 import ComparisonTable   from '@/components/blog/ComparisonTable/ComparisonTable';
 import styles from './SectionBlockRenderer.module.css';
 
+// Helper to get 'ar' or 'en' from 'ar-SA'
+const getLang = (locale) => locale.split('-')[0];
+
 // ─── TEXT ─────────────────────────────────────────────────────────────────────
 function TextBlock({ block, locale }) {
-  const html = locale === 'ar' ? (block.textAr || block.textEn) : (block.textEn || block.textAr);
+  const lang = getLang(locale);
+  // Correctly pick field based on language
+  const html = lang === 'ar' ? (block.textAr || block.textEn) : (block.textEn || block.textAr);
+  
   if (!html) return null;
   return (
     <div
       className={styles.textBlock}
       dangerouslySetInnerHTML={{ __html: html }}
-      dir={locale === 'ar' ? 'rtl' : 'ltr'}
+      dir={lang === 'ar' ? 'rtl' : 'ltr'}
     />
   );
-}
-
-// ─── POST EMBED ────────────────────────────────────────────────────────────────
-function PostBlock({ block, locale }) {
-  if (!block.post) return null;
-  return <EmbeddedPostCard embed={{ embeddedPost: block.post }} locale={locale} />;
-}
-
-// ─── COMPARISON TABLE ──────────────────────────────────────────────────────────
-function TableBlock({ block, locale }) {
-  if (!block.table) return null;
-  return <ComparisonTable table={block.table} locale={locale} />;
 }
 
 // ─── PRODUCT ───────────────────────────────────────────────────────────────────
 function ProductBlock({ block, locale }) {
   const product = block.product;
   if (!product) return null;
-  const t = product.translations?.find(x => x.locale === locale)
+  const lang = getLang(locale);
+
+  // Match DB locale ('ar') with URL base ('ar')
+  const t = product.translations?.find(x => x.locale === lang)
          || product.translations?.[0];
+
   const title = t?.title || product.name || `Product #${product.id}`;
   const desc  = t?.description;
   const img   = product.imageUrl || product.image;
 
   return (
-    <div className={styles.entityCard}>
+    <div className={styles.entityCard} dir={lang === 'ar' ? 'rtl' : 'ltr'}>
       <div className={styles.entityBadge}>
         <span className="material-symbols-sharp">inventory_2</span>
-        Product
+        {lang === 'ar' ? 'منتج' : 'Product'}
       </div>
       <div className={styles.entityCardInner}>
         {img && (
           <div className={styles.entityThumb}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={img} alt={title} loading="lazy" />
           </div>
         )}
         <div className={styles.entityBody}>
           <h3 className={styles.entityTitle}>{title}</h3>
           {desc && <p className={styles.entityDesc}>{desc}</p>}
-          {product.price && (
-            <p className={styles.entityPrice}>{product.price}</p>
-          )}
+          {product.price && <p className={styles.entityPrice}>{product.price}</p>}
           {product.affiliateUrl && (
-            <a
-              href={product.affiliateUrl}
-              target="_blank"
-              rel="noopener noreferrer sponsored"
-              className={styles.entityCta}
-            >
-              View Deal
+            <a href={product.affiliateUrl} target="_blank" rel="noopener noreferrer sponsored" className={styles.entityCta}>
+              {lang === 'ar' ? 'عرض الصفقة' : 'View Deal'}
               <span className="material-symbols-sharp">arrow_outward</span>
             </a>
           )}
@@ -81,22 +70,23 @@ function ProductBlock({ block, locale }) {
 function StoreBlock({ block, locale }) {
   const store = block.store;
   if (!store) return null;
-  const t = store.translations?.find(x => x.locale === locale)
+  const lang = getLang(locale);
+
+  const t = store.translations?.find(x => x.locale === lang)
          || store.translations?.[0];
   const name = t?.name || store.name || `Store #${store.id}`;
   const slug = store.slug || store.id;
 
   return (
-    <div className={styles.entityCard}>
+    <div className={styles.entityCard} dir={lang === 'ar' ? 'rtl' : 'ltr'}>
       <div className={styles.entityBadge}>
         <span className="material-symbols-sharp">store</span>
-        Store
+        {lang === 'ar' ? 'متجر' : 'Store'}
       </div>
       <Link href={`/${locale}/stores/${slug}`} className={styles.entityCardLink}>
         <div className={styles.entityCardInner}>
           {(store.logo || store.bigLogo) && (
             <div className={`${styles.entityThumb} ${styles.entityThumbSquare}`}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={store.bigLogo || store.logo} alt={name} loading="lazy" />
             </div>
           )}
@@ -104,7 +94,7 @@ function StoreBlock({ block, locale }) {
             <h3 className={styles.entityTitle}>{name}</h3>
             {t?.description && <p className={styles.entityDesc}>{t.description}</p>}
             <span className={styles.entityCta}>
-              Browse coupons
+              {lang === 'ar' ? 'تصفح الكوبونات' : 'Browse coupons'}
               <span className="material-symbols-sharp">chevron_right</span>
             </span>
           </div>
@@ -118,20 +108,21 @@ function StoreBlock({ block, locale }) {
 function BankBlock({ block, locale }) {
   const bank = block.bank;
   if (!bank) return null;
-  const t = bank.translations?.find(x => x.locale === locale)
+  const lang = getLang(locale);
+
+  const t = bank.translations?.find(x => x.locale === lang)
          || bank.translations?.[0];
   const name = t?.name || `Bank #${bank.id}`;
 
   return (
-    <div className={styles.entityCard}>
+    <div className={styles.entityCard} dir={lang === 'ar' ? 'rtl' : 'ltr'}>
       <div className={styles.entityBadge}>
         <span className="material-symbols-sharp">account_balance</span>
-        Bank
+        {lang === 'ar' ? 'بنك' : 'Bank'}
       </div>
       <div className={styles.entityCardInner}>
         {bank.logo && (
           <div className={`${styles.entityThumb} ${styles.entityThumbSquare}`}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={bank.logo} alt={name} loading="lazy" />
           </div>
         )}
@@ -148,23 +139,24 @@ function BankBlock({ block, locale }) {
 function CardBlock({ block, locale }) {
   const card = block.card;
   if (!card) return null;
-  const t = card.translations?.find(x => x.locale === locale)
+  const lang = getLang(locale);
+
+  const t = card.translations?.find(x => x.locale === lang)
          || card.translations?.[0];
   const name      = t?.name || `Card #${card.id}`;
-  const bankName  = card.bank?.translations?.find(x => x.locale === locale)?.name
+  const bankName  = card.bank?.translations?.find(x => x.locale === lang)?.name
                  || card.bank?.translations?.[0]?.name;
   const benefits  = t?.benefits || t?.description;
 
   return (
-    <div className={styles.entityCard}>
+    <div className={styles.entityCard} dir={lang === 'ar' ? 'rtl' : 'ltr'}>
       <div className={styles.entityBadge}>
         <span className="material-symbols-sharp">credit_card</span>
-        Credit Card
+        {lang === 'ar' ? 'بطاقة ائتمانية' : 'Credit Card'}
       </div>
       <div className={styles.entityCardInner}>
         {card.image && (
           <div className={`${styles.entityThumb} ${styles.cardThumb}`}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={card.image} alt={name} loading="lazy" />
           </div>
         )}
@@ -181,7 +173,17 @@ function CardBlock({ block, locale }) {
   );
 }
 
-// ─── Main export ──────────────────────────────────────────────────────────────
+// Post and Table blocks don't need logic changes as they pass locale down
+function PostBlock({ block, locale }) {
+  if (!block.post) return null;
+  return <EmbeddedPostCard embed={{ embeddedPost: block.post }} locale={locale} />;
+}
+
+function TableBlock({ block, locale }) {
+  if (!block.table) return null;
+  return <ComparisonTable table={block.table} locale={locale} />;
+}
+
 export default function SectionBlockRenderer({ block, locale }) {
   switch (block.type) {
     case 'TEXT':    return <TextBlock    block={block} locale={locale} />;
