@@ -123,7 +123,7 @@ async function getPost(slug, lang) {
                   translations:  { where: { locale: lang } },
                   author:        true,
                   category:      { include: { translations: { where: { locale: lang } } } },
-                  coverImage:    true,
+                  // coverImage:    true,
                 },
               },
               table: {
