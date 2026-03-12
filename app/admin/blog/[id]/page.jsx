@@ -6,7 +6,7 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import styles from '../../admin.module.css';
 import RichTextEditor from '@/components/admin/RichTextEditor/RichTextEditor';
-import ComparisonTableBuilder from '@/components/admin/ComparisonTableBuilder/ComparisonTableBuilder';
+import SectionBlocksEditor from '@/components/admin/SectionBlocksEditor/SectionBlocksEditor';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Constants from schema enums
@@ -198,6 +198,18 @@ function SectionsManager({ postId, initial = [] }) {
                   <button type="button" className={styles.btnPrimary} disabled={saving} onClick={() => handleUpdate(sec.id)}>
                     {saving ? 'Saving…' : 'Save Section'}
                   </button>
+                </div>
+
+                {/* ── Block-level content editor ──────────────────────────── */}
+                <div style={{ marginTop: '1.5rem', borderTop: '1px solid var(--admin-border)', paddingTop: '1.25rem' }}>
+                  <p style={{ fontSize: '0.78rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--admin-text-muted)', marginBottom: '0.5rem' }}>
+                    Content Blocks
+                  </p>
+                  <p style={{ fontSize: '0.78rem', color: 'var(--admin-text-muted)', marginBottom: '0.75rem', lineHeight: 1.5 }}>
+                    Add ordered content blocks inside this section: text, embedded posts, comparison tables, products, stores, banks, or credit cards.
+                    When blocks exist they replace the Content fields above.
+                  </p>
+                  <SectionBlocksEditor postId={postId} sectionId={sec.id} />
                 </div>
               </div>
             )}
