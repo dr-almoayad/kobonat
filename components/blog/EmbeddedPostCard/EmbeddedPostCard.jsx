@@ -2,15 +2,23 @@
 import Link from 'next/link';
 import styles from './EmbeddedPostCard.module.css';
 
-// Accepts either:
-//   <EmbeddedPostCard embed={block.data} locale={...} />   (page.jsx usage — block.data has .embeddedPost)
-//   <EmbeddedPostCard post={post} locale={...} />          (legacy direct-post usage)
 export default function EmbeddedPostCard({ embed, post: postProp, locale = 'en' }) {
   const post = embed?.embeddedPost ?? postProp;
   if (!post) return null;
-  const isRTL = locale === 'ar';
-  const trans  = post.translations?.find(t => t.locale === locale) || post.translations?.find(t => t.locale === 'en') || {};
-  const cat    = post.category?.translations?.find(t => t.locale === locale) || post.category?.translations?.find(t => t.locale === 'en');
+
+  // 1. EXTRACT BASE LANG (e.g., 'ar-SA' -> 'ar')
+  const lang = locale.split('-')[0];
+  const isRTL = lang === 'ar';
+
+  // 2. SEARCH USING THE BASE LANG
+  // We check for 'lang' (ar) instead of 'locale' (ar-SA)
+  const trans = post.translations?.find(t => t.locale === lang) 
+             || post.translations?.find(t => t.locale === 'en') 
+             || {};
+
+  const cat = post.category?.translations?.find(t => t.locale === lang) 
+           || post.category?.translations?.find(t => t.locale === 'en');
+
   const author = post.author;
   const href   = `/${locale}/blog/${post.slug}`;
 
@@ -23,7 +31,6 @@ export default function EmbeddedPostCard({ embed, post: postProp, locale = 'en' 
       <Link href={href} className={styles.card}>
         {post.featuredImage && (
           <div className={styles.thumb}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={post.featuredImage} alt={trans.title || ''} />
           </div>
         )}
@@ -35,6 +42,7 @@ export default function EmbeddedPostCard({ embed, post: postProp, locale = 'en' 
           )}
           <h4 className={styles.title}>{trans.title}</h4>
           {trans.excerpt && <p className={styles.excerpt}>{trans.excerpt}</p>}
+          
           <div className={styles.footer}>
             {author && (
               <div className={styles.author}>
@@ -44,15 +52,21 @@ export default function EmbeddedPostCard({ embed, post: postProp, locale = 'en' 
                 <span>{author.name}</span>
               </div>
             )}
+            
             {post.readingTime && (
               <span className={styles.readTime}>
                 <span className="material-symbols-sharp">schedule</span>
                 {post.readingTime} {isRTL ? 'دقائق' : 'min read'}
               </span>
             )}
+            
             <span className={styles.readCta}>
               {isRTL ? 'اقرأ المقال' : 'Read article'}
-              <span className="material-symbols-sharp">arrow_forward</span>
+              {/* Note: In RTL layouts, the forward arrow icon automatically flips if using standard icons, 
+                  but sometimes you want to swap the icon name manually if it looks wrong */}
+              <span className="material-symbols-sharp">
+                {isRTL ? 'arrow_backward' : 'arrow_forward'}
+              </span>
             </span>
           </div>
         </div>
