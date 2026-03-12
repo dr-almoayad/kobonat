@@ -166,7 +166,7 @@ async function getPost(slug, lang) {
       },
 
       // Embedded post cards
-      embeddedCards: {
+      {/*embeddedCards: {
         include: {
           embeddedPost: {
             include: {
@@ -177,7 +177,7 @@ async function getPost(slug, lang) {
           },
         },
         orderBy: { id: 'asc' },
-      },
+      },*/}
 
       // Sidebar: linked stores
       linkedStores: {
