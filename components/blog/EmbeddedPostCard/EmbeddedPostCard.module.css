@@ -1,0 +1,92 @@
+/* components/blog/EmbeddedPostCard/EmbeddedPostCard.module.css */
+
+.root { margin: 1.75rem 0; }
+
+.eyebrow {
+  display: flex; align-items: center; gap: 0.3rem;
+  font-size: 0.68rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.08em; color: #9ca3af; margin-bottom: 0.5rem;
+}
+.eyebrow .material-symbols-sharp { font-size: 0.85rem; }
+
+.card {
+  display: flex; gap: 1rem; align-items: stretch;
+  border: 1.5px solid #e5e7eb; border-radius: 12px; overflow: hidden;
+  text-decoration: none; color: inherit;
+  background: #fff;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.card:hover {
+  border-color: #470ae2;
+  box-shadow: 0 4px 20px rgba(71,10,226,0.1);
+}
+
+.thumb {
+  width: 140px; min-width: 140px; flex-shrink: 0;
+  overflow: hidden;
+}
+.thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+.body {
+  flex: 1; padding: 0.9rem 1rem 0.9rem 0;
+  display: flex; flex-direction: column; gap: 0.35rem;
+}
+[dir="rtl"] .body { padding: 0.9rem 0 0.9rem 1rem; }
+
+.cat {
+  display: inline-block; font-size: 0.65rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.07em;
+  color: var(--cat-color, #470ae2);
+  background: color-mix(in srgb, var(--cat-color, #470ae2) 10%, transparent);
+  padding: 2px 8px; border-radius: 20px; align-self: flex-start;
+}
+
+.title {
+  font-size: 0.95rem; font-weight: 700; color: #111; margin: 0;
+  line-height: 1.35;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.excerpt {
+  font-size: 0.8rem; color: #6b7280; margin: 0; line-height: 1.5;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.footer {
+  display: flex; align-items: center; gap: 0.75rem;
+  margin-top: auto; padding-top: 0.4rem;
+}
+
+.author {
+  display: flex; align-items: center; gap: 0.35rem;
+  font-size: 0.72rem; color: #6b7280;
+}
+.avatar { width: 18px; height: 18px; border-radius: 50%; object-fit: cover; }
+.avatarInitial {
+  width: 18px; height: 18px; border-radius: 50%; background: #470ae2;
+  color: #fff; font-size: 0.6rem; font-weight: 700;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+
+.readTime {
+  display: flex; align-items: center; gap: 0.2rem;
+  font-size: 0.7rem; color: #9ca3af;
+}
+.readTime .material-symbols-sharp { font-size: 0.8rem; }
+
+.readCta {
+  margin-left: auto; display: flex; align-items: center; gap: 0.2rem;
+  font-size: 0.72rem; font-weight: 700; color: #470ae2;
+  white-space: nowrap;
+}
+[dir="rtl"] .readCta { margin-left: 0; margin-right: auto; }
+.readCta .material-symbols-sharp { font-size: 0.8rem; }
+[dir="rtl"] .readCta .material-symbols-sharp { transform: scaleX(-1); }
+
+@media (max-width: 500px) {
+  .thumb { width: 90px; min-width: 90px; }
+  .title { font-size: 0.88rem; }
+  .excerpt { display: none; }
+}
