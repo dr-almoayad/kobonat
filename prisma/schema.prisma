@@ -18,8 +18,6 @@ enum Locale {
   en
 }
 
-// REMOVED Currency enum to avoid migration issues
-
 enum ShowOfferType {
   CODE
   DEAL
@@ -30,17 +28,17 @@ enum ShowOfferType {
 }
 
 enum VoucherType {
-  CODE           // Requires coupon code
-  DEAL           // Auto-applied deal
-  FREE_SHIPPING  // Free shipping offer
+  CODE
+  DEAL
+  FREE_SHIPPING
 }
 
 enum PromoType {
-  BANK_OFFER      // "15% off with SABB"
-  CARD_OFFER      // "Extra 10% with Visa"
-  PAYMENT_OFFER   // "5% cashback via STC Pay"
-  SEASONAL        // "Ramadan Special"
-  BUNDLE          // "Buy 2 Get 1 Free"
+  BANK_OFFER
+  CARD_OFFER
+  PAYMENT_OFFER
+  SEASONAL
+  BUNDLE
   OTHER
 }
 
@@ -50,14 +48,14 @@ enum DiscountType {
 }
 
 enum CuratedOfferType {
-  CODE           // Requires coupon code
-  DEAL           // Auto-applied deal
-  PRODUCT        // Specific product discount
-  SEASONAL       // Seasonal offer (Ramadan, Black Friday, etc)
-  FREE_SHIPPING  // Free shipping offer
-  CASHBACK       // Cashback reward
-  BUNDLE         // Buy X Get Y
-  FLASH_SALE     // Limited time flash sale
+  CODE
+  DEAL
+  PRODUCT
+  SEASONAL
+  FREE_SHIPPING
+  CASHBACK
+  BUNDLE
+  FLASH_SALE
 }
 
 enum PaymentType {
@@ -75,63 +73,56 @@ enum AdminRole {
   VIEWER
 }
 
-// Blog status lifecycle
 enum BlogStatus {
-  DRAFT      // Being written, not visible publicly
-  PUBLISHED  // Live and visible
-  ARCHIVED   // Hidden but preserved
+  DRAFT
+  PUBLISHED
+  ARCHIVED
 }
 
-// Content type — drives template selection and structured data
 enum BlogContentType {
-  GUIDE        // How-to, tips — informational evergreen
-  DEAL_HUB     // Aggregated deals page for one merchant or category
-  SEASONAL     // Ramadan, Black Friday, Back to School, etc.
-  COMPARISON   // Store A vs Store B, product comparisons
-  NEWS         // Time-sensitive announcements
+  GUIDE
+  DEAL_HUB
+  SEASONAL
+  COMPARISON
+  NEWS
 }
 
-// Search intent — used for internal link strategy + schema.org type
 enum SearchIntent {
-  INFORMATIONAL   // "how to save money on noon"
-  COMMERCIAL      // "best noon deals right now"
-  TRANSACTIONAL   // "noon coupon code"
+  INFORMATIONAL
+  COMMERCIAL
+  TRANSACTIONAL
 }
 
-// Leaderboard / savings snapshot
 enum RankMovement {
-  UP    // Rose in rank vs previous week
-  DOWN  // Dropped in rank vs previous week
-  SAME  // No change
-  NEW   // No previous snapshot exists
+  UP
+  DOWN
+  SAME
+  NEW
 }
 
-// Stackability groups
 enum OfferStackGroup {
-  DEAL         // Auto-applied site-wide discount
-  CODE         // Requires a coupon code
-  BANK_OFFER   // Bank / card / payment method offer
-  CASHBACK     // Post-purchase return — not a point-of-sale % saving
-  BUNDLE       // Buy X get Y — excluded from % calculator
+  DEAL
+  CODE
+  BANK_OFFER
+  CASHBACK
+  BUNDLE
 }
 
-// Discount certainty (affects multiplier applied)
 enum DiscountCertainty {
-  EXACT      // "10% off everything" — applies to every purchase, no conditions
-  VERIFIED   // Admin has manually checked real product prices and entered a true average
-  TYPICAL    // Admin researched the store; figure is a reasonable estimate
-  ESTIMATED  // "Up to X% off" marketing claim — headline figure, not typical saving
-  UNKNOWN    // No reliable number available
+  EXACT
+  VERIFIED
+  TYPICAL
+  ESTIMATED
+  UNKNOWN
 }
 
-// Confidence level for store intelligence predictions
 enum ConfidenceLevel {
-  LOW     // Based on general industry patterns
-  MEDIUM  // Based on this store's historical behaviour
-  HIGH    // Admin has confirmed or store has announced
+  LOW
+  MEDIUM
+  HIGH
 }
 
-// === NEW BANK ENUMS ===
+// Bank enums
 enum BankType {
   COMMERCIAL
   ISLAMIC
@@ -155,15 +146,33 @@ enum CardTier {
   WORLD_ELITE
 }
 
+// NEW COMPARISON TABLE ENUMS
+enum ComparisonEntityType {
+  STORE
+  BANK
+  BANK_CARD
+  VOUCHER
+  PROMO
+  PRODUCT
+  CUSTOM
+}
+
+enum ComparisonRowType {
+  TEXT
+  RATING
+  BOOLEAN
+  BADGE
+}
+
 // ============================================================================
 // CORE MODELS
 // ============================================================================
 
 model Country {
   id        Int      @id @default(autoincrement())
-  code      String   @unique // SA, EG, AE
-  currency  String   // SAR, EGP, AED - KEPT AS STRING to avoid migration
-  flag      String?  // 🇸🇦
+  code      String   @unique
+  currency  String
+  flag      String?
   isActive  Boolean  @default(true)
   isDefault Boolean  @default(false)
 
@@ -198,42 +207,37 @@ model CountryTranslation {
 }
 
 // ============================================================================
-// STORE - ENHANCED WITH COVER IMAGE AND INTELLIGENCE FIELDS
+// STORE
 // ============================================================================
 
 model Store {
   id Int @id @default(autoincrement())
 
-  // Images
   logo            String?
   bigLogo         String?
   backgroundImage String?
-  coverImage      String? // Hero banner for store page
-  color           String? // Brand color for UI theming
+  coverImage      String?
+  color           String?
 
   showOfferType ShowOfferType?
 
-  // URLs
   websiteUrl       String
   affiliateNetwork String?
   trackingUrl      String?
 
-  // Status
   isActive   Boolean @default(true)
   isFeatured Boolean @default(false)
 
-  // ── Logistics & returns (store intelligence) ───────────────────────────
-  averageDeliveryDaysMin  Int?      // e.g. 1 (fastest quoted delivery)
-  averageDeliveryDaysMax  Int?      // e.g. 5 (slowest quoted delivery)
-  freeShippingThreshold   Float?    // SAR. null = always paid. 0 = always free.
-  returnWindowDays        Int?      // How many days to initiate a return
+  averageDeliveryDaysMin  Int?
+  averageDeliveryDaysMax  Int?
+  freeShippingThreshold   Float?
+  returnWindowDays        Int?
   freeReturns             Boolean   @default(false)
-  refundProcessingDaysMin Int?      // Shortest quoted refund time
-  refundProcessingDaysMax Int?      // Longest quoted refund time
-  offerFrequencyDays      Int?      // Average days between major promotions
-  lastVerifiedAt          DateTime? // When admin last verified logistics info
+  refundProcessingDaysMin Int?
+  refundProcessingDaysMax Int?
+  offerFrequencyDays      Int?
+  lastVerifiedAt          DateTime?
 
-  // Relations
   translations   StoreTranslation[]
   countries      StoreCountry[]
   vouchers       Voucher[]
@@ -243,18 +247,19 @@ model Store {
   otherPromos    OtherPromo[]
   products       StoreProduct[]
   curatedOffers  CuratedOffer[]
-  // Blog relations
+
   primaryBlogPosts    BlogPost[]         @relation("PrimaryStore")
   blogPostStores      BlogPostStore[]
   blogSectionStores   BlogPostSectionStore[]
-  // Leaderboard snapshots
+
   savingsSnapshots    StoreSavingsSnapshot[]
-  // Store intelligence
   savingsMetrics      StoreSavingsMetrics[]
   upcomingEvents      StoreUpcomingEvent[]
   peakSeasons         StorePeakSeason[]
-  // Offer stacks
   offerStacks         OfferStack[]
+
+  // NEW back‑relation for comparison tables
+  comparisonColumns   ComparisonTableColumn[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -273,11 +278,9 @@ model StoreTranslation {
   slug        String
   description String? @db.Text
 
-  // SEO
   seoTitle       String?
   seoDescription String? @db.Text
-
-  showOffer String? // "Get 15% off all orders" / "خصم 15% على جميع الطلبات"
+  showOffer      String?
 
   store Store @relation(fields: [storeId], references: [id], onDelete: Cascade)
 
@@ -288,23 +291,20 @@ model StoreTranslation {
 }
 
 // ============================================================================
-// CATEGORY - ENHANCED WITH IMAGE AND BANK SCORING WEIGHTS
+// CATEGORY
 // ============================================================================
 
 model Category {
   id    Int     @id @default(autoincrement())
-  icon  String? // Material icon name (e.g., "checkroom", "devices")
-  image String? // Category banner/thumbnail
-  color String? // Category accent color
+  icon  String?
+  image String?
+  color String?
 
-  // Bank niche scoring (null = not a bank scoring category)
-  bankScoringWeights Json? // JSON object with weights for criteria (e.g., {"loungeAccess": 0.2, "cashbackGeneral": 0.5})
+  bankScoringWeights Json?
 
   translations CategoryTranslation[]
   stores       StoreCategory[]
-  savingsSnapshots StoreSavingsSnapshot[] // for category leaderboards
-
-  // Bank niche snapshots (leaderboard rows for this category)
+  savingsSnapshots StoreSavingsSnapshot[]
   bankNicheSnapshots BankNicheSnapshot[]
 
   createdAt DateTime @default(now())
@@ -334,55 +334,49 @@ model CategoryTranslation {
 }
 
 // ============================================================================
-// VOUCHER - COUPONS & DEALS (with stackability & certainty fields)
+// VOUCHER
 // ============================================================================
 
 model Voucher {
   id      Int @id @default(autoincrement())
   storeId Int
 
-  // Voucher Details
-  code     String?     // Coupon code (e.g., "SAVE20")
+  code     String?
   type     VoucherType
-  discount String?     // "20%", "50 SAR off", "Buy 1 Get 1"
+  discount String?
 
-  // Numeric fields for calculation
-  discountPercent    Float?               // Numeric headline %
-  verifiedAvgPercent Float?               // Admin-verified true average (overrides discountPercent)
+  discountPercent    Float?
+  verifiedAvgPercent Float?
   discountCertainty  DiscountCertainty    @default(ESTIMATED)
   stackGroup         OfferStackGroup      @default(DEAL)
   isStackable        Boolean              @default(false)
   isCapped           Boolean              @default(false)
-  maxDiscountAmount  Float?               // SAR ceiling
-  minSpendAmount     Float?               // SAR minimum basket
-  isFeaturedStack    Boolean  @default(false)
+  maxDiscountAmount  Float?
+  minSpendAmount     Float?
+  isFeaturedStack    Boolean               @default(false)
 
-  // Image for featured deals
-  image String? // Hero image for visual deals
+  image String?
 
-  // Links
-  landingUrl String? // Direct product/deal URL
+  landingUrl String?
 
-  // Validity
   startDate  DateTime?
   expiryDate DateTime?
 
-  // Badges
   isExclusive Boolean @default(false)
   isVerified  Boolean @default(false)
 
-  // Analytics
   popularityScore Int @default(0)
   clickCount      Int @default(0)
 
-  // Relations
   translations VoucherTranslation[]
   countries    VoucherCountry[]
   store        Store        @relation(fields: [storeId], references: [id], onDelete: Cascade)
   clicks       VoucherClick[]
-  // Offer stacks
   stackAsCode  OfferStack[] @relation("StackCode")
   stackAsDeal  OfferStack[] @relation("StackDeal")
+
+  // NEW back‑relation for comparison tables
+  comparisonColumns ComparisonTableColumn[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -401,8 +395,8 @@ model VoucherTranslation {
   voucherId Int
   locale    Locale
 
-  title       String        // "20% Off Everything"
-  description String? @db.Text // "Valid on all items. Min spend 200 SAR"
+  title       String
+  description String? @db.Text
 
   voucher Voucher @relation(fields: [voucherId], references: [id], onDelete: Cascade)
 
@@ -411,35 +405,33 @@ model VoucherTranslation {
 }
 
 // ============================================================================
-// STORE PRODUCTS - FEATURED ITEMS
+// STORE PRODUCTS
 // ============================================================================
 
 model StoreProduct {
   id      Int @id @default(autoincrement())
   storeId Int
 
-  // Product Details
-  image        String       // Product image (required)
-  discountValue Float?       // Discount amount (percentage or absolute)
+  image        String
+  discountValue Float?
   discountType  DiscountType @default(PERCENTAGE)
 
-  // Links
-  productUrl String // Direct link to product on store website
+  productUrl String
 
-  // Display
-  isFeatured Boolean @default(true) // Show on store page
-  order      Int     @default(0)    // Display order
+  isFeatured Boolean @default(true)
+  order      Int     @default(0)
 
-  // Analytics
   clickCount Int @default(0)
 
-  // Relations
   translations StoreProductTranslation[]
   store        Store               @relation(fields: [storeId], references: [id], onDelete: Cascade)
   clicks       StoreProductClick[]
   countries    StoreProductCountry[]
-  blogProducts BlogPostProduct[]        // post-level product links
-  blogSectionProducts BlogPostSectionProduct[] // section-level product links
+  blogProducts BlogPostProduct[]
+  blogSectionProducts BlogPostSectionProduct[]
+
+  // NEW back‑relation for comparison tables
+  comparisonColumns ComparisonTableColumn[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -455,7 +447,7 @@ model StoreProductTranslation {
   productId Int
   locale    Locale
 
-  title       String        // Changed from optional to required
+  title       String
   description String? @db.Text
 
   product StoreProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
@@ -483,7 +475,7 @@ model StoreProductClick {
 }
 
 // ============================================================================
-// OTHER PROMOS - BANK/CARD OFFERS (with stackability & certainty fields, and bank relations)
+// OTHER PROMOS
 // ============================================================================
 
 model OtherPromo {
@@ -491,44 +483,40 @@ model OtherPromo {
   storeId   Int
   countryId Int
 
-  // Promo Details
-  image String?    // Banner image
+  image String?
   type  PromoType
 
-  // Numeric fields for calculation
-  discountPercent    Float?               // Numeric headline %
-  verifiedAvgPercent Float?               // Admin-verified true average
-  discountCertainty  DiscountCertainty    @default(EXACT) // bank offers are contract terms
+  discountPercent    Float?
+  verifiedAvgPercent Float?
+  discountCertainty  DiscountCertainty    @default(EXACT)
   stackGroup         OfferStackGroup      @default(BANK_OFFER)
   isStackable        Boolean              @default(false)
   isCapped           Boolean              @default(false)
-  maxDiscountAmount  Float?               // SAR ceiling
-  minSpendAmount     Float?               // SAR minimum basket
+  maxDiscountAmount  Float?
+  minSpendAmount     Float?
 
-  // Links
-  url String? // External link to T&Cs or signup
+  url String?
 
-  // Validity
   startDate  DateTime?
   expiryDate DateTime?
 
   isActive Boolean @default(true)
   order    Int     @default(0)
 
-  // Bank-related fields (new)
   bankId            Int?
   cardId            Int?
   cardNetwork       CardNetwork?
   installmentMonths Int?
 
-  // Relations
   translations OtherPromoTranslation[]
   store        Store   @relation(fields: [storeId], references: [id], onDelete: Cascade)
   country      Country @relation(fields: [countryId], references: [id], onDelete: Cascade)
   bank         Bank?     @relation(fields: [bankId], references: [id], onDelete: SetNull)
   card         BankCard? @relation(fields: [cardId], references: [id], onDelete: SetNull)
-  // Offer stacks
   offerStacks  OfferStack[] @relation("StackPromo")
+
+  // NEW back‑relation for comparison tables
+  comparisonColumns ComparisonTableColumn[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -547,7 +535,7 @@ model OtherPromoTranslation {
   promoId Int
   locale  Locale
 
-  title       String        // "10% Cashback with Visa"
+  title       String
   description String? @db.Text
   terms       String? @db.Text
 
@@ -558,19 +546,18 @@ model OtherPromoTranslation {
 }
 
 // ============================================================================
-// OFFER STACKS — Admin-curated combinations of stackable offers
+// OFFER STACKS
 // ============================================================================
 
 model OfferStack {
   id      Int @id @default(autoincrement())
   storeId Int
 
-  label String? // Optional admin label e.g. "Ramadan Stack"
+  label String?
 
-  // Each slot holds the ID of the chosen item (all nullable — need ≥ 2 filled)
-  codeVoucherId Int? // Voucher with stackGroup = CODE
-  dealVoucherId Int? // Voucher with stackGroup = DEAL
-  promoId       Int? // OtherPromo with stackGroup = BANK_OFFER
+  codeVoucherId Int?
+  dealVoucherId Int?
+  promoId       Int?
 
   isActive Boolean @default(true)
   order    Int     @default(0)
@@ -589,31 +576,26 @@ model OfferStack {
 }
 
 // ============================================================================
-// CURATED OFFERS - ENHANCED WITH COUNTRY RELATION
+// CURATED OFFERS
 // ============================================================================
 
 model CuratedOffer {
   id      Int @id @default(autoincrement())
   storeId Int
 
-  // Offer Details
-  offerImage String           // Squircle image URL
-  code       String?          // Optional coupon code
+  offerImage String
+  code       String?
   type       CuratedOfferType
 
-  // CTA
-  ctaUrl String // Where clicking leads
+  ctaUrl String
 
-  // Validity
   startDate  DateTime?
   expiryDate DateTime?
 
-  // Display
   isFeatured Boolean @default(false)
   isActive   Boolean @default(true)
   order      Int     @default(0)
 
-  // Relations
   translations CuratedOfferTranslation[]
   store        Store               @relation(fields: [storeId], references: [id], onDelete: Cascade)
   countries    CuratedOfferCountry[]
@@ -634,9 +616,9 @@ model CuratedOfferTranslation {
   offerId Int
   locale  Locale
 
-  title       String        // "€25 BYOD Plan!"
+  title       String
   description String? @db.Text
-  ctaText     String        // "SHOP NOW", "GET OFFER"
+  ctaText     String
 
   offer CuratedOffer @relation(fields: [offerId], references: [id], onDelete: Cascade)
 
@@ -858,16 +840,14 @@ model Admin {
 // BLOG SYSTEM
 // ============================================================================
 
-// ── Author ───────────────────────────────────────────────────────────────────
-
 model BlogAuthor {
   id            Int     @id @default(autoincrement())
-  name          String  // Display name in English
-  nameAr        String? // Display name in Arabic
-  avatar        String? // URL to profile photo
-  bio           String? @db.Text // Short bio in English
-  bioAr         String? @db.Text // Short bio in Arabic
-  twitterHandle String? // Without @, used for schema.org sameAs
+  name          String
+  nameAr        String?
+  avatar        String?
+  bio           String? @db.Text
+  bioAr         String? @db.Text
+  twitterHandle String?
 
   posts BlogPost[]
 
@@ -877,13 +857,11 @@ model BlogAuthor {
   @@index([name])
 }
 
-// ── Blog Category ─────────────────────────────────────────────────────────────
-
 model BlogCategory {
   id    Int     @id @default(autoincrement())
-  slug  String  @unique // e.g. "shopping-tips" — shared across locales
-  color String? // Accent color for UI badges
-  icon  String? // Optional icon name
+  slug  String  @unique
+  color String?
+  icon  String?
 
   translations BlogCategoryTranslation[]
   posts        BlogPost[]
@@ -897,7 +875,7 @@ model BlogCategory {
 model BlogCategoryTranslation {
   id          Int    @id @default(autoincrement())
   categoryId  Int
-  locale      Locale // Uses existing Locale enum (ar | en)
+  locale      Locale
 
   name        String
   description String? @db.Text
@@ -908,11 +886,9 @@ model BlogCategoryTranslation {
   @@index([locale])
 }
 
-// ── Blog Tag ──────────────────────────────────────────────────────────────────
-
 model BlogTag {
   id   Int    @id @default(autoincrement())
-  slug String @unique // e.g. "noon", "electronics"
+  slug String @unique
 
   translations BlogTagTranslation[]
   posts        BlogPostTag[]
@@ -927,7 +903,7 @@ model BlogTagTranslation {
   tagId  Int
   locale Locale
 
-  name String // e.g. "Electronics" / "إلكترونيات"
+  name String
 
   tag BlogTag @relation(fields: [tagId], references: [id], onDelete: Cascade)
 
@@ -935,42 +911,38 @@ model BlogTagTranslation {
   @@index([locale])
 }
 
-// ── Blog Post ─────────────────────────────────────────────────────────────────
-
 model BlogPost {
   id            Int              @id @default(autoincrement())
   slug          String           @unique
   featuredImage String?
 
-  // ── Status & visibility ───────────────────────────────────────────────────
   isFeatured  Boolean    @default(false)
   status      BlogStatus @default(DRAFT)
   publishedAt DateTime?
 
-  // ── SEO strategy fields ───────────────────────────────────────────────────
   contentType   BlogContentType @default(GUIDE)
   searchIntent  SearchIntent    @default(INFORMATIONAL)
-  readingTime   Int?            // minutes, computed from content word count
-  faqJson       String?         @db.Text // JSON array: [{q, a}, ...] for FAQ schema.org
+  readingTime   Int?
+  faqJson       String?         @db.Text
 
-  // ── Merchant clustering ───────────────────────────────────────────────────
   primaryStoreId Int?
   primaryStore   Store? @relation("PrimaryStore", fields: [primaryStoreId], references: [id], onDelete: SetNull)
 
-  // ── Taxonomy ──────────────────────────────────────────────────────────────
   authorId   Int?
   categoryId Int?
   author     BlogAuthor?   @relation(fields: [authorId], references: [id], onDelete: SetNull)
   category   BlogCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
 
-  // ── Relations ─────────────────────────────────────────────────────────────
   translations     BlogPostTranslation[]
   tags             BlogPostTag[]
-  sections         BlogPostSection[]     // structured content blocks
-  linkedStores     BlogPostStore[]       // explicit post-level store links
-  relatedProducts  BlogPostProduct[]     // post-level product links
+  sections         BlogPostSection[]
+  linkedStores     BlogPostStore[]
+  relatedProducts  BlogPostProduct[]
   relatedPosts     BlogPostRelated[] @relation("PostToRelated")
   relatedTo        BlogPostRelated[] @relation("RelatedToPost")
+
+  // NEW back‑relation for comparison tables
+  comparisonTables ComparisonTable[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -991,8 +963,8 @@ model BlogPostTranslation {
   locale Locale
 
   title   String
-  excerpt String  @db.Text // Short summary for cards and meta
-  content String  @db.Text // Full HTML/rich text body
+  excerpt String  @db.Text
+  content String  @db.Text
 
   metaTitle       String?
   metaDescription String? @db.Text
@@ -1071,8 +1043,8 @@ model BlogPostSectionTranslation {
   sectionId Int
   locale    Locale
 
-  subtitle String?        // Optional section heading (h3)
-  content  String @db.Text // Section body — HTML/rich text
+  subtitle String?
+  content  String @db.Text
 
   section BlogPostSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
 
@@ -1105,20 +1077,19 @@ model BlogPostSectionStore {
 }
 
 // ============================================================================
-// LEADERBOARD (SAVINGS SNAPSHOTS)
+// LEADERBOARD & STORE INTELLIGENCE
 // ============================================================================
 
 model SavingsMethodology {
   id          Int     @id @default(autoincrement())
-  version     String  @unique   // e.g. "v1", "v2"
-  description String  @db.Text  // Plain-language formula description
-  isActive    Boolean @default(false) // Only one row should be true at a time
+  version     String  @unique
+  description String  @db.Text
+  isActive    Boolean @default(false)
 
-  // Formula parameters stored as config
-  maxSavingsCap       Float @default(75.0)  // Absolute ceiling (%)
-  bankOfferStackable  Boolean @default(true) // Whether bank offers stack
-  couponStackable     Boolean @default(true) // Whether coupons stack on top of deals
-  referenceBasketSize Float @default(500.0) // SAR basket size used to compute effective % for capped offers
+  maxSavingsCap       Float @default(75.0)
+  bankOfferStackable  Boolean @default(true)
+  couponStackable     Boolean @default(true)
+  referenceBasketSize Float @default(500.0)
   multiplierExact     Float @default(1.00)
   multiplierVerified  Float @default(1.00)
   multiplierTypical   Float @default(0.80)
@@ -1134,61 +1105,48 @@ model SavingsMethodology {
 model StoreSavingsSnapshot {
   id        Int    @id @default(autoincrement())
   storeId   Int
-  categoryId Int?               // NULL = global leaderboard; set = category leaderboard
+  categoryId Int?
 
-  // Raw component scores (stored for auditability)
-  maxDirectDiscountPercent Float @default(0) // Best active DEAL voucher
-  maxCouponPercent         Float @default(0) // Best active CODE voucher
-  maxBankOfferPercent      Float @default(0) // Best active bank/card promo
+  maxDirectDiscountPercent Float @default(0)
+  maxCouponPercent         Float @default(0)
+  maxBankOfferPercent      Float @default(0)
 
-  // Calculated output
-  calculatedMaxSavingsPercent Float    // Final stacked % after formula + cap
-  savingsOverridePercent      Float?   // Admin can pin a manual value; NULL = use calculated
-  stackingPath                String?  // e.g. "DEAL(20.0%) + BANK_OFFER(12.0%)"
+  calculatedMaxSavingsPercent Float
+  savingsOverridePercent      Float?
+  stackingPath                String?
 
-  // Ranking
-  rank         Int             // 1 = best this week
-  previousRank Int?            // NULL if NEW entry
+  rank         Int
+  previousRank Int?
   movement     RankMovement @default(NEW)
 
-  // Traceability
-  weekIdentifier     String  // ISO week: "2026-W10"
-  methodologyId      Int?    // Which formula version produced this row
+  weekIdentifier     String
+  methodologyId      Int?
   calculatedAt       DateTime @default(now())
 
-  // Relations
   store       Store               @relation(fields: [storeId], references: [id], onDelete: Cascade)
   category    Category?           @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   methodology SavingsMethodology? @relation(fields: [methodologyId], references: [id], onDelete: SetNull)
 
-  // One snapshot per store+category+week (idempotent upsert)
   @@unique([storeId, categoryId, weekIdentifier])
-
   @@index([weekIdentifier, rank])
   @@index([storeId, weekIdentifier])
   @@index([categoryId, weekIdentifier, rank])
   @@index([movement])
 }
 
-// ============================================================================
-// STORE INTELLIGENCE
-// ============================================================================
-
 model StoreSavingsMetrics {
   id              Int    @id @default(autoincrement())
   storeId         Int
-  monthIdentifier String // "2026-03" — ISO year-month
+  monthIdentifier String
 
-  // Savings data (inputs to score)
-  averageDiscountPercent    Float @default(0) // Mean across all active offers
-  maxStackableSavingsPercent Float @default(0) // Best compound saving (from leaderboard cron)
-  codeSuccessRate           Float @default(0) // 0–100: % of code clicks that weren't "code invalid"
-  totalActiveOffers         Int   @default(0) // Count of non-expired vouchers + promos
-  offerQualityRatio         Float @default(0) // Added field
+  averageDiscountPercent    Float @default(0)
+  maxStackableSavingsPercent Float @default(0)
+  codeSuccessRate           Float @default(0)
+  totalActiveOffers         Int   @default(0)
+  offerQualityRatio         Float @default(0)
 
-  // Pre-computed score (avoids recalculating on every request)
-  storeScore      Float @default(0) // 0–10 scale, stored after cron calculates it
-  scoreBreakdown  String? @db.Text  // JSON: { savings: 2.7, codeSuccess: 1.6, ... }
+  storeScore      Float @default(0)
+  scoreBreakdown  String? @db.Text
 
   updatedAt DateTime @updatedAt
 
@@ -1202,10 +1160,10 @@ model StoreSavingsMetrics {
 model StoreUpcomingEvent {
   id              Int            @id @default(autoincrement())
   storeId         Int
-  eventName       String         // e.g. "Ramadan Sale", "White Friday"
-  expectedMonth   String         // "2026-03" — ISO year-month
+  eventName       String
+  expectedMonth   String
   confidenceLevel ConfidenceLevel @default(MEDIUM)
-  expectedMaxDiscount Float?     // Optional: what % off is typically expected
+  expectedMaxDiscount Float?
   notes           String?        @db.Text
 
   store Store @relation(fields: [storeId], references: [id], onDelete: Cascade)
@@ -1221,9 +1179,9 @@ model StoreUpcomingEvent {
 model StorePeakSeason {
   id        Int    @id @default(autoincrement())
   storeId   Int
-  seasonKey String // Stable key: "ramadan", "white_friday", "back_to_school", etc.
-  nameEn    String // "Ramadan Sale"
-  nameAr    String // "تخفيضات رمضان"
+  seasonKey String
+  nameEn    String
+  nameAr    String
 
   store Store @relation(fields: [storeId], references: [id], onDelete: Cascade)
 
@@ -1233,7 +1191,7 @@ model StorePeakSeason {
 }
 
 // ============================================================================
-// NEW BANK MODELS
+// BANK MODELS
 // ============================================================================
 
 model Bank {
@@ -1250,6 +1208,9 @@ model Bank {
   cards          BankCard[]
   nicheSnapshots BankNicheSnapshot[]
   otherPromos    OtherPromo[]
+
+  // NEW back‑relation for comparison tables
+  comparisonColumns ComparisonTableColumn[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1281,12 +1242,10 @@ model BankCard {
   isIslamic Boolean     @default(false)
   image     String?
 
-  // Financials
   annualFee           Float?
   minSalary           Float?
   foreignTxFeePercent Float?
 
-  // Perks
   loungeAccessPerYear   Int?
   hasTravelInsurance    Boolean @default(false)
   hasPurchaseProtection Boolean @default(false)
@@ -1294,7 +1253,6 @@ model BankCard {
   hasGooglePay          Boolean @default(true)
   hasSamsungPay         Boolean @default(false)
 
-  // Earn rates (%) per spend category — feed the scoring engine
   cashbackGeneral    Float?
   cashbackTravel     Float?
   cashbackDining     Float?
@@ -1310,6 +1268,9 @@ model BankCard {
   bank         Bank                @relation(fields: [bankId], references: [id], onDelete: Cascade)
   translations BankCardTranslation[]
   otherPromos  OtherPromo[]
+
+  // NEW back‑relation for comparison tables
+  comparisonColumns ComparisonTableColumn[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1334,23 +1295,21 @@ model BankCardTranslation {
   @@index([locale])
 }
 
-// Weekly auto-calculated leaderboard row, one per bank × category (niche)
 model BankNicheSnapshot {
   id         Int @id @default(autoincrement())
   bankId     Int
-  categoryId Int   // reuses Category (travel, gaming, dining…)
+  categoryId Int
 
-  weekIdentifier String   // "2026-W10"
+  weekIdentifier String
 
-  score          Float         // 0–100 normalised
+  score          Float
   rank           Int
   previousRank   Int?
-  movement       RankMovement  @default(NEW) // reuses existing enum
+  movement       RankMovement  @default(NEW)
 
-  // Per-criterion breakdown for radar chart: { "loungeAccess": 8.5, ... }
   scoreBreakdown Json
 
-  bestCardId Int?  // which of the bank's cards drove this score
+  bestCardId Int?
 
   bank     Bank     @relation(fields: [bankId],     references: [id], onDelete: Cascade)
   category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
@@ -1360,4 +1319,143 @@ model BankNicheSnapshot {
   @@unique([bankId, categoryId, weekIdentifier])
   @@index([categoryId, weekIdentifier, rank])
   @@index([bankId])
+}
+
+// ============================================================================
+// COMPARISON TABLES (NEW)
+// ============================================================================
+
+model ComparisonTable {
+  id     Int  @id @default(autoincrement())
+  postId Int?
+  order  Int  @default(0)
+
+  entityType ComparisonEntityType @default(CUSTOM)
+
+  post BlogPost? @relation(fields: [postId], references: [id], onDelete: SetNull)
+
+  translations ComparisonTableTranslation[]
+  columns      ComparisonTableColumn[]
+  rows         ComparisonTableRow[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([postId, order])
+}
+
+model ComparisonTableTranslation {
+  id      Int    @id @default(autoincrement())
+  tableId Int
+  locale  Locale
+
+  title    String?
+  subtitle String? @db.Text
+
+  table ComparisonTable @relation(fields: [tableId], references: [id], onDelete: Cascade)
+
+  @@unique([tableId, locale])
+  @@index([locale])
+}
+
+model ComparisonTableColumn {
+  id      Int @id @default(autoincrement())
+  tableId Int
+  order   Int @default(0)
+
+  image         String?
+  isHighlighted Boolean @default(false)
+  ctaUrl        String?
+
+  storeId    Int?
+  bankId     Int?
+  bankCardId Int?
+  voucherId  Int?
+  promoId    Int?
+  productId  Int?
+
+  table  ComparisonTable @relation(fields: [tableId], references: [id], onDelete: Cascade)
+
+  translations ComparisonTableColumnTranslation[]
+  cells        ComparisonTableCell[]
+
+  // Entity relations
+  store    Store?        @relation(fields: [storeId],    references: [id], onDelete: SetNull)
+  bank     Bank?         @relation(fields: [bankId],     references: [id], onDelete: SetNull)
+  bankCard BankCard?     @relation(fields: [bankCardId], references: [id], onDelete: SetNull)
+  voucher  Voucher?      @relation(fields: [voucherId],  references: [id], onDelete: SetNull)
+  promo    OtherPromo?   @relation(fields: [promoId],    references: [id], onDelete: SetNull)
+  product  StoreProduct? @relation(fields: [productId],  references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tableId, order])
+  @@index([storeId])
+  @@index([bankId])
+  @@index([bankCardId])
+}
+
+model ComparisonTableColumnTranslation {
+  id       Int    @id @default(autoincrement())
+  columnId Int
+  locale   Locale
+
+  name        String
+  description String?
+  badge       String?
+
+  column ComparisonTableColumn @relation(fields: [columnId], references: [id], onDelete: Cascade)
+
+  @@unique([columnId, locale])
+  @@index([locale])
+}
+
+model ComparisonTableRow {
+  id      Int @id @default(autoincrement())
+  tableId Int
+  order   Int @default(0)
+
+  key     String?
+  rowType ComparisonRowType @default(TEXT)
+
+  table        ComparisonTable @relation(fields: [tableId], references: [id], onDelete: Cascade)
+  translations ComparisonTableRowTranslation[]
+  cells        ComparisonTableCell[]
+
+  @@index([tableId, order])
+}
+
+model ComparisonTableRowTranslation {
+  id     Int    @id @default(autoincrement())
+  rowId  Int
+  locale Locale
+
+  label    String
+  helpText String?
+
+  row ComparisonTableRow @relation(fields: [rowId], references: [id], onDelete: Cascade)
+
+  @@unique([rowId, locale])
+  @@index([locale])
+}
+
+model ComparisonTableCell {
+  id       Int @id @default(autoincrement())
+  columnId Int
+  rowId    Int
+
+  textValueEn  String?
+  textValueAr  String?
+  numericValue Float?
+  boolValue    Boolean?
+
+  isHighlighted Boolean @default(false)
+
+  column ComparisonTableColumn @relation(fields: [columnId], references: [id], onDelete: Cascade)
+  row    ComparisonTableRow    @relation(fields: [rowId],    references: [id], onDelete: Cascade)
+
+  @@unique([columnId, rowId])
+  @@index([columnId])
+  @@index([rowId])
 }
