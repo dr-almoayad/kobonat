@@ -1,377 +1,175 @@
-/* components/StoreCard/StoreCard.css - Full-bleed logo, arrow in offer */
+/* components/StoreCard/StoreCard.css */
 
-/* ============================================
-   VARIABLES & THEME
-   ============================================ */
-
-:root {
-  --card-shadow: 0px 4px 8px #0a164626;
-  --card-shadow-hover: 0px 4px 8px #0a164626;
-  
-  --badge-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  
-  --offer-text-color: #0f172a;
-  --offer-arrow-color: #470ae2;
-  
-  --border-radius-card: 16px;
-  --border-radius-badge: 20px;
-  
-  --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* ============================================
-   BASE CARD STRUCTURE
-   ============================================ */
-
-.store-card-modern {
+/* ── Root link ────────────────────────────────────────────────────────────── */
+.sc-root {
   display: flex;
   flex-direction: column;
-  gap: 0.3rem;
   text-decoration: none;
-  font-family: 'Alexandria', 'Open Sans', sans-serif;
-  transition: var(--transition-smooth);
+  color: inherit;
+  background: #ffffff;
+  border: 1.5px solid #ebebeb;
+  border-radius: 14px;
+  overflow: hidden;
+  transition: box-shadow 0.18s ease, border-color 0.18s ease;
   cursor: pointer;
-  position: relative;
 }
 
-/* ============================================
-   CARD CONTAINER - FULL BLEED LOGO
-   ============================================ */
+.sc-root:hover {
+  border-color: #d4d0f5;
+  box-shadow: 0 6px 24px rgba(71, 10, 226, 0.09);
+}
 
-.card-container {
+.sc-root:focus-visible {
+  outline: 3px solid #470ae2;
+  outline-offset: 3px;
+}
+
+/* ── Logo area ────────────────────────────────────────────────────────────── */
+.sc-logo-wrap {
   position: relative;
   width: 100%;
-  aspect-ratio: 2.2 / 1;
-  border-radius: var(--border-radius-card);
-  box-shadow: var(--card-shadow);
-  transition: var(--transition-smooth);
+  aspect-ratio: 2.1 / 1;
+  background: #fff;
+  border-bottom: 1.5px solid #ebebeb;
   overflow: hidden;
-   margin-bottom: 0.35rem;
-  /* NO PADDING - Logo fills entire space */
 }
 
-.store-card-modern:hover .card-container {
-  box-shadow: var(--card-shadow-hover);
+.sc-logo-img {
+  object-fit: contain;
+  padding: 8%;          /* breathing room so logo never touches edges */
+  transition: transform 0.2s ease;
 }
 
-/* Featured stores */
-.store-card-modern.featured .card-container {
-  box-shadow: 0 4px 20px rgba(71, 10, 226, 0.2);
+.sc-root:hover .sc-logo-img {
+  transform: scale(1.04);
 }
 
-.store-card-modern.featured:hover .card-container {
-  box-shadow: 0 8px 32px rgba(71, 10, 226, 0.25);
-}
-
-/* ============================================
-   LOGO - FULL COVERAGE
-   ============================================ */
-
-.card-container  .store-logo {
-  object-fit: cover; /* Covers entire container */
-  transition: var(--transition-smooth);
-   width: 100% !important;
-   height: 100% !important;
-}
-
-.store-card-modern:hover .store-logo {
-  transform: scale(1.015);
-}
-
-/* Fallback when no logo exists */
-.store-name-fallback {
+/* Initials fallback */
+.sc-logo-initials {
   width: 100%;
   height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.5rem;
+  font-size: 2rem;
   font-weight: 800;
-  color: #ffffff;
-  text-align: center;
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-  line-height: 1.2;
+  color: #fff;
   letter-spacing: -0.02em;
-  padding: 1.5rem;
 }
 
-
-.offer-head {
-   display: flex;
-   flex-direction: row;
-   justify-content: flex-start;
-   align-items: center;
-   gap: 0.5rem;
-}
-
-.offer-store-name{
-  display: inline-flex;
-  align-items: center;
-  gap: 0.15rem;
-  padding: 0;
-  color: #0f172a;
-  background: none !important;
-  font-size: 0.9rem;
-  font-weight: 600;
-  align-self: flex-start;
-}
-
-/* ============================================
-   OFFER TYPE BADGE
-   ============================================ */
-
-.offer-type-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.15rem;
-  padding: 0 0.25rem;
-   border: 0.1rem solid #470ae2;
-   border-radius: 0.35rem;
-  color: #470ae2;
-   background: none !important;
-  font-size: 0.8rem;
-  font-weight: 500;
-  align-self: flex-start;
-}
-
-.badge-icon {
-  font-size: 1rem !important;
-  line-height: 1.4 !important;
-}
-
-.badge-label {
-  line-height: 1.4;
-  text-transform: capitalize;
-  letter-spacing: 0.02em;
-}
-
-/* ============================================
-   MAIN OFFER TEXT WITH ARROW
-   ============================================ */
-
-.main-offer {
+/* ── Info area ────────────────────────────────────────────────────────────── */
+.sc-info {
+  padding: 0.6rem 0.75rem 0.7rem;
   display: flex;
-  flex-direction: row;
-   justify-content: flex-start;
-   align-items: center;
-   gap: 0.5rem;
+  flex-direction: column;
+  gap: 0.2rem;
 }
 
-.offer-text {
-  font-size: 1.1rem;
-  font-weight: 400;
-  color: var(--offer-text-color);
-  line-height: 1.4;
+/* Store name */
+.sc-name {
+  margin: 0;
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: #9ca3af;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Offer row */
+.sc-offer {
   margin: 0;
   display: flex;
   align-items: center;
-  gap: 0.35rem;
-  transition: var(--transition-smooth);
+  gap: 0.3rem;
+  line-height: 1.3;
 }
 
-.store-card-modern:hover .offer-text {
-  text-decortion: underline 2px #470ae2; /* Brand purple */
-}
-
-/* Arrow Icon in Offer Text */
-.offer-arrow {
-  font-size: 1.2rem !important;
-  color: var(--offer-arrow-color);
-  line-height: 1;
-  transition: var(--transition-smooth);
+.sc-offer-icon {
+  font-size: 1rem !important;
   flex-shrink: 0;
+  line-height: 1 !important;
 }
 
-.store-card-modern:hover .offer-arrow {
-  transform: translateX(4px);
+.sc-offer-text {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #0f172a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-/* ============================================
-   RESPONSIVE DESIGN
-   ============================================ */
-
-/* Desktop: 1024px+ */
-@media (min-width: 1024px) {
-  .card-container {
-    aspect-ratio: 2.3 / 1;
-  }
-  
-  .offer-text {
-    font-size: 1.1rem;
-  }
-  
-  .offer-arrow {
-    font-size: 1.2rem;
-  }
-}
-
-/* Tablet: 768px - 1023px */
-@media (max-width: 1023px) {
-  .card-container {
-    aspect-ratio: 2.1 / 1;
-  }
-  
-  .store-name-fallback {
-    font-size: 1.25rem;
-    padding: 1.25rem;
-  }
-  
-  .offer-text {
-    font-size: 0.9375rem;
-  }
-  
-  .offer-arrow {
-    font-size: 1rem;
-  }
-}
-
-/* Mobile: 480px - 767px */
+/* ── Responsive ───────────────────────────────────────────────────────────── */
 @media (max-width: 767px) {
-  .store-card-modern {
-    gap: 0.225rem;
+  .sc-root {
+    border-radius: 10px;
   }
-  
-  .card-container {
+
+  .sc-logo-wrap {
     aspect-ratio: 2 / 1;
-    border-radius: 8px;
-  }
-  
-  .store-name-fallback {
-    font-size: 1.125rem;
-    padding: 1rem;
   }
 
-   .offer-store-name{
-      font-size: 0.75rem;
-   }
-
-
-  .offer-type-badge {
-     padding: 0.1rem 0.2rem;
-     border-radius: 0.25rem;
-     border: 1px solid #470ae2;
-     font-size: 0.65rem;
-     align-self: flex-start;
-   }
-   
-   .badge-icon {
-     font-size: 0.8rem !important;
-     line-height: 1 !important;
-   }
-   
-   .badge-label {
-     line-height: 1.2;
-   }
-
-  
-  .offer-text {
-    font-size: 0.875rem;
-    gap: 0.15rem;
+  .sc-info {
+    padding: 0.5rem 0.6rem 0.55rem;
   }
-  
-  .material-symbols-sharp.offer-arrow {
-    font-size: 0.75rem !importnat;
+
+  .sc-name {
+    font-size: 0.6rem;
+  }
+
+  .sc-offer-text {
+    font-size: 0.8rem;
+  }
+
+  .sc-offer-icon {
+    font-size: 0.9rem !important;
   }
 }
 
-/* Small Mobile: < 480px */
 @media (max-width: 479px) {
-  .card-container {
-    aspect-ratio: 1.8 / 1;
-    border-radius: 7px;
-  }
-  
-  .store-name-fallback {
-    font-size: 1rem;
-    padding: 0.875rem;
+  .sc-logo-wrap {
+    aspect-ratio: 1.9 / 1;
   }
 }
 
-/* ============================================
-   RTL SUPPORT
-   ============================================ */
-[dir="rtl"] .offer-arrow {
-  transform: scaleX(-1);
+/* ── RTL ──────────────────────────────────────────────────────────────────── */
+[dir='rtl'] .sc-name,
+[dir='rtl'] .sc-offer-text {
+  font-family: var(--font-alexandria), 'Noto Sans Arabic', sans-serif;
 }
 
-[dir="rtl"] .store-card-modern:hover .offer-arrow {
-  transform: scaleX(-1) translateX(4px);
-}
-
-
-/* ============================================
-   ACCESSIBILITY
-   ============================================ */
-
-.store-card-modern:focus-visible {
-  outline: 3px solid #470ae2;
-  outline-offset: 4px;
-  border-radius: var(--border-radius-card);
-}
-
-.store-card-modern:focus-visible .card-container {
-  box-shadow: 0 0 0 4px rgba(71, 10, 226, 0.1);
-}
-
-/* ============================================
-   REDUCED MOTION
-   ============================================ */
-
+/* ── Reduced motion ───────────────────────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
-  .store-card-modern,
-  .card-container,
-  .store-logo,
-  .offer-type-badge,
-  .offer-text,
-  .offer-arrow {
+  .sc-root,
+  .sc-logo-img {
     transition: none;
   }
-  
-  .store-card-modern:hover,
-  .store-card-modern:hover .card-container,
-  .store-card-modern:hover .store-logo,
-  .store-card-modern:hover .offer-type-badge,
-  .store-card-modern:hover .offer-arrow {
+
+  .sc-root:hover .sc-logo-img {
     transform: none;
   }
 }
 
-/* ============================================
-   LOADING STATE
-   ============================================ */
-
-.store-card-modern.loading .card-container {
-  background: linear-gradient(
-    90deg,
-    #f0f0f0 25%,
-    #e0e0e0 50%,
-    #f0f0f0 75%
-  );
+/* ── Loading shimmer ──────────────────────────────────────────────────────── */
+.sc-root.loading .sc-logo-wrap {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%);
   background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
+  animation: sc-shimmer 1.4s infinite;
 }
 
-@keyframes shimmer {
-  0% {
-    background-position: 200% 0;
-  }
-  100% {
-    background-position: -200% 0;
-  }
+@keyframes sc-shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
 
-/* ============================================
-   PRINT STYLES
-   ============================================ */
-
+/* ── Print ────────────────────────────────────────────────────────────────── */
 @media print {
-  .store-card-modern {
+  .sc-root {
     break-inside: avoid;
-    page-break-inside: avoid;
-  }
-  
-  .card-container,
-  .offer-type-badge {
     box-shadow: none;
+    border-color: #ccc;
   }
 }
