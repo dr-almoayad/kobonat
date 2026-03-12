@@ -7,7 +7,7 @@ import Link from 'next/link';
 import styles from '../../admin.module.css';
 import RichTextEditor from '@/components/admin/RichTextEditor/RichTextEditor';
 import SectionBlocksEditor from '@/components/admin/SectionBlocksEditor/SectionBlocksEditor';
-
+import SectionBlocksEditor from '@/components/admin/ComparisonTableBuilder/ComparisonTableBuilder';
 // ─────────────────────────────────────────────────────────────────────────────
 // Constants from schema enums
 // ─────────────────────────────────────────────────────────────────────────────
