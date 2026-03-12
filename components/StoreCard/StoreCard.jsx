@@ -1,213 +1,111 @@
-// components/StoreCard/StoreCard.jsx - UPDATED for multilingual showOffer
+// components/StoreCard/StoreCard.jsx
 'use client';
 import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useLocale, useTranslations } from 'next-intl';
-import "./StoreCard.css";
+import { useLocale } from 'next-intl';
+import './StoreCard.css';
 
-// ✅ FIX: Removed the debug `useEffect` import and its usage. The effect ran
-// on every render of every StoreCard instance across all grids, flooding the
-// DevTools console and adding unnecessary main-thread work (the effect body
-// was pure logging with no side-effects that needed cleanup or deps tracking).
-// Also removed all console.log calls from getShowOffer() for the same reason.
+// Icon + color per offer type
+const OFFER_TYPE_CONFIG = {
+  CODE:          { icon: 'confirmation_number', color: '#7c3aed' },
+  DEAL:          { icon: 'local_fire_department', color: '#ef4444' },
+  DISCOUNT:      { icon: 'sell',                 color: '#3b82f6' },
+  FREE_DELIVERY: { icon: 'local_shipping',        color: '#10b981' },
+  FREE_SHIPPING: { icon: 'local_shipping',        color: '#10b981' },
+  CASHBACK:      { icon: 'bolt',                  color: '#0ea5e9' },
+  OFFER:         { icon: 'redeem',                color: '#f59e0b' },
+};
 
-const StoreCard = ({ store }) => {
-  const locale = useLocale();
-  const t = useTranslations('StoreCard');
-  const currentLanguage = locale.split('-')[0];
+export default function StoreCard({ store }) {
+  const locale    = useLocale();
+  const lang      = locale.split('-')[0];
 
-  // Extract store name
-  const getStoreName = () => {
-    if (store.name) return store.name;
-    if (store.translations?.[0]?.name) return store.translations[0].name;
-    return currentLanguage === 'ar' ? 'متجر' : 'Store';
-  };
-  
-  // Extract store slug
-  const getStoreSlug = () => {
-    if (store.slug) return store.slug;
-    if (store.translations?.[0]?.slug) return store.translations[0].slug;
-    return 'store';
-  };
-  
-  // Get store bigLogo (primary) or fallback to regular logo
-  const getStoreLogo = () => {
-    return store.bigLogo || store.logo || null;
-  };
-  
-  // Get store brand color
-  const getBrandColor = () => {
-    return store.color || '#470ae2';
-  };
-  
-  const getShowOffer = () => {
-    // First, check if showOffer exists in current translation
-    if (store.translations?.[0]?.showOffer) {
-      return store.translations[0].showOffer;
+  // ── Helpers ────────────────────────────────────────────────────────────────
+  const name = store.translations?.find(t => t.locale === lang)?.name
+    || store.translations?.[0]?.name
+    || store.name
+    || (lang === 'ar' ? 'متجر' : 'Store');
+
+  const slug = store.translations?.find(t => t.locale === lang)?.slug
+    || store.translations?.[0]?.slug
+    || store.slug
+    || 'store';
+
+  const logo  = store.bigLogo || store.logo || null;
+  const color = store.color   || '#470ae2';
+
+  const showOffer = (() => {
+    // Prefer locale-matched translation
+    const matched = store.translations?.find(t => t.locale === lang)?.showOffer;
+    if (matched?.trim()) return matched;
+    // Any translation with a value
+    const any = store.translations?.find(t => t.showOffer?.trim())?.showOffer;
+    if (any) return any;
+    // Legacy field
+    if (store.showOffer) return store.showOffer;
+    // Derive from vouchers
+    if (store.vouchers?.length) {
+      const max = Math.max(
+        ...store.vouchers
+          .map(v => { const m = String(v.discount || '').match(/(\d+)/); return m ? +m[1] : 0; })
+          .filter(Boolean)
+      );
+      if (max > 0) return lang === 'ar' ? `خصم حتى ${max}%` : `Up to ${max}% off`;
     }
-    
-    // Check ALL translations, not just first one
-    if (store.translations?.length > 0) {
-      const translationWithOffer = store.translations.find(t => t.showOffer && t.showOffer.trim() !== '');
-      if (translationWithOffer?.showOffer) {
-        return translationWithOffer.showOffer;
-      }
-    }
-    
-    // Fallback: Old format (for backwards compatibility during migration)
-    if (store.showOffer) {
-      return store.showOffer;
-    }
-    
-    // Fallback: Calculate from vouchers
-    if (store.vouchers && store.vouchers.length > 0) {
-      const discounts = store.vouchers
-        .map(v => {
-          if (!v.discount) return 0;
-          const match = String(v.discount).match(/(\d+)%?/);
-          return match ? parseInt(match[1]) : 0;
-        })
-        .filter(d => d > 0);
-      
-      if (discounts.length > 0) {
-        const maxDiscount = Math.max(...discounts);
-        return currentLanguage === 'ar' 
-          ? `خصم حتى ${maxDiscount}%`
-          : `Get ${maxDiscount}% off all orders`;
-      }
-    }
-    
-    // Final fallback
-    return currentLanguage === 'ar' 
-      ? 'اكتشف العروض' 
-      : 'Deals available';
-  };
-  
-  // Get offer type display
-  const getOfferTypeDisplay = () => {
-    const offerType = store.showOfferType?.toUpperCase();
-    
-    const offerTypes = {
-      CODE: {
-        icon: 'confirmation_number',
-        labelEn: 'Code',
-        labelAr: 'كود',
-        gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
-      },
-      DEAL: {
-        icon: 'local_fire_department',
-        labelEn: 'Deal',
-        labelAr: 'عرض',
-        gradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)'
-      },
-      DISCOUNT: {
-        icon: 'sell',
-        labelEn: 'Discount',
-        labelAr: 'خصم',
-        gradient: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)'
-      },
-      FREE_DELIVERY: {
-        icon: 'local_shipping',
-        labelEn: 'Free Delivery',
-        labelAr: 'توصيل مجاني',
-        gradient: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)'
-      },
-      FREE_SHIPPING: {
-        icon: 'inventory_2',
-        labelEn: 'Free Shipping',
-        labelAr: 'شحن مجاني',
-        gradient: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)'
-      },
-      CASHBACK: {
-        icon: 'attach_money',
-        labelEn: 'Cash Back',
-        labelAr: 'استرداد نقدي',
-        gradient: 'linear-gradient(135deg, #30cfd0 0%, #330867 100%)'
-      },
-      OFFER: {
-        icon: 'redeem',
-        labelEn: 'Special Offer',
-        labelAr: 'عرض خاص',
-        gradient: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)'
-      }
-    };
-    
-    const config = offerTypes[offerType] || offerTypes.OFFER;
-    
-    return {
-      icon: config.icon,
-      label: currentLanguage === 'ar' ? config.labelAr : config.labelEn,
-      gradient: config.gradient
-    };
-  };
-  
-  const storeName = getStoreName();
-  const storeSlug = getStoreSlug();
-  const storeLogo = getStoreLogo();
-  const brandColor = getBrandColor();
-  const showOffer = getShowOffer();
-  const offerTypeDisplay = getOfferTypeDisplay();
+    return lang === 'ar' ? 'اكتشف العروض' : 'See deals';
+  })();
+
+  const offerKey    = store.showOfferType?.toUpperCase();
+  const offerConfig = OFFER_TYPE_CONFIG[offerKey] || OFFER_TYPE_CONFIG.OFFER;
+
+  // Initials fallback when no logo
+  const initials = name
+    .split(' ')
+    .slice(0, 2)
+    .map(w => w[0])
+    .join('')
+    .toUpperCase();
 
   return (
-    <Link 
-      href={`/${locale}/stores/${storeSlug}`}
-      className={`store-card-modern ${store.isFeatured ? 'featured' : ''}`}
-      aria-label={`${storeName} - ${showOffer}`}
+    <Link
+      href={`/${locale}/stores/${slug}`}
+      className="sc-root"
+      aria-label={`${name} — ${showOffer}`}
     >
-      {/* Main Card Container - Full Bleed Logo */}
-      <div 
-        className="card-container"
-        style={{ 
-          background: storeLogo 
-            ? brandColor 
-            : `linear-gradient(135deg, ${brandColor} 0%, ${brandColor}dd 100%)`
-        }}
-      >
-        {storeLogo ? (
+      {/* ── Logo area ───────────────────────────────────────────────────── */}
+      <div className="sc-logo-wrap">
+        {logo ? (
           <Image
-            src={storeLogo}
-            alt={storeName}
+            src={logo}
+            alt={name}
             fill
-            className="store-logo"
-            priority={false}
+            sizes="(max-width: 640px) 45vw, (max-width: 1024px) 30vw, 220px"
+            className="sc-logo-img"
           />
         ) : (
-          <div className="store-name-fallback">
-            {storeName}
-          </div>
-        )}
-      </div>
-
-      <div className="offer-head">
-        {/* Offer Type Badge */}
-        {store.showOfferType && (
-          <div 
-            className="offer-type-badge"
-            style={{ background: offerTypeDisplay.gradient }}
+          <div
+            className="sc-logo-initials"
+            style={{ background: color }}
           >
-            <span className="material-symbols-sharp badge-icon">
-              {offerTypeDisplay.icon}
-            </span>
-            <span className="badge-label">{offerTypeDisplay.label}</span>
+            {initials}
           </div>
         )}
-        <p className="offer-store-name">
-          {storeName}
-        </p>
       </div>
 
-      {/* Main Offer Text with Arrow */}
-      <div className="main-offer">
-        <p className="offer-text">
-          {showOffer}
-          <span className="material-symbols-sharp offer-arrow">
-            arrow_forward
+      {/* ── Info area ───────────────────────────────────────────────────── */}
+      <div className="sc-info">
+        <p className="sc-name">{name}</p>
+        <p className="sc-offer">
+          <span
+            className="sc-offer-icon material-symbols-sharp"
+            style={{ color: offerConfig.color }}
+          >
+            {offerConfig.icon}
           </span>
+          <span className="sc-offer-text">{showOffer}</span>
         </p>
       </div>
     </Link>
   );
-};
-
-export default StoreCard;
+}
