@@ -8,6 +8,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import styles from './SectionBlocksEditor.module.css';
+import RichTextEditor from '@/components/admin/RichTextEditor/RichTextEditor'; // Add this line
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const BLOCK_TYPES = [
@@ -131,22 +132,23 @@ function TextEditor({ block, onUpdate }) {
       <div className={styles.textEditorRow}>
         <div className={styles.textEditorCol}>
           <label className={styles.fieldLabel}>Content (EN)</label>
-          <textarea
-            className={styles.textarea}
-            rows={6}
+          {/* Replace textarea with RichTextEditor */}
+          <RichTextEditor
             value={en}
-            onChange={e => change('en', e.target.value)}
+            onChange={val => change('en', val)}
+            dir="ltr"
+            minHeight="200px"
             placeholder="HTML content in English…"
           />
         </div>
         <div className={styles.textEditorCol}>
           <label className={styles.fieldLabel}>Content (AR)</label>
-          <textarea
-            className={styles.textarea}
-            rows={6}
-            dir="rtl"
+          {/* Replace textarea with RichTextEditor */}
+          <RichTextEditor
             value={ar}
-            onChange={e => change('ar', e.target.value)}
+            onChange={val => change('ar', val)}
+            dir="rtl"
+            minHeight="200px"
             placeholder="المحتوى بالعربية…"
           />
         </div>
