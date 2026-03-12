@@ -1,4 +1,9 @@
 // app/[locale]/blog/[slug]/page.jsx
+// Renders blog post content as an ordered list of blocks:
+//   SECTION  → text + optional image + products + store chips
+//   TABLE    → ComparisonTable component
+//   EMBED    → EmbeddedPostCard component
+// Blocks without a blockLayout entry are appended in creation order (back-compat).
 
 import { prisma } from '@/lib/prisma';
 import { notFound } from 'next/navigation';
@@ -7,21 +12,15 @@ import Link from 'next/link';
 import BlogPostStructuredData from '@/components/StructuredData/BlogPostStructuredData';
 import RelatedPostsSidebar from '@/components/blog/RelatedPostsSidebar';
 import StoreCard from '@/components/StoreCard/StoreCard';
+import ComparisonTable from '@/components/blog/ComparisonTable/ComparisonTable';
+import EmbeddedPostCard from '@/components/blog/EmbeddedPostCard/EmbeddedPostCard';
 import './BlogPost.css';
 
+export const revalidate = 60;
 export const dynamicParams = true;
 
 // ─────────────────────────────────────────────────────────────────────────────
-// FIX: revalidate so admin changes (delete FAQ, remove store, etc.) are
-// reflected on the public page without a full redeploy.
-// 60 seconds is a safe balance between freshness and performance.
-// The real fix is revalidateBlogPost() in blog-actions.js — this is the
-// safety net for any mutation that doesn't call it.
-// ─────────────────────────────────────────────────────────────────────────────
-export const revalidate = 60;
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Static params (SSG)
+// Static params
 // ─────────────────────────────────────────────────────────────────────────────
 export async function generateStaticParams() {
   try {
@@ -29,12 +28,12 @@ export async function generateStaticParams() {
       where:  { status: 'PUBLISHED' },
       select: { slug: true },
     });
-    return posts.flatMap(post => [
-      { locale: 'ar-SA', slug: post.slug },
-      { locale: 'en-SA', slug: post.slug },
+    return posts.flatMap(p => [
+      { locale: 'ar-SA', slug: p.slug },
+      { locale: 'en-SA', slug: p.slug },
     ]);
-  } catch (error) {
-    console.warn('[blog/[slug]] generateStaticParams skipped:', error.message);
+  } catch (err) {
+    console.warn('[blog/[slug]] generateStaticParams skipped:', err.message);
     return [];
   }
 }
@@ -79,7 +78,7 @@ export async function generateMetadata({ params }) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Full post fetch
+// Data fetch
 // ─────────────────────────────────────────────────────────────────────────────
 async function getPost(slug, lang) {
   return prisma.blogPost.findUnique({
@@ -93,6 +92,7 @@ async function getPost(slug, lang) {
       },
       tags: { include: { tag: { include: { translations: { where: { locale: lang } } } } } },
 
+      // Sections
       sections: {
         orderBy: { order: 'asc' },
         include: {
@@ -101,12 +101,7 @@ async function getPost(slug, lang) {
             orderBy: { order: 'asc' },
             include: {
               product: {
-                include: {
-                  translations: { where: { locale: lang } },
-                  store: {
-                    include: { translations: { where: { locale: lang }, select: { name: true, slug: true } } },
-                  },
-                },
+                include: { translations: { where: { locale: lang } } },
               },
             },
           },
@@ -121,6 +116,27 @@ async function getPost(slug, lang) {
         },
       },
 
+      // Comparison tables
+      comparisonTables: {
+        include: { translations: true }, // load all locales — ComparisonTable picks the right one
+        orderBy: { id: 'asc' },
+      },
+
+      // Embedded post cards
+      embeddedCards: {
+        include: {
+          embeddedPost: {
+            include: {
+              translations: { where: { locale: lang } },
+              author: true,
+              category: { include: { translations: { where: { locale: lang } } } },
+            },
+          },
+        },
+        orderBy: { id: 'asc' },
+      },
+
+      // Sidebar: linked stores
       linkedStores: {
         orderBy: { order: 'asc' },
         include: {
@@ -138,6 +154,7 @@ async function getPost(slug, lang) {
         },
       },
 
+      // Sidebar: related posts
       relatedPosts: {
         orderBy: { order: 'asc' },
         take:    4,
@@ -156,9 +173,69 @@ async function getPost(slug, lang) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Transform a linked store into the shape StoreCard expects
+// Block ordering
+// Merges blockLayout (if present) with all known blocks.
+// Blocks missing from the layout are appended at the end.
 // ─────────────────────────────────────────────────────────────────────────────
-function transformStoreForCard(ls) {
+function buildOrderedBlocks(post) {
+  const allSections = post.sections   || [];
+  const allTables   = post.comparisonTables || [];
+  const allEmbeds   = post.embeddedCards    || [];
+
+  let layout = [];
+  if (post.blockLayout) {
+    try { layout = JSON.parse(post.blockLayout); } catch {}
+  }
+
+  if (!layout.length) {
+    // No layout — original order: sections → tables → embeds
+    return [
+      ...allSections.map(s => ({ type: 'SECTION', id: s.id, data: s })),
+      ...allTables.map(t => ({ type: 'TABLE',   id: t.id, data: t })),
+      ...allEmbeds.map(e => ({ type: 'EMBED',   id: e.id, data: e })),
+    ];
+  }
+
+  // Map all items by type+id for quick lookup
+  const sectionMap = Object.fromEntries(allSections.map(s => [s.id, s]));
+  const tableMap   = Object.fromEntries(allTables.map(t => [t.id, t]));
+  const embedMap   = Object.fromEntries(allEmbeds.map(e => [e.id, e]));
+
+  const used = { SECTION: new Set(), TABLE: new Set(), EMBED: new Set() };
+  const ordered = [];
+
+  for (const block of layout) {
+    const { type, id } = block;
+    if (type === 'SECTION' && sectionMap[id]) {
+      ordered.push({ type, id, data: sectionMap[id] });
+      used.SECTION.add(id);
+    } else if (type === 'TABLE' && tableMap[id]) {
+      ordered.push({ type, id, data: tableMap[id] });
+      used.TABLE.add(id);
+    } else if (type === 'EMBED' && embedMap[id]) {
+      ordered.push({ type, id, data: embedMap[id] });
+      used.EMBED.add(id);
+    }
+  }
+
+  // Append anything not referenced in the layout
+  allSections.filter(s => !used.SECTION.has(s.id)).forEach(s =>
+    ordered.push({ type: 'SECTION', id: s.id, data: s })
+  );
+  allTables.filter(t => !used.TABLE.has(t.id)).forEach(t =>
+    ordered.push({ type: 'TABLE', id: t.id, data: t })
+  );
+  allEmbeds.filter(e => !used.EMBED.has(e.id)).forEach(e =>
+    ordered.push({ type: 'EMBED', id: e.id, data: e })
+  );
+
+  return ordered;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Store card transform
+// ─────────────────────────────────────────────────────────────────────────────
+function transformStore(ls) {
   const st = ls.store;
   return {
     name:         st.translations?.[0]?.name  || '',
@@ -169,6 +246,84 @@ function transformStoreForCard(ls) {
     translations: st.translations || [],
     _count:       st._count || { vouchers: 0 },
   };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Section renderer (extracted to keep JSX clean)
+// ─────────────────────────────────────────────────────────────────────────────
+function SectionBlock({ section, locale }) {
+  const lang = locale.split('-')[0];
+  const st   = section.translations?.[0] || {};
+
+  return (
+    <section className="bp-section">
+      {st.subtitle && <h2 className="bp-section__title">{st.subtitle}</h2>}
+
+      {section.image && (
+        <div className="bp-section__image">
+          <Image
+            src={section.image}
+            alt={st.subtitle || ''}
+            fill
+            sizes="(max-width: 768px) 100vw, 760px"
+          />
+        </div>
+      )}
+
+      {st.content && (
+        <div className="blog-content" dangerouslySetInnerHTML={{ __html: st.content }} />
+      )}
+
+      {section.products?.length > 0 && (
+        <div className="bp-product-grid">
+          {section.products.map(sp => {
+            const pt = sp.product?.translations?.[0] || {};
+            return (
+              <a
+                key={sp.productId}
+                href={sp.product?.productUrl || '#'}
+                target="_blank"
+                rel="nofollow noopener"
+                className="bp-product-card"
+              >
+                {sp.product?.image && (
+                  <div className="bp-product-card__image">
+                    <Image src={sp.product.image} alt={pt.title || ''} fill sizes="200px" />
+                  </div>
+                )}
+                <div className="bp-product-card__body">
+                  <p className="bp-product-card__name">{pt.title}</p>
+                  {sp.product?.discountValue && (
+                    <p className="bp-product-card__discount">
+                      -{sp.product.discountValue}
+                      {sp.product.discountType === 'PERCENTAGE' ? '%' : ' SAR'}
+                    </p>
+                  )}
+                </div>
+              </a>
+            );
+          })}
+        </div>
+      )}
+
+      {section.stores?.length > 0 && (
+        <div className="bp-store-chips">
+          {section.stores.map(ss => {
+            const st2 = ss.store?.translations?.[0] || {};
+            return (
+              <Link
+                key={ss.storeId}
+                href={`/${locale}/stores/${st2.slug || ss.storeId}`}
+                className="bp-store-chip"
+              >
+                {st2.name || `Store #${ss.storeId}`}
+              </Link>
+            );
+          })}
+        </div>
+      )}
+    </section>
+  );
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -191,47 +346,40 @@ export default async function BlogPostPage({ params }) {
     ? new Intl.DateTimeFormat(locale, { year: 'numeric', month: 'long', day: 'numeric' }).format(new Date(post.publishedAt))
     : '';
 
-  // ── Related posts ────────────────────────────────────────────────────────
-  // Map explicit editorial related posts
-  const explicitRelated = post.relatedPosts
-    .filter(rp => rp.relatedPost && rp.relatedPost.status === 'PUBLISHED')
+  // ── Related posts fallback ──────────────────────────────────────────────
+  const explicitRelated = (post.relatedPosts || [])
+    .filter(rp => rp.relatedPost?.status === 'PUBLISHED')
     .map(rp => {
-      const rPost = rp.relatedPost;
-      const rt    = rPost.translations[0] || {};
+      const rp2 = rp.relatedPost;
+      const rt  = rp2.translations[0] || {};
       return {
-        id: rPost.id, slug: rPost.slug, featuredImage: rPost.featuredImage,
-        isFeatured: rPost.isFeatured, publishedAt: rPost.publishedAt,
-        title:    rt.title   || '',
-        excerpt:  rt.excerpt || '',
-        author:   rPost.author   ? { name: lang === 'ar' ? (rPost.author.nameAr || rPost.author.name) : rPost.author.name, avatar: rPost.author.avatar } : null,
-        category: rPost.category ? { slug: rPost.category.slug, name: rPost.category.translations[0]?.name || rPost.category.slug, color: rPost.category.color } : null,
+        id: rp2.id, slug: rp2.slug, featuredImage: rp2.featuredImage,
+        isFeatured: rp2.isFeatured, publishedAt: rp2.publishedAt,
+        title: rt.title || '', excerpt: rt.excerpt || '',
+        author:   rp2.author   ? { name: lang === 'ar' ? (rp2.author.nameAr || rp2.author.name) : rp2.author.name, avatar: rp2.author.avatar } : null,
+        category: rp2.category ? { slug: rp2.category.slug, name: rp2.category.translations[0]?.name || rp2.category.slug, color: rp2.category.color } : null,
         tags: [],
       };
     });
 
   let relatedPosts = explicitRelated;
 
-  // Fill remaining slots with fallback posts (same category or tags)
   if (relatedPosts.length < 4) {
-    const tagIds      = post.tags.map(pt => pt.tagId);
+    const tagIds      = (post.tags || []).map(pt => pt.tagId);
     const catId       = post.categoryId;
-    const needed      = 4 - relatedPosts.length;
     const existingIds = [post.id, ...relatedPosts.map(r => r.id)];
-
-    // ── FIX: OR: [] crashes Prisma. Build conditions only when they exist,
-    //         and skip the fallback query entirely when we'd have nothing to OR.
-    const orConditions = [
+    const orConds     = [
       tagIds.length > 0 ? { tags: { some: { tagId: { in: tagIds } } } } : null,
       catId             ? { categoryId: catId }                          : null,
     ].filter(Boolean);
 
-    if (orConditions.length > 0) {
+    if (orConds.length > 0) {
       try {
         const fallback = await prisma.blogPost.findMany({
           where: {
             status: 'PUBLISHED',
             id:     { notIn: existingIds.length ? existingIds : [0] },
-            OR:     orConditions,
+            OR:     orConds,
           },
           include: {
             translations: { where: { locale: lang } },
@@ -239,9 +387,8 @@ export default async function BlogPostPage({ params }) {
             category: { include: { translations: { where: { locale: lang } } } },
           },
           orderBy: [{ isFeatured: 'desc' }, { publishedAt: 'desc' }],
-          take: needed,
+          take: 4 - relatedPosts.length,
         });
-
         relatedPosts = [
           ...relatedPosts,
           ...fallback.map(rp => {
@@ -249,8 +396,7 @@ export default async function BlogPostPage({ params }) {
             return {
               id: rp.id, slug: rp.slug, featuredImage: rp.featuredImage,
               isFeatured: rp.isFeatured, publishedAt: rp.publishedAt,
-              title:    rt.title   || '',
-              excerpt:  rt.excerpt || '',
+              title: rt.title || '', excerpt: rt.excerpt || '',
               author:   rp.author   ? { name: lang === 'ar' ? (rp.author.nameAr || rp.author.name) : rp.author.name, avatar: rp.author.avatar } : null,
               category: rp.category ? { slug: rp.category.slug, name: rp.category.translations[0]?.name || rp.category.slug, color: rp.category.color } : null,
               tags: [],
@@ -258,17 +404,23 @@ export default async function BlogPostPage({ params }) {
           }),
         ];
       } catch (err) {
-        console.error('[BlogPostPage] related fallback query failed:', err.message);
-        // relatedPosts stays as whatever explicitRelated gave us
+        console.error('[BlogPostPage] related fallback failed:', err.message);
       }
     }
   }
 
-  // FAQ items
+  // ── FAQ ──────────────────────────────────────────────────────────────────
   let faqItems = [];
   if (post.faqJson) {
-    try { faqItems = JSON.parse(post.faqJson); } catch { faqItems = []; }
+    try { faqItems = JSON.parse(post.faqJson); } catch {}
   }
+
+  // ── Ordered blocks ───────────────────────────────────────────────────────
+  const blocks = buildOrderedBlocks(post);
+
+  const hasLinkedStores = post.linkedStores?.length > 0;
+  const hasRelated      = relatedPosts.filter(p => p.title).length > 0;
+  const hasSidebar      = hasLinkedStores || hasRelated;
 
   const schemaPost = {
     slug: post.slug, featuredImage: post.featuredImage,
@@ -279,17 +431,13 @@ export default async function BlogPostPage({ params }) {
     author: post.author, category: post.category,
   };
 
-  const hasLinkedStores = post.linkedStores?.length > 0;
-  const hasRelated      = relatedPosts.filter(p => p.title).length > 0;
-  const hasSidebar      = hasLinkedStores || hasRelated;
-
   return (
     <>
       <BlogPostStructuredData post={schemaPost} locale={locale} baseUrl={baseUrl} />
 
       <main dir={isRTL ? 'rtl' : 'ltr'} className="bp-main">
 
-        {/* ── Breadcrumbs ── */}
+        {/* Breadcrumb */}
         <nav className="bp-breadcrumb" aria-label="breadcrumb">
           <Link href={`/${locale}`}>{lang === 'ar' ? 'الرئيسية' : 'Home'}</Link>
           <span className="bp-breadcrumb__sep">/</span>
@@ -304,13 +452,12 @@ export default async function BlogPostPage({ params }) {
           )}
         </nav>
 
-        {/* ── Two-column layout ── */}
         <div className={`bp-layout${hasSidebar ? ' bp-layout--with-sidebar' : ''}`}>
 
           {/* ── ARTICLE ── */}
           <article className="bp-article">
 
-            {/* Meta row */}
+            {/* Meta */}
             <div className="bp-meta">
               {post.category && (
                 <Link
@@ -321,9 +468,7 @@ export default async function BlogPostPage({ params }) {
                   {post.category.translations[0]?.name || post.category.slug}
                 </Link>
               )}
-              {formattedDate && (
-                <span className="bp-meta__item">{formattedDate}</span>
-              )}
+              {formattedDate && <span className="bp-meta__item">{formattedDate}</span>}
               {authorName && (
                 <>
                   <span className="bp-meta__dot" aria-hidden="true" />
@@ -334,7 +479,7 @@ export default async function BlogPostPage({ params }) {
                 <>
                   <span className="bp-meta__dot" aria-hidden="true" />
                   <span className="bp-meta__item">
-                    {lang === 'ar' ? `${post.readingTime} دقائق قراءة` : `${post.readingTime} min read`}
+                    {lang === 'ar' ? `${post.readingTime} دقائق` : `${post.readingTime} min read`}
                   </span>
                 </>
               )}
@@ -346,7 +491,7 @@ export default async function BlogPostPage({ params }) {
             {/* H1 */}
             <h1 className="bp-title">{t.title}</h1>
 
-            {/* Cover image */}
+            {/* Cover */}
             {post.featuredImage && (
               <div className="bp-cover">
                 <Image
@@ -359,104 +504,51 @@ export default async function BlogPostPage({ params }) {
               </div>
             )}
 
-            {/* Lead */}
-            {t.excerpt && (
-              <p className="bp-excerpt">{t.excerpt}</p>
-            )}
+            {/* Lead excerpt */}
+            {t.excerpt && <p className="bp-excerpt">{t.excerpt}</p>}
 
-            {/* Main content */}
+            {/* Main body */}
             {t.content && (
-              <div
-                className="blog-content"
-                dangerouslySetInnerHTML={{ __html: t.content }}
-              />
+              <div className="blog-content" dangerouslySetInnerHTML={{ __html: t.content }} />
             )}
 
-            {/* ── Sections ── */}
-            {post.sections?.length > 0 && (
+            {/* ── Ordered content blocks ── */}
+            {blocks.length > 0 && (
               <div className="bp-sections">
-                {post.sections.map(section => {
-                  const st = section.translations?.[0] || {};
-                  return (
-                    <section key={section.id} className="bp-section">
-
-                      {st.subtitle && (
-                        <h2 className="bp-section__title">{st.subtitle}</h2>
-                      )}
-
-                      {section.image && (
-                        <div className="bp-section__image">
-                          <Image
-                            src={section.image}
-                            alt={st.subtitle || ''}
-                            fill
-                            sizes="(max-width: 768px) 100vw, 760px"
-                          />
-                        </div>
-                      )}
-
-                      {st.content && (
-                        <div
-                          className="blog-content"
-                          dangerouslySetInnerHTML={{ __html: st.content }}
-                        />
-                      )}
-
-                      {section.products?.length > 0 && (
-                        <div className="bp-product-grid">
-                          {section.products.map(sp => {
-                            const pt = sp.product?.translations?.[0] || {};
-                            return (
-                              <a
-                                key={sp.productId}
-                                href={sp.product?.productUrl || '#'}
-                                target="_blank"
-                                rel="nofollow noopener"
-                                className="bp-product-card"
-                              >
-                                {sp.product?.image && (
-                                  <div className="bp-product-card__image">
-                                    <Image src={sp.product.image} alt={pt.title || ''} fill sizes="200px" />
-                                  </div>
-                                )}
-                                <div className="bp-product-card__body">
-                                  <p className="bp-product-card__name">{pt.title}</p>
-                                  {sp.product?.discountValue && (
-                                    <p className="bp-product-card__discount">
-                                      -{sp.product.discountValue}{sp.product.discountType === 'PERCENTAGE' ? '%' : ' SAR'}
-                                    </p>
-                                  )}
-                                </div>
-                              </a>
-                            );
-                          })}
-                        </div>
-                      )}
-
-                      {section.stores?.length > 0 && (
-                        <div className="bp-store-chips">
-                          {section.stores.map(ss => {
-                            const st2 = ss.store?.translations?.[0] || {};
-                            return (
-                              <Link
-                                key={ss.storeId}
-                                href={`/${locale}/stores/${st2.slug || ss.storeId}`}
-                                className="bp-store-chip"
-                              >
-                                {st2.name || `Store #${ss.storeId}`}
-                              </Link>
-                            );
-                          })}
-                        </div>
-                      )}
-
-                    </section>
-                  );
+                {blocks.map(block => {
+                  if (block.type === 'SECTION') {
+                    return (
+                      <SectionBlock
+                        key={`section-${block.id}`}
+                        section={block.data}
+                        locale={locale}
+                      />
+                    );
+                  }
+                  if (block.type === 'TABLE') {
+                    return (
+                      <ComparisonTable
+                        key={`table-${block.id}`}
+                        table={block.data}
+                        locale={locale}
+                      />
+                    );
+                  }
+                  if (block.type === 'EMBED') {
+                    return (
+                      <EmbeddedPostCard
+                        key={`embed-${block.id}`}
+                        embed={block.data}
+                        locale={locale}
+                      />
+                    );
+                  }
+                  return null;
                 })}
               </div>
             )}
 
-            {/* ── FAQ ── */}
+            {/* FAQ */}
             {faqItems.length > 0 && (
               <section className="bp-faq">
                 <h2 className="bp-faq__title">
@@ -474,8 +566,8 @@ export default async function BlogPostPage({ params }) {
               </section>
             )}
 
-            {/* ── Tags ── */}
-            {post.tags.length > 0 && (
+            {/* Tags */}
+            {post.tags?.length > 0 && (
               <div className="bp-tags">
                 {post.tags.map(pt => (
                   <Link
@@ -489,7 +581,7 @@ export default async function BlogPostPage({ params }) {
               </div>
             )}
 
-            {/* ── Author bio ── */}
+            {/* Author */}
             {post.author && authorBio && (
               <div className="bp-author">
                 {post.author.avatar && (
@@ -513,7 +605,6 @@ export default async function BlogPostPage({ params }) {
           {/* ── SIDEBAR ── */}
           {hasSidebar && (
             <aside className="bp-sidebar">
-
               {hasLinkedStores && (
                 <div className="bp-stores-widget">
                   <p className="bp-sidebar-heading">
@@ -521,19 +612,14 @@ export default async function BlogPostPage({ params }) {
                   </p>
                   <div className="bp-stores-grid">
                     {post.linkedStores.map(ls => (
-                      <StoreCard
-                        key={ls.storeId}
-                        store={transformStoreForCard(ls)}
-                      />
+                      <StoreCard key={ls.storeId} store={transformStore(ls)} />
                     ))}
                   </div>
                 </div>
               )}
-
               {hasRelated && (
                 <RelatedPostsSidebar posts={relatedPosts} locale={locale} />
               )}
-
             </aside>
           )}
 
