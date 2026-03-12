@@ -1,0 +1,206 @@
+/* SectionBlockRenderer.module.css */
+
+/* ── Text block ───────────────────────────────────────────────────────────── */
+.textBlock {
+  font-size: 1rem;
+  line-height: 1.75;
+  color: #2d2d2d;
+}
+
+.textBlock h2 { font-size: 1.35rem; font-weight: 700; margin: 1.5rem 0 0.6rem; color: #0f041c; }
+.textBlock h3 { font-size: 1.1rem;  font-weight: 700; margin: 1.25rem 0 0.5rem; color: #0f041c; }
+.textBlock p  { margin: 0 0 1rem; }
+.textBlock ul,
+.textBlock ol { margin: 0 0 1rem; padding-inline-start: 1.4rem; }
+.textBlock li { margin-bottom: 0.35rem; }
+.textBlock a  { color: #470ae2; text-decoration: underline; }
+.textBlock a:hover { color: #3a07bb; }
+.textBlock strong { font-weight: 700; color: #0f041c; }
+.textBlock blockquote {
+  border-inline-start: 3px solid #470ae2;
+  margin-inline-start: 0;
+  padding-inline-start: 1rem;
+  color: #4b5563;
+  font-style: italic;
+}
+
+/* ── Generic entity card ──────────────────────────────────────────────────── */
+.entityCard {
+  margin: 0.25rem 0;
+  border: 1.5px solid #ebebeb;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.entityBadge {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: #470ae2;
+  padding: 0.4rem 1rem;
+  background: #f5f3ff;
+  border-bottom: 1px solid #ede9fe;
+}
+
+.entityBadge .material-symbols-sharp {
+  font-size: 0.9rem;
+}
+
+.entityCardLink {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  transition: background 0.15s;
+}
+
+.entityCardLink:hover .entityCardInner {
+  background: #faf9ff;
+}
+
+.entityCardLink:hover .entityTitle {
+  color: #470ae2;
+}
+
+.entityCardInner {
+  display: flex;
+  align-items: center;
+  gap: 1.1rem;
+  padding: 1rem 1.1rem;
+  transition: background 0.15s;
+}
+
+/* ── Thumbnail ────────────────────────────────────────────────────────────── */
+.entityThumb {
+  flex-shrink: 0;
+  width: 80px;
+  height: 54px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #f3f4f6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.entityThumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.entityThumbSquare {
+  width: 56px;
+  height: 56px;
+  border-radius: 10px;
+}
+
+.cardThumb {
+  width: 90px;
+  height: 56px;
+  border-radius: 8px;
+}
+
+.cardThumb img {
+  object-fit: cover;
+}
+
+/* ── Body ─────────────────────────────────────────────────────────────────── */
+.entityBody {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.entityMeta {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.entityTitle {
+  font-size: 0.97rem;
+  font-weight: 700;
+  color: #0f041c;
+  margin: 0;
+  transition: color 0.13s;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.entityDesc {
+  font-size: 0.8rem;
+  color: #6b7280;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  line-height: 1.45;
+}
+
+.entityPrice {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #059669;
+  margin: 0;
+}
+
+.entityCta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  font-size: 0.77rem;
+  font-weight: 700;
+  color: #470ae2;
+  text-decoration: none;
+  margin-top: 0.15rem;
+  transition: gap 0.13s;
+}
+
+.entityCta .material-symbols-sharp {
+  font-size: 0.9rem;
+  transition: transform 0.13s;
+}
+
+.entityCard:hover .entityCta .material-symbols-sharp,
+a.entityCardLink:hover ~ * .entityCta .material-symbols-sharp {
+  transform: translateX(2px);
+}
+
+[dir='rtl'] .entityCta .material-symbols-sharp {
+  transform: scaleX(-1);
+}
+
+.networkBadge {
+  display: inline-block;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #f3f4f6;
+  color: #6b7280;
+  width: fit-content;
+}
+
+/* ── Responsive ───────────────────────────────────────────────────────────── */
+@media (max-width: 480px) {
+  .entityCardInner {
+    gap: 0.75rem;
+    padding: 0.8rem;
+  }
+
+  .entityThumb { width: 52px; height: 52px; }
+  .cardThumb   { width: 72px; height: 46px; }
+}
