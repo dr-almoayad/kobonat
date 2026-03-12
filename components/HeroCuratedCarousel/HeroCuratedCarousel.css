@@ -10,6 +10,20 @@
   background: #fff;
 }
 
+/* On mobile, clip the viewport so the trailing peek stays crisp */
+@media (max-width: 768px) {
+  .hcc-root {
+    /* Fade the trailing 5% to hint at more slides */
+    -webkit-mask-image: linear-gradient(to right, black 92%, transparent 100%);
+    mask-image: linear-gradient(to right, black 92%, transparent 100%);
+  }
+
+  [dir='rtl'] .hcc-root {
+    -webkit-mask-image: linear-gradient(to left, black 92%, transparent 100%);
+    mask-image: linear-gradient(to left, black 92%, transparent 100%);
+  }
+}
+
 /* ── Embla viewport — must be overflow:hidden ────────────────────────────── */
 .hcc-viewport {
   overflow: hidden;
@@ -93,6 +107,7 @@
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
   border: 2.5px solid rgba(255, 255, 255, 0.15);
   flex-shrink: 0;
+  z-index: 1;
 }
 
 [dir='rtl'] .hcc-badge {
@@ -220,65 +235,74 @@
   }
 }
 
-/* Tablet — slide takes more space */
+/* ── Tablet + Mobile — Amazon-style portrait cards ───────────────────────────
+   Layout: text panel (purple bg) on TOP, image fills the bottom.
+   One dominant card + peek of next card on the trailing edge.
+   ─────────────────────────────────────────────────────────────────────────── */
 @media (max-width: 768px) {
+
+  /* Root: tighter vertical rhythm */
+  .hcc-root {
+    padding: 1rem 0 1rem;
+    gap: 1rem;
+  }
+
+  /* Show ~88% of current card → ~12% peek of the next */
   .hcc-slide {
-    flex: 0 0 90%;
+    flex: 0 0 88%;
   }
 
-  .hcc-slide-card {
-    height: 260px;
-  }
-
-  .hcc-headline {
-    font-size: 1.2rem;
-  }
-
-  .hcc-text-panel {
-    padding: 1.25rem 1.5rem;
-  }
-
-  .hcc-store-name {
-    font-size: 0.8125rem;
-    margin-bottom: 1rem;
-  }
-}
-
-/* Mobile — stack vertically, image on top, text below */
-@media (max-width: 520px) {
-  .hcc-slide {
-    flex: 0 0 92%;
-  }
-
+  /* Portrait card — column layout, text panel FIRST (top) */
   .hcc-slide-card {
     flex-direction: column;
     height: auto;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(71, 10, 226, 0.14);
+    border: none;
   }
 
-  /* RTL also stacks vertically on mobile */
+  /* RTL: same column order (text on top, image below) */
   [dir='rtl'] .hcc-slide-card {
     flex-direction: column;
   }
 
-  .hcc-img-panel {
-    flex: 0 0 auto;
-    height: 200px;
-    width: 100%;
-  }
-
+  /* ── Text panel — solid purple background, sits at the top ── */
   .hcc-text-panel {
+    order: 0;                           /* text first */
     flex: 0 0 auto;
-    padding: 1.25rem;
+    padding: 1.25rem 1.375rem 1rem;
+    background: #470ae2;               /* Cobonat brand purple */
+    border-radius: 0;                  /* card handles radius */
   }
 
   .hcc-headline {
     font-size: 1.125rem;
+    color: #fff;
+    -webkit-line-clamp: 3;
+    margin-bottom: 0.4rem;
   }
 
   .hcc-store-name {
-    margin-bottom: 0.75rem;
+    font-size: 0.8125rem;
+    color: rgba(255, 255, 255, 0.72);
+    margin-bottom: 0.875rem;
   }
 
+  .hcc-cta {
+    font-size: 0.8125rem;
+    color: #fff;
+    text-decoration-color: rgba(255, 255, 255, 0.5);
+  }
+
+  /* ── Image panel — fills the bottom portion ── */
+  .hcc-img-panel {
+    order: 1;                           /* image second */
+    flex: 0 0 auto;
+    height: 220px;
+    width: 100%;
+  }
+
+  /* Badge sits bottom-left of the image panel */
   .hcc-badge {
     width: 52px;
     height: 52px;
@@ -289,5 +313,29 @@
   [dir='rtl'] .hcc-badge {
     left: auto;
     right: 12px;
+  }
+
+  /* Active dot: purple to match */
+  .hcc-dot--active {
+    background: #470ae2;
+  }
+}
+
+/* ── Small mobile: slightly taller image, tighter slide width ─────────────── */
+@media (max-width: 420px) {
+  .hcc-slide {
+    flex: 0 0 90%;
+  }
+
+  .hcc-text-panel {
+    padding: 1rem 1.125rem 0.875rem;
+  }
+
+  .hcc-headline {
+    font-size: 1rem;
+  }
+
+  .hcc-img-panel {
+    height: 190px;
   }
 }
