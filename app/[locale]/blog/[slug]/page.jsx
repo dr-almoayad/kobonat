@@ -14,6 +14,7 @@ import RelatedPostsSidebar from '@/components/blog/RelatedPostsSidebar';
 import StoreCard from '@/components/StoreCard/StoreCard';
 import ComparisonTable from '@/components/blog/ComparisonTable/ComparisonTable';
 import EmbeddedPostCard from '@/components/blog/EmbeddedPostCard/EmbeddedPostCard';
+import SectionBlockRenderer from '@/components/blog/SectionBlockRenderer/SectionBlockRenderer';
 import './BlogPost.css';
 
 export const revalidate = 60;
@@ -110,6 +111,48 @@ async function getPost(slug, lang) {
             include: {
               store: {
                 include: { translations: { where: { locale: lang }, select: { name: true, slug: true } } },
+              },
+            },
+          },
+          // Rich embeddable blocks with ordering
+          sectionBlocks: {
+            orderBy: { order: 'asc' },
+            include: {
+              post: {
+                include: {
+                  translations:  { where: { locale: lang } },
+                  author:        true,
+                  category:      { include: { translations: { where: { locale: lang } } } },
+                  coverImage:    true,
+                },
+              },
+              table: {
+                include: {
+                  translations: true,
+                  columns: {
+                    orderBy: { order: 'asc' },
+                    include: {
+                      translations: true,
+                      cells: true,
+                      store:    { include: { translations: true } },
+                      bank:     { include: { translations: true } },
+                      bankCard: { include: { translations: true } },
+                    },
+                  },
+                  rows: {
+                    orderBy: { order: 'asc' },
+                    include: { translations: true, cells: true },
+                  },
+                },
+              },
+              product: { include: { translations: { where: { locale: lang } } } },
+              store:   { include: { translations: true } },
+              bank:    { include: { translations: true } },
+              card:    {
+                include: {
+                  translations: true,
+                  bank: { include: { translations: true } },
+                },
               },
             },
           },
@@ -255,6 +298,11 @@ function SectionBlock({ section, locale }) {
   const lang = locale.split('-')[0];
   const st   = section.translations?.[0] || {};
 
+  // If the section has rich blocks, use them exclusively for body content.
+  // Legacy content fields (content HTML, products, stores) are rendered as
+  // fallback when no blocks exist (backwards compatibility).
+  const hasBlocks = section.sectionBlocks?.length > 0;
+
   return (
     <section className="bp-section">
       {st.subtitle && <h2 className="bp-section__title">{st.subtitle}</h2>}
@@ -270,57 +318,69 @@ function SectionBlock({ section, locale }) {
         </div>
       )}
 
-      {st.content && (
-        <div className="blog-content" dangerouslySetInnerHTML={{ __html: st.content }} />
-      )}
-
-      {section.products?.length > 0 && (
-        <div className="bp-product-grid">
-          {section.products.map(sp => {
-            const pt = sp.product?.translations?.[0] || {};
-            return (
-              <a
-                key={sp.productId}
-                href={sp.product?.productUrl || '#'}
-                target="_blank"
-                rel="nofollow noopener"
-                className="bp-product-card"
-              >
-                {sp.product?.image && (
-                  <div className="bp-product-card__image">
-                    <Image src={sp.product.image} alt={pt.title || ''} fill sizes="200px" />
-                  </div>
-                )}
-                <div className="bp-product-card__body">
-                  <p className="bp-product-card__name">{pt.title}</p>
-                  {sp.product?.discountValue && (
-                    <p className="bp-product-card__discount">
-                      -{sp.product.discountValue}
-                      {sp.product.discountType === 'PERCENTAGE' ? '%' : ' SAR'}
-                    </p>
-                  )}
-                </div>
-              </a>
-            );
-          })}
+      {hasBlocks ? (
+        /* ── Rich block content (new) ─────────────────────────────────── */
+        <div className="bp-section-blocks">
+          {section.sectionBlocks.map(block => (
+            <SectionBlockRenderer key={block.id} block={block} locale={locale} />
+          ))}
         </div>
-      )}
+      ) : (
+        /* ── Legacy flat content (backwards compat) ───────────────────── */
+        <>
+          {st.content && (
+            <div className="blog-content" dangerouslySetInnerHTML={{ __html: st.content }} />
+          )}
 
-      {section.stores?.length > 0 && (
-        <div className="bp-store-chips">
-          {section.stores.map(ss => {
-            const st2 = ss.store?.translations?.[0] || {};
-            return (
-              <Link
-                key={ss.storeId}
-                href={`/${locale}/stores/${st2.slug || ss.storeId}`}
-                className="bp-store-chip"
-              >
-                {st2.name || `Store #${ss.storeId}`}
-              </Link>
-            );
-          })}
-        </div>
+          {section.products?.length > 0 && (
+            <div className="bp-product-grid">
+              {section.products.map(sp => {
+                const pt = sp.product?.translations?.[0] || {};
+                return (
+                  <a
+                    key={sp.productId}
+                    href={sp.product?.productUrl || '#'}
+                    target="_blank"
+                    rel="nofollow noopener"
+                    className="bp-product-card"
+                  >
+                    {sp.product?.image && (
+                      <div className="bp-product-card__image">
+                        <Image src={sp.product.image} alt={pt.title || ''} fill sizes="200px" />
+                      </div>
+                    )}
+                    <div className="bp-product-card__body">
+                      <p className="bp-product-card__name">{pt.title}</p>
+                      {sp.product?.discountValue && (
+                        <p className="bp-product-card__discount">
+                          -{sp.product.discountValue}
+                          {sp.product.discountType === 'PERCENTAGE' ? '%' : ' SAR'}
+                        </p>
+                      )}
+                    </div>
+                  </a>
+                );
+              })}
+            </div>
+          )}
+
+          {section.stores?.length > 0 && (
+            <div className="bp-store-chips">
+              {section.stores.map(ss => {
+                const st2 = ss.store?.translations?.[0] || {};
+                return (
+                  <Link
+                    key={ss.storeId}
+                    href={`/${locale}/stores/${st2.slug || ss.storeId}`}
+                    className="bp-store-chip"
+                  >
+                    {st2.name || `Store #${ss.storeId}`}
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+        </>
       )}
     </section>
   );
