@@ -6,6 +6,7 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import styles from '../../admin.module.css';
 import RichTextEditor from '@/components/admin/RichTextEditor/RichTextEditor';
+import ComparisonTableBuilder from '@/components/admin/ComparisonTableBuilder/ComparisonTableBuilder';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Constants from schema enums
@@ -681,6 +682,16 @@ export default function EditBlogPostPage() {
               onChange={setRelatedPosts}
               excludeId={post.id}
             />
+          </Section>
+
+          {/* Comparison Tables */}
+          <Section title="Comparison Tables" defaultOpen={false}>
+            <p className={styles.helpText} style={{ marginBottom: '0.75rem' }}>
+              Comparison tables appear inline with content blocks. Use the order field to interleave
+              them between sections. Columns can link to real entities (stores, banks, cards, products)
+              or be fully custom. Supported row types: Text, Rating (stars), Yes/No, Badge.
+            </p>
+            <ComparisonTableBuilder postId={parseInt(id)} />
           </Section>
 
         </div>
