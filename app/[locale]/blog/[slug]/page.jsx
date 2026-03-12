@@ -287,9 +287,7 @@ function SectionBlock({ section, locale }) {
   const lang = locale.split('-')[0];
   const st   = section.translations?.[0] || {};
 
-  // If the section has rich blocks, use them exclusively for body content.
-  // Legacy content fields (content HTML, products, stores) are rendered as
-  // fallback when no blocks exist (backwards compatibility).
+  // Check if the section has rich blocks
   const hasBlocks = section.sectionBlocks?.length > 0;
 
   return (
@@ -307,20 +305,21 @@ function SectionBlock({ section, locale }) {
         </div>
       )}
 
+      {/* ── Always render the main content if it exists ── */}
+      {st.content && (
+        <div className="blog-content" dangerouslySetInnerHTML={{ __html: st.content }} />
+      )}
+
       {hasBlocks ? (
-        /* ── Rich block content (new) ─────────────────────────────────── */
+        /* ── Rich block content ── */
         <div className="bp-section-blocks">
           {section.sectionBlocks.map(block => (
             <SectionBlockRenderer key={block.id} block={block} locale={locale} />
           ))}
         </div>
       ) : (
-        /* ── Legacy flat content (backwards compat) ───────────────────── */
+        /* ── Legacy fallback items (products/stores) if no blocks exist ── */
         <>
-          {st.content && (
-            <div className="blog-content" dangerouslySetInnerHTML={{ __html: st.content }} />
-          )}
-
           {section.products?.length > 0 && (
             <div className="bp-product-grid">
               {section.products.map(sp => {
