@@ -1,0 +1,467 @@
+/* SectionBlocksEditor.module.css */
+
+/* ── Root ─────────────────────────────────────────────────────────────────── */
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-top: 0.75rem;
+}
+
+/* ── Empty state ──────────────────────────────────────────────────────────── */
+.empty {
+  font-size: 0.82rem;
+  color: #9ca3af;
+  text-align: center;
+  padding: 1.5rem;
+  border: 1.5px dashed #e5e7eb;
+  border-radius: 10px;
+  line-height: 1.5;
+}
+
+.hint {
+  font-size: 0.82rem;
+  color: #9ca3af;
+  padding: 0.5rem 0;
+}
+
+/* ── Block card ───────────────────────────────────────────────────────────── */
+.block {
+  border: 1.5px solid #e5e7eb;
+  border-radius: 10px;
+  background: #fafafa;
+  overflow: hidden;
+  transition: border-color 0.15s;
+}
+
+.block:focus-within {
+  border-color: #470ae2;
+}
+
+/* ── Block header ─────────────────────────────────────────────────────────── */
+.blockHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.55rem 0.8rem;
+  background: #fff;
+  border-bottom: 1px solid transparent;
+  min-height: 46px;
+}
+
+.block:has(.blockBody) .blockHeader {
+  border-bottom-color: #f0f0f0;
+}
+
+/* ── Order controls ───────────────────────────────────────────────────────── */
+.orderControls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  flex-shrink: 0;
+}
+
+.orderBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  color: #9ca3af;
+  border-radius: 4px;
+  transition: color 0.12s, background 0.12s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 18px;
+}
+
+.orderBtn:hover:not(:disabled) {
+  color: #470ae2;
+  background: #f0ebff;
+}
+
+.orderBtn:disabled {
+  opacity: 0.25;
+  cursor: default;
+}
+
+.orderBtn .material-symbols-sharp {
+  font-size: 0.9rem;
+}
+
+.orderNum {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #c0b8d4;
+  line-height: 1;
+  min-width: 14px;
+  text-align: center;
+}
+
+/* ── Block meta ───────────────────────────────────────────────────────────── */
+.blockMeta {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-width: 0;
+}
+
+.typeBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #470ae2;
+  background: #ede9fe;
+  padding: 2px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.typeBadge .material-symbols-sharp {
+  font-size: 0.85rem;
+}
+
+.blockSummary {
+  font-size: 0.8rem;
+  color: #6b7280;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── Block action buttons ─────────────────────────────────────────────────── */
+.blockActions {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-shrink: 0;
+}
+
+.btnToggle {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.25rem 0.7rem;
+  border-radius: 6px;
+  border: 1.5px solid #d1d5db;
+  background: #fff;
+  color: #374151;
+  cursor: pointer;
+  transition: border-color 0.13s, color 0.13s;
+}
+
+.btnToggle:hover {
+  border-color: #470ae2;
+  color: #470ae2;
+}
+
+.btnDel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  border: 1.5px solid #fecdd3;
+  background: #fff;
+  color: #e11d48;
+  cursor: pointer;
+  transition: background 0.13s, border-color 0.13s;
+}
+
+.btnDel:hover {
+  background: #fef2f2;
+  border-color: #e11d48;
+}
+
+.btnDel .material-symbols-sharp {
+  font-size: 1rem;
+}
+
+/* ── Block body ───────────────────────────────────────────────────────────── */
+.blockBody {
+  padding: 0.9rem;
+}
+
+/* ── Text editor ──────────────────────────────────────────────────────────── */
+.textEditorRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+@media (max-width: 640px) {
+  .textEditorRow { grid-template-columns: 1fr; }
+}
+
+.textEditorCol {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.fieldLabel {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #374151;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.textarea {
+  width: 100%;
+  font-size: 0.82rem;
+  font-family: 'Menlo', 'Consolas', monospace;
+  padding: 0.55rem 0.65rem;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 7px;
+  resize: vertical;
+  line-height: 1.55;
+  color: #1f2937;
+  background: #fff;
+  transition: border-color 0.13s;
+}
+
+.textarea:focus {
+  outline: none;
+  border-color: #470ae2;
+}
+
+/* ── Save button ──────────────────────────────────────────────────────────── */
+.btnSave {
+  margin-top: 0.65rem;
+  padding: 0.4rem 1.1rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  border-radius: 7px;
+  border: none;
+  background: #470ae2;
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.13s, opacity 0.13s;
+}
+
+.btnSave:disabled {
+  background: #c4b5fd;
+  cursor: default;
+}
+
+.btnSave:not(:disabled):hover {
+  background: #3a07bb;
+}
+
+/* ── Picker (search dropdown) ─────────────────────────────────────────────── */
+.pickerWrap {
+  position: relative;
+}
+
+.pickerInput {
+  width: 100%;
+  padding: 0.45rem 0.7rem;
+  font-size: 0.83rem;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 7px;
+  color: #1f2937;
+  transition: border-color 0.13s;
+}
+
+.pickerInput:focus {
+  outline: none;
+  border-color: #470ae2;
+}
+
+.pickerHint {
+  font-size: 0.75rem;
+  color: #9ca3af;
+  margin: 0.3rem 0 0;
+}
+
+.pickerDropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: #fff;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.1);
+  z-index: 20;
+  overflow: hidden;
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.pickerOption {
+  display: block;
+  width: 100%;
+  text-align: start;
+  padding: 0.55rem 0.85rem;
+  font-size: 0.82rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #1f2937;
+  border-bottom: 1px solid #f3f4f6;
+  transition: background 0.1s;
+}
+
+.pickerOption:last-child { border-bottom: none; }
+.pickerOption:hover { background: #f5f3ff; color: #470ae2; }
+
+/* Selected chip (after picking) */
+.selectedChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: #ede9fe;
+  color: #470ae2;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.3rem 0.75rem;
+  border-radius: 999px;
+}
+
+.clearBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  color: #7c3aed;
+  padding: 0 0.1rem;
+  display: flex;
+  align-items: center;
+}
+
+.clearBtn:hover { color: #e11d48; }
+
+/* ── List select ──────────────────────────────────────────────────────────── */
+.listSelect {
+  width: 100%;
+  padding: 0.45rem 0.7rem;
+  font-size: 0.83rem;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 7px;
+  color: #1f2937;
+  background: #fff;
+  cursor: pointer;
+  transition: border-color 0.13s;
+}
+
+.listSelect:focus {
+  outline: none;
+  border-color: #470ae2;
+}
+
+/* ── Type picker panel ────────────────────────────────────────────────────── */
+.typePicker {
+  border: 2px dashed #c4b5fd;
+  border-radius: 10px;
+  padding: 1rem;
+  background: #faf9ff;
+}
+
+.typePickerLabel {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #6b7280;
+  margin: 0 0 0.7rem;
+}
+
+.typeGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.typeOption {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.65rem 0.5rem;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 8px;
+  background: #fff;
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: #374151;
+  cursor: pointer;
+  transition: border-color 0.13s, color 0.13s, background 0.13s;
+}
+
+.typeOption .material-symbols-sharp {
+  font-size: 1.3rem;
+  color: #9ca3af;
+  transition: color 0.13s;
+}
+
+.typeOption:hover:not(:disabled) {
+  border-color: #470ae2;
+  color: #470ae2;
+  background: #f5f3ff;
+}
+
+.typeOption:hover:not(:disabled) .material-symbols-sharp {
+  color: #470ae2;
+}
+
+.typeOption:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* ── Bottom action buttons ────────────────────────────────────────────────── */
+.btnAdd {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  border: 2px dashed #c4b5fd;
+  background: transparent;
+  color: #7c3aed;
+  cursor: pointer;
+  transition: border-color 0.13s, color 0.13s, background 0.13s;
+  align-self: flex-start;
+}
+
+.btnAdd .material-symbols-sharp {
+  font-size: 1.1rem;
+}
+
+.btnAdd:hover {
+  border-color: #470ae2;
+  color: #470ae2;
+  background: #f5f3ff;
+}
+
+.btnCancel {
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 0.35rem 0.9rem;
+  border-radius: 7px;
+  border: 1.5px solid #e5e7eb;
+  background: #fff;
+  color: #6b7280;
+  cursor: pointer;
+  transition: border-color 0.13s, color 0.13s;
+}
+
+.btnCancel:hover {
+  border-color: #9ca3af;
+  color: #374151;
+}
