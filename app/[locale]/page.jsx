@@ -172,15 +172,15 @@ export default async function Home({ params }) {
     <main className="homepage-wrapper">
 
       {/* Hero */}
-      {/*<HeroCuratedSection locale={locale} countryCode={countryCode || 'SA'} />*/}
+      <HeroCuratedSection locale={locale} countryCode={countryCode || 'SA'} />
       
-      {transformedCarouselStores.length > 0 && (
+      {/*{transformedCarouselStores.length > 0 && (
         <HomepageHeroSection
           stores={transformedCarouselStores}
           leaderboard={leaderboardSnapshots}
           locale={locale}
         />
-      )}
+      )}*/}
 
       {/* Brands Ticker */}
       {/*{transformedBrands.length > 0 && (
