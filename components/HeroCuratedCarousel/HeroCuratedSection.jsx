@@ -40,7 +40,7 @@ async function getHeroSlides(language, countryCode) {
     title:      offer.translations?.[0]?.title   || '',
     ctaText:    offer.translations?.[0]?.ctaText || '',
     storeName:  offer.store?.translations?.[0]?.name || '',
-    storeLogo:  offer.store?.logo || null,
+    storeLogo:  offer.store?.bigLogo || null,
     storeSlug:  offer.store?.translations?.[0]?.slug || '',
   }));
 }
