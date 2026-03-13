@@ -15,6 +15,7 @@
   .hcc-root {
     /* Fade the trailing 5% to hint at more slides */
     -webkit-mask-image: linear-gradient(to right, black 92%, transparent 100%);
+    height: 71vh;
     mask-image: linear-gradient(to right, black 92%, transparent 100%);
   }
 
@@ -28,6 +29,7 @@
 .hcc-viewport {
   overflow: hidden;
   width: 100%;
+  height: 100%;
 }
 
 /* ── Flex track ──────────────────────────────────────────────────────────── */
@@ -40,7 +42,8 @@
 
 /* ── Slide wrapper — 75% so ~12.5% of adjacent slides peek on each side ──── */
 .hcc-slide {
-  flex: 0 0 75%;
+  flex: 0 0 1312px;
+  margin: 0 0.65rem;
   min-width: 0;
 }
 
@@ -249,13 +252,13 @@
 
   /* Show ~88% of current card → ~12% peek of the next */
   .hcc-slide {
-    flex: 0 0 88%;
+    flex: 0 0 76%;
   }
 
   /* Portrait card — column layout, text panel FIRST (top) */
   .hcc-slide-card {
     flex-direction: column;
-    height: auto;
+    height: 100%;
     border-radius: 16px;
     box-shadow: 0 4px 20px rgba(71, 10, 226, 0.14);
     border: none;
@@ -298,8 +301,17 @@
   .hcc-img-panel {
     order: 1;                           /* image second */
     flex: 0 0 auto;
-    height: 220px;
+    height: 100%;
     width: 100%;
+  }
+
+  .hcc-text-panel {
+    background: linear-gradient(180deg,rgba(71, 10, 226, 1) 0%, rgba(255, 255, 255, 0) 100%);
+    position: absolute;
+    z-index: 2;
+    width: 100%; 
+    height: 100%;
+    justify-contant: flex-start;
   }
 
   /* Badge sits bottom-left of the image panel */
@@ -324,11 +336,12 @@
 /* ── Small mobile: slightly taller image, tighter slide width ─────────────── */
 @media (max-width: 420px) {
   .hcc-slide {
-    flex: 0 0 90%;
+    flex: 0 0 76%;
   }
 
   .hcc-text-panel {
     padding: 1rem 1.125rem 0.875rem;
+    background: linear-gradient(180deg,rgba(71, 10, 226, 1) 0%, rgba(255, 255, 255, 0) 100%);
   }
 
   .hcc-headline {
@@ -336,6 +349,6 @@
   }
 
   .hcc-img-panel {
-    height: 190px;
+    height: 100%;
   }
 }
