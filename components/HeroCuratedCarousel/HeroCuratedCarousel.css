@@ -252,11 +252,11 @@
 
   .hcc-container{
     display: flex;
-    gap: 0.9rem;
+    gap: 1.1rem;
     touch-action: pan-y pinch-zoom;
     will-change: transform;
     height: 100%;
-    margin-inline-end: 0.9rem;
+    margin: 0;
   }
 
   .hcc-viewport{
@@ -268,7 +268,7 @@
 
   /* Show ~88% of current card → ~12% peek of the next */
   .hcc-slide {
-    flex: 0 0 min(var(--slide-width, 285px), calc(100vw - 2.5rem)) !important;
+    flex: 0 0 min(var(--slide-width,300px),calc(100vw - 2.5rem))!important;
   }
 
   /* Portrait card — column layout, text panel FIRST (top) */
