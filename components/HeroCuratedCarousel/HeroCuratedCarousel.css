@@ -102,7 +102,7 @@
   width: 68px;
   height: 68px;
   border-radius: 50%;
-  background: #1c1c1c;
+  background: none;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -119,9 +119,10 @@
 }
 
 .hcc-badge-img {
-  width: 78%;
-  height: 78%;
-  object-fit: contain;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scale(1.2)
 }
 
 .hcc-badge-initials {
@@ -329,8 +330,8 @@
   
   /* Badge sits bottom-left of the image panel */
   .hcc-badge {
-    width: 52px;
-    height: 52px;
+    width: 58px;
+    height: 58px;
     bottom: 12px;
     left: 12px;
   }
