@@ -1,14 +1,15 @@
 /* components/OfferStacksSection/OfferStacksSection.css */
 
-/* ── Section ─────────────────────────────────────────────────────────────── */
+/* ── Root custom property — shared between section and carousel ─────────── */
 .offer-stacks-section {
+  --section-px: 1rem;
   background-color: transparent;
 }
 
 .offer-stacks-inner {
   max-width: 1312px;
   margin: 0 auto;
-  padding: 2rem 1rem;
+  padding: 2rem var(--section-px);
 }
 
 /* ── Header ─────────────────────────────────────────────────────────────── */
@@ -52,5 +53,36 @@
 
   .offer-stacks-header {
     margin-bottom: 1.75rem;
+  }
+}
+
+/* ── Mobile: full-bleed carousel, no side whitespace ────────────────────── */
+@media (max-width: 768px) {
+  .offer-stacks-section {
+    --section-px: 1rem;
+  }
+
+  .offer-stacks-inner {
+    /* Remove side padding — carousel handles its own gutters */
+    padding-left: 0;
+    padding-right: 0;
+    padding-top: 1.5rem;
+    padding-bottom: 1rem;
+  }
+
+  /* Restore horizontal breathing room for the header text only */
+  .offer-stacks-header {
+    padding-left: var(--section-px);
+    padding-right: var(--section-px);
+    margin-bottom: 1rem;
+  }
+
+  /* Stack-box cards: kill box-shadow during mobile scroll — main jank source.
+     Use a cheaper border instead. Shadow is restored when not in a carousel. */
+  .offer-stacks-section .stack-box {
+    box-shadow: none;
+    border: 1px solid #e2e8f0;
+    /* Isolate stacking context so browser doesn't composite with siblings */
+    isolation: isolate;
   }
 }
