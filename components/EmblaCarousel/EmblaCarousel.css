@@ -12,6 +12,8 @@
 .ec-viewport {
   overflow: hidden;
   width: 100%;
+  /* Force a composited layer so transforms don't trigger main-thread repaints */
+  transform: translateZ(0);
 }
 
 /* ── Track ──────────────────────────────────────────────────────────────────*/
@@ -19,6 +21,11 @@
   display: flex;
   touch-action: pan-y pinch-zoom;
   /* gap is set inline per section */
+  /* Promote to GPU layer BEFORE any animation begins — eliminates jank */
+  will-change: transform;
+  /* Prevent subpixel aliasing on transform updates */
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 
 /* ── Slide ──────────────────────────────────────────────────────────────────*/
@@ -28,6 +35,10 @@
   /* stretch slides to same height */
   display: flex;
   flex-direction: column;
+  /* Each slide gets its own composited layer — prevents per-card repaint */
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 
 /* Ensure direct RSC children (cards) fill slide height */
@@ -106,5 +117,30 @@
   .ec-slide {
     /* Override section-specific slideWidth to ensure touch usability */
     flex: 0 0 min(var(--slide-width, 300px), calc(100vw - 2.5rem)) !important;
+  }
+}
+
+/* ── Full-bleed on mobile (used by OfferStacksSection) ─────────────────────
+   When .ec-root has .ec-full-bleed, the carousel breaks out of its padded
+   parent and renders edge-to-edge. The first/last slide get inline padding
+   so content never touches the screen edge.                                  */
+@media (max-width: 768px) {
+  .ec-full-bleed {
+    margin-left: calc(-1 * var(--section-px, 1rem));
+    margin-right: calc(-1 * var(--section-px, 1rem));
+    width: calc(100% + 2 * var(--section-px, 1rem));
+  }
+
+  .ec-full-bleed .ec-container {
+    padding-left: var(--section-px, 1rem);
+    /* Trailing padding so last card doesn't sit flush against edge */
+    padding-right: var(--section-px, 1rem);
+    /* Make padding part of scroll area, not invisible overflow */
+    box-sizing: content-box;
+  }
+
+  /* Suppress dots+arrows on small screens — swipe is the affordance */
+  .ec-full-bleed .ec-controls {
+    display: none;
   }
 }
