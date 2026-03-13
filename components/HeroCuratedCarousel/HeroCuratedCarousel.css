@@ -252,11 +252,11 @@
 
   .hcc-container{
     display: flex;
-    gap: 1.1rem;
+    gap: 1rem;
     touch-action: pan-y pinch-zoom;
     will-change: transform;
     height: 100%;
-    margin: 0;
+    margin-inline-end: 1rem;
   }
 
   .hcc-viewport{
