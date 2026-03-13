@@ -18,6 +18,7 @@ export default function EmblaCarousel({
   locale,
   slideWidth = '300px',
   slideGap   = '1rem',
+  className  = '',
 }) {
   const isAr = locale?.split('-')[0] === 'ar';
 
@@ -55,7 +56,7 @@ export default function EmblaCarousel({
   const slides = Array.isArray(children) ? children : [children];
 
   return (
-    <div className="ec-root" dir={isAr ? 'rtl' : 'ltr'}>
+    <div className={`ec-root${className ? ` ${className}` : ''}`} dir={isAr ? 'rtl' : 'ltr'}>
 
       {/* ── Viewport ────────────────────────────────────────────────────── */}
       <div className="ec-viewport" ref={emblaRef}>
