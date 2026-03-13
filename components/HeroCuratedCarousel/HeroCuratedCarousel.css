@@ -15,7 +15,7 @@
   .hcc-root {
     /* Fade the trailing 5% to hint at more slides */
     -webkit-mask-image: linear-gradient(to right, black 92%, transparent 100%);
-    height: 71vh;
+    height: 72vh;
     mask-image: linear-gradient(to right, black 92%, transparent 100%);
   }
 
@@ -35,7 +35,7 @@
 /* ── Flex track ──────────────────────────────────────────────────────────── */
 .hcc-container {
   display: flex;
-  gap: 0;
+  gap: 1.2rem;
   touch-action: pan-y pinch-zoom;
   will-change: transform;
 }
@@ -43,7 +43,7 @@
 /* ── Slide wrapper — 75% so ~12.5% of adjacent slides peek on each side ──── */
 .hcc-slide {
   flex: 0 0 1312px;
-  margin: 0 0.5rem;
+  margin: 0;
   min-width: 0;
 }
 
@@ -353,7 +353,6 @@
 
   .hcc-text-panel {
     padding: 1rem 1.125rem 0.875rem;
-    background: linear-gradient(180deg,rgba(71, 10, 226, 1) 0%, rgba(255, 255, 255, 0) 100%);
   }
 
   .hcc-headline {
