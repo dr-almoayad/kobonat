@@ -252,7 +252,7 @@
 
   .hcc-container{
     display: flex;
-    gap: 0.9rem;
+    gap: 0.6rem;
     touch-action: pan-y pinch-zoom;
     will-change: transform;
     height: 100%;
@@ -267,7 +267,7 @@
 
   /* Show ~88% of current card → ~12% peek of the next */
   .hcc-slide {
-    flex: 0 0 min(var(--slide-width, 280px), calc(100vw - 2.5rem)) !important;
+    flex: 0 0 min(var(--slide-width, 285px), calc(100vw - 2.5rem)) !important;
   }
 
   /* Portrait card — column layout, text panel FIRST (top) */
@@ -348,7 +348,7 @@
 /* ── Small mobile: slightly taller image, tighter slide width ─────────────── */
 @media (max-width: 420px) {
   .hcc-slide {
-    flex: 0 0 76%;
+    flex: 0 0 min(var(--slide-width, 285px), calc(100vw - 2.5rem)) !important;
   }
 
   .hcc-text-panel {
