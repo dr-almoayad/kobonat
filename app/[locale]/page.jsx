@@ -187,8 +187,8 @@ export default async function Home({ params }) {
         <BrandsCarousel brands={transformedBrands} />
       )}*/}
 
-      {/* Curated Offers */}
-      <CuratedOffersSection locale={locale} countryCode={countryCode || 'SA'} />
+      {/* Curated Offers 
+      <CuratedOffersSection locale={locale} countryCode={countryCode || 'SA'} />*/}
 
       {/* Stackable Offers */}
       <OfferStacksSection locale={locale} countryCode={countryCode || 'SA'} />
