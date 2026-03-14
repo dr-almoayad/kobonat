@@ -58,12 +58,15 @@ const VoucherCard = ({ voucher, featured = false }) => {
   };
 
   // ── Discount display ────────────────────────────────────────────
+  // Schema fields: voucher.discount (String?) and voucher.discountPercent (Float?)
+  // NOTE: discountValue / discountType do NOT exist on Voucher — those are StoreProduct fields.
   const getDiscountText = () => {
-    if (voucher.discountValue) {
-      if (voucher.discountType === 'PERCENTAGE') return `${voucher.discountValue}%`;
-      if (voucher.discountType === 'FIXED') return `${voucher.discountValue}\nر.س`;
-      return `${voucher.discountValue}`;
-    }
+    // 1. Free-text string stored by admin (e.g. "20%", "Up to 50%", "50 ر.س")
+    if (voucher.discount) return voucher.discount;
+    // 2. Numeric percentage
+    if (voucher.discountPercent != null)
+      return `${Math.round(voucher.discountPercent)}%`;
+    // 3. Type-based fallback
     if (voucher.type === 'FREE_SHIPPING') return isRtl ? 'شحن\nمجاني' : 'FREE\nSHIP';
     if (voucher.type === 'DEAL') return isRtl ? 'عرض' : 'DEAL';
     return isRtl ? 'خصم' : 'SALE';
@@ -129,7 +132,8 @@ const VoucherCard = ({ voucher, featured = false }) => {
   const isActive = !isExpired &&
     (!voucher.startDate || new Date(voucher.startDate) <= new Date());
 
-  const timesUsed = voucher.timesUsed ?? voucher._count?.clicks ?? 0;
+  // Schema: clickCount Int @default(0) — NOT timesUsed
+  const timesUsed = voucher.clickCount ?? voucher._count?.clicks ?? 0;
   const storeName = getStoreName();
   const storeSlug = getStoreSlug();
   const title = getVoucherTitle();
@@ -476,20 +480,20 @@ const VoucherCard = ({ voucher, featured = false }) => {
               </div>
 
               {/* ── Terms ────────────────────────────────────────── */}
-              {(voucher.termsConditions || voucher.minOrderValue || voucher.maxDiscountAmount) && (
+              {(voucher.termsConditions || voucher.minSpendAmount || voucher.maxDiscountAmount) && (
                 <div className="vc-modal-section">
                   <h4 className="vc-modal-section-heading">
                     <span className="material-symbols-sharp">gavel</span>
                     {isRtl ? 'الشروط والأحكام' : 'Terms & Conditions'}
                   </h4>
                   <div className="vc-terms-list">
-                    {voucher.minOrderValue && (
+                    {voucher.minSpendAmount && (
                       <div className="vc-term-item">
                         <span className="material-symbols-sharp">shopping_cart</span>
                         <span>
                           {isRtl
-                            ? `الحد الأدنى للطلب: ${voucher.minOrderValue} ر.س`
-                            : `Minimum order: SAR ${voucher.minOrderValue}`}
+                            ? `الحد الأدنى للطلب: ${voucher.minSpendAmount} ر.س`
+                            : `Minimum order: SAR ${voucher.minSpendAmount}`}
                         </span>
                       </div>
                     )}
