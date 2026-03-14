@@ -53,6 +53,7 @@
   flex-direction: row;
   align-items: stretch;
   width: 100%;
+  max-width: 700px;
   background: var(--vc-bg);
   border: 1px solid var(--vc-border);
   border-radius: 12px;
@@ -562,6 +563,11 @@
 .vc-modal-cta { flex-shrink: 0; }
 
 
+/* ── Mobile chevron (display:none on desktop) ───────────────── */
+.vc-mobile-chevron {
+  display: none;
+}
+
 /* ════════════════════════════════════════════════════════════════
    MOBILE  ≤ 640px
 ════════════════════════════════════════════════════════════════ */
@@ -616,6 +622,22 @@
 
   /* ── Action buttons: hidden on mobile ──────────── */
   .vc-actions { display: none; }
+
+  /* ── Mobile chevron: shown on mobile ────────────── */
+  .vc-mobile-chevron {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    align-self: stretch;
+    color: var(--vc-text-muted);
+    pointer-events: none; /* card itself handles the tap */
+  }
+  .vc-mobile-chevron .material-symbols-sharp {
+    font-size: 1.375rem;
+  }
+  .vc-card--best-deal .vc-mobile-chevron { color: var(--vc-best); }
 
   /* ─────────────────────────────────────────────────
      MODAL — bottom sheet on mobile
