@@ -53,7 +53,6 @@
   flex-direction: row;
   align-items: stretch;
   width: 100%;
-  max-width: 700px;
   background: var(--vc-bg);
   border: 1px solid var(--vc-border);
   border-radius: 12px;
