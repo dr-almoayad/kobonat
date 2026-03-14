@@ -1,24 +1,54 @@
 /* components/OfferStackBox/OfferStackBox.css */
 
-/* ─── Container ─────────────────────────────────────────────────────────────── */
+/* ─── Font base ──────────────────────────────────────────────────────────────*/
+.stack-box,
+.stack-box * {
+  font-family: 'Alexandria', 'Segoe UI', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  box-sizing: border-box;
+}
+
+/* ─── Container — vertical (default) ────────────────────────────────────────*/
 .stack-box {
   position: relative;
   background: #fff;
-  border: 1px solid #e2e8f0;
-  border-radius: 20px;
-  padding: 1.1rem 1.1rem 1rem;
+  border: 1px solid #e4e9f0;
+  border-radius: 12px;
+  padding: 1rem;
   display: flex;
   flex-direction: column;
-  gap: 0.8rem;
+  gap: 0.875rem;
   min-width: 260px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  overflow: hidden;
 }
 
-/* ─── Header ────────────────────────────────────────────────────────────────── */
-.stack-box-header {
+/* ─── Container — horizontal variant ────────────────────────────────────────
+   For wide parent containers (flex-direction: column).
+   Lays out: [store identity] [items strip] [cta]
+   all in a single row with vertical separators.                              */
+.stack-box--horizontal {
+  flex-direction: row;
+  align-items: stretch;
+  gap: 0;
+  padding: 0;
+  min-width: 0;
+}
+
+/* ─── Store panel ────────────────────────────────────────────────────────────*/
+.stack-store-panel {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  padding: 0.875rem 1rem;
+}
+
+/* In horizontal mode, panel is a fixed-width left column */
+.stack-box--horizontal .stack-store-panel {
+  flex: 0 0 180px;
+  padding: 1rem 1.125rem;
+  border-inline-end: 1px solid #e4e9f0;
+  background: #f8fafc;
+  border-radius: 0; /* box handles the outer radius */
 }
 
 .stack-store-identity {
@@ -28,22 +58,27 @@
   min-width: 0;
 }
 
+/* In horizontal mode, wrap to column so text sits below logo */
+.stack-box--horizontal .stack-store-identity {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
 .stack-store-logo {
   width: auto;
-  max-width: 100px;
-  height: 52px;
-  border-radius: 12px;
+  max-width: 96px;
+  height: 40px;
   object-fit: contain;
   flex-shrink: 0;
-  padding: 2px;
 }
 
 .stack-store-logo-placeholder {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: #f1f5f9;
+  border: 1px solid #e4e9f0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -55,7 +90,7 @@
 .stack-store-text {
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  gap: 2px;
   min-width: 0;
 }
 
@@ -69,15 +104,15 @@
 }
 
 .stack-sub-label {
-  font-size: 0.68rem;
+  font-size: 0.6875rem;
   font-weight: 500;
   color: #94a3b8;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
 }
 
-/* ─── Savings ribbon ────────────────────────────────────────────────────────
-   Corner ribbon — top-left for LTR, top-right for RTL.
-   Adapted from the classic CSS folded-corner ribbon pattern.                  */
+/* ─── Savings ribbon ─────────────────────────────────────────────────────────
+   Corner ribbon — top-right LTR, top-left RTL.                               */
 .stack-ribbon {
   --f: .45em;
 
@@ -85,7 +120,7 @@
   top: 0;
   right: 0;
 
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   font-weight: 800;
   color: #fff;
   line-height: 1.8;
@@ -104,13 +139,12 @@
   );
   transform: translate(calc((1 - cos(45deg)) * 100%), -100%) rotate(45deg);
   transform-origin: 0% 100%;
-  background-color: #F07818;
+  background-color: #f97316;
 
   pointer-events: none;
   z-index: 3;
 }
 
-/* RTL: mirror to top-right corner */
 .stack-ribbon--rtl {
   right: auto;
   left: 0;
@@ -126,24 +160,20 @@
   );
 }
 
-/* ─── Items grid ─────────────────────────────────────────────────────────────
-   2×2:  div1 top-left | div2 top-right
-         div3 spans full bottom row
-   column-gap: 10px, row-gap: 10px                                             */
+/* ─── Items grid — vertical (original 2×2) ───────────────────────────────────*/
 .stack-items-grid {
   position: relative;
   display: grid;
   grid-template-columns: 1fr 1fr;
   grid-template-rows: 1fr;
-  column-gap: 10px;
-  row-gap: 10px;
+  column-gap: 8px;
+  row-gap: 8px;
 }
 
 .stack-items-grid.has-bottom {
   grid-template-rows: 1fr 1fr;
 }
 
-/* If no top pair — single item spans full width */
 .stack-items-grid.has-bottom:not(.has-top-pair) .stack-grid-div1 {
   grid-column: 1 / 3;
 }
@@ -152,16 +182,45 @@
 .stack-grid-div2 { grid-area: 1 / 2 / 2 / 3; }
 .stack-grid-div3 { grid-area: 2 / 1 / 3 / 3; }
 
+/* ─── Items strip — horizontal ───────────────────────────────────────────────
+   Items laid out side-by-side. Each slot contains the item card and
+   a trailing + badge (except the last slot).                                 */
+.stack-items-strip {
+  flex: 1;
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  gap: 0;
+  padding: 0.875rem 1rem;
+  min-width: 0;
+}
+
+/* Each slot: item card + optional plus connector */
+.stack-strip-slot {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0;
+  flex: 1;
+  min-width: 0;
+}
+
+/* The last slot takes only as much space as it needs */
+.stack-strip-slot:last-child {
+  flex: 1;
+}
+
 /* ─── Item card ──────────────────────────────────────────────────────────────*/
 .stack-item {
+  flex: 1;
   height: 100%;
   background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  padding: 0.65rem 0.7rem;
+  border: 1px solid #e4e9f0;
+  border-radius: 10px;
+  padding: 0.625rem 0.75rem;
   display: flex;
   flex-direction: column;
-  gap: 0.28rem;
+  gap: 0.25rem;
   min-width: 0;
   box-sizing: border-box;
 }
@@ -171,31 +230,29 @@
   border-color: #e7e5e4;
 }
 
-/* ─── Item header: bank logo + type badge ────────────────────────────────────*/
+/* ─── Item header ────────────────────────────────────────────────────────────*/
 .stack-item-header {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: 0.375rem;
   flex-wrap: wrap;
 }
 
-/* Bank logo — bigger, no bg, no border */
 .stack-bank-logo {
   width: auto;
-  max-width: 90px;
-  height: 44px;
+  max-width: 80px;
+  height: 36px;
   object-fit: contain;
   flex-shrink: 0;
 }
 
-/* Text fallback for missing bank logo */
 .stack-bank-logo-fallback {
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   border-radius: 8px;
   background: #f59e0b;
   color: #fff;
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   font-weight: 800;
   display: flex;
   align-items: center;
@@ -209,34 +266,31 @@
   display: inline-flex;
   align-items: center;
   gap: 0.2rem;
-  font-size: 0.6rem;
+  font-size: 0.625rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  padding: 0.12rem 0.35rem;
-  border-radius: 5px;
+  letter-spacing: 0.04em;
+  padding: 0.125rem 0.375rem;
+  border-radius: 4px;
+  border: 1px solid;
 }
 
-.stack-item-badge .material-symbols-sharp {
-  font-size: 0.68rem;
-}
+.stack-item-badge .material-symbols-sharp { font-size: 0.6875rem; }
 
 .stack-item-badge.type-code {
   background: #eef2ff;
   color: #4338ca;
-  border: 1px solid #e0e7ff;
+  border-color: #e0e7ff;
 }
-
 .stack-item-badge.type-deal {
   background: #f0fdf4;
   color: #15803d;
-  border: 1px solid #dcfce7;
+  border-color: #dcfce7;
 }
-
 .stack-item-badge.type-bank {
   background: #fefce8;
   color: #a16207;
-  border: 1px solid #fef08a;
+  border-color: #fef08a;
 }
 
 /* ─── Item text ──────────────────────────────────────────────────────────────*/
@@ -253,7 +307,7 @@
 }
 
 .stack-item-pct {
-  font-size: 0.92rem;
+  font-size: 0.9375rem;
   font-weight: 800;
   color: #0f172a;
   margin-top: auto;
@@ -266,10 +320,10 @@
   gap: 0.2rem;
   background: #f1f5f9;
   border: 1px dashed #cbd5e1;
-  border-radius: 5px;
-  padding: 0.16rem 0.38rem;
+  border-radius: 4px;
+  padding: 0.15rem 0.375rem;
   font-family: 'Courier New', monospace;
-  font-size: 0.68rem;
+  font-size: 0.6875rem;
   font-weight: 700;
   color: #334155;
   letter-spacing: 0.04em;
@@ -278,23 +332,21 @@
 }
 
 .stack-item-code .material-symbols-sharp {
-  font-size: 0.62rem;
+  font-size: 0.625rem;
   color: #64748b;
 }
 
-/* ─── Plus connector ─────────────────────────────────────────────────────────
-   Single badge. Both variants share the same visual.
-   Positioned at centre of the gap between items.                              */
+/* ─── Plus connector ─────────────────────────────────────────────────────────*/
 .stack-plus {
   position: absolute;
   z-index: 2;
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
   background: #fff;
-  border: 1.5px solid #e2e8f0;
+  border: 1.5px solid #e4e9f0;
   color: #64748b;
-  font-size: 0.78rem;
+  font-size: 0.75rem;
   font-weight: 800;
   display: flex;
   align-items: center;
@@ -303,40 +355,73 @@
   box-shadow: 0 1px 3px rgba(0,0,0,0.07);
 }
 
-/* Horizontal: dead centre of the single row */
-.stack-plus--horizontal {
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-}
-
-/* Vertical: on the boundary between row 1 and row 2 */
+/* Vertical grid: centred on the gap between items */
+.stack-plus--horizontal,
 .stack-plus--vertical {
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
 }
 
-/* ─── CTA ────────────────────────────────────────────────────────────────────*/
+/* Horizontal strip: inline between items, not absolute */
+.stack-plus--strip {
+  position: relative;
+  left: auto;
+  top: auto;
+  transform: none;
+  flex-shrink: 0;
+  margin-inline: 4px;
+}
+
+/* ─── CTA panel ──────────────────────────────────────────────────────────────*/
+.stack-cta-panel {
+  display: flex;
+  align-items: stretch;
+}
+
+/* In vertical mode, CTA sits as a normal block */
+.stack-box:not(.stack-box--horizontal) .stack-cta-panel {
+  margin-top: auto;
+}
+
+/* In horizontal mode, CTA panel is a right-side column */
+.stack-box--horizontal .stack-cta-panel {
+  flex: 0 0 auto;
+  border-inline-start: 1px solid #e4e9f0;
+  padding: 1rem 1.125rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f8fafc;
+}
+
+/* ─── CTA button ─────────────────────────────────────────────────────────────*/
 .stack-cta {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.4rem;
-  background: linear-gradient(135deg, #f59e0b 0%, #f97316 100%);
-  color: #0f172a;
+  gap: 0.375rem;
+  background: #f97316;
+  color: #fff;
   font-family: 'Alexandria', 'Open Sans', sans-serif;
-  font-size: 0.82rem;
+  font-size: 0.8125rem;
   font-weight: 700;
-  padding: 0.6rem 1rem;
-  border-radius: 4px;
+  padding: 0.5625rem 1.125rem;
+  border-radius: 8px;
   text-decoration: none;
-  position: relative;
-  z-index: 1;
-  transition: filter 0.15s ease, transform 0.15s ease;
-  box-shadow: 0 2px 12px rgba(249, 115, 22, 0.3);
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.18s ease, transform 0.12s ease;
   letter-spacing: 0.01em;
-  margin-top: auto;
+}
+
+.stack-cta:hover {
+  background: #ea6c00;
+}
+
+.stack-cta:active {
+  transform: scale(0.98);
 }
 
 .stack-cta .material-symbols-sharp {
@@ -344,7 +429,84 @@
   font-variation-settings: 'FILL' 1;
 }
 
+/* In horizontal mode, CTA is vertically oriented (icon above text) */
+.stack-box--horizontal .stack-cta {
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.75rem 1rem;
+  min-width: 90px;
+  font-size: 0.75rem;
+}
+
+.stack-box--horizontal .stack-cta .material-symbols-sharp {
+  font-size: 1.25rem;
+}
+
 /* ─── RTL ────────────────────────────────────────────────────────────────────*/
 [dir="rtl"] .stack-grid-div1 { grid-area: 1 / 2 / 2 / 3; }
 [dir="rtl"] .stack-grid-div2 { grid-area: 1 / 1 / 2 / 2; }
 [dir="rtl"] .stack-grid-div3 { grid-area: 2 / 1 / 3 / 3; }
+
+/* ─── Responsive ─────────────────────────────────────────────────────────────*/
+
+/* Horizontal variant collapses to vertical on narrow screens */
+@media (max-width: 640px) {
+  .stack-box--horizontal {
+    flex-direction: column;
+    padding: 1rem;
+    gap: 0.875rem;
+  }
+
+  .stack-box--horizontal .stack-store-panel {
+    flex: none;
+    padding: 0;
+    border-inline-end: none;
+    background: transparent;
+  }
+
+  .stack-box--horizontal .stack-store-identity {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .stack-box--horizontal .stack-items-strip {
+    padding: 0;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .stack-box--horizontal .stack-strip-slot {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .stack-box--horizontal .stack-plus--strip {
+    margin-block: 4px;
+    margin-inline: 0;
+  }
+
+  .stack-box--horizontal .stack-cta-panel {
+    flex: none;
+    border-inline-start: none;
+    border-top: 1px solid #e4e9f0;
+    padding: 0.875rem 0 0;
+    background: transparent;
+  }
+
+  .stack-box--horizontal .stack-cta {
+    flex-direction: row;
+    width: 100%;
+    gap: 0.375rem;
+    padding: 0.5625rem 1.125rem;
+    font-size: 0.8125rem;
+    min-width: 0;
+  }
+
+  .stack-box--horizontal .stack-cta .material-symbols-sharp {
+    font-size: 1rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stack-cta { transition: none; }
+}
