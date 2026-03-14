@@ -324,6 +324,13 @@ const VoucherCard = ({ voucher, featured = false, bestDeal = false }) => {
             {isRtl ? 'التفاصيل' : 'Details'}
           </button>
         </div>
+
+        {/* ── MOBILE chevron — hidden on desktop ──────────────────── */}
+        <div className="vc-mobile-chevron" aria-hidden="true">
+          <span className="material-symbols-sharp">
+            {isRtl ? 'chevron_left' : 'chevron_right'}
+          </span>
+        </div>
       </div>
 
       {/* ═══ MODAL ══════════════════════════════════════════════════ */}
