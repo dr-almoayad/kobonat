@@ -79,15 +79,6 @@ function StackItem({ item, isAr }) {
   );
 }
 
-/**
- * OfferStackBox – fully responsive component.
- * Automatically switches between:
- *   - Mobile (<600px container width): vertical card layout (2×2 grid)
- *   - Desktop (≥600px): full‑width horizontal layout (store | items strip | CTA)
- *
- * @param {object}  stack  - Stack data: { store, items, combinedSavingsPercent }
- * @param {string}  locale - Current locale (e.g., 'ar-SA')
- */
 export default function OfferStackBox({ stack, locale }) {
   const lang = locale?.split('-')[0] || 'ar';
   const isAr = lang === 'ar';
@@ -103,7 +94,7 @@ export default function OfferStackBox({ stack, locale }) {
   const hasTopPair = !!topRight;
   const hasBottom  = !!bankItem;
 
-  // Ordered items for horizontal strip (used in desktop layout)
+  // Ordered items for desktop strip
   const orderedItems = [topLeft, topRight, bankItem].filter(Boolean);
 
   return (
@@ -111,14 +102,13 @@ export default function OfferStackBox({ stack, locale }) {
       className="stack-box"
       dir={isAr ? 'rtl' : 'ltr'}
     >
-      {/* Savings ribbon – always visible */}
       {combinedSavingsPercent != null && combinedSavingsPercent > 0 && (
         <div className={`stack-ribbon${isAr ? ' stack-ribbon--rtl' : ''}`}>
           {isAr ? `وفر ${combinedSavingsPercent}%` : `Save ${combinedSavingsPercent}%`}
         </div>
       )}
 
-      {/* Store identity – always present */}
+      {/* Store panel */}
       <div className="stack-store-panel">
         <div className="stack-store-identity">
           {store.logo ? (
@@ -137,8 +127,7 @@ export default function OfferStackBox({ stack, locale }) {
         </div>
       </div>
 
-      {/* Items section – two versions controlled by CSS */}
-      {/* Mobile grid (visible by default, hidden in desktop via container query) */}
+      {/* Mobile grid */}
       <div className="stack-items-grid">
         {topLeft && (
           <div className="stack-grid-div1">
@@ -160,7 +149,7 @@ export default function OfferStackBox({ stack, locale }) {
         )}
       </div>
 
-      {/* Desktop strip (hidden by default, shown in container query) */}
+      {/* Desktop strip */}
       <div className="stack-items-strip">
         {orderedItems.map((item, idx) => (
           <div key={idx} className="stack-strip-slot">
@@ -172,7 +161,7 @@ export default function OfferStackBox({ stack, locale }) {
         ))}
       </div>
 
-      {/* CTA – always present */}
+      {/* CTA */}
       <div className="stack-cta-panel">
         <StackCta stack={stack} locale={locale} />
       </div>
