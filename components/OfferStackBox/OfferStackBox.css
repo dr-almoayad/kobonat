@@ -1,32 +1,30 @@
 /* components/OfferStackBox/OfferStackBox.css
-   Professional, responsive, and modern design – automatically adapts to container width.
-   Uses CSS container queries for layout switching.
+   Modern, professional design – consistent with Saudi market expectations.
+   Uses container queries to switch between mobile (vertical) and desktop (horizontal) layouts.
 */
 
-/* ─── CSS variables (consistent with VoucherCard) ────────────────────────── */
+/* ─── CSS variables – shared design tokens ──────────────────────────────── */
 :root {
   --osb-primary:       #1e3a8a;      /* deep navy – authoritative */
-  --osb-primary-dark:  #0f2b5c;
-  --osb-primary-light: #e8edff;       /* very light tint */
-  --osb-accent:        #f97316;       /* vibrant orange – savings */
+  --osb-primary-light: #e8edff;
+  --osb-accent:        #f97316;      /* vibrant orange – savings */
   --osb-accent-dark:   #ea6c00;
-
   --osb-bg:            #ffffff;
   --osb-bg-subtle:     #f8fafc;
-  --osb-bg-card:       #f8fafc;
   --osb-border:        #e2e8f0;
-  --osb-border-hover:  #cbd5e0;
-
+  --osb-border-strong: #cbd5e0;
   --osb-text:          #1e293b;
   --osb-text-secondary: #475569;
   --osb-text-muted:    #94a3b8;
-
-  --osb-shadow:         0 2px 5px rgba(0,0,0,0.03), 0 1px 2px rgba(0,0,0,0.05);
-  --osb-shadow-hover:   0 8px 20px rgba(0,0,0,0.06), 0 2px 5px rgba(0,0,0,0.03);
-  --osb-shadow-cta:     0 4px 10px rgba(249, 115, 22, 0.25);
+  --osb-shadow-sm:      0 1px 3px rgba(0,0,0,0.05);
+  --osb-shadow-md:      0 4px 10px rgba(0,0,0,0.05), 0 2px 4px rgba(0,0,0,0.03);
+  --osb-shadow-lg:      0 10px 25px rgba(0,0,0,0.06), 0 4px 10px rgba(0,0,0,0.03);
+  --osb-radius:         20px;
+  --osb-radius-inner:   14px;
+  --osb-transition:     0.2s ease;
 }
 
-/* ─── Base container – enables container queries ─────────────────────────── */
+/* ─── Base container – enables container queries ───────────────────────── */
 .stack-box {
   container-type: inline-size;
   container-name: stackbox;
@@ -37,32 +35,32 @@
 
   background: var(--osb-bg);
   border: 1px solid var(--osb-border);
-  border-radius: 20px;
-  box-shadow: var(--osb-shadow);
+  border-radius: var(--osb-radius);
+  box-shadow: var(--osb-shadow-sm);
+  transition: border-color var(--osb-transition), box-shadow var(--osb-transition);
+  position: relative;  /* for ribbon */
   overflow: hidden;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
-  position: relative;                   /* for ribbon positioning */
 }
 
 .stack-box:hover {
-  border-color: var(--osb-border-hover);
-  box-shadow: var(--osb-shadow-hover);
+  border-color: var(--osb-border-strong);
+  box-shadow: var(--osb-shadow-md);
 }
 
-/* ─── Savings ribbon (unchanged from original, but with refined colors) ─── */
+/* ─── Savings ribbon – subtle but visible ──────────────────────────────── */
 .stack-ribbon {
   --f: 0.45em;
   position: absolute;
   top: 0;
   right: 0;
   font-size: 0.7rem;
-  font-weight: 700;
-  color: #fff;
+  font-weight: 600;
+  color: white;
   line-height: 1.8;
   padding-inline: 1lh;
   padding-bottom: var(--f);
   white-space: nowrap;
-  border-image: conic-gradient(#0008 0 0) 51% / var(--f);
+  background-color: var(--osb-accent);
   clip-path: polygon(
     0 calc(100% - var(--f)), 0 100%,
     var(--f) calc(100% - var(--f)),
@@ -73,7 +71,6 @@
   );
   transform: translate(calc((1 - cos(45deg)) * 100%), -100%) rotate(45deg);
   transform-origin: 0% 100%;
-  background-color: var(--osb-accent);
   pointer-events: none;
   z-index: 3;
 }
@@ -94,19 +91,18 @@
 }
 
 /* ════════════════════════════════════════════════════════════════════════════
-   MOBILE LAYOUT (<600px) – vertical card (default)
-════════════════════════════════════════════════════════════════════════════ */
-
+   MOBILE LAYOUT (<600px) – vertical stacked card
+═══════════════════════════════════════════════════════════════════════════ */
 .stack-box {
   display: flex;
   flex-direction: column;
   gap: 0;
-  padding: 0;                         /* padding handled by inner panels */
+  padding: 0;               /* inner spacing handled by sections */
 }
 
-/* Store panel – top section */
+/* Store panel */
 .stack-store-panel {
-  padding: 1rem 1.25rem;
+  padding: 1.25rem 1.25rem 1rem;
   border-bottom: 1px solid var(--osb-border);
   background: var(--osb-bg-subtle);
 }
@@ -114,21 +110,21 @@
 .stack-store-identity {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.875rem;
 }
 
 .stack-store-logo {
   width: auto;
-  max-width: 96px;
-  height: 40px;
+  max-width: 100px;
+  height: 44px;
   object-fit: contain;
   flex-shrink: 0;
 }
 
 .stack-store-logo-placeholder {
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
   background: #f1f5f9;
   border: 1px solid var(--osb-border);
   display: flex;
@@ -136,18 +132,18 @@
   justify-content: center;
   flex-shrink: 0;
   color: var(--osb-text-muted);
-  font-size: 1.1rem;
+  font-size: 1.25rem;
 }
 
 .stack-store-text {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 0.2rem;
   min-width: 0;
 }
 
 .stack-store-name {
-  font-size: 0.9375rem;
+  font-size: 1rem;
   font-weight: 700;
   color: var(--osb-text);
   white-space: nowrap;
@@ -156,43 +152,43 @@
 }
 
 .stack-sub-label {
-  font-size: 0.6875rem;
+  font-size: 0.7rem;
   font-weight: 500;
   color: var(--osb-text-muted);
   text-transform: uppercase;
   letter-spacing: 0.03em;
 }
 
-/* Items grid – 2×2 layout (original) */
+/* Items grid – 2×2 layout for up to 3 items */
 .stack-items-grid {
   position: relative;
   display: grid;
   grid-template-columns: 1fr 1fr;
   grid-template-rows: auto auto;
-  gap: 8px;
-  padding: 1rem 1.25rem;
+  gap: 12px;
+  padding: 1.25rem;
 }
 
 .stack-grid-div1 { grid-area: 1 / 1 / 2 / 2; }
 .stack-grid-div2 { grid-area: 1 / 2 / 2 / 3; }
 .stack-grid-div3 { grid-area: 2 / 1 / 3 / 3; }
 
-/* Item card (shared between layouts) */
+/* Item card – shared base */
 .stack-item {
-  background: var(--osb-bg-card);
+  background: var(--osb-bg);
   border: 1px solid var(--osb-border);
-  border-radius: 12px;
-  padding: 0.75rem;
+  border-radius: var(--osb-radius-inner);
+  padding: 1rem;
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+  gap: 0.5rem;
   height: 100%;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition: border-color var(--osb-transition), box-shadow var(--osb-transition);
 }
 
 .stack-item:hover {
-  border-color: var(--osb-border-hover);
-  box-shadow: var(--osb-shadow-hover);
+  border-color: var(--osb-border-strong);
+  box-shadow: var(--osb-shadow-sm);
 }
 
 .stack-item--bank {
@@ -202,10 +198,11 @@
 .stack-item-header {
   display: flex;
   align-items: center;
-  gap: 0.375rem;
+  gap: 0.5rem;
   flex-wrap: wrap;
 }
 
+/* Bank logo */
 .stack-bank-logo {
   width: auto;
   max-width: 80px;
@@ -215,12 +212,12 @@
 }
 
 .stack-bank-logo-fallback {
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   border-radius: 8px;
   background: var(--osb-accent);
   color: #fff;
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   font-weight: 700;
   display: flex;
   align-items: center;
@@ -233,16 +230,16 @@
 .stack-item-badge {
   display: inline-flex;
   align-items: center;
-  gap: 0.2rem;
-  font-size: 0.6rem;
+  gap: 0.25rem;
+  font-size: 0.65rem;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
-  padding: 0.125rem 0.375rem;
-  border-radius: 4px;
+  letter-spacing: 0.03em;
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
   border: 1px solid;
 }
-.stack-item-badge .material-symbols-sharp { font-size: 0.6875rem; }
+.stack-item-badge .material-symbols-sharp { font-size: 0.75rem; }
 
 .stack-item-badge.type-code {
   background: #eef2ff;
@@ -261,7 +258,7 @@
 }
 
 .stack-item-title {
-  font-size: 0.775rem;
+  font-size: 0.875rem;
   font-weight: 600;
   color: var(--osb-text);
   line-height: 1.4;
@@ -272,7 +269,7 @@
 }
 
 .stack-item-pct {
-  font-size: 0.9375rem;
+  font-size: 1.125rem;
   font-weight: 700;
   color: var(--osb-text);
   margin-top: auto;
@@ -281,34 +278,34 @@
 .stack-item-code {
   display: inline-flex;
   align-items: center;
-  gap: 0.2rem;
+  gap: 0.25rem;
   background: #f1f5f9;
   border: 1px dashed #cbd5e1;
-  border-radius: 4px;
-  padding: 0.15rem 0.375rem;
+  border-radius: 6px;
+  padding: 0.25rem 0.5rem;
   font-family: 'Courier New', monospace;
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   font-weight: 600;
   color: #334155;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.02em;
   width: fit-content;
 }
 .stack-item-code .material-symbols-sharp {
-  font-size: 0.625rem;
+  font-size: 0.75rem;
   color: #64748b;
 }
 
-/* Plus connector (mobile: centred on gap) */
+/* Plus connector (mobile) – centered on the gap */
 .stack-plus {
   position: absolute;
   z-index: 2;
-  width: 24px;
-  height: 24px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   background: #fff;
   border: 1.5px solid var(--osb-border);
   color: var(--osb-text-muted);
-  font-size: 0.8rem;
+  font-size: 0.9rem;
   font-weight: 600;
   display: flex;
   align-items: center;
@@ -329,26 +326,27 @@
 
 /* CTA panel (mobile) */
 .stack-cta-panel {
-  padding: 0.75rem 1.25rem 1.25rem;
+  padding: 0 1.25rem 1.25rem;
   border-top: 1px solid var(--osb-border);
+  background: var(--osb-bg);
 }
 
 .stack-cta {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.4rem;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.75rem 1.25rem;
   background: var(--osb-accent);
   color: #fff;
   font-size: 0.875rem;
   font-weight: 600;
-  padding: 0.625rem 1.125rem;
-  border-radius: 10px;
   border: none;
+  border-radius: var(--osb-radius-inner);
   cursor: pointer;
-  width: 100%;
-  transition: background 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
-  box-shadow: var(--osb-shadow-cta);
+  transition: background var(--osb-transition), transform 0.1s ease, box-shadow var(--osb-transition);
+  box-shadow: 0 4px 10px rgba(249, 115, 22, 0.25);
 }
 .stack-cta:hover {
   background: var(--osb-accent-dark);
@@ -358,15 +356,15 @@
   transform: scale(0.98);
 }
 .stack-cta .material-symbols-sharp {
-  font-size: 1rem;
+  font-size: 1.125rem;
   font-variation-settings: 'FILL' 1;
 }
 
 /* ════════════════════════════════════════════════════════════════════════════
-   DESKTOP / TABLET LAYOUT (container width ≥ 600px)
+   DESKTOP / TABLET LAYOUT (container width ≥ 700px)
+   Full‑width horizontal – store panel | items strip | CTA
 ═══════════════════════════════════════════════════════════════════════════ */
-
-@container stackbox (min-width: 600px) {
+@container stackbox (min-width: 700px) {
   .stack-box {
     flex-direction: row;
     align-items: stretch;
@@ -375,8 +373,8 @@
 
   /* Store panel – left column */
   .stack-store-panel {
-    flex: 0 0 200px;
-    padding: 1.5rem 1rem;
+    flex: 0 0 220px;
+    padding: 1.5rem 1.25rem;
     border-bottom: none;
     border-inline-end: 1px solid var(--osb-border);
     background: var(--osb-bg-subtle);
@@ -388,37 +386,37 @@
   .stack-store-identity {
     flex-direction: column;
     align-items: flex-start;
-    gap: 0.5rem;
+    gap: 0.75rem;
   }
 
   .stack-store-logo {
-    max-width: 120px;
-    height: 48px;
+    max-width: 140px;
+    height: 52px;
   }
 
   .stack-store-text {
-    gap: 0.2rem;
+    gap: 0.25rem;
   }
 
   .stack-store-name {
-    font-size: 1rem;
+    font-size: 1.125rem;
     white-space: normal;
     word-break: break-word;
   }
 
-  /* Items strip – horizontal scrollable (or flex wrap) */
+  /* Hide the mobile grid */
   .stack-items-grid {
-    display: none;  /* hide grid, we'll use strip */
+    display: none;
   }
 
+  /* Items strip – horizontally scrollable */
   .stack-items-strip {
     flex: 1;
     display: flex;
     flex-direction: row;
     align-items: center;
     gap: 0;
-    padding: 1rem 1.25rem;
-    min-width: 0;
+    padding: 1.25rem;
     overflow-x: auto;
     scrollbar-width: thin;
     scrollbar-color: var(--osb-border) transparent;
@@ -441,20 +439,20 @@
     align-items: center;
     gap: 0;
     flex-shrink: 0;
-    min-width: 180px;
-    max-width: 240px;
+    min-width: 200px;
+    max-width: 260px;
   }
 
-  /* Item card inside strip – no absolute plus */
   .stack-item {
     width: 100%;
   }
 
+  /* Plus connector – inline, not absolute */
   .stack-plus--strip {
     position: relative;
-    width: 28px;
-    height: 28px;
-    margin-inline: 8px;
+    width: 32px;
+    height: 32px;
+    margin-inline: 12px;
     flex-shrink: 0;
   }
 
@@ -473,24 +471,24 @@
   .stack-cta {
     flex-direction: column;
     width: auto;
-    min-width: 120px;
-    padding: 0.875rem 1rem;
-    font-size: 0.8125rem;
+    min-width: 130px;
+    padding: 1rem 1.25rem;
+    font-size: 0.875rem;
     gap: 0.25rem;
   }
   .stack-cta .material-symbols-sharp {
-    font-size: 1.25rem;
+    font-size: 1.375rem;
   }
 }
 
 /* ════════════════════════════════════════════════════════════════════════════
-   RTL support
+   RTL support – flip borders and grid areas
 ═══════════════════════════════════════════════════════════════════════════ */
 [dir="rtl"] .stack-grid-div1 { grid-area: 1 / 2 / 2 / 3; }
 [dir="rtl"] .stack-grid-div2 { grid-area: 1 / 1 / 2 / 2; }
 [dir="rtl"] .stack-grid-div3 { grid-area: 2 / 1 / 3 / 3; }
 
-@container stackbox (min-width: 600px) {
+@container stackbox (min-width: 700px) {
   [dir="rtl"] .stack-store-panel {
     border-inline-end: none;
     border-inline-start: 1px solid var(--osb-border);
