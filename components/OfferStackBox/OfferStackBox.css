@@ -1,512 +1,236 @@
 /* components/OfferStackBox/OfferStackBox.css */
 
-/* ─── Font base ──────────────────────────────────────────────────────────────*/
-.stack-box,
-.stack-box * {
+:root {
+  --osb-primary:       #0f172a;
+  --osb-bg:            #ffffff;
+  --osb-bg-subtle:     #f8fafc;
+  --osb-border:        #cbd5e1;
+  --osb-border-light:  #e2e8f0;
+  
+  --osb-text:          #0f172a;
+  --osb-text-sec:      #475569;
+  --osb-text-mut:      #64748b;
+
+  --osb-shadow:        0 1px 2px rgba(0, 0, 0, 0.04);
+  --osb-shadow-hover:  0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.osb-container, .osb-container * {
   font-family: 'Alexandria', 'Segoe UI', system-ui, sans-serif;
-  -webkit-font-smoothing: antialiased;
   box-sizing: border-box;
+  -webkit-font-smoothing: antialiased;
 }
 
-/* ─── Container — vertical (default) ────────────────────────────────────────*/
-.stack-box {
+/* ── Container (Mobile First: Card Layout) ── */
+.osb-container {
   position: relative;
-  background: #fff;
-  border: 1px solid #e4e9f0;
-  border-radius: 12px;
-  padding: 1rem;
   display: flex;
   flex-direction: column;
-  gap: 0.875rem;
-  min-width: 260px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  background: var(--osb-bg);
+  border: 1px solid var(--osb-border);
+  border-radius: 8px;
+  box-shadow: var(--osb-shadow);
   overflow: hidden;
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+  width: 100%;
+}
+.osb-container:hover {
+  box-shadow: var(--osb-shadow-hover);
+  border-color: #94a3b8;
 }
 
-/* ─── Container — horizontal variant ────────────────────────────────────────
-   For wide parent containers (flex-direction: column).
-   Lays out: [store identity] [items strip] [cta]
-   all in a single row with vertical separators.                              */
-.stack-box--horizontal {
-  flex-direction: row;
-  align-items: stretch;
-  gap: 0;
-  padding: 0;
-  min-width: 0;
-}
-
-/* ─── Store panel ────────────────────────────────────────────────────────────*/
-.stack-store-panel {
-  display: flex;
-  align-items: center;
-  padding: 0.875rem 1rem;
-}
-
-/* In horizontal mode, panel is a fixed-width left column */
-.stack-box--horizontal .stack-store-panel {
-  flex: 0 0 180px;
-  padding: 1rem 1.125rem;
-  border-inline-end: 1px solid #e4e9f0;
-  background: #f8fafc;
-  border-radius: 0; /* box handles the outer radius */
-}
-
-.stack-store-identity {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  min-width: 0;
-}
-
-/* In horizontal mode, wrap to column so text sits below logo */
-.stack-box--horizontal .stack-store-identity {
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.5rem;
-}
-
-.stack-store-logo {
-  width: auto;
-  max-width: 96px;
-  height: 40px;
-  object-fit: contain;
-  flex-shrink: 0;
-}
-
-.stack-store-logo-placeholder {
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
-  background: #f1f5f9;
-  border: 1px solid #e4e9f0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  color: #94a3b8;
-  font-size: 1.1rem;
-}
-
-.stack-store-text {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-}
-
-.stack-store-name {
-  font-size: 0.875rem;
-  font-weight: 700;
-  color: #0f172a;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.stack-sub-label {
-  font-size: 0.6875rem;
-  font-weight: 500;
-  color: #94a3b8;
-  letter-spacing: 0.02em;
-  white-space: nowrap;
-}
-
-/* ─── Savings ribbon ─────────────────────────────────────────────────────────
-   Corner ribbon — top-right LTR, top-left RTL.                               */
-.stack-ribbon {
-  --f: .45em;
-
+/* ── Savings Tag ── */
+.osb-savings-tag {
   position: absolute;
   top: 0;
-  right: 0;
-
-  font-size: 0.7rem;
-  font-weight: 800;
+  inset-inline-end: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--osb-primary);
   color: #fff;
-  line-height: 1.8;
-  padding-inline: 1lh;
-  padding-bottom: var(--f);
-  white-space: nowrap;
-
-  border-image: conic-gradient(#0008 0 0) 51% / var(--f);
-  clip-path: polygon(
-    0 calc(100% - var(--f)), 0 100%,
-    var(--f) calc(100% - var(--f)),
-    calc(100% - var(--f)) calc(100% - var(--f)),
-    100% 100%, 100% calc(100% - var(--f)),
-    calc(100% - 999px) calc(100% - var(--f) - 999px),
-    999px calc(100% - var(--f) - 999px)
-  );
-  transform: translate(calc((1 - cos(45deg)) * 100%), -100%) rotate(45deg);
-  transform-origin: 0% 100%;
-  background-color: #f97316;
-
-  pointer-events: none;
-  z-index: 3;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-end-start-radius: 6px;
+  z-index: 5;
 }
+.osb-savings-tag .material-symbols-sharp { font-size: 0.875rem; color: #f59e0b; }
 
-.stack-ribbon--rtl {
-  right: auto;
-  left: 0;
-  transform: translate(calc((cos(45deg) - 1) * 100%), -100%) rotate(-45deg);
-  transform-origin: 100% 100%;
-  clip-path: polygon(
-    100% calc(100% - var(--f)), 100% 100%,
-    calc(100% - var(--f)) calc(100% - var(--f)),
-    var(--f) calc(100% - var(--f)),
-    0 100%, 0 calc(100% - var(--f)),
-    999px calc(100% - var(--f) - 999px),
-    calc(100% - 999px) calc(100% - var(--f) - 999px)
-  );
+/* ── Store Panel ── */
+.osb-store-panel {
+  padding: 1rem 1.25rem;
+  background: var(--osb-bg-subtle);
+  border-bottom: 1px dashed var(--osb-border);
 }
-
-/* ─── Items grid — vertical (original 2×2) ───────────────────────────────────*/
-.stack-items-grid {
-  position: relative;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  grid-template-rows: 1fr;
-  column-gap: 8px;
-  row-gap: 8px;
-}
-
-.stack-items-grid.has-bottom {
-  grid-template-rows: 1fr 1fr;
-}
-
-.stack-items-grid.has-bottom:not(.has-top-pair) .stack-grid-div1 {
-  grid-column: 1 / 3;
-}
-
-.stack-grid-div1 { grid-area: 1 / 1 / 2 / 2; }
-.stack-grid-div2 { grid-area: 1 / 2 / 2 / 3; }
-.stack-grid-div3 { grid-area: 2 / 1 / 3 / 3; }
-
-/* ─── Items strip — horizontal ───────────────────────────────────────────────
-   Items laid out side-by-side. Each slot contains the item card and
-   a trailing + badge (except the last slot).                                 */
-.stack-items-strip {
-  flex: 1;
-  display: flex;
-  flex-direction: row;
-  align-items: stretch;
-  gap: 0;
-  padding: 0.875rem 1rem;
-  min-width: 0;
-}
-
-/* Each slot: item card + optional plus connector */
-.stack-strip-slot {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 0;
-  flex: 1;
-  min-width: 0;
-}
-
-/* The last slot takes only as much space as it needs */
-.stack-strip-slot:last-child {
-  flex: 1;
-}
-
-/* ─── Item card ──────────────────────────────────────────────────────────────*/
-.stack-item {
-  flex: 1;
-  height: 100%;
-  background: #f8fafc;
-  border: 1px solid #e4e9f0;
-  border-radius: 10px;
-  padding: 0.625rem 0.75rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-  min-width: 0;
-  box-sizing: border-box;
-}
-
-.stack-item--bank {
-  background: #fafaf9;
-  border-color: #e7e5e4;
-}
-
-/* ─── Item header ────────────────────────────────────────────────────────────*/
-.stack-item-header {
+.osb-store-identity {
   display: flex;
   align-items: center;
-  gap: 0.375rem;
-  flex-wrap: wrap;
+  gap: 0.75rem;
 }
-
-.stack-bank-logo {
-  width: auto;
-  max-width: 80px;
+.osb-store-logo {
   height: 36px;
+  max-width: 80px;
   object-fit: contain;
-  flex-shrink: 0;
+  border-radius: 4px;
+  border: 1px solid var(--osb-border-light);
+  background: #fff;
+  padding: 2px;
 }
-
-.stack-bank-logo-fallback {
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
-  background: #f59e0b;
-  color: #fff;
-  font-size: 0.7rem;
-  font-weight: 800;
+.osb-store-logo-placeholder {
+  width: 36px;
+  height: 36px;
+  border-radius: 4px;
+  background: var(--osb-border-light);
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
-  letter-spacing: 0.02em;
+  color: var(--osb-text-mut);
+}
+.osb-store-text { display: flex; flex-direction: column; }
+.osb-store-name { font-size: 0.9375rem; font-weight: 700; color: var(--osb-text); }
+.osb-sub-label { font-size: 0.75rem; font-weight: 600; color: var(--osb-text-mut); text-transform: uppercase; letter-spacing: 0.5px;}
+
+/* ── Items Area (Mobile Grid) ── */
+.osb-items-area {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  padding: 1rem 1.25rem;
+  position: relative;
+}
+/* If 3 items, make the last one span full width on mobile */
+.osb-items-area.count-3 .osb-item-wrapper:last-child { grid-column: 1 / -1; }
+
+.osb-item-wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
 }
 
-/* ─── Type badge ─────────────────────────────────────────────────────────────*/
-.stack-item-badge {
+/* ── Item Card ── */
+.osb-item {
+  flex: 1;
+  background: #fff;
+  border: 1px solid var(--osb-border-light);
+  border-radius: 6px;
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.osb-item-bank { background: #fafaf9; }
+
+.osb-item-header { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.osb-bank-logo { height: 24px; max-width: 60px; object-fit: contain; }
+.osb-bank-logo-fallback { padding: 2px 6px; background: var(--osb-text); color: #fff; font-size: 0.6rem; font-weight: 700; border-radius: 2px; }
+
+.osb-badge {
   display: inline-flex;
   align-items: center;
-  gap: 0.2rem;
+  gap: 3px;
   font-size: 0.625rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
-  padding: 0.125rem 0.375rem;
-  border-radius: 4px;
-  border: 1px solid;
+  padding: 2px 6px;
+  border-radius: 2px;
+  border: 1px solid currentColor;
+  background: transparent;
 }
+.osb-badge .material-symbols-sharp { font-size: 0.75rem; }
+.type-code { color: #4338ca; }
+.type-deal { color: #059669; }
+.type-bank { color: #d97706; }
 
-.stack-item-badge .material-symbols-sharp { font-size: 0.6875rem; }
+.osb-item-title { font-size: 0.8125rem; font-weight: 600; color: var(--osb-text); line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 
-.stack-item-badge.type-code {
-  background: #eef2ff;
-  color: #4338ca;
-  border-color: #e0e7ff;
-}
-.stack-item-badge.type-deal {
-  background: #f0fdf4;
-  color: #15803d;
-  border-color: #dcfce7;
-}
-.stack-item-badge.type-bank {
-  background: #fefce8;
-  color: #a16207;
-  border-color: #fef08a;
-}
+.osb-item-footer { margin-top: auto; display: flex; align-items: center; justify-content: space-between; gap: 6px; flex-wrap: wrap; padding-top: 4px;}
+.osb-item-pct { font-size: 1rem; font-weight: 800; color: var(--osb-primary); }
+.osb-item-code { display: inline-flex; align-items: center; gap: 4px; background: var(--osb-bg-subtle); border: 1px dashed var(--osb-border); border-radius: 3px; padding: 2px 6px; font-family: monospace; font-size: 0.75rem; font-weight: 700; color: var(--osb-text-sec); }
+.osb-item-code .material-symbols-sharp { font-size: 0.75rem; }
 
-/* ─── Item text ──────────────────────────────────────────────────────────────*/
-.stack-item-title {
-  font-size: 0.775rem;
-  font-weight: 600;
-  color: #1e293b;
-  line-height: 1.35;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  margin-top: 2px;
-}
-
-.stack-item-pct {
-  font-size: 0.9375rem;
-  font-weight: 800;
-  color: #0f172a;
-  margin-top: auto;
-  padding-top: 4px;
-}
-
-.stack-item-code {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.2rem;
-  background: #f1f5f9;
-  border: 1px dashed #cbd5e1;
-  border-radius: 4px;
-  padding: 0.15rem 0.375rem;
-  font-family: 'Courier New', monospace;
-  font-size: 0.6875rem;
-  font-weight: 700;
-  color: #334155;
-  letter-spacing: 0.04em;
-  width: fit-content;
-  margin-top: auto;
-}
-
-.stack-item-code .material-symbols-sharp {
-  font-size: 0.625rem;
-  color: #64748b;
-}
-
-/* ─── Plus connector ─────────────────────────────────────────────────────────*/
-.stack-plus {
+/* ── Connector (+) Mobile ── */
+.osb-connector {
   position: absolute;
-  z-index: 2;
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  background: #fff;
-  border: 1.5px solid #e4e9f0;
-  color: #64748b;
-  font-size: 0.75rem;
-  font-weight: 800;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  pointer-events: none;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.07);
-}
-
-/* Vertical grid: centred on the gap between items */
-.stack-plus--horizontal,
-.stack-plus--vertical {
-  left: 50%;
   top: 50%;
-  transform: translate(-50%, -50%);
-}
-
-/* Horizontal strip: inline between items, not absolute */
-.stack-plus--strip {
-  position: relative;
-  left: auto;
-  top: auto;
-  transform: none;
-  flex-shrink: 0;
-  margin-inline: 4px;
-}
-
-/* ─── CTA panel ──────────────────────────────────────────────────────────────*/
-.stack-cta-panel {
-  display: flex;
-  align-items: stretch;
-}
-
-/* In vertical mode, CTA sits as a normal block */
-.stack-box:not(.stack-box--horizontal) .stack-cta-panel {
-  margin-top: auto;
-}
-
-/* In horizontal mode, CTA panel is a right-side column */
-.stack-box--horizontal .stack-cta-panel {
-  flex: 0 0 auto;
-  border-inline-start: 1px solid #e4e9f0;
-  padding: 1rem 1.125rem;
+  inset-inline-end: -16px;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+  background: #fff;
+  border: 1px solid var(--osb-border);
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #f8fafc;
+  color: var(--osb-text-mut);
+  z-index: 2;
 }
+.osb-connector .material-symbols-sharp { font-size: 0.875rem; font-weight: 800; }
 
-/* ─── CTA button ─────────────────────────────────────────────────────────────*/
-.stack-cta {
+/* Hide connector on last item of row in mobile grid */
+.osb-items-area.count-2 .osb-item-wrapper:nth-child(2) .osb-connector,
+.osb-items-area.count-3 .osb-item-wrapper:nth-child(2) .osb-connector,
+.osb-items-area.count-3 .osb-item-wrapper:nth-child(3) .osb-connector { display: none; }
+
+/* ── CTA Panel ── */
+.osb-cta-panel {
+  padding: 1rem 1.25rem;
+  background: var(--osb-bg-subtle);
+  border-top: 1px solid var(--osb-border-light);
   display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.375rem;
-  background: #f97316;
-  color: #fff;
-  font-family: 'Alexandria', 'Open Sans', sans-serif;
-  font-size: 0.8125rem;
-  font-weight: 700;
-  padding: 0.5625rem 1.125rem;
-  border-radius: 8px;
-  text-decoration: none;
-  border: none;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: background 0.18s ease, transform 0.12s ease;
-  letter-spacing: 0.01em;
 }
 
-.stack-cta:hover {
-  background: #ea6c00;
-}
-
-.stack-cta:active {
-  transform: scale(0.98);
-}
-
-.stack-cta .material-symbols-sharp {
-  font-size: 1rem;
-  font-variation-settings: 'FILL' 1;
-}
-
-/* In horizontal mode, CTA is vertically oriented (icon above text) */
-.stack-box--horizontal .stack-cta {
-  flex-direction: column;
-  gap: 0.25rem;
-  padding: 0.75rem 1rem;
-  min-width: 90px;
-  font-size: 0.75rem;
-}
-
-.stack-box--horizontal .stack-cta .material-symbols-sharp {
-  font-size: 1.25rem;
-}
-
-/* ─── RTL ────────────────────────────────────────────────────────────────────*/
-[dir="rtl"] .stack-grid-div1 { grid-area: 1 / 2 / 2 / 3; }
-[dir="rtl"] .stack-grid-div2 { grid-area: 1 / 1 / 2 / 2; }
-[dir="rtl"] .stack-grid-div3 { grid-area: 2 / 1 / 3 / 3; }
-
-/* ─── Responsive ─────────────────────────────────────────────────────────────*/
-
-/* Horizontal variant collapses to vertical on narrow screens */
-@media (max-width: 640px) {
-  .stack-box--horizontal {
-    flex-direction: column;
-    padding: 1rem;
-    gap: 0.875rem;
-  }
-
-  .stack-box--horizontal .stack-store-panel {
-    flex: none;
-    padding: 0;
-    border-inline-end: none;
-    background: transparent;
-  }
-
-  .stack-box--horizontal .stack-store-identity {
+/* ════════════════════════════════════════════════════════════════
+   DESKTOP (Full Width Horizontal Strip)
+════════════════════════════════════════════════════════════════ */
+@media (min-width: 768px) {
+  .osb-container {
     flex-direction: row;
+    align-items: stretch;
+  }
+
+  .osb-store-panel {
+    flex: 0 0 200px;
+    border-bottom: none;
+    border-inline-end: 1px dashed var(--osb-border);
+    display: flex;
     align-items: center;
   }
+  .osb-store-identity { flex-direction: column; align-items: flex-start; gap: 8px; }
 
-  .stack-box--horizontal .stack-items-strip {
-    padding: 0;
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .stack-box--horizontal .stack-strip-slot {
-    flex-direction: column;
-    align-items: center;
-  }
-
-  .stack-box--horizontal .stack-plus--strip {
-    margin-block: 4px;
-    margin-inline: 0;
-  }
-
-  .stack-box--horizontal .stack-cta-panel {
-    flex: none;
-    border-inline-start: none;
-    border-top: 1px solid #e4e9f0;
-    padding: 0.875rem 0 0;
-    background: transparent;
-  }
-
-  .stack-box--horizontal .stack-cta {
+  .osb-items-area {
+    flex: 1;
+    display: flex; /* Switch from Grid to Flex Row */
     flex-direction: row;
-    width: 100%;
-    gap: 0.375rem;
-    padding: 0.5625rem 1.125rem;
-    font-size: 0.8125rem;
-    min-width: 0;
+    align-items: stretch;
+    gap: 0;
+    padding: 1rem 0; /* padding handled internally */
   }
 
-  .stack-box--horizontal .stack-cta .material-symbols-sharp {
-    font-size: 1rem;
+  .osb-item-wrapper {
+    flex: 1;
+    flex-direction: row;
+    align-items: center;
+    padding-inline: 1.25rem;
   }
-}
+  
+  /* Reset connector for horizontal layout */
+  .osb-connector {
+    position: static;
+    transform: none;
+    margin-inline-start: 1.25rem;
+    flex-shrink: 0;
+  }
+  /* Show all connectors except the absolute last one */
+  .osb-item-wrapper .osb-connector { display: flex !important; }
+  .osb-item-wrapper:last-child .osb-connector { display: none !important; }
 
-@media (prefers-reduced-motion: reduce) {
-  .stack-cta { transition: none; }
+  .osb-cta-panel {
+    flex: 0 0 auto;
+    border-top: none;
+    border-inline-start: 1px solid var(--osb-border-light);
+    align-items: center;
+    justify-content: center;
+  }
 }
