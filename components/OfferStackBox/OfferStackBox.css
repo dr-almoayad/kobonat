@@ -1,66 +1,134 @@
-/* components/OfferStackBox/OfferStackBox.css
-   Modern, professional design – consistent with Saudi market expectations.
-   Uses container queries to switch between mobile (vertical) and desktop (horizontal) layouts.
-*/
+/* components/OfferStackBox/OfferStackBox.css */
 
-/* ─── CSS variables – shared design tokens ──────────────────────────────── */
-:root {
-  --osb-primary:       #1e3a8a;      /* deep navy – authoritative */
-  --osb-primary-light: #e8edff;
-  --osb-accent:        #f97316;      /* vibrant orange – savings */
-  --osb-accent-dark:   #ea6c00;
-  --osb-bg:            #ffffff;
-  --osb-bg-subtle:     #f8fafc;
-  --osb-border:        #e2e8f0;
-  --osb-border-strong: #cbd5e0;
-  --osb-text:          #1e293b;
-  --osb-text-secondary: #475569;
-  --osb-text-muted:    #94a3b8;
-  --osb-shadow-sm:      0 1px 3px rgba(0,0,0,0.05);
-  --osb-shadow-md:      0 4px 10px rgba(0,0,0,0.05), 0 2px 4px rgba(0,0,0,0.03);
-  --osb-shadow-lg:      0 10px 25px rgba(0,0,0,0.06), 0 4px 10px rgba(0,0,0,0.03);
-  --osb-radius:         20px;
-  --osb-radius-inner:   14px;
-  --osb-transition:     0.2s ease;
+/* ─── Font base ──────────────────────────────────────────────────────────────*/
+.stack-box,
+.stack-box * {
+  font-family: 'Alexandria', 'Segoe UI', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  box-sizing: border-box;
 }
 
-/* ─── Base container – enables container queries ───────────────────────── */
+/* ─── Container — vertical (default) ────────────────────────────────────────*/
 .stack-box {
-  container-type: inline-size;
-  container-name: stackbox;
-
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-
-  background: var(--osb-bg);
-  border: 1px solid var(--osb-border);
-  border-radius: var(--osb-radius);
-  box-shadow: var(--osb-shadow-sm);
-  transition: border-color var(--osb-transition), box-shadow var(--osb-transition);
-  position: relative;  /* for ribbon */
+  position: relative;
+  background: #fff;
+  border: 1px solid #e4e9f0;
+  border-radius: 12px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+  min-width: 260px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
   overflow: hidden;
 }
 
-.stack-box:hover {
-  border-color: var(--osb-border-strong);
-  box-shadow: var(--osb-shadow-md);
+/* ─── Container — horizontal variant ────────────────────────────────────────
+   For wide parent containers (flex-direction: column).
+   Lays out: [store identity] [items strip] [cta]
+   all in a single row with vertical separators.                              */
+.stack-box--horizontal {
+  flex-direction: row;
+  align-items: stretch;
+  gap: 0;
+  padding: 0;
+  min-width: 0;
 }
 
-/* ─── Savings ribbon – subtle but visible ──────────────────────────────── */
+/* ─── Store panel ────────────────────────────────────────────────────────────*/
+.stack-store-panel {
+  display: flex;
+  align-items: center;
+  padding: 0.875rem 1rem;
+}
+
+/* In horizontal mode, panel is a fixed-width left column */
+.stack-box--horizontal .stack-store-panel {
+  flex: 0 0 180px;
+  padding: 1rem 1.125rem;
+  border-inline-end: 1px solid #e4e9f0;
+  background: #f8fafc;
+  border-radius: 0; /* box handles the outer radius */
+}
+
+.stack-store-identity {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-width: 0;
+}
+
+/* In horizontal mode, wrap to column so text sits below logo */
+.stack-box--horizontal .stack-store-identity {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.stack-store-logo {
+  width: auto;
+  max-width: 96px;
+  height: 40px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.stack-store-logo-placeholder {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: #f1f5f9;
+  border: 1px solid #e4e9f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: #94a3b8;
+  font-size: 1.1rem;
+}
+
+.stack-store-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.stack-store-name {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #0f172a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.stack-sub-label {
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: #94a3b8;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+/* ─── Savings ribbon ─────────────────────────────────────────────────────────
+   Corner ribbon — top-right LTR, top-left RTL.                               */
 .stack-ribbon {
-  --f: 0.45em;
+  --f: .45em;
+
   position: absolute;
   top: 0;
   right: 0;
+
   font-size: 0.7rem;
-  font-weight: 600;
-  color: white;
+  font-weight: 800;
+  color: #fff;
   line-height: 1.8;
   padding-inline: 1lh;
   padding-bottom: var(--f);
   white-space: nowrap;
-  background-color: var(--osb-accent);
+
+  border-image: conic-gradient(#0008 0 0) 51% / var(--f);
   clip-path: polygon(
     0 calc(100% - var(--f)), 0 100%,
     var(--f) calc(100% - var(--f)),
@@ -71,6 +139,8 @@
   );
   transform: translate(calc((1 - cos(45deg)) * 100%), -100%) rotate(45deg);
   transform-origin: 0% 100%;
+  background-color: #f97316;
+
   pointer-events: none;
   z-index: 3;
 }
@@ -90,119 +160,84 @@
   );
 }
 
-/* ════════════════════════════════════════════════════════════════════════════
-   MOBILE LAYOUT (<600px) – vertical stacked card
-═══════════════════════════════════════════════════════════════════════════ */
-.stack-box {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-  padding: 0;               /* inner spacing handled by sections */
-}
-
-/* Store panel */
-.stack-store-panel {
-  padding: 1.25rem 1.25rem 1rem;
-  border-bottom: 1px solid var(--osb-border);
-  background: var(--osb-bg-subtle);
-}
-
-.stack-store-identity {
-  display: flex;
-  align-items: center;
-  gap: 0.875rem;
-}
-
-.stack-store-logo {
-  width: auto;
-  max-width: 100px;
-  height: 44px;
-  object-fit: contain;
-  flex-shrink: 0;
-}
-
-.stack-store-logo-placeholder {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
-  background: #f1f5f9;
-  border: 1px solid var(--osb-border);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  color: var(--osb-text-muted);
-  font-size: 1.25rem;
-}
-
-.stack-store-text {
-  display: flex;
-  flex-direction: column;
-  gap: 0.2rem;
-  min-width: 0;
-}
-
-.stack-store-name {
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--osb-text);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.stack-sub-label {
-  font-size: 0.7rem;
-  font-weight: 500;
-  color: var(--osb-text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-}
-
-/* Items grid – 2×2 layout for up to 3 items */
+/* ─── Items grid — vertical (original 2×2) ───────────────────────────────────*/
 .stack-items-grid {
   position: relative;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  grid-template-rows: auto auto;
-  gap: 12px;
-  padding: 1.25rem;
+  grid-template-rows: 1fr;
+  column-gap: 8px;
+  row-gap: 8px;
+}
+
+.stack-items-grid.has-bottom {
+  grid-template-rows: 1fr 1fr;
+}
+
+.stack-items-grid.has-bottom:not(.has-top-pair) .stack-grid-div1 {
+  grid-column: 1 / 3;
 }
 
 .stack-grid-div1 { grid-area: 1 / 1 / 2 / 2; }
 .stack-grid-div2 { grid-area: 1 / 2 / 2 / 3; }
 .stack-grid-div3 { grid-area: 2 / 1 / 3 / 3; }
 
-/* Item card – shared base */
-.stack-item {
-  background: var(--osb-bg);
-  border: 1px solid var(--osb-border);
-  border-radius: var(--osb-radius-inner);
-  padding: 1rem;
+/* ─── Items strip — horizontal ───────────────────────────────────────────────
+   Items laid out side-by-side. Each slot contains the item card and
+   a trailing + badge (except the last slot).                                 */
+.stack-items-strip {
+  flex: 1;
   display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  height: 100%;
-  transition: border-color var(--osb-transition), box-shadow var(--osb-transition);
+  flex-direction: row;
+  align-items: stretch;
+  gap: 0;
+  padding: 0.875rem 1rem;
+  min-width: 0;
 }
 
-.stack-item:hover {
-  border-color: var(--osb-border-strong);
-  box-shadow: var(--osb-shadow-sm);
+/* Each slot: item card + optional plus connector */
+.stack-strip-slot {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0;
+  flex: 1;
+  min-width: 0;
+}
+
+/* The last slot takes only as much space as it needs */
+.stack-strip-slot:last-child {
+  flex: 1;
+}
+
+/* ─── Item card ──────────────────────────────────────────────────────────────*/
+.stack-item {
+  flex: 1;
+  height: 100%;
+  background: #f8fafc;
+  border: 1px solid #e4e9f0;
+  border-radius: 10px;
+  padding: 0.625rem 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .stack-item--bank {
   background: #fafaf9;
+  border-color: #e7e5e4;
 }
 
+/* ─── Item header ────────────────────────────────────────────────────────────*/
 .stack-item-header {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.375rem;
   flex-wrap: wrap;
 }
 
-/* Bank logo */
 .stack-bank-logo {
   width: auto;
   max-width: 80px;
@@ -212,13 +247,13 @@
 }
 
 .stack-bank-logo-fallback {
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   border-radius: 8px;
-  background: var(--osb-accent);
+  background: #f59e0b;
   color: #fff;
-  font-size: 0.75rem;
-  font-weight: 700;
+  font-size: 0.7rem;
+  font-weight: 800;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -226,24 +261,25 @@
   letter-spacing: 0.02em;
 }
 
-/* Type badge */
+/* ─── Type badge ─────────────────────────────────────────────────────────────*/
 .stack-item-badge {
   display: inline-flex;
   align-items: center;
-  gap: 0.25rem;
-  font-size: 0.65rem;
-  font-weight: 600;
+  gap: 0.2rem;
+  font-size: 0.625rem;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.03em;
-  padding: 0.2rem 0.5rem;
-  border-radius: 6px;
+  letter-spacing: 0.04em;
+  padding: 0.125rem 0.375rem;
+  border-radius: 4px;
   border: 1px solid;
 }
-.stack-item-badge .material-symbols-sharp { font-size: 0.75rem; }
+
+.stack-item-badge .material-symbols-sharp { font-size: 0.6875rem; }
 
 .stack-item-badge.type-code {
   background: #eef2ff;
-  color: var(--osb-primary);
+  color: #4338ca;
   border-color: #e0e7ff;
 }
 .stack-item-badge.type-deal {
@@ -257,255 +293,220 @@
   border-color: #fef08a;
 }
 
+/* ─── Item text ──────────────────────────────────────────────────────────────*/
 .stack-item-title {
-  font-size: 0.875rem;
+  font-size: 0.775rem;
   font-weight: 600;
-  color: var(--osb-text);
-  line-height: 1.4;
+  color: #1e293b;
+  line-height: 1.35;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  margin-top: 2px;
 }
 
 .stack-item-pct {
-  font-size: 1.125rem;
-  font-weight: 700;
-  color: var(--osb-text);
+  font-size: 0.9375rem;
+  font-weight: 800;
+  color: #0f172a;
   margin-top: auto;
+  padding-top: 4px;
 }
 
 .stack-item-code {
   display: inline-flex;
   align-items: center;
-  gap: 0.25rem;
+  gap: 0.2rem;
   background: #f1f5f9;
   border: 1px dashed #cbd5e1;
-  border-radius: 6px;
-  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  padding: 0.15rem 0.375rem;
   font-family: 'Courier New', monospace;
-  font-size: 0.75rem;
-  font-weight: 600;
+  font-size: 0.6875rem;
+  font-weight: 700;
   color: #334155;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.04em;
   width: fit-content;
+  margin-top: auto;
 }
+
 .stack-item-code .material-symbols-sharp {
-  font-size: 0.75rem;
+  font-size: 0.625rem;
   color: #64748b;
 }
 
-/* Plus connector (mobile) – centered on the gap */
+/* ─── Plus connector ─────────────────────────────────────────────────────────*/
 .stack-plus {
   position: absolute;
   z-index: 2;
-  width: 28px;
-  height: 28px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
   background: #fff;
-  border: 1.5px solid var(--osb-border);
-  color: var(--osb-text-muted);
-  font-size: 0.9rem;
-  font-weight: 600;
+  border: 1.5px solid #e4e9f0;
+  color: #64748b;
+  font-size: 0.75rem;
+  font-weight: 800;
   display: flex;
   align-items: center;
   justify-content: center;
   pointer-events: none;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.07);
 }
+
+/* Vertical grid: centred on the gap between items */
+.stack-plus--horizontal,
 .stack-plus--vertical {
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
 }
-.stack-plus--horizontal {
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
+
+/* Horizontal strip: inline between items, not absolute */
+.stack-plus--strip {
+  position: relative;
+  left: auto;
+  top: auto;
+  transform: none;
+  flex-shrink: 0;
+  margin-inline: 4px;
 }
 
-/* CTA panel (mobile) */
+/* ─── CTA panel ──────────────────────────────────────────────────────────────*/
 .stack-cta-panel {
-  padding: 0 1.25rem 1.25rem;
-  border-top: 1px solid var(--osb-border);
-  background: var(--osb-bg);
+  display: flex;
+  align-items: stretch;
 }
 
+/* In vertical mode, CTA sits as a normal block */
+.stack-box:not(.stack-box--horizontal) .stack-cta-panel {
+  margin-top: auto;
+}
+
+/* In horizontal mode, CTA panel is a right-side column */
+.stack-box--horizontal .stack-cta-panel {
+  flex: 0 0 auto;
+  border-inline-start: 1px solid #e4e9f0;
+  padding: 1rem 1.125rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f8fafc;
+}
+
+/* ─── CTA button ─────────────────────────────────────────────────────────────*/
 .stack-cta {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  width: 100%;
-  padding: 0.75rem 1.25rem;
-  background: var(--osb-accent);
+  gap: 0.375rem;
+  background: #f97316;
   color: #fff;
-  font-size: 0.875rem;
-  font-weight: 600;
+  font-family: 'Alexandria', 'Open Sans', sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  padding: 0.5625rem 1.125rem;
+  border-radius: 8px;
+  text-decoration: none;
   border: none;
-  border-radius: var(--osb-radius-inner);
   cursor: pointer;
-  transition: background var(--osb-transition), transform 0.1s ease, box-shadow var(--osb-transition);
-  box-shadow: 0 4px 10px rgba(249, 115, 22, 0.25);
+  white-space: nowrap;
+  transition: background 0.18s ease, transform 0.12s ease;
+  letter-spacing: 0.01em;
 }
+
 .stack-cta:hover {
-  background: var(--osb-accent-dark);
-  box-shadow: 0 6px 14px rgba(249, 115, 22, 0.3);
+  background: #ea6c00;
 }
+
 .stack-cta:active {
   transform: scale(0.98);
 }
+
 .stack-cta .material-symbols-sharp {
-  font-size: 1.125rem;
+  font-size: 1rem;
   font-variation-settings: 'FILL' 1;
 }
 
-/* ════════════════════════════════════════════════════════════════════════════
-   DESKTOP / TABLET LAYOUT (container width ≥ 700px)
-   Full‑width horizontal – store panel | items strip | CTA
-═══════════════════════════════════════════════════════════════════════════ */
-@container stackbox (min-width: 700px) {
-  .stack-box {
-    flex-direction: row;
-    align-items: stretch;
-    padding: 0;
-  }
-
-  /* Store panel – left column */
-  .stack-store-panel {
-    flex: 0 0 220px;
-    padding: 1.5rem 1.25rem;
-    border-bottom: none;
-    border-inline-end: 1px solid var(--osb-border);
-    background: var(--osb-bg-subtle);
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-  }
-
-  .stack-store-identity {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.75rem;
-  }
-
-  .stack-store-logo {
-    max-width: 140px;
-    height: 52px;
-  }
-
-  .stack-store-text {
-    gap: 0.25rem;
-  }
-
-  .stack-store-name {
-    font-size: 1.125rem;
-    white-space: normal;
-    word-break: break-word;
-  }
-
-  /* Hide the mobile grid */
-  .stack-items-grid {
-    display: none;
-  }
-
-  /* Items strip – horizontally scrollable */
-  .stack-items-strip {
-    flex: 1;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 0;
-    padding: 1.25rem;
-    overflow-x: auto;
-    scrollbar-width: thin;
-    scrollbar-color: var(--osb-border) transparent;
-  }
-
-  .stack-items-strip::-webkit-scrollbar {
-    height: 4px;
-  }
-  .stack-items-strip::-webkit-scrollbar-track {
-    background: transparent;
-  }
-  .stack-items-strip::-webkit-scrollbar-thumb {
-    background: var(--osb-border);
-    border-radius: 4px;
-  }
-
-  .stack-strip-slot {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 0;
-    flex-shrink: 0;
-    min-width: 200px;
-    max-width: 260px;
-  }
-
-  .stack-item {
-    width: 100%;
-  }
-
-  /* Plus connector – inline, not absolute */
-  .stack-plus--strip {
-    position: relative;
-    width: 32px;
-    height: 32px;
-    margin-inline: 12px;
-    flex-shrink: 0;
-  }
-
-  /* CTA panel – right column */
-  .stack-cta-panel {
-    flex: 0 0 auto;
-    padding: 1.5rem 1.5rem;
-    border-top: none;
-    border-inline-start: 1px solid var(--osb-border);
-    background: var(--osb-bg-subtle);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .stack-cta {
-    flex-direction: column;
-    width: auto;
-    min-width: 130px;
-    padding: 1rem 1.25rem;
-    font-size: 0.875rem;
-    gap: 0.25rem;
-  }
-  .stack-cta .material-symbols-sharp {
-    font-size: 1.375rem;
-  }
+/* In horizontal mode, CTA is vertically oriented (icon above text) */
+.stack-box--horizontal .stack-cta {
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.75rem 1rem;
+  min-width: 90px;
+  font-size: 0.75rem;
 }
 
-/* ════════════════════════════════════════════════════════════════════════════
-   RTL support – flip borders and grid areas
-═══════════════════════════════════════════════════════════════════════════ */
+.stack-box--horizontal .stack-cta .material-symbols-sharp {
+  font-size: 1.25rem;
+}
+
+/* ─── RTL ────────────────────────────────────────────────────────────────────*/
 [dir="rtl"] .stack-grid-div1 { grid-area: 1 / 2 / 2 / 3; }
 [dir="rtl"] .stack-grid-div2 { grid-area: 1 / 1 / 2 / 2; }
 [dir="rtl"] .stack-grid-div3 { grid-area: 2 / 1 / 3 / 3; }
 
-@container stackbox (min-width: 700px) {
-  [dir="rtl"] .stack-store-panel {
-    border-inline-end: none;
-    border-inline-start: 1px solid var(--osb-border);
+/* ─── Responsive ─────────────────────────────────────────────────────────────*/
+
+/* Horizontal variant collapses to vertical on narrow screens */
+@media (max-width: 640px) {
+  .stack-box--horizontal {
+    flex-direction: column;
+    padding: 1rem;
+    gap: 0.875rem;
   }
-  [dir="rtl"] .stack-cta-panel {
+
+  .stack-box--horizontal .stack-store-panel {
+    flex: none;
+    padding: 0;
+    border-inline-end: none;
+    background: transparent;
+  }
+
+  .stack-box--horizontal .stack-store-identity {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .stack-box--horizontal .stack-items-strip {
+    padding: 0;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .stack-box--horizontal .stack-strip-slot {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .stack-box--horizontal .stack-plus--strip {
+    margin-block: 4px;
+    margin-inline: 0;
+  }
+
+  .stack-box--horizontal .stack-cta-panel {
+    flex: none;
     border-inline-start: none;
-    border-inline-end: 1px solid var(--osb-border);
+    border-top: 1px solid #e4e9f0;
+    padding: 0.875rem 0 0;
+    background: transparent;
+  }
+
+  .stack-box--horizontal .stack-cta {
+    flex-direction: row;
+    width: 100%;
+    gap: 0.375rem;
+    padding: 0.5625rem 1.125rem;
+    font-size: 0.8125rem;
+    min-width: 0;
+  }
+
+  .stack-box--horizontal .stack-cta .material-symbols-sharp {
+    font-size: 1rem;
   }
 }
 
-/* ════════════════════════════════════════════════════════════════════════════
-   Reduced motion
-═══════════════════════════════════════════════════════════════════════════ */
 @media (prefers-reduced-motion: reduce) {
-  .stack-box,
-  .stack-item,
-  .stack-cta {
-    transition: none;
-  }
+  .stack-cta { transition: none; }
 }
