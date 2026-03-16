@@ -79,7 +79,15 @@ function StackItem({ item, isAr }) {
   );
 }
 
-export default function OfferStackBox({ stack, locale }) {
+/**
+ * OfferStackBox
+ *
+ * @param {object}  stack      - Stack data (store, items, combinedSavingsPercent)
+ * @param {string}  locale     - Current locale string
+ * @param {boolean} horizontal - When true, renders in a wide single-row layout
+ *                               suitable for flex-direction: column parent containers.
+ */
+export default function OfferStackBox({ stack, locale, horizontal = false }) {
   const lang = locale?.split('-')[0] || 'ar';
   const isAr = lang === 'ar';
 
@@ -94,21 +102,28 @@ export default function OfferStackBox({ stack, locale }) {
   const hasTopPair = !!topRight;
   const hasBottom  = !!bankItem;
 
-  // Ordered items for desktop strip
+  // In vertical mode: plus connector position
+  const plusPos = hasTopPair && !hasBottom ? 'horizontal' : 'vertical';
+
+  // Ordered items for horizontal strip
   const orderedItems = [topLeft, topRight, bankItem].filter(Boolean);
 
   return (
     <div
-      className="stack-box"
+      className={[
+        'stack-box',
+        horizontal ? 'stack-box--horizontal' : '',
+      ].filter(Boolean).join(' ')}
       dir={isAr ? 'rtl' : 'ltr'}
     >
+      {/* ── Savings ribbon ─────────────────────────────────────────────── */}
       {combinedSavingsPercent != null && combinedSavingsPercent > 0 && (
         <div className={`stack-ribbon${isAr ? ' stack-ribbon--rtl' : ''}`}>
           {isAr ? `وفر ${combinedSavingsPercent}%` : `Save ${combinedSavingsPercent}%`}
         </div>
       )}
 
-      {/* Store panel */}
+      {/* ── Store identity ─────────────────────────────────────────────── */}
       <div className="stack-store-panel">
         <div className="stack-store-identity">
           {store.logo ? (
@@ -127,41 +142,50 @@ export default function OfferStackBox({ stack, locale }) {
         </div>
       </div>
 
-      {/* Mobile grid */}
-      <div className="stack-items-grid">
-        {topLeft && (
-          <div className="stack-grid-div1">
-            <StackItem item={topLeft} isAr={isAr} />
-          </div>
-        )}
-        {topRight && (
-          <div className="stack-grid-div2">
-            <StackItem item={topRight} isAr={isAr} />
-          </div>
-        )}
-        {bankItem && (
-          <div className="stack-grid-div3">
-            <StackItem item={bankItem} isAr={isAr} />
-          </div>
-        )}
-        {hasTopPair && (
-          <span className={`stack-plus stack-plus--${hasBottom ? 'vertical' : 'horizontal'}`} aria-hidden="true">+</span>
-        )}
-      </div>
+      {/* ── Items ─────────────────────────────────────────────────────── */}
+      {horizontal ? (
+        /* Horizontal strip: items side-by-side in a flex row */
+        <div className="stack-items-strip">
+          {orderedItems.map((item, idx) => (
+            <div key={idx} className="stack-strip-slot">
+              <StackItem item={item} isAr={isAr} />
+              {idx < orderedItems.length - 1 && (
+                <span className="stack-plus stack-plus--strip" aria-hidden="true">+</span>
+              )}
+            </div>
+          ))}
+        </div>
+      ) : (
+        /* Vertical grid: original 2×2 layout */
+        <div className={[
+          'stack-items-grid',
+          hasTopPair ? 'has-top-pair' : '',
+          hasBottom  ? 'has-bottom'   : '',
+        ].filter(Boolean).join(' ')}>
 
-      {/* Desktop strip */}
-      <div className="stack-items-strip">
-        {orderedItems.map((item, idx) => (
-          <div key={idx} className="stack-strip-slot">
-            <StackItem item={item} isAr={isAr} />
-            {idx < orderedItems.length - 1 && (
-              <span className="stack-plus stack-plus--strip" aria-hidden="true">+</span>
-            )}
-          </div>
-        ))}
-      </div>
+          {topLeft && (
+            <div className="stack-grid-div1">
+              <StackItem item={topLeft} isAr={isAr} />
+            </div>
+          )}
 
-      {/* CTA */}
+          {topRight && (
+            <div className="stack-grid-div2">
+              <StackItem item={topRight} isAr={isAr} />
+            </div>
+          )}
+
+          {bankItem && (
+            <div className="stack-grid-div3">
+              <StackItem item={bankItem} isAr={isAr} />
+            </div>
+          )}
+
+          <span className={`stack-plus stack-plus--${plusPos}`} aria-hidden="true">+</span>
+        </div>
+      )}
+
+      {/* ── CTA ────────────────────────────────────────────────────────── */}
       <div className="stack-cta-panel">
         <StackCta stack={stack} locale={locale} />
       </div>
