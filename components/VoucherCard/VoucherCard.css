@@ -53,7 +53,7 @@
   flex-direction: row;
   align-items: stretch;
   width: 100%;
-  max-width: 700px;
+  max-width: 100%;
   background: var(--vc-bg);
   border: 1px solid var(--vc-border);
   border-radius: 12px;
@@ -165,18 +165,17 @@
 
 .vc-logo {
   display: block;
-  height: 28px;
+  height: 44px;
   width: auto;
-  max-width: 80px;
+  max-width: 116px;
   object-fit: contain;
-  border-radius: 4px;
 }
 
 /* Title */
 .vc-title {
   margin: 0;
-  font-size: 0.9375rem;
-  font-weight: 600;
+  font-size: 0.9rem;
+  font-weight: 500;
   color: var(--vc-text);
   line-height: 1.35;
   /* two-line clamp */
@@ -384,13 +383,12 @@
 }
 
 .vc-modal-logo {
-  width: 44px;
-  height: 44px;
+  max-width: 100px;
+  width: auto;
+  height: 46px;
   object-fit: contain;
   border-radius: 8px;
-  border: 1px solid var(--vc-border);
   flex-shrink: 0;
-  background: #fff;
 }
 
 .vc-modal-title-block {
@@ -429,7 +427,7 @@
   height: 34px;
   background: var(--vc-bg-subtle);
   border: 1px solid var(--vc-border);
-  border-radius: 8px;
+  border-radius: 50%;
   cursor: pointer;
   color: var(--vc-text-secondary);
   transition: background 0.15s ease;
@@ -602,11 +600,14 @@
   }
 
   /* Logo */
-  .vc-logo { height: 24px; max-width: 70px; }
+  .vc-logo {
+    height: 40px;
+    max-width: 100px;
+  }
 
   /* Title: allow 2-line wrap */
   .vc-title {
-    font-size: 0.875rem;
+    font-size: 0.8rem;
     -webkit-line-clamp: 2;
   }
 
@@ -682,7 +683,8 @@
   }
 
   .vc-modal-logo {
-    width: 40px;
+    max-width: 90px;
+    width: auto;
     height: 40px;
   }
 
