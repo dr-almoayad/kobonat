@@ -25,12 +25,14 @@
 .sh-banner-wrapper {
   position: absolute;
   top: 0;
-  left: 0.7rem;
-  right: 0.7rem;
+  left: 0;
+  right: 0;
   height: var(--sh-banner-height);
   z-index: 0;
   overflow: hidden;
-  border-radius: 22px;
+  border-radius: 32px 32px 0 0;
+  -webkit-box-shadow: 0px -6px 25px -16px rgba(0, 0, 0, 0.40);
+  box-shadow: 0px -6px 25px -16px rgba(0, 0, 0, 0.40);
 }
 
 .sh-banner-img {
@@ -115,7 +117,7 @@
 
 .sh-store-name {
   margin: 0;
-  font-size: 1.35rem;
+  font-size: 1rem;
   font-weight: 700;
   color: var(--sh-text-primary);
   line-height: 1.2;
