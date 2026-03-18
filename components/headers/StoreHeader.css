@@ -31,8 +31,8 @@
   z-index: 0;
   overflow: hidden;
   border-radius: 32px 32px 0 0;
-  -webkit-box-shadow: 0px -6px 25px -16px rgba(0, 0, 0, 0.40);
-  box-shadow: 0px -6px 25px -16px rgba(0, 0, 0, 0.40);
+  -webkit-box-shadow: 0 -10px 16px -16px rgba(0,0,0,.6);
+  box-shadow: 0 -10px 16px -16px rgba(0,0,0,.6);
 }
 
 .sh-banner-img {
