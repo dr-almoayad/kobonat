@@ -1,7 +1,5 @@
 // components/StoreIntelligenceCard/StoreIntelligenceCard.jsx
 // Server Component — self-fetching, zero client JS.
-// Design: full #fafafa, fading watermark logo, material-symbols-sharp,
-//         ring gauges for every metric, CSS-only tooltips.
 
 import { prisma } from '@/lib/prisma';
 import { getCurrentMonthIdentifier } from '@/lib/intelligence/calculateStoreScore.js';
@@ -11,40 +9,29 @@ import './StoreIntelligenceCard.css';
 // Helpers
 // ─────────────────────────────────────────────────────────────────────────────
 
-/** Safely parse a Prisma Decimal/number/string → float, or NaN */
 const pf = (v) => parseFloat(v);
 
-/**
- * Normalise a rate value to 0–100.
- * Prisma Decimal fields for rates/percents may be stored as 0–1 OR 0–100.
- * Heuristic: if abs(value) <= 1.5 treat as fraction → multiply by 100.
- */
 function toPercent(v) {
   const n = pf(v);
   if (isNaN(n)) return null;
   return Math.abs(n) <= 1.5 ? Math.round(n * 100) : Math.round(n);
 }
 
-/** Convert a 0–10 score to a 0–100 gauge percentage */
 const scoreToPct = (v) => {
   const n = pf(v);
   return isNaN(n) ? null : Math.min(100, Math.max(0, Math.round(n * 10)));
 };
 
-/** Clamp to 0–100 */
 const clamp = (v) => Math.min(100, Math.max(0, v ?? 0));
 
-/**
- * Color-code a 0–100 percentage.
- * Red → Orange → Yellow → Lime → Green
- */
+// Muted, professional semantic colors
 function pctToColor(pct) {
   const n = clamp(pct ?? 0);
-  if (n >= 80) return '#22c55e'; // green-500
-  if (n >= 60) return '#84cc16'; // lime-500
-  if (n >= 40) return '#eab308'; // yellow-500
-  if (n >= 20) return '#f97316'; // orange-500
-  return '#ef4444';              // red-500
+  if (n >= 80) return '#059669'; // Emerald-600
+  if (n >= 60) return '#65a30d'; // Lime-600
+  if (n >= 40) return '#d97706'; // Amber-600
+  if (n >= 20) return '#ea580c'; // Orange-600
+  return '#dc2626';              // Red-600
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -106,7 +93,6 @@ async function fetchIntelligence(storeId, lang, countryCode) {
           take: 1,
           select: { rank: true, movement: true, previousRank: true },
         },
-        // Fetch all active vouchers (type only) — counted in JS by type
         vouchers: {
           where: {
             AND: [
@@ -123,34 +109,25 @@ async function fetchIntelligence(storeId, lang, countryCode) {
   }
 }
 
-
-
 // ─────────────────────────────────────────────────────────────────────────────
-// Pure SVG ring gauge (no JS on client)
+// Pure SVG ring gauge (Sleek & Technical)
 // ─────────────────────────────────────────────────────────────────────────────
-function Ring({ pct, size = 88, stroke = 7, color = 'var(--sic-accent)' }) {
+// Reduced stroke to 4px for a precise instrument feel
+function Ring({ pct, size = 80, stroke = 4, color = 'var(--sic-accent)' }) {
   const n      = clamp(pct ?? 0);
   const r      = (size - stroke) / 2;
   const circ   = 2 * Math.PI * r;
   const offset = circ * (1 - n / 100);
   const c      = size / 2;
   return (
-    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}
-      className="sic-ring" aria-hidden="true">
-      <circle cx={c} cy={c} r={r}
-        fill="none" stroke="var(--sic-ring-track)"
-        strokeWidth={stroke} />
-      <circle cx={c} cy={c} r={r}
-        fill="none" stroke={color}
-        strokeWidth={stroke} strokeLinecap="round"
-        strokeDasharray={circ} strokeDashoffset={offset}
-        transform={`rotate(-90 ${c} ${c})`} />
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="sic-ring" aria-hidden="true">
+      <circle cx={c} cy={c} r={r} fill="none" stroke="var(--sic-ring-track)" strokeWidth={stroke} />
+      <circle cx={c} cy={c} r={r} fill="none" stroke={color} strokeWidth={stroke} strokeLinecap="round" strokeDasharray={circ} strokeDashoffset={offset} transform={`rotate(-90 ${c} ${c})`} />
     </svg>
   );
 }
 
-// Circular gauge card: ring + centred value + label below + optional tooltip
-function GaugeCard({ pct, display, label, tooltip, sub, color, size = 88, stroke = 7 }) {
+function GaugeCard({ pct, display, label, tooltip, sub, color, size = 80, stroke = 4 }) {
   const safePct = clamp(pct ?? 0);
   return (
     <div className="sic-gc">
@@ -176,10 +153,10 @@ function Icon({ name, className = '' }) {
   return <span className={`material-symbols-sharp sic-icon ${className}`}>{name}</span>;
 }
 
-function Tip({ text, light = false }) {
+function Tip({ text }) {
   return (
     <span className="sic-tip" aria-label={text}>
-      <Icon name="info" className={`sic-tip__icon${light ? ' sic-tip__icon--light' : ''}`} />
+      <Icon name="info" className="sic-tip__icon" />
       <span className="sic-tip__box" role="tooltip">{text}</span>
     </span>
   );
@@ -188,22 +165,23 @@ function Tip({ text, light = false }) {
 function SecHead({ icon, text, tooltip }) {
   return (
     <div className="sic-sh">
-      <Icon name={icon} className="sic-sh__icon" />
-      <h3 className="sic-sh__text">{text}</h3>
+      <div className="sic-sh__group">
+        <Icon name={icon} className="sic-sh__icon" />
+        <h3 className="sic-sh__text">{text}</h3>
+      </div>
       {tooltip && <Tip text={tooltip} />}
     </div>
   );
 }
 
-function Row({ icon, label, value, chip }) {
+function Row({ label, value, chip }) {
   return (
     <div className="sic-row">
-      <Icon name={icon} className="sic-row__icon" />
       <span className="sic-row__label">{label}</span>
-      <span className="sic-row__value">
-        {value}
-        {chip && <span className="sic-chip sic-chip--green">{chip}</span>}
-      </span>
+      <div className="sic-row__value-group">
+        {chip && <span className="sic-chip sic-chip--accent">{chip}</span>}
+        <span className="sic-row__value">{value}</span>
+      </div>
     </div>
   );
 }
@@ -217,6 +195,7 @@ function RankBadge({ rank, movement }) {
   const ico = movement === 'UP' ? 'trending_up' : movement === 'DOWN' ? 'trending_down' : 'trending_flat';
   return (
     <div className={`sic-rank sic-rank--${cls}`}>
+      <span className="sic-rank__label">RANK</span>
       <span className="sic-rank__num">#{rank}</span>
       <Icon name={ico} className="sic-rank__ico" />
     </div>
@@ -234,16 +213,17 @@ function ConfPips({ level }) {
   );
 }
 
-// Counter tile (voucher counts row)
 function CountTile({ icon, value, label, tooltip }) {
   return (
     <div className="sic-ct">
-      <Icon name={icon} className="sic-ct__icon" />
-      <span className="sic-ct__val">{value ?? '–'}</span>
-      <span className="sic-ct__label">
-        {label}
+      <div className="sic-ct__header">
+        <Icon name={icon} className="sic-ct__icon" />
+        <span className="sic-ct__val">{value ?? '–'}</span>
+      </div>
+      <div className="sic-ct__footer">
+        <span className="sic-ct__label">{label}</span>
         {tooltip && <Tip text={tooltip} />}
-      </span>
+      </div>
     </div>
   );
 }
@@ -269,18 +249,17 @@ export default async function StoreIntelligenceCard({
   const rawScore = pf(metrics?.storeScore);
   const hasScore = !isNaN(rawScore);
 
-  // Parse breakdown JSON safely
   const bd = (() => {
     try { return metrics?.scoreBreakdown ? JSON.parse(metrics.scoreBreakdown) : null; }
     catch { return null; }
   })();
 
-  // Logistics flags
   const hasDelivery = store.averageDeliveryDaysMin != null || store.averageDeliveryDaysMax != null;
   const hasRefund   = store.refundProcessingDaysMin != null;
-  const accent      = store.color || '#470ae2';
+  
+  // Enforce a highly professional accent default if none exists
+  const accent = store.color || '#0f172a';
 
-  // Voucher counts — derived from the vouchers already fetched
   const vv = store.vouchers ?? [];
   const vc = {
     codes:    vv.filter(v => v.type === 'CODE').length,
@@ -289,233 +268,183 @@ export default async function StoreIntelligenceCard({
     bank:     vv.filter(v => v.type === 'BANK_OFFER').length,
   };
 
-  // ── Normalised metric values ──────────────────────────────────────────────
-  // codeSuccessRate: stored as 0-1 fraction or 0-100 — normalise to 0-100
-  const successPct  = toPercent(metrics?.codeSuccessRate);
-  // maxStackableSavingsPercent: already a percent (e.g. 35 → 35%)
-  const maxSavePct  = metrics?.maxStackableSavingsPercent != null
-    ? Math.round(pf(metrics.maxStackableSavingsPercent))
-    : null;
-  // averageDiscountPercent: already a percent
-  const avgDiscPct  = metrics?.averageDiscountPercent != null
-    ? Math.round(pf(metrics.averageDiscountPercent))
-    : null;
+  const successPct = toPercent(metrics?.codeSuccessRate);
+  const maxSavePct = metrics?.maxStackableSavingsPercent != null ? Math.round(pf(metrics.maxStackableSavingsPercent)) : null;
+  const avgDiscPct = metrics?.averageDiscountPercent != null ? Math.round(pf(metrics.averageDiscountPercent)) : null;
+  const freqPct    = store.offerFrequencyDays ? clamp(Math.round((1 - (Math.min(store.offerFrequencyDays, 30) - 1) / 29) * 100)) : null;
 
-  // offerFrequencyDays → gauge: every 1 day = 100%, every 30+ days ≈ 0%
-  const freqPct = store.offerFrequencyDays
-    ? clamp(Math.round((1 - (Math.min(store.offerFrequencyDays, 30) - 1) / 29) * 100))
-    : null;
-
-  // Score breakdown: 0-10 values → convert to 0-100 for gauge
-  const bdPct = (key) => bd?.[key] != null ? scoreToPct(bd[key]) : null;
-
-  // Delivery score for gauge: max 14 days → score = clamp((14 - days) / 14 * 100)
-  const delivPct = hasDelivery
-    ? clamp(Math.round((1 - (Math.min(store.averageDeliveryDaysMax ?? store.averageDeliveryDaysMin ?? 14, 14)) / 14) * 100))
-    : null;
-
-  // Return score: 30-day window = full, 0 = 0%, free returns bonus
-  const returnPct = store.returnWindowDays != null
-    ? clamp(Math.round(
-        (Math.min(store.returnWindowDays, 30) / 30) * (store.freeReturns ? 100 : 80)
-      ))
-    : null;
+  const bdPct      = (key) => bd?.[key] != null ? scoreToPct(bd[key]) : null;
+  const delivPct   = hasDelivery ? clamp(Math.round((1 - (Math.min(store.averageDeliveryDaysMax ?? store.averageDeliveryDaysMin ?? 14, 14)) / 14) * 100)) : null;
+  const returnPct  = store.returnWindowDays != null ? clamp(Math.round((Math.min(store.returnWindowDays, 30) / 30) * (store.freeReturns ? 100 : 80))) : null;
 
   const L = isRtl ? {
-    intelligence:   'ذكاء المتجر',
-    storeScore:     'تقييم المتجر',
-    howScore:       'يُحسب من: جودة التوفير (30٪) + نجاح الكوبون (20٪) + سرعة التوصيل (15٪) + مرونة الإرجاع (15٪) + تكرار العروض (10٪) + خيارات الدفع (10٪)',
-    rankLabel:      'الترتيب الأسبوعي',
-    codes:          'كوبون',         codesTip:    'كوبونات خصم نشطة يمكن نسخها عند الدفع',
-    deals:          'عرض',           dealsTip:    'عروض مباشرة بدون كوبون — اضغط واحفظ',
-    freeShip:       'شحن',           freeShipTip: 'عروض شحن مجاني نشطة',
-    bankOffers:     'بنكي',          bankTip:     'خصومات إضافية ببطاقات بنكية محددة',
-    savingsIntel:   'مؤشرات التوفير',
-    codeSuccess:    'نجاح الكوبون',  codeSuccTip: 'نسبة الكوبونات التي نجحت خلال آخر 30 يوماً',
-    maxSavings:     'أعلى توفير',    maxSaveTip:  'أعلى توفير ممكن بدمج كوبون + عرض بنكي + شحن مجاني',
-    avgDiscount:    'متوسط الخصم',   avgDiscTip:  'متوسط قيمة الخصم على الكوبونات النشطة',
-    offerFreq:      'تكرار العروض',  freqTip:     'كلما قلّت الأيام بين العروض، ارتفع التقييم',
-    logistics:      'الشحن والإرجاع',
+    intelligence:   'تقرير ذكاء المتجر',
+    storeScore:     'مؤشر التقييم',
+    howScore:       'يُحسب من: التوفير (30٪)، الكوبونات (20٪)، التوصيل (15٪)، الإرجاع (15٪)، العروض (10٪)، الدفع (10٪)',
+    codes:          'كوبون',         codesTip:    'كوبونات خصم نشطة',
+    deals:          'عرض',           dealsTip:    'عروض مباشرة بدون كود',
+    freeShip:       'شحن',           freeShipTip: 'عروض شحن مجاني',
+    bankOffers:     'بنكي',          bankTip:     'خصومات بطاقات الائتمان',
+    savingsIntel:   'مؤشرات الأداء والتوفير',
+    codeSuccess:    'دقة الكوبون',   codeSuccTip: 'نسبة نجاح الكوبونات (أخر 30 يوم)',
+    maxSavings:     'أعلى توفير',    maxSaveTip:  'الحد الأقصى للتوفير بدمج العروض',
+    avgDiscount:    'متوسط الخصم',   avgDiscTip:  'متوسط الخصم للكوبونات النشطة',
+    offerFreq:      'تكرار العروض',  freqTip:     'سرعة طرح المتجر لعروض جديدة',
+    logistics:      'سياسات الشحن والإرجاع',
     delivery:       'مدة التوصيل',
-    freeShipping:   'شحن مجاني من',
+    freeShipping:   'شحن مجاني بدءاً من',
     returnWindow:   'مهلة الإرجاع',
     refund:         'استرداد المبلغ',
-    freeReturns:    'مجاني',
+    freeReturns:    'إرجاع مجاني',
     days:           'أيام',
     sar:            'ر.س',
     always:         'دائمًا',
-    payments:       'طرق الدفع',
+    payments:       'بوابات الدفع المدعومة',
     bnpl:           'تقسيط',
-    upcoming:       'عروض متوقعة',   upcomingTip: 'توقعات بناءً على بيانات تاريخية وإعلانات المتجر',
-    scoreBreakdown: 'تفصيل التقييم',
-    savings_w:      'جودة التوفير',  savings_wTip:     'هل يوفر المتجر خصومات حقيقية؟',
-    codeSuccess_w:  'نجاح الكوبون', codeSuccess_wTip: 'موثوقية الكوبونات عند الاستخدام',
-    delivery_w:     'سرعة التوصيل', delivery_wTip:    'كلما قل عدد أيام التوصيل، ارتفع التقييم',
-    returns_w:      'الإرجاع',       returns_wTip:     'مهلة الإرجاع المجاني',
-    frequency_w:    'تكرار العروض',  frequency_wTip:   'كثافة العروض الجديدة',
-    payment_w:      'طرق الدفع',     payment_wTip:     'عدد طرق الدفع بما فيها التقسيط',
-    verified:       'تم التحقق',
+    upcoming:       'التوقعات المستقبلية', upcomingTip: 'مبني على تحليل البيانات السابقة',
+    scoreBreakdown: 'تحليل التقييم التفصيلي',
+    savings_w:      'جودة التوفير',  savings_wTip:     'قيمة الخصومات الفعلية المتاحة',
+    codeSuccess_w:  'دقة الكوبونات', codeSuccess_wTip: 'موثوقية الأكواد عند الدفع',
+    delivery_w:     'سرعة التوصيل', delivery_wTip:    'التقييم مبني على قصر مدة التوصيل',
+    returns_w:      'مرونة الإرجاع', returns_wTip:     'فترة الإرجاع والتكاليف',
+    frequency_w:    'كثافة العروض',  frequency_wTip:   'مدى استمرارية توفر عروض جديدة',
+    payment_w:      'خيارات الدفع',  payment_wTip:     'تنوع بوابات الدفع والتقسيط',
+    verified:       'موثق',
   } : {
-    intelligence:   'Store Intelligence',
-    storeScore:     'Store Score',
-    howScore:       'Score = Savings Quality (30%) + Code Success (20%) + Delivery Speed (15%) + Return Flexibility (15%) + Offer Frequency (10%) + Payment Options (10%)',
-    rankLabel:      'Weekly Rank',
-    codes:          'Codes',        codesTip:    'Active coupon codes you can copy at checkout',
-    deals:          'Deals',        dealsTip:    'Direct deals — no code needed, just click and save',
-    freeShip:       'Shipping',     freeShipTip: 'Active free-shipping offers for this store',
-    bankOffers:     'Bank',         bankTip:     'Extra discounts when paying with specific bank cards',
-    savingsIntel:   'Savings Indicators',
-    codeSuccess:    'Code Success', codeSuccTip: '% of coupons that actually worked in the last 30 days',
-    maxSavings:     'Max Savings',  maxSaveTip:  'Best saving possible stacking coupon + bank offer + free shipping',
-    avgDiscount:    'Avg Discount', avgDiscTip:  'Average discount across all active coupon codes',
-    offerFreq:      'Offer Freq.',  freqTip:     'How often new offers are published — more frequent = higher score',
-    logistics:      'Shipping & Returns',
-    delivery:       'Delivery',
-    freeShipping:   'Free shipping from',
+    intelligence:   'Intelligence Report',
+    storeScore:     'Store Index',
+    howScore:       'Score = Savings (30%) + Success (20%) + Delivery (15%) + Returns (15%) + Freq (10%) + Payments (10%)',
+    codes:          'Codes',        codesTip:    'Active coupon codes',
+    deals:          'Deals',        dealsTip:    'Direct promotional deals',
+    freeShip:       'Shipping',     freeShipTip: 'Free shipping offers',
+    bankOffers:     'Bank',         bankTip:     'Credit card discounts',
+    savingsIntel:   'Performance & Savings',
+    codeSuccess:    'Code Accuracy',codeSuccTip: 'Success rate of coupons (last 30d)',
+    maxSavings:     'Max Savings',  maxSaveTip:  'Highest possible discount by stacking',
+    avgDiscount:    'Avg Discount', avgDiscTip:  'Average off across active codes',
+    offerFreq:      'Offer Freq.',  freqTip:     'How fast new offers are published',
+    logistics:      'Logistics & Policies',
+    delivery:       'Delivery Time',
+    freeShipping:   'Free Shipping from',
     returnWindow:   'Return Window',
     refund:         'Refund Processing',
-    freeReturns:    'Free',
+    freeReturns:    'Free Returns',
     days:           'days',
     sar:            'SAR',
     always:         'Always',
-    payments:       'Payment Methods',
+    payments:       'Supported Gateways',
     bnpl:           'BNPL',
-    upcoming:       'Upcoming Offers', upcomingTip: 'Predictions based on historical data & store announcements',
-    scoreBreakdown: 'Score Breakdown',
-    savings_w:      'Savings',       savings_wTip:     'Real discount quality — based on max stackable savings',
-    codeSuccess_w:  'Code Success',  codeSuccess_wTip: 'Coupon reliability — % of codes that actually work',
-    delivery_w:     'Delivery',      delivery_wTip:    'Fewer delivery days = higher score',
-    returns_w:      'Returns',       returns_wTip:     'Free returns + generous return window = higher score',
-    frequency_w:    'Frequency',     frequency_wTip:   'More frequent new offers = higher score',
-    payment_w:      'Payments',      payment_wTip:     'More payment options including BNPL = higher score',
+    upcoming:       'Future Projections', upcomingTip: 'Based on historical data analysis',
+    scoreBreakdown: 'Detailed Score Analysis',
+    savings_w:      'Savings Value', savings_wTip:     'Real discount quality available',
+    codeSuccess_w:  'Code Accuracy', codeSuccess_wTip: 'Reliability of codes at checkout',
+    delivery_w:     'Delivery Spd.', delivery_wTip:    'Score based on rapid fulfillment',
+    returns_w:      'Return Policy', returns_wTip:     'Flexibility and cost of returns',
+    frequency_w:    'Offer Density', frequency_wTip:   'Consistency of new promotions',
+    payment_w:      'Payment Opts.', payment_wTip:     'Variety of gateways including BNPL',
     verified:       'Verified',
   };
 
-  // ── COMPACT ────────────────────────────────────────────────────────────────
   if (variant === 'compact') {
     return (
       <div className="sic sic--compact" dir={isRtl ? 'rtl' : 'ltr'} style={{ '--sic-accent': accent }}>
-        {store.logo && (
-          <div className="sic-wm" aria-hidden="true">
-            <img src={store.logo} alt="" />
+        <div className="sic-compact__header">
+          <div className="sic-compact__id">
+            {store.logo && <img src={store.logo} alt="" className="sic-compact__logo" />}
+            <div className="sic-compact__title">
+              <span className="sic-eyebrow">{L.intelligence}</span>
+              <span className="sic-name">{t.name}</span>
+            </div>
+          </div>
+          {snapshot && <RankBadge rank={snapshot.rank} movement={snapshot.movement} />}
+        </div>
+        {hasScore && (
+          <div className="sic-compact__gauges">
+            <GaugeCard pct={rawScore * 10} display={rawScore.toFixed(1)} sub="/10" label={L.storeScore} color={pctToColor(rawScore * 10)} size={64} stroke={3} />
+            {successPct != null && <GaugeCard pct={successPct} label={L.codeSuccess} color={pctToColor(successPct)} size={64} stroke={3} />}
+            {maxSavePct != null && <GaugeCard pct={maxSavePct} label={L.maxSavings} color={pctToColor(clamp(maxSavePct))} size={64} stroke={3} />}
           </div>
         )}
-        <div className="sic-compact__inner">
-          <div className="sic-compact__top">
-            <div>
-              <p className="sic-compact__eyebrow">{L.intelligence}</p>
-              <p className="sic-compact__name">{t.name}</p>
-            </div>
-            {snapshot && <RankBadge rank={snapshot.rank} movement={snapshot.movement} />}
-          </div>
-          {hasScore && (
-            <div className="sic-compact__gauges">
-              <GaugeCard pct={rawScore * 10} display={rawScore.toFixed(1)}
-                sub="/10" label={L.storeScore} color={pctToColor(rawScore * 10)} size={72} stroke={6} />
-              {successPct != null && (
-                <GaugeCard pct={successPct} label={L.codeSuccess} color={pctToColor(successPct)} size={72} stroke={6} />
-              )}
-              {maxSavePct != null && (
-                <GaugeCard pct={maxSavePct} label={L.maxSavings} color={pctToColor(clamp(maxSavePct))} size={72} stroke={6} />
-              )}
-            </div>
-          )}
-        </div>
       </div>
     );
   }
 
-  // ── FULL ───────────────────────────────────────────────────────────────────
   return (
     <div className="sic sic--full" dir={isRtl ? 'rtl' : 'ltr'} style={{ '--sic-accent': accent }}>
-
-      {/* ══ HEADER ══════════════════════════════════════════════════════════ */}
-      <div className="sic-hero">
-        {/* Fading watermark — large logo behind content */}
-        {store.logo && (
-          <div className="sic-wm" aria-hidden="true">
-            <img src={store.logo} alt="" />
-          </div>
-        )}
-
-        <div className="sic-hero__inner">
-          {/* Top row: eyebrow + name + rank */}
-          <div className="sic-hero__top">
-            <div>
-              <p className="sic-hero__eyebrow">{L.intelligence}</p>
-              <h2 className="sic-hero__name">{t.name}</h2>
-            </div>
-            {snapshot && <RankBadge rank={snapshot.rank} movement={snapshot.movement} />}
-          </div>
-
-          {/* Score ring + meta */}
-          {hasScore && (
-            <div className="sic-hero__score">
-              <GaugeCard
-                pct={rawScore * 10}
-                display={rawScore.toFixed(1)}
-                sub="/10"
-                label={L.storeScore}
-                color={pctToColor(rawScore * 10)}
-                size={80}
-                stroke={7}
-              />
-              <div className="sic-hero__score-meta">
-                <div className="sic-hero__score-tip">
-                  <Tip text={L.howScore} />
-                  <span className="sic-hero__score-tip-label">{L.howScore.split(' ').slice(0, 3).join(' ')}…</span>
-                </div>
-                {store.lastVerifiedAt && (
-                  <div className="sic-hero__verified">
-                    <Icon name="verified" className="sic-hero__verified-icon" />
-                    <span>{L.verified} {new Date(store.lastVerifiedAt).toLocaleDateString(
-                      isRtl ? 'ar' : 'en', { month: 'short', year: 'numeric' }
-                    )}</span>
-                  </div>
-                )}
-                {metrics?.totalActiveOffers != null && (
-                  <div className="sic-hero__active">
-                    <Icon name="local_offer" />
-                    <span>{metrics.totalActiveOffers} {isRtl ? 'عرض نشط' : 'active offers'}</span>
-                  </div>
-                )}
-              </div>
+      {/* ══ MASTHEAD ═══════════════════════════════════════════════════════ */}
+      <div className="sic-masthead">
+        <div className="sic-masthead__brand">
+          {store.logo && (
+            <div className="sic-masthead__logo-box">
+              <img src={store.logo} alt={t.name} />
             </div>
           )}
+          <div className="sic-masthead__titles">
+            <span className="sic-eyebrow">{L.intelligence}</span>
+            <h2 className="sic-name">{t.name}</h2>
+          </div>
+        </div>
+        <div className="sic-masthead__actions">
+          {store.lastVerifiedAt && (
+            <div className="sic-verified-tag">
+              <Icon name="verified_user" />
+              <span>{new Date(store.lastVerifiedAt).toLocaleDateString(isRtl ? 'ar' : 'en', { month: 'short', year: 'numeric' })}</span>
+            </div>
+          )}
+          {snapshot && <RankBadge rank={snapshot.rank} movement={snapshot.movement} />}
         </div>
       </div>
 
+      {/* ══ EXECUTIVE SUMMARY (SCORE) ═════════════════════════════════════ */}
+      {hasScore && (
+        <div className="sic-executive">
+          <div className="sic-executive__gauge">
+            <GaugeCard
+              pct={rawScore * 10}
+              display={rawScore.toFixed(1)}
+              sub="/ 10"
+              label={L.storeScore}
+              color={pctToColor(rawScore * 10)}
+              size={100}
+              stroke={5}
+            />
+          </div>
+          <div className="sic-executive__details">
+            <div className="sic-executive__metrics">
+              <div className="sic-emetric">
+                <span className="sic-emetric__val">{metrics.totalActiveOffers ?? 0}</span>
+                <span className="sic-emetric__lbl">{isRtl ? 'عروض نشطة' : 'Active Offers'}</span>
+              </div>
+              <div className="sic-emetric">
+                <span className="sic-emetric__val" style={{ color: pctToColor(successPct) }}>{successPct ?? '--'}%</span>
+                <span className="sic-emetric__lbl">{L.codeSuccess}</span>
+              </div>
+            </div>
+            <p className="sic-executive__formula">
+              <Icon name="functions" />
+              {L.howScore}
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* ══ VOUCHER COUNT TILES ════════════════════════════════════════════ */}
       <div className="sic-tiles">
-        <CountTile icon="confirmation_number" value={vc.codes}    label={L.codes}      tooltip={L.codesTip} />
-        <CountTile icon="sell"                value={vc.deals}    label={L.deals}      tooltip={L.dealsTip} />
-        <CountTile icon="local_shipping"      value={vc.shipping} label={L.freeShip}   tooltip={L.freeShipTip} />
-        <CountTile icon="account_balance"     value={vc.bank}     label={L.bankOffers} tooltip={L.bankTip} />
+        <CountTile icon="local_activity" value={vc.codes} label={L.codes} tooltip={L.codesTip} />
+        <CountTile icon="bolt" value={vc.deals} label={L.deals} tooltip={L.dealsTip} />
+        <CountTile icon="local_shipping" value={vc.shipping} label={L.freeShip} tooltip={L.freeShipTip} />
+        <CountTile icon="credit_score" value={vc.bank} label={L.bankOffers} tooltip={L.bankTip} />
       </div>
 
       {/* ══ SAVINGS GAUGES ════════════════════════════════════════════════ */}
       {metrics && (successPct != null || maxSavePct != null || avgDiscPct != null || freqPct != null) && (
         <div className="sic-section">
-          <SecHead icon="insights" text={L.savingsIntel} />
+          <SecHead icon="monitoring" text={L.savingsIntel} />
           <div className="sic-gauges">
-            {successPct != null && (
-              <GaugeCard pct={successPct} label={L.codeSuccess} tooltip={L.codeSuccTip} color={pctToColor(successPct)} />
-            )}
-            {maxSavePct != null && (
-              <GaugeCard pct={clamp(maxSavePct)} label={L.maxSavings} tooltip={L.maxSaveTip} color={pctToColor(clamp(maxSavePct))} />
-            )}
-            {avgDiscPct != null && (
-              <GaugeCard pct={clamp(avgDiscPct)} label={L.avgDiscount} tooltip={L.avgDiscTip} color={pctToColor(clamp(avgDiscPct))} />
-            )}
-            {freqPct != null && (
-              <GaugeCard
-                pct={freqPct}
-                display={`${store.offerFrequencyDays}d`}
-                label={L.offerFreq}
-                tooltip={L.freqTip}
-                color={pctToColor(freqPct)}
-              />
-            )}
+            {successPct != null && <GaugeCard pct={successPct} label={L.codeSuccess} tooltip={L.codeSuccTip} color={pctToColor(successPct)} size={72} />}
+            {maxSavePct != null && <GaugeCard pct={clamp(maxSavePct)} label={L.maxSavings} tooltip={L.maxSaveTip} color={pctToColor(clamp(maxSavePct))} size={72} />}
+            {avgDiscPct != null && <GaugeCard pct={clamp(avgDiscPct)} label={L.avgDiscount} tooltip={L.avgDiscTip} color={pctToColor(clamp(avgDiscPct))} size={72} />}
+            {freqPct != null && <GaugeCard pct={freqPct} display={`${store.offerFrequencyDays}d`} label={L.offerFreq} tooltip={L.freqTip} color={pctToColor(freqPct)} size={72} />}
           </div>
         </div>
       )}
@@ -523,61 +452,24 @@ export default async function StoreIntelligenceCard({
       {/* ══ LOGISTICS ════════════════════════════════════════════════════ */}
       {(hasDelivery || store.returnWindowDays != null || store.freeShippingThreshold != null || hasRefund) && (
         <div className="sic-section">
-          <SecHead icon="local_shipping" text={L.logistics} />
-
-          {/* Logistics gauges + rows hybrid */}
-          <div className="sic-logi-gauges">
-            {delivPct != null && (
-              <GaugeCard
-                pct={delivPct}
-                display={
-                  store.averageDeliveryDaysMin === store.averageDeliveryDaysMax
-                    ? `${store.averageDeliveryDaysMin}d`
-                    : `${store.averageDeliveryDaysMin ?? '?'}–${store.averageDeliveryDaysMax ?? '?'}d`
-                }
-                label={L.delivery}
-                tooltip={isRtl ? 'سرعة التوصيل — أقل أيام = تقييم أعلى' : 'Delivery speed — fewer days = higher score'}
-                color={pctToColor(delivPct)}
-                size={76}
-                stroke={6}
-              />
-            )}
-            {returnPct != null && (
-              <GaugeCard
-                pct={returnPct}
-                display={`${store.returnWindowDays}d`}
-                label={L.returnWindow}
-                tooltip={isRtl ? 'مهلة الإرجاع — كلما طالت، ارتفع التقييم' : 'Return window — longer = higher score'}
-                color={pctToColor(returnPct)}
-                size={76}
-                stroke={6}
-              />
-            )}
-          </div>
-
-          <div className="sic-rows">
-            {store.freeShippingThreshold != null && (
-              <Row icon="inventory_2" label={L.freeShipping}
-                value={store.freeShippingThreshold === 0
-                  ? L.always
-                  : `${store.freeShippingThreshold} ${L.sar}`}
-              />
-            )}
-            {store.freeReturns && (
-              <Row icon="undo" label={L.returnWindow}
-                value={`${store.returnWindowDays} ${L.days}`}
-                chip={L.freeReturns}
-              />
-            )}
-            {hasRefund && (
-              <Row icon="payments" label={L.refund}
-                value={
-                  store.refundProcessingDaysMin === store.refundProcessingDaysMax
-                    ? `${store.refundProcessingDaysMin} ${L.days}`
-                    : `${store.refundProcessingDaysMin}–${store.refundProcessingDaysMax} ${L.days}`
-                }
-              />
-            )}
+          <SecHead icon="conveyor_belt" text={L.logistics} />
+          
+          <div className="sic-logistics-grid">
+            <div className="sic-logistics-gauges">
+              {delivPct != null && <GaugeCard pct={delivPct} display={store.averageDeliveryDaysMin === store.averageDeliveryDaysMax ? `${store.averageDeliveryDaysMin}d` : `${store.averageDeliveryDaysMin ?? '?'}–${store.averageDeliveryDaysMax ?? '?'}d`} label={L.delivery} color={pctToColor(delivPct)} size={64} stroke={3} />}
+              {returnPct != null && <GaugeCard pct={returnPct} display={`${store.returnWindowDays}d`} label={L.returnWindow} color={pctToColor(returnPct)} size={64} stroke={3} />}
+            </div>
+            <div className="sic-rows">
+              {store.freeShippingThreshold != null && (
+                <Row label={L.freeShipping} value={store.freeShippingThreshold === 0 ? L.always : `${store.freeShippingThreshold} ${L.sar}`} />
+              )}
+              {store.freeReturns && (
+                <Row label={L.returnWindow} value={`${store.returnWindowDays} ${L.days}`} chip={L.freeReturns} />
+              )}
+              {hasRefund && (
+                <Row label={L.refund} value={store.refundProcessingDaysMin === store.refundProcessingDaysMax ? `${store.refundProcessingDaysMin} ${L.days}` : `${store.refundProcessingDaysMin}–${store.refundProcessingDaysMax} ${L.days}`} />
+              )}
+            </div>
           </div>
         </div>
       )}
@@ -585,18 +477,15 @@ export default async function StoreIntelligenceCard({
       {/* ══ PAYMENT METHODS ══════════════════════════════════════════════ */}
       {store.paymentMethods.length > 0 && (
         <div className="sic-section">
-          <SecHead icon="credit_card" text={L.payments} />
+          <SecHead icon="account_balance_wallet" text={L.payments} />
           <div className="sic-payments">
             {store.paymentMethods.map((pm) => {
               const m = pm.paymentMethod;
               const name = m.translations[0]?.name || m.slug;
               return (
                 <div key={m.slug} className={`sic-pay${m.isBnpl ? ' sic-pay--bnpl' : ''}`} aria-label={name}>
-                  {m.logo
-                    ? <img src={m.logo} alt={name} className="sic-pay__logo" loading="lazy" />
-                    : <span className="sic-pay__name">{name}</span>
-                  }
-                  {m.isBnpl && <Chip text={L.bnpl} variant="accent" />}
+                  {m.logo ? <img src={m.logo} alt={name} className="sic-pay__logo" loading="lazy" /> : <span className="sic-pay__name">{name}</span>}
+                  {m.isBnpl && <Chip text={L.bnpl} variant="neutral" />}
                 </div>
               );
             })}
@@ -607,12 +496,11 @@ export default async function StoreIntelligenceCard({
       {/* ══ UPCOMING EVENTS ══════════════════════════════════════════════ */}
       {store.upcomingEvents.length > 0 && (
         <div className="sic-section">
-          <SecHead icon="event" text={L.upcoming} tooltip={L.upcomingTip} />
+          <SecHead icon="calendar_month" text={L.upcoming} tooltip={L.upcomingTip} />
           <div className="sic-events">
             {store.upcomingEvents.map((ev, i) => {
               const [yr, mo] = ev.expectedMonth.split('-');
-              const moName = new Date(Number(yr), Number(mo) - 1, 1)
-                .toLocaleString(isRtl ? 'ar' : 'en', { month: 'long' });
+              const moName = new Date(Number(yr), Number(mo) - 1, 1).toLocaleString(isRtl ? 'ar' : 'en', { month: 'long' });
               return (
                 <div key={i} className="sic-event">
                   <div className="sic-event__info">
@@ -620,9 +508,7 @@ export default async function StoreIntelligenceCard({
                     <span className="sic-event__date">{moName} {yr}</span>
                   </div>
                   <div className="sic-event__right">
-                    {ev.expectedMaxDiscount && (
-                      <Chip text={`↑ ${ev.expectedMaxDiscount}%`} variant="green" />
-                    )}
+                    {ev.expectedMaxDiscount && <span className="sic-event__forecast">↑ {ev.expectedMaxDiscount}%</span>}
                     <ConfPips level={ev.confidenceLevel} />
                   </div>
                 </div>
@@ -632,34 +518,23 @@ export default async function StoreIntelligenceCard({
         </div>
       )}
 
-      {/* ══ SCORE BREAKDOWN — all ring gauges ═══════════════════════════ */}
+      {/* ══ SCORE BREAKDOWN ═════════════════════════════════════════════ */}
       {bd && (
         <div className="sic-section sic-section--last">
-          <SecHead icon="bar_chart" text={L.scoreBreakdown} tooltip={L.howScore} />
-          <div className="sic-gauges sic-gauges--3col">
+          <SecHead icon="data_usage" text={L.scoreBreakdown} />
+          <div className="sic-gauges sic-gauges--breakdown">
             {[
-              { key: 'maxStackableSavings', label: L.savings_w,      tip: L.savings_wTip,      w: 30 },
-              { key: 'codeSuccessRate',     label: L.codeSuccess_w,  tip: L.codeSuccess_wTip,  w: 20 },
-              { key: 'deliverySpeed',       label: L.delivery_w,     tip: L.delivery_wTip,     w: 15 },
-              { key: 'returnFlexibility',   label: L.returns_w,      tip: L.returns_wTip,      w: 15 },
-              { key: 'offerFrequency',      label: L.frequency_w,    tip: L.frequency_wTip,    w: 10 },
-              { key: 'paymentFlexibility',  label: L.payment_w,      tip: L.payment_wTip,      w: 10 },
-            ].map(({ key, label, tip, w }) => {
+              { key: 'maxStackableSavings', label: L.savings_w, w: 30 },
+              { key: 'codeSuccessRate', label: L.codeSuccess_w, w: 20 },
+              { key: 'deliverySpeed', label: L.delivery_w, w: 15 },
+              { key: 'returnFlexibility', label: L.returns_w, w: 15 },
+              { key: 'offerFrequency', label: L.frequency_w, w: 10 },
+              { key: 'paymentFlexibility', label: L.payment_w, w: 10 },
+            ].map(({ key, label, w }) => {
               const pct = bdPct(key);
               if (pct == null) return null;
-              const score = pf(bd[key]).toFixed(1);
               return (
-                <GaugeCard
-                  key={key}
-                  pct={pct}
-                  display={score}
-                  sub={`/10 · ${w}%`}
-                  label={label}
-                  tooltip={tip}
-                  color={pctToColor(pct)}
-                  size={76}
-                  stroke={6}
-                />
+                <GaugeCard key={key} pct={pct} display={pf(bd[key]).toFixed(1)} sub={`wt. ${w}%`} label={label} color={pctToColor(pct)} size={64} stroke={3} />
               );
             })}
           </div>
