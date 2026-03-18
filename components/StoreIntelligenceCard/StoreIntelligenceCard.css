@@ -1,533 +1,543 @@
-/* components/StoreIntelligenceCard/StoreIntelligenceCard.css
-   Design: all #fafafa, accent stripe on hero left edge, fading watermark,
-   material-symbols-sharp icons, ring gauges throughout.
-   Typeface: Alexandria (globally loaded).
-*/
+/* components/StoreIntelligenceCard/StoreIntelligenceCard.css */
+/* Design: Authoritative, Dashboard-style, High-Contrast, Minimal. */
 
-/* ── Tokens ──────────────────────────────────────────────────────────────── */
+:root {
+  --sic-bg:            #ffffff;
+  --sic-surface:       #f8fafc;
+  --sic-border:        #e2e8f0;
+  --sic-border-dark:   #cbd5e1;
+  --sic-text-primary:  #0f172a;
+  --sic-text-secondary:#475569;
+  --sic-text-muted:    #64748b;
+  
+  --sic-ring-track:    #f1f5f9;
+  --sic-shadow:        0 1px 3px rgba(15, 23, 42, 0.05);
+}
+
 .sic {
-  --sic-accent:        #470ae2;
-  --sic-accent-rgb:    71, 10, 226;
-  --sic-bg:            #fafafa;
-  --sic-surface:       #f0f0f4;
-  --sic-border:        #e4e4eb;
-  --sic-border-mid:    #d4d4de;
-  --sic-text-1:        #0d0d12;
-  --sic-text-2:        #52525b;
-  --sic-text-3:        #a1a1aa;
-  --sic-green:         #16a34a;
-  --sic-green-bg:      #dcfce7;
-  --sic-ring-track:    #e4e4eb;
-
-  font-family:   'Alexandria', 'Segoe UI', sans-serif;
-  background:    var(--sic-bg);
-  border:        1px solid var(--sic-border);
-  border-radius: 16px;
-  overflow:      hidden;
-  box-shadow:    0 2px 16px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.04);
-}
-
-/* ── Material icon sizing ─────────────────────────────────────────────────── */
-.sic .sic-icon {
-  font-size:   18px;
-  line-height: 1;
-  display:     inline-flex;
-  flex-shrink: 0;
-  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20;
-}
-
-/* ── HERO HEADER ─────────────────────────────────────────────────────────── */
-.sic-hero {
-  position:   relative;
+  font-family: 'Alexandria', 'Segoe UI', system-ui, sans-serif;
   background: var(--sic-bg);
-  padding:    1.4rem 1.25rem 1.1rem;
-  overflow:   hidden;
-  /* Accent left stripe */
-  border-inline-start: 4px solid var(--sic-accent);
+  border: 1px solid var(--sic-border);
+  border-radius: 8px; /* Sharp, professional corners */
+  overflow: hidden;
+  box-shadow: var(--sic-shadow);
+  border-top: 3px solid var(--sic-accent); /* Strict accent line */
+  box-sizing: border-box;
+}
+
+.sic * {
+  box-sizing: border-box;
+}
+
+/* Material Icons Standardization */
+.sic .sic-icon {
+  font-size: 16px;
+  line-height: 1;
+  display: inline-flex;
+  flex-shrink: 0;
+  color: var(--sic-text-muted);
+  font-variation-settings: 'FILL' 0, 'wght' 500, 'GRAD' 0, 'opsz' 20;
+}
+
+/* ── Typography Atoms ── */
+.sic-eyebrow {
+  font-size: 0.625rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--sic-text-muted);
+  line-height: 1;
+}
+
+.sic-name {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 800;
+  color: var(--sic-text-primary);
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+/* ── MASTHEAD ── */
+.sic-masthead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 1.25rem;
+  background: var(--sic-bg);
+  border-bottom: 1px solid var(--sic-border);
+  gap: 1rem;
+}
+
+.sic-masthead__brand {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+}
+
+.sic-masthead__logo-box {
+  width: 44px;
+  height: 44px;
+  border-radius: 6px;
+  border: 1px solid var(--sic-border);
+  padding: 4px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.sic-masthead__logo-box img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.sic-masthead__titles {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.sic-masthead__actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.5rem;
+}
+
+.sic-verified-tag {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: #059669; /* Strict Emerald */
+}
+.sic-verified-tag .sic-icon { color: inherit; font-size: 14px; font-variation-settings: 'FILL' 1; }
+
+/* ── RANK BADGE ── */
+.sic-rank {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  background: var(--sic-text-primary);
+  color: #fff;
+}
+.sic-rank--up { background: #059669; }
+.sic-rank--down { background: #dc2626; }
+
+.sic-rank__label {
+  font-size: 0.55rem;
+  font-weight: 700;
+  opacity: 0.7;
+  letter-spacing: 0.05em;
+}
+.sic-rank__num {
+  font-size: 0.8125rem;
+  font-weight: 800;
+}
+.sic-rank__ico { font-size: 14px; color: #fff !important; }
+
+/* ── EXECUTIVE SUMMARY ── */
+.sic-executive {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 1.5rem 1.25rem;
+  background: var(--sic-surface);
   border-bottom: 1px solid var(--sic-border);
 }
 
-/* Subtle accent tint on hero bg */
-.sic-hero::before {
-  content:  '';
-  position: absolute;
-  inset:    0;
-  background: linear-gradient(135deg,
-    rgba(var(--sic-accent-rgb), 0.05) 0%,
-    transparent 60%);
-  pointer-events: none;
-}
-
-/* Fading watermark logo */
-.sic-wm {
-  position:  absolute;
-  inset-inline-end: -8px;
-  bottom:    -8px;
-  width:     130px;
-  height:    130px;
-  pointer-events: none;
-  user-select:    none;
-}
-.sic-wm img {
-  width:   100%;
-  height:  100%;
-  object-fit: contain;
-  opacity: 0.06;
-  filter:  grayscale(1) contrast(0.8);
-}
-/* compact watermark — smaller */
-.sic--compact .sic-wm {
-  width:  90px;
-  height: 90px;
-}
-
-.sic-hero__inner { position: relative; z-index: 1; }
-
-.sic-hero__top {
-  display:         flex;
-  justify-content: space-between;
-  align-items:     flex-start;
-  gap:             0.5rem;
-  margin-bottom:   1rem;
-}
-
-.sic-hero__eyebrow {
-  margin:         0 0 0.15rem;
-  font-size:      0.6rem;
-  font-weight:    700;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color:          var(--sic-accent);
-}
-
-.sic-hero__name {
-  margin:      0;
-  font-size:   1.2rem;
-  font-weight: 800;
-  color:       var(--sic-text-1);
-  line-height: 1.2;
-  letter-spacing: -0.02em;
-}
-
-/* Score row */
-.sic-hero__score {
-  display:     flex;
-  align-items: center;
-  gap:         1rem;
-}
-
-.sic-hero__score-meta {
-  display:        flex;
-  flex-direction: column;
-  gap:            0.4rem;
-  flex:           1;
-  min-width:      0;
-}
-
-.sic-hero__score-tip {
-  display:     flex;
-  align-items: center;
-  gap:         0.35rem;
-}
-
-.sic-hero__score-tip-label {
-  font-size:  0.65rem;
-  color:      var(--sic-text-3);
-  line-height: 1.3;
-}
-
-.sic-hero__verified,
-.sic-hero__active {
-  display:     flex;
-  align-items: center;
-  gap:         0.3rem;
-  font-size:   0.7rem;
-  color:       var(--sic-text-3);
-  font-weight: 500;
-}
-
-.sic-hero__verified-icon {
-  font-size: 14px !important;
-  color:     var(--sic-green);
-}
-
-/* ── RANK BADGE ──────────────────────────────────────────────────────────── */
-.sic-rank {
-  display:     flex;
-  align-items: center;
-  gap:         0.2rem;
-  padding:     0.3rem 0.6rem;
-  border-radius: 8px;
+.sic-executive__gauge {
   flex-shrink: 0;
-  border:      1px solid var(--sic-border);
-  background:  var(--sic-bg);
 }
-.sic-rank--up   { border-color: #bbf7d0; background: #f0fdf4; }
-.sic-rank--down { border-color: #fecaca; background: #fff5f5; }
 
-.sic-rank__num {
-  font-size:   0.9rem;
-  font-weight: 800;
-  color:       var(--sic-text-1);
-  letter-spacing: -0.01em;
-}
-.sic-rank__ico            { font-size: 16px !important; }
-.sic-rank--up   .sic-rank__ico { color: var(--sic-green); }
-.sic-rank--down .sic-rank__ico { color: #dc2626; }
-.sic-rank--same .sic-rank__ico { color: var(--sic-text-3); }
-
-/* ── RING GAUGE (SVG) ────────────────────────────────────────────────────── */
-.sic-ring { display: block; overflow: visible; }
-
-/* ── GAUGE CARD ──────────────────────────────────────────────────────────── */
-.sic-gc {
-  display:        flex;
+.sic-executive__details {
+  flex: 1;
+  display: flex;
   flex-direction: column;
-  align-items:    center;
-  gap:            0.5rem;
+  gap: 0.75rem;
 }
 
-.sic-gc__ring-wrap {
-  position:        relative;
-  display:         flex;
-  align-items:     center;
-  justify-content: center;
-  flex-shrink:     0;
-}
-.sic-gc__ring-wrap .sic-ring {
-  position: absolute;
-  inset:    0;
+.sic-executive__metrics {
+  display: flex;
+  gap: 1.5rem;
 }
 
-.sic-gc__center {
-  position:        relative;
-  display:         flex;
-  flex-direction:  column;
-  align-items:     center;
-  justify-content: center;
-  gap:             0;
-  line-height:     1.1;
+.sic-emetric {
+  display: flex;
+  flex-direction: column;
 }
-
-.sic-gc__val {
-  font-size:   1.15rem;
+.sic-emetric__val {
+  font-size: 1.25rem;
   font-weight: 800;
-  color:       var(--sic-text-1);
-  letter-spacing: -0.025em;
+  color: var(--sic-text-primary);
+  line-height: 1.1;
 }
-
-.sic-gc__sub {
-  font-size:   0.55rem;
+.sic-emetric__lbl {
+  font-size: 0.6875rem;
   font-weight: 600;
-  color:       var(--sic-text-3);
-  text-align:  center;
-  line-height: 1.2;
-  white-space: nowrap;
+  color: var(--sic-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
 }
 
-.sic-gc__footer {
-  display:     flex;
-  align-items: center;
-  gap:         0.25rem;
-  text-align:  center;
+.sic-executive__formula {
+  margin: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.375rem;
+  font-size: 0.6875rem;
+  color: var(--sic-text-muted);
+  line-height: 1.4;
 }
+.sic-executive__formula .sic-icon { font-size: 12px; margin-top: 2px; }
 
-.sic-gc__label {
-  font-size:   0.68rem;
-  font-weight: 600;
-  color:       var(--sic-text-2);
-  text-align:  center;
-  line-height: 1.3;
-}
-
-/* ── VOUCHER COUNT TILES ─────────────────────────────────────────────────── */
+/* ── TILES (Metrics Grid) ── */
 .sic-tiles {
-  display:    grid;
+  display: grid;
   grid-template-columns: repeat(4, 1fr);
   background: var(--sic-border);
-  gap:        1px;
+  gap: 1px;
   border-bottom: 1px solid var(--sic-border);
 }
 
 .sic-ct {
-  display:        flex;
+  background: var(--sic-bg);
+  padding: 0.875rem 0.5rem;
+  display: flex;
   flex-direction: column;
-  align-items:    center;
-  gap:            0.2rem;
-  padding:        0.85rem 0.4rem 0.7rem;
-  background:     var(--sic-bg);
-  text-align:     center;
+  align-items: center;
+  gap: 0.5rem;
 }
 
-.sic-ct__icon {
-  color:     var(--sic-accent);
-  font-size: 20px !important;
+.sic-ct__header {
+  display: flex;
+  align-items: baseline;
+  gap: 0.375rem;
 }
-
+.sic-ct__icon { font-size: 14px; color: var(--sic-text-primary); }
 .sic-ct__val {
-  font-size:   1.5rem;
+  font-size: 1.25rem;
   font-weight: 800;
-  color:       var(--sic-text-1);
+  color: var(--sic-text-primary);
   line-height: 1;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.02em;
 }
 
+.sic-ct__footer {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
 .sic-ct__label {
-  display:         flex;
-  align-items:     center;
-  justify-content: center;
-  gap:             2px;
-  font-size:       0.58rem;
-  font-weight:     600;
-  text-transform:  uppercase;
-  letter-spacing:  0.05em;
-  color:           var(--sic-text-3);
-  text-align:      center;
-  line-height:     1.2;
+  font-size: 0.625rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--sic-text-muted);
+  text-align: center;
 }
 
-/* ── SECTIONS ────────────────────────────────────────────────────────────── */
+/* ── SECTION ARCHITECTURE ── */
 .sic-section {
-  padding:       1rem 1.25rem;
+  padding: 1.25rem;
   border-bottom: 1px solid var(--sic-border);
 }
 .sic-section--last { border-bottom: none; }
 
-/* Section heading */
 .sic-sh {
-  display:       flex;
-  align-items:   center;
-  gap:           0.4rem;
-  margin-bottom: 0.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
 }
-
-.sic-sh__icon {
-  color:     var(--sic-accent);
-  font-size: 16px !important;
+.sic-sh__group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
-
 .sic-sh__text {
-  margin:         0;
-  flex:           1;
-  font-size:      0.66rem;
-  font-weight:    700;
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.09em;
-  color:          var(--sic-text-3);
+  letter-spacing: 0.05em;
+  color: var(--sic-text-primary);
 }
 
-/* ── GAUGES GRID ─────────────────────────────────────────────────────────── */
+/* ── GAUGE CARDS ── */
 .sic-gauges {
-  display:               grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap:                   1rem 0.5rem;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
 }
 
-.sic-gauges--3col { grid-template-columns: repeat(3, 1fr); }
-
-/* ── LOGISTICS GAUGES ────────────────────────────────────────────────────── */
-.sic-logi-gauges {
-  display:               grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap:                   0.75rem;
-  margin-bottom:         0.85rem;
+/* For score breakdown, maybe 3 cols */
+.sic-gauges--breakdown {
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem 1rem;
 }
 
-/* ── LOGISTICS ROWS ──────────────────────────────────────────────────────── */
-.sic-rows { display: flex; flex-direction: column; }
+.sic-gc {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.625rem;
+}
+
+.sic-gc__ring-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sic-ring {
+  position: absolute;
+  inset: 0;
+  overflow: visible;
+}
+
+.sic-gc__center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.sic-gc__val {
+  font-size: 1.125rem;
+  font-weight: 800;
+  color: var(--sic-text-primary);
+  line-height: 1;
+}
+.sic-gc__sub {
+  font-size: 0.625rem;
+  font-weight: 600;
+  color: var(--sic-text-muted);
+  margin-top: 2px;
+}
+
+.sic-gc__footer {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+.sic-gc__label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--sic-text-secondary);
+  text-align: center;
+  line-height: 1.2;
+}
+
+/* ── LOGISTICS ── */
+.sic-logistics-grid {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 2rem;
+  align-items: center;
+}
+.sic-logistics-gauges {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.sic-rows {
+  display: flex;
+  flex-direction: column;
+  border-inline-start: 1px dashed var(--sic-border-dark);
+  padding-inline-start: 1.5rem;
+  gap: 0.75rem;
+}
 
 .sic-row {
-  display:       flex;
-  align-items:   center;
-  gap:           0.55rem;
-  padding:       0.55rem 0;
-  border-bottom: 1px solid #f0f0f0;
-}
-.sic-row:last-child { border-bottom: none; }
-
-.sic-row__icon  { color: var(--sic-text-3); }
-.sic-row__label { flex: 1; font-size: 0.78rem; color: var(--sic-text-2); font-weight: 500; }
-.sic-row__value {
-  display:     flex;
+  display: flex;
   align-items: center;
-  gap:         0.35rem;
-  font-size:   0.82rem;
+  justify-content: space-between;
+}
+.sic-row__label {
+  font-size: 0.8125rem;
+  color: var(--sic-text-secondary);
+  font-weight: 500;
+}
+.sic-row__value-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.sic-row__value {
+  font-size: 0.875rem;
   font-weight: 700;
-  color:       var(--sic-text-1);
-  text-align:  end;
+  color: var(--sic-text-primary);
 }
 
-/* ── CHIPS ───────────────────────────────────────────────────────────────── */
-.sic-chip {
-  display:       inline-flex;
-  align-items:   center;
-  padding:       2px 7px;
-  border-radius: 4px;
-  font-size:     0.6rem;
-  font-weight:   700;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  white-space:   nowrap;
-  line-height:   1.5;
-}
-.sic-chip--green  { background: var(--sic-green-bg); color: var(--sic-green); }
-.sic-chip--accent { background: rgba(var(--sic-accent-rgb), 0.1); color: var(--sic-accent); }
-
-/* ── PAYMENTS ────────────────────────────────────────────────────────────── */
+/* ── PAYMENTS ── */
 .sic-payments {
-  display:   flex;
+  display: flex;
   flex-wrap: wrap;
-  gap:       0.4rem;
+  gap: 0.5rem;
 }
 
 .sic-pay {
-  display:       flex;
-  align-items:   center;
-  gap:           0.3rem;
-  padding:       0.3rem 0.65rem;
-  background:    #fff;
-  border:        1px solid var(--sic-border);
-  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.375rem 0.625rem;
+  background: #fff;
+  border: 1px solid var(--sic-border);
+  border-radius: 4px;
 }
-.sic-pay--bnpl  { border-style: dashed; }
-.sic-pay__logo  { height: 18px; width: auto; max-width: 56px; object-fit: contain; }
-.sic-pay__name  { font-size: 0.7rem; font-weight: 600; color: var(--sic-text-2); white-space: nowrap; }
+.sic-pay--bnpl { border-style: dashed; }
+.sic-pay__logo { height: 20px; max-width: 64px; object-fit: contain; }
+.sic-pay__name { font-size: 0.75rem; font-weight: 600; color: var(--sic-text-secondary); }
 
-/* ── UPCOMING EVENTS ─────────────────────────────────────────────────────── */
-.sic-events { display: flex; flex-direction: column; gap: 0.45rem; }
+/* ── UPCOMING EVENTS ── */
+.sic-events {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
 
 .sic-event {
-  display:         flex;
-  align-items:     center;
-  justify-content: space-between;
-  gap:             0.5rem;
-  padding:         0.6rem 0.75rem;
-  background:      #fff;
-  border:          1px solid var(--sic-border);
-  border-radius:   8px;
-}
-
-.sic-event__info { display: flex; flex-direction: column; gap: 0.1rem; }
-.sic-event__name { font-size: 0.8rem;  font-weight: 600; color: var(--sic-text-1); }
-.sic-event__date { font-size: 0.67rem; color: var(--sic-text-3); }
-.sic-event__right { display: flex; align-items: center; gap: 0.45rem; }
-
-/* ── CONFIDENCE PIPS ─────────────────────────────────────────────────────── */
-.sic-pips { display: flex; gap: 3px; align-items: center; }
-.sic-pip  { width: 6px; height: 6px; border-radius: 50%; background: var(--sic-border-mid); }
-.sic-pip--on { background: var(--sic-accent); }
-
-/* ── TOOLTIPS (CSS-only, zero JS) ────────────────────────────────────────── */
-.sic-tip {
-  position:    relative;
-  display:     inline-flex;
+  display: flex;
   align-items: center;
-  cursor:      help;
-  flex-shrink: 0;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  background: var(--sic-surface);
+  border: 1px solid var(--sic-border);
+  border-radius: 6px;
 }
 
-.sic-tip__icon {
-  color:     var(--sic-text-3);
-  font-size: 14px !important;
-  font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 20;
-  transition: color 0.15s;
+.sic-event__info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
 }
-.sic-tip:hover .sic-tip__icon { color: var(--sic-accent); }
+.sic-event__name {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--sic-text-primary);
+}
+.sic-event__date {
+  font-size: 0.6875rem;
+  color: var(--sic-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.sic-event__right {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.sic-event__forecast {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #059669;
+  background: #dcfce7;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+/* ── PIPS ── */
+.sic-pips { display: flex; gap: 3px; align-items: center; }
+.sic-pip { width: 6px; height: 6px; border-radius: 50%; background: var(--sic-border-dark); }
+.sic-pip--on { background: var(--sic-text-primary); }
+
+/* ── CHIPS ── */
+.sic-chip {
+  display: inline-flex;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 0.625rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.sic-chip--accent { background: rgba(15, 23, 42, 0.05); color: var(--sic-text-primary); border: 1px solid var(--sic-border); }
+.sic-chip--neutral { background: var(--sic-surface); color: var(--sic-text-secondary); border: 1px solid var(--sic-border); }
+
+/* ── TOOLTIPS (CSS-only) ── */
+.sic-tip {
+  position: relative;
+  display: inline-flex;
+  cursor: help;
+}
+.sic-tip__icon { font-size: 14px; color: var(--sic-text-muted); transition: color 0.2s; }
+.sic-tip:hover .sic-tip__icon { color: var(--sic-text-primary); }
 
 .sic-tip__box {
-  display:    none;
-  position:   absolute;
-  bottom:     calc(100% + 8px);
-  inset-inline-start: 50%;
-  transform:  translateX(-50%);
-  min-width:  170px;
-  max-width:  240px;
-  background: #1c1c2e;
-  color:      #ededf5;
-  font-size:  0.7rem;
-  font-weight: 400;
-  line-height: 1.55;
-  padding:    0.5rem 0.75rem;
-  border-radius: 8px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.22);
-  z-index:    200;
-  white-space: normal;
-  pointer-events: none;
-}
-.sic-tip__box::after {
-  content:   '';
-  position:  absolute;
-  top:       100%;
-  left:      50%;
-  transform: translateX(-50%);
-  border:    5px solid transparent;
-  border-top-color: #1c1c2e;
-}
-
-.sic-tip:hover  .sic-tip__box,
-.sic-tip:focus-within .sic-tip__box { display: block; }
-
-/* ── COMPACT VARIANT ─────────────────────────────────────────────────────── */
-.sic--compact {
-  position:   relative;
-  overflow:   hidden;
-  padding:    1rem 1.25rem;
-  border-inline-start: 4px solid var(--sic-accent);
-  background: var(--sic-bg);
-}
-.sic--compact::before {
-  content:  '';
+  display: none;
   position: absolute;
-  inset:    0;
-  background: linear-gradient(135deg,
-    rgba(var(--sic-accent-rgb), 0.04) 0%, transparent 50%);
+  bottom: calc(100% + 6px);
+  inset-inline-start: 50%;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: 200px;
+  background: var(--sic-text-primary);
+  color: #fff;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  line-height: 1.4;
+  padding: 0.5rem 0.75rem;
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  z-index: 10;
+  white-space: normal;
+  text-align: center;
   pointer-events: none;
 }
+.sic-tip:hover .sic-tip__box { display: block; }
 
-.sic-compact__inner { position: relative; z-index: 1; }
-
-.sic-compact__top {
-  display:         flex;
+/* ── COMPACT VARIANT ── */
+.sic--compact {
+  padding: 1rem;
+}
+.sic-compact__header {
+  display: flex;
   justify-content: space-between;
-  align-items:     flex-start;
-  margin-bottom:   0.85rem;
-  gap:             0.5rem;
+  align-items: flex-start;
+  margin-bottom: 1.25rem;
 }
-
-.sic-compact__eyebrow {
-  margin:         0 0 0.1rem;
-  font-size:      0.58rem;
-  font-weight:    700;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color:          var(--sic-accent);
+.sic-compact__id {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
 }
-
-.sic-compact__name {
-  margin:      0;
-  font-size:   0.95rem;
-  font-weight: 700;
-  color:       var(--sic-text-1);
+.sic-compact__logo {
+  width: 36px;
+  height: 36px;
+  border-radius: 4px;
+  border: 1px solid var(--sic-border);
+  padding: 2px;
+  object-fit: contain;
 }
-
+.sic-compact__title {
+  display: flex;
+  flex-direction: column;
+}
 .sic-compact__gauges {
-  display:               grid;
+  display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap:                   0.5rem;
+  gap: 0.75rem;
 }
 
-/* ── RESPONSIVE ──────────────────────────────────────────────────────────── */
-@media (max-width: 340px) {
-  .sic-tiles               { grid-template-columns: repeat(2, 1fr); }
-  .sic-gauges              { grid-template-columns: repeat(2, 1fr); }
-  .sic-gauges--3col        { grid-template-columns: repeat(2, 1fr); }
-  .sic-compact__gauges     { grid-template-columns: repeat(2, 1fr); }
+/* ── RESPONSIVE FOLD ── */
+@media (max-width: 640px) {
+  .sic-executive {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1.25rem;
+  }
+  .sic-tiles { grid-template-columns: repeat(2, 1fr); }
+  .sic-gauges { grid-template-columns: repeat(2, 1fr); gap: 1.25rem 0.5rem; }
+  .sic-logistics-grid { grid-template-columns: 1fr; gap: 1.5rem; }
+  .sic-rows { border-inline-start: none; padding-inline-start: 0; padding-top: 1rem; border-top: 1px dashed var(--sic-border-dark); }
 }
 
-/* ── RTL ─────────────────────────────────────────────────────────────────── */
-[dir='rtl'] .sic-hero              { border-inline-start: none; border-inline-end: 4px solid var(--sic-accent); }
-[dir='rtl'] .sic--compact         { border-inline-start: none; border-inline-end: 4px solid var(--sic-accent); }
-[dir='rtl'] .sic-wm               { inset-inline-end: -8px; inset-inline-start: auto; }
-[dir='rtl'] .sic-row__value       { text-align: start; }
-[dir='rtl'] .sic-tip__box         { transform: translateX(50%); }
-[dir='rtl'] .sic-tip__box::after  { left: auto; right: 50%; transform: translateX(50%); }
+/* ── RTL OVERRIDES ── */
+[dir="rtl"] .sic-tip__box { transform: translateX(50%); }
