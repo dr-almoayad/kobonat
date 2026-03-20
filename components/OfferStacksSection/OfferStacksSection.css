@@ -77,12 +77,8 @@
     margin-bottom: 1rem;
   }
 
-  /* Stack-box cards: kill box-shadow during mobile scroll — main jank source.
-     Use a cheaper border instead. Shadow is restored when not in a carousel. */
-  .offer-stacks-section .stack-box {
-    box-shadow: none;
-    border: 1px solid #e2e8f0;
-    /* Isolate stacking context so browser doesn't composite with siblings */
+  /* Cards: drop-shadow is composited so it's fine; just ensure isolation */
+  .offer-stacks-section .sb-card {
     isolation: isolate;
   }
 }
