@@ -504,10 +504,10 @@ model OtherPromo {
 
   discountPercent    Float?
   verifiedAvgPercent Float?
-  discountCertainty  DiscountCertainty    @default(EXACT)
-  stackGroup         OfferStackGroup      @default(BANK_OFFER)
-  isStackable        Boolean              @default(false)
-  isCapped           Boolean              @default(false)
+  discountCertainty  DiscountCertainty @default(EXACT)
+  stackGroup         OfferStackGroup   @default(BANK_OFFER)
+  isStackable        Boolean           @default(false)
+  isCapped           Boolean           @default(false)
   maxDiscountAmount  Float?
   minSpendAmount     Float?
 
@@ -521,18 +521,19 @@ model OtherPromo {
 
   bankId            Int?
   cardId            Int?
+  paymentMethodId   Int?          // ← NEW: Visa, Mastercard, Tabby, Tamara, etc.
   cardNetwork       CardNetwork?
   installmentMonths Int?
-  voucherCode       String?      // bank offer has its own code; blocks codeVoucher slot in OfferStack
+  voucherCode       String?
 
   translations OtherPromoTranslation[]
-  store        Store   @relation(fields: [storeId], references: [id], onDelete: Cascade)
-  country      Country @relation(fields: [countryId], references: [id], onDelete: Cascade)
-  bank         Bank?     @relation(fields: [bankId], references: [id], onDelete: SetNull)
-  card         BankCard? @relation(fields: [cardId], references: [id], onDelete: SetNull)
-  offerStacks  OfferStack[] @relation("StackPromo")
+  store        Store          @relation(fields: [storeId],         references: [id], onDelete: Cascade)
+  country      Country        @relation(fields: [countryId],       references: [id], onDelete: Cascade)
+  bank         Bank?          @relation(fields: [bankId],          references: [id], onDelete: SetNull)
+  card         BankCard?      @relation(fields: [cardId],          references: [id], onDelete: SetNull)
+  paymentMethod PaymentMethod? @relation(fields: [paymentMethodId], references: [id], onDelete: SetNull)  // ← NEW
+  offerStacks  OfferStack[]   @relation("StackPromo")
 
-  // NEW back‑relation for comparison tables
   comparisonColumns ComparisonTableColumn[]
 
   createdAt DateTime @default(now())
@@ -545,7 +546,9 @@ model OtherPromo {
   @@index([type])
   @@index([bankId])
   @@index([cardId])
+  @@index([paymentMethodId])  // ← NEW
 }
+
 
 model OtherPromoTranslation {
   id      Int    @id @default(autoincrement())
@@ -656,6 +659,7 @@ model PaymentMethod {
 
   translations PaymentMethodTranslation[]
   storeLinks   StorePaymentMethod[]
+  otherPromos  OtherPromo[]               // ← NEW back-relation
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
