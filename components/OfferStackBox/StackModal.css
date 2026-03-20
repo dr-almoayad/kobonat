@@ -296,27 +296,29 @@
   margin-top: 1px;
 }
 
-/* ─── stack-cta button (lives in StackCta.jsx, styles here) ──────────────────*/
+/* ─── stack-cta button — base styles; color overridden by .sb-cta-wrap ───────*/
 .stack-cta {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.4rem;
-  background: linear-gradient(135deg, #f59e0b 0%, #f97316 100%);
-  color: #0f172a;
+  background: linear-gradient(135deg, #470ae2, #7c3aed);
+  color: #fff;
   font-family: 'Alexandria', 'Open Sans', sans-serif;
-  font-size: 0.82rem;
+  font-size: 0.875rem;
   font-weight: 700;
-  padding: 0.6rem 1rem;
-  border-radius: 4px;
+  padding: 0.7rem 1rem;
+  border-radius: 10px;
   text-decoration: none;
-  position: relative;
-  z-index: 1;
-  transition: filter 0.15s ease, transform 0.15s ease;
-  box-shadow: 0 2px 12px rgba(249, 115, 22, 0.3);
   letter-spacing: 0.01em;
-  margin-top: auto;
   border: none;
+  cursor: pointer;
+  width: 100%;
+  transition: opacity 0.15s ease;
+}
+
+.stack-cta:hover {
+  opacity: 0.9;
 }
 
 .stack-cta .material-symbols-sharp {
