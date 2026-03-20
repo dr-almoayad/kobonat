@@ -1,39 +1,51 @@
 'use client';
 // components/admin/OtherPromosTab/OtherPromosTab.jsx
 //
-// Drop-in replacement for the "Other Promos" tab content in
-// app/admin/stores/[id]/page.jsx
-//
-// Usage in page.jsx:
+// Usage in app/admin/stores/[id]/page.jsx:
 //   import OtherPromosTab from '@/components/admin/OtherPromosTab/OtherPromosTab';
 //   ...
 //   {tab === 'other-promos' && (
-//     <OtherPromosTab storeId={store.id} allCountries={allCountries} allBanks={allBanks} />
+//     <OtherPromosTab
+//       storeId={store.id}
+//       allCountries={allCountries}
+//       allBanks={allBanks}
+//       allPaymentMethods={allPaymentMethods}   ← new prop
+//     />
 //   )}
+//
+// In the parent page's fetchData(), also fetch:
+//   const pmRes  = await fetch('/api/admin/payment-methods?locale=en');
+//   const pmData = await pmRes.json();
+//   setAllPaymentMethods(pmData.paymentMethods || []);
 
 import { useState, useEffect, useCallback } from 'react';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const PROMO_TYPES = [
-  { label: 'Bank Offer',     value: 'BANK_OFFER'     },
-  { label: 'Card Offer',     value: 'CARD_OFFER'     },
-  { label: 'Payment Offer',  value: 'PAYMENT_OFFER'  },
-  { label: 'Seasonal',       value: 'SEASONAL'       },
-  { label: 'Bundle',         value: 'BUNDLE'         },
-  { label: 'Other',          value: 'OTHER'          },
+  { label: 'Bank Offer',    value: 'BANK_OFFER'    },
+  { label: 'Card Offer',    value: 'CARD_OFFER'    },
+  { label: 'Payment Offer', value: 'PAYMENT_OFFER' },
+  { label: 'Seasonal',      value: 'SEASONAL'      },
+  { label: 'Bundle',        value: 'BUNDLE'        },
+  { label: 'Other',         value: 'OTHER'         },
 ];
 
 const CARD_NETWORKS = [
-  { label: '— Any —', value: '' },
-  { label: 'Visa',       value: 'VISA'       },
-  { label: 'Mastercard', value: 'MASTERCARD' },
-  { label: 'Amex',       value: 'AMEX'       },
-  { label: 'Mada',       value: 'MADA'       },
+  { label: '— Any —',     value: ''           },
+  { label: 'Visa',        value: 'VISA'       },
+  { label: 'Mastercard',  value: 'MASTERCARD' },
+  { label: 'Amex',        value: 'AMEX'       },
+  { label: 'Mada',        value: 'MADA'       },
+  { label: 'UnionPay',    value: 'UNIONPAY'   },
 ];
 
 const EMPTY_FORM = {
   countryId: '', type: 'BANK_OFFER',
+  // payment provider — any combination
+  paymentMethodId: '',   // ← new: Visa, Mastercard, Tabby, Tamara, STC Pay…
   bankId: '', cardId: '', cardNetwork: '', installmentMonths: '',
+  // content
+  voucherCode: '',       // ← was missing; maps to OtherPromo.voucherCode
   image: '', url: '',
   startDate: '', expiryDate: '',
   order: '0', isActive: true,
@@ -43,13 +55,14 @@ const EMPTY_FORM = {
 };
 
 // ─── Tiny helpers ─────────────────────────────────────────────────────────────
-function Field({ label, children, required }) {
+function Field({ label, children, required, hint }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
       <label style={{ fontSize: '0.75rem', fontWeight: 600, color: '#374151' }}>
         {label}{required && <span style={{ color: '#ef4444' }}> *</span>}
       </label>
       {children}
+      {hint && <span style={{ fontSize: '0.68rem', color: '#94a3b8', marginTop: 1 }}>{hint}</span>}
     </div>
   );
 }
@@ -66,12 +79,29 @@ const inp = {
 
 const row = { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' };
 
-// ─── PromoForm — reused for create AND edit ───────────────────────────────────
-function PromoForm({ initial, allCountries, allBanks, onSave, onCancel, saving, title }) {
-  const [form, setForm]         = useState(initial);
+const sectionBox = {
+  background: '#fff',
+  border: '1px solid #e2e8f0',
+  borderRadius: 8,
+  padding: '0.85rem',
+  marginBottom: '0.75rem',
+};
+
+const sectionLabel = {
+  fontSize: '0.7rem',
+  fontWeight: 700,
+  color: '#64748b',
+  textTransform: 'uppercase',
+  letterSpacing: '0.05em',
+  marginBottom: '0.6rem',
+};
+
+// ─── PromoForm ────────────────────────────────────────────────────────────────
+function PromoForm({ initial, allCountries, allBanks, allPaymentMethods = [], onSave, onCancel, saving, title }) {
+  const [form,      setForm]      = useState(initial);
   const [bankCards, setBankCards] = useState([]);
 
-  // load cards when bankId is pre-set
+  // pre-load cards if editing a promo that already has a bank
   useEffect(() => {
     if (form.bankId) loadCards(form.bankId);
     else setBankCards([]);
@@ -93,6 +123,12 @@ function PromoForm({ initial, allCountries, allBanks, onSave, onCancel, saving, 
     loadCards(bankId);
   }
 
+  // Derived: split payment methods into BNPL vs the rest
+  const bnplMethods  = allPaymentMethods.filter(m => m.isBnpl);
+  const otherMethods = allPaymentMethods.filter(m => !m.isBnpl);
+
+  const pmName = (m) => m.translations?.find(t => t.locale === 'en')?.name || m.slug;
+
   return (
     <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 10, padding: '1.25rem', marginBottom: '1.5rem' }}>
       <div style={{ fontWeight: 700, fontSize: '0.85rem', color: '#0f172a', marginBottom: '1rem' }}>{title}</div>
@@ -100,10 +136,10 @@ function PromoForm({ initial, allCountries, allBanks, onSave, onCancel, saving, 
       {/* ── Core ── */}
       <div style={{ ...row, marginBottom: '0.75rem' }}>
         <Field label="Country" required>
-          <select style={inp} value={form.countryId} onChange={e => set('countryId', e.target.value)} required>
-            <option value="">— Select —</option>
+          <select style={inp} value={form.countryId} onChange={e => set('countryId', e.target.value)}>
+            <option value="">— Select country —</option>
             {allCountries.map(c => (
-              <option key={c.id} value={c.id}>{c.translations?.[0]?.name || c.id}</option>
+              <option key={c.id} value={c.id}>{c.translations?.[0]?.name || c.code || c.id}</option>
             ))}
           </select>
         </Field>
@@ -114,10 +150,55 @@ function PromoForm({ initial, allCountries, allBanks, onSave, onCancel, saving, 
         </Field>
       </div>
 
+      {/* ── Payment Method (Visa / Mastercard / Tabby / Tamara / STC Pay…) ── */}
+      <div style={sectionBox}>
+        <div style={sectionLabel}>
+          Payment Method
+          <span style={{ fontWeight: 400, textTransform: 'none', marginInlineStart: 4 }}>
+            — Visa, Mastercard, Tabby, Tamara, STC Pay, etc.
+          </span>
+        </div>
+        <Field
+          label="Payment Method"
+          hint="Shown as the secondary logo on the store page card. Pick this OR a bank — or both for e.g. 'Tamara at Noon'."
+        >
+          <select
+            style={inp}
+            value={form.paymentMethodId}
+            onChange={e => set('paymentMethodId', e.target.value)}
+          >
+            <option value="">— None —</option>
+
+            {bnplMethods.length > 0 && (
+              <optgroup label="Buy Now Pay Later (BNPL)">
+                {bnplMethods.map(m => (
+                  <option key={m.id} value={m.id}>{pmName(m)}</option>
+                ))}
+              </optgroup>
+            )}
+
+            {otherMethods.length > 0 && (
+              <optgroup label="Cards &amp; Wallets">
+                {otherMethods.map(m => (
+                  <option key={m.id} value={m.id}>
+                    {pmName(m)} ({m.type})
+                  </option>
+                ))}
+              </optgroup>
+            )}
+
+            {allPaymentMethods.length === 0 && (
+              <option disabled value="">No payment methods found — add them in Admin → Payment Methods</option>
+            )}
+          </select>
+        </Field>
+      </div>
+
       {/* ── Bank / Card cascade ── */}
-      <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 8, padding: '0.85rem', marginBottom: '0.75rem' }}>
-        <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.6rem' }}>
-          Bank / Card Link <span style={{ fontWeight: 400, textTransform: 'none' }}>(optional)</span>
+      <div style={sectionBox}>
+        <div style={sectionLabel}>
+          Bank / Card Link
+          <span style={{ fontWeight: 400, textTransform: 'none', marginInlineStart: 4 }}>(optional)</span>
         </div>
         <div style={{ ...row, marginBottom: '0.6rem' }}>
           <Field label="Bank">
@@ -128,42 +209,79 @@ function PromoForm({ initial, allCountries, allBanks, onSave, onCancel, saving, 
               ))}
             </select>
           </Field>
-          <Field label="Card (optional)">
-            <select style={inp} value={form.cardId} onChange={e => set('cardId', e.target.value)} disabled={!bankCards.length}>
+          <Field label="Card (optional)" hint="Auto-filters to the selected bank.">
+            <select
+              style={inp}
+              value={form.cardId}
+              onChange={e => set('cardId', e.target.value)}
+              disabled={!bankCards.length}
+            >
               <option value="">— Any card —</option>
               {bankCards.map(c => (
-                <option key={c.id} value={c.id}>{c.translations?.[0]?.name || `Card #${c.id}`}</option>
+                <option key={c.id} value={c.id}>
+                  {c.translations?.find(t => t.locale === 'en')?.name || `${c.network} ${c.tier}`}
+                </option>
               ))}
             </select>
           </Field>
         </div>
-        <div style={{ ...row }}>
+        <div style={row}>
           <Field label="Card network">
             <select style={inp} value={form.cardNetwork} onChange={e => set('cardNetwork', e.target.value)}>
               {CARD_NETWORKS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
             </select>
           </Field>
-          <Field label="0% Install. months">
-            <input type="number" style={inp} min="0" max="60" value={form.installmentMonths}
-              onChange={e => set('installmentMonths', e.target.value)} placeholder="Leave empty if N/A" />
+          <Field label="0% Installment months">
+            <input
+              type="number" style={inp} min="0" max="60"
+              value={form.installmentMonths}
+              onChange={e => set('installmentMonths', e.target.value)}
+              placeholder="Leave empty if N/A"
+            />
           </Field>
         </div>
       </div>
 
+      {/* ── Promo code ── */}
+      <div style={{ marginBottom: '0.75rem' }}>
+        <Field label="Promo / Voucher Code" hint="Optional. Shown in a copy-to-clipboard box in the modal.">
+          <input
+            style={{ ...inp, fontFamily: 'monospace', letterSpacing: '0.05em', textTransform: 'uppercase' }}
+            value={form.voucherCode}
+            onChange={e => set('voucherCode', e.target.value.toUpperCase())}
+            placeholder="e.g. VISA10OFF"
+          />
+        </Field>
+      </div>
+
       {/* ── Media & dates ── */}
       <div style={{ ...row, marginBottom: '0.75rem' }}>
-        <Field label="Image URL"><input style={inp} value={form.image} onChange={e => set('image', e.target.value)} /></Field>
-        <Field label="External URL (T&Cs)"><input style={inp} type="url" value={form.url} onChange={e => set('url', e.target.value)} /></Field>
+        <Field label="Image URL">
+          <input style={inp} value={form.image} onChange={e => set('image', e.target.value)} placeholder="https://…" />
+        </Field>
+        <Field label="External URL (T&Cs / landing page)">
+          <input style={inp} type="url" value={form.url} onChange={e => set('url', e.target.value)} placeholder="https://…" />
+        </Field>
       </div>
       <div style={{ ...row, marginBottom: '0.75rem' }}>
-        <Field label="Start Date"><input style={inp} type="date" value={form.startDate} onChange={e => set('startDate', e.target.value)} /></Field>
-        <Field label="Expiry Date"><input style={inp} type="date" value={form.expiryDate} onChange={e => set('expiryDate', e.target.value)} /></Field>
+        <Field label="Start Date">
+          <input style={inp} type="date" value={form.startDate} onChange={e => set('startDate', e.target.value)} />
+        </Field>
+        <Field label="Expiry Date">
+          <input style={inp} type="date" value={form.expiryDate} onChange={e => set('expiryDate', e.target.value)} />
+        </Field>
       </div>
       <div style={{ ...row, marginBottom: '1rem' }}>
-        <Field label="Order"><input style={inp} type="number" value={form.order} onChange={e => set('order', e.target.value)} /></Field>
-        <Field label="Active">
+        <Field label="Order">
+          <input style={inp} type="number" value={form.order} onChange={e => set('order', e.target.value)} />
+        </Field>
+        <Field label="Status">
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6 }}>
-            <input type="checkbox" id="isActiveChk" checked={!!form.isActive} onChange={e => set('isActive', e.target.checked)} />
+            <input
+              type="checkbox" id="isActiveChk"
+              checked={!!form.isActive}
+              onChange={e => set('isActive', e.target.checked)}
+            />
             <label htmlFor="isActiveChk" style={{ fontSize: '0.82rem', color: '#374151' }}>Active</label>
           </div>
         </Field>
@@ -172,10 +290,10 @@ function PromoForm({ initial, allCountries, allBanks, onSave, onCancel, saving, 
       {/* ── Translations ── */}
       <div style={{ ...row, marginBottom: '0.75rem' }}>
         <Field label="Title (EN)" required>
-          <input style={inp} value={form.title_en} onChange={e => set('title_en', e.target.value)} required />
+          <input style={inp} value={form.title_en} onChange={e => set('title_en', e.target.value)} />
         </Field>
         <Field label="Title (AR)" required>
-          <input style={{ ...inp, direction: 'rtl' }} value={form.title_ar} onChange={e => set('title_ar', e.target.value)} required />
+          <input style={{ ...inp, direction: 'rtl' }} value={form.title_ar} onChange={e => set('title_ar', e.target.value)} />
         </Field>
       </div>
       <div style={{ ...row, marginBottom: '0.75rem' }}>
@@ -198,13 +316,18 @@ function PromoForm({ initial, allCountries, allBanks, onSave, onCancel, saving, 
       {/* ── Actions ── */}
       <div style={{ display: 'flex', gap: '0.6rem', justifyContent: 'flex-end' }}>
         {onCancel && (
-          <button onClick={onCancel}
-            style={{ padding: '0.45rem 1rem', borderRadius: 7, border: '1px solid #d1d5db', background: '#fff', fontSize: '0.8rem', cursor: 'pointer' }}>
+          <button
+            onClick={onCancel}
+            style={{ padding: '0.45rem 1rem', borderRadius: 7, border: '1px solid #d1d5db', background: '#fff', fontSize: '0.8rem', cursor: 'pointer' }}
+          >
             Cancel
           </button>
         )}
-        <button onClick={() => onSave(form)} disabled={saving}
-          style={{ padding: '0.45rem 1.1rem', borderRadius: 7, border: 'none', background: '#0f172a', color: '#fff', fontSize: '0.8rem', fontWeight: 600, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.6 : 1 }}>
+        <button
+          onClick={() => onSave(form)}
+          disabled={saving}
+          style={{ padding: '0.45rem 1.1rem', borderRadius: 7, border: 'none', background: '#0f172a', color: '#fff', fontSize: '0.8rem', fontWeight: 600, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.6 : 1 }}
+        >
           {saving ? 'Saving…' : 'Save'}
         </button>
       </div>
@@ -213,22 +336,32 @@ function PromoForm({ initial, allCountries, allBanks, onSave, onCancel, saving, 
 }
 
 // ─── Main tab ─────────────────────────────────────────────────────────────────
-export default function OtherPromosTab({ storeId, allCountries = [], allBanks = [] }) {
-  const [promos,   setPromos]   = useState([]);
-  const [loading,  setLoading]  = useState(true);
-  const [error,    setError]    = useState('');
+export default function OtherPromosTab({
+  storeId,
+  allCountries     = [],
+  allBanks         = [],
+  allPaymentMethods = [],   // ← new prop; fetch from /api/admin/payment-methods
+}) {
+  const [promos,     setPromos]     = useState([]);
+  const [loading,    setLoading]    = useState(true);
+  const [error,      setError]      = useState('');
   const [showCreate, setShowCreate] = useState(false);
-  const [editId,   setEditId]   = useState(null);   // promoId being edited
-  const [editInit, setEditInit] = useState(null);   // prefilled form values
-  const [saving,   setSaving]   = useState(false);
+  const [editId,     setEditId]     = useState(null);
+  const [editInit,   setEditInit]   = useState(null);
+  const [saving,     setSaving]     = useState(false);
 
-  // ── helpers for country/bank name ──────────────────────────────────────────
-  const countryName = id => allCountries.find(c => c.id === id)?.translations?.[0]?.name || id;
-  const bankName    = id => allBanks.find(b => b.id === id)?.translations?.[0]?.name || null;
+  // ── Name helpers ───────────────────────────────────────────────────────────
+  const countryName = id => allCountries.find(c => c.id === id || c.id === Number(id))?.translations?.[0]?.name || String(id);
+  const bankName    = id => allBanks.find(b => b.id === id || b.id === Number(id))?.translations?.[0]?.name || null;
+  const pmName      = id => {
+    const m = allPaymentMethods.find(m => m.id === id || m.id === Number(id));
+    return m ? (m.translations?.find(t => t.locale === 'en')?.name || m.slug) : null;
+  };
 
-  // ── fetch list ──────────────────────────────────────────────────────────────
+  // ── fetch list ─────────────────────────────────────────────────────────────
   const load = useCallback(async () => {
     setLoading(true);
+    setError('');
     try {
       const res = await fetch(`/api/admin/stores/${storeId}/other-promos?locale=en`);
       if (!res.ok) throw new Error(`${res.status}`);
@@ -243,7 +376,7 @@ export default function OtherPromosTab({ storeId, allCountries = [], allBanks = 
 
   useEffect(() => { load(); }, [load]);
 
-  // ── create ──────────────────────────────────────────────────────────────────
+  // ── create ─────────────────────────────────────────────────────────────────
   async function handleCreate(form) {
     if (!form.countryId) { alert('Country is required.'); return; }
     if (!form.title_en)  { alert('Title (EN) is required.'); return; }
@@ -252,7 +385,7 @@ export default function OtherPromosTab({ storeId, allCountries = [], allBanks = 
       const res = await fetch(`/api/admin/stores/${storeId}/other-promos`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...form, storeId }),
+        body: JSON.stringify(buildPayload(form)),
       });
       if (!res.ok) throw new Error((await res.json()).error || `${res.status}`);
       setShowCreate(false);
@@ -264,35 +397,37 @@ export default function OtherPromosTab({ storeId, allCountries = [], allBanks = 
     }
   }
 
-  // ── open edit — prefill form from promo row ─────────────────────────────────
+  // ── open edit ──────────────────────────────────────────────────────────────
   function openEdit(p) {
-    const tr = (locale) => p.translations?.find(t => t.locale === locale) || {};
+    const tr  = (locale) => p.translations?.find(t => t.locale === locale) || {};
     const fmt = d => d ? new Date(d).toISOString().slice(0, 10) : '';
     setEditInit({
-      countryId:          p.countryId       || '',
-      type:               p.type            || 'BANK_OFFER',
-      bankId:             p.bankId          || '',
-      cardId:             p.cardId          || '',
-      cardNetwork:        p.cardNetwork     || '',
+      countryId:          p.countryId           || '',
+      type:               p.type                || 'BANK_OFFER',
+      paymentMethodId:    p.paymentMethodId      || '',   // ← new
+      bankId:             p.bankId              || '',
+      cardId:             p.cardId              || '',
+      cardNetwork:        p.cardNetwork         || '',
       installmentMonths:  p.installmentMonths != null ? String(p.installmentMonths) : '',
-      image:              p.image           || '',
-      url:                p.url             || '',
+      voucherCode:        p.voucherCode         || '',   // ← new
+      image:              p.image               || '',
+      url:                p.url                 || '',
       startDate:          fmt(p.startDate),
       expiryDate:         fmt(p.expiryDate),
-      order:              String(p.order    ?? 0),
+      order:              String(p.order        ?? 0),
       isActive:           !!p.isActive,
-      title_en:           tr('en').title       || '',
-      title_ar:           tr('ar').title       || '',
-      description_en:     tr('en').description || '',
-      description_ar:     tr('ar').description || '',
-      terms_en:           tr('en').terms       || '',
-      terms_ar:           tr('ar').terms       || '',
+      title_en:           tr('en').title         || '',
+      title_ar:           tr('ar').title         || '',
+      description_en:     tr('en').description   || '',
+      description_ar:     tr('ar').description   || '',
+      terms_en:           tr('en').terms         || '',
+      terms_ar:           tr('ar').terms         || '',
     });
     setEditId(p.id);
     setShowCreate(false);
   }
 
-  // ── save edit ───────────────────────────────────────────────────────────────
+  // ── save edit ──────────────────────────────────────────────────────────────
   async function handleEdit(form) {
     if (!form.title_en) { alert('Title (EN) is required.'); return; }
     setSaving(true);
@@ -300,7 +435,7 @@ export default function OtherPromosTab({ storeId, allCountries = [], allBanks = 
       const res = await fetch(`/api/admin/stores/${storeId}/other-promos/${editId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+        body: JSON.stringify(buildPayload(form)),
       });
       if (!res.ok) throw new Error((await res.json()).error || `${res.status}`);
       setEditId(null);
@@ -313,7 +448,7 @@ export default function OtherPromosTab({ storeId, allCountries = [], allBanks = 
     }
   }
 
-  // ── delete ──────────────────────────────────────────────────────────────────
+  // ── delete ─────────────────────────────────────────────────────────────────
   async function handleDelete(p) {
     const name = p.translations?.find(t => t.locale === 'en')?.title || `#${p.id}`;
     if (!confirm(`Delete "${name}"?`)) return;
@@ -326,7 +461,33 @@ export default function OtherPromosTab({ storeId, allCountries = [], allBanks = 
     }
   }
 
-  // ─────────────────────────────────────────────────────────────────────────────
+  // ── build API payload (coerce types) ──────────────────────────────────────
+  function buildPayload(form) {
+    return {
+      countryId:         form.countryId         ? Number(form.countryId)         : undefined,
+      type:              form.type,
+      paymentMethodId:   form.paymentMethodId    ? Number(form.paymentMethodId)   : null,
+      bankId:            form.bankId             ? Number(form.bankId)             : null,
+      cardId:            form.cardId             ? Number(form.cardId)             : null,
+      cardNetwork:       form.cardNetwork        || null,
+      installmentMonths: form.installmentMonths  ? Number(form.installmentMonths)  : null,
+      voucherCode:       form.voucherCode?.trim().toUpperCase() || null,
+      image:             form.image              || null,
+      url:               form.url               || null,
+      startDate:         form.startDate         || null,
+      expiryDate:        form.expiryDate        || null,
+      order:             Number(form.order)      ?? 0,
+      isActive:          !!form.isActive,
+      title_en:          form.title_en,
+      title_ar:          form.title_ar,
+      description_en:    form.description_en    || null,
+      description_ar:    form.description_ar    || null,
+      terms_en:          form.terms_en          || null,
+      terms_ar:          form.terms_ar          || null,
+    };
+  }
+
+  // ── render ─────────────────────────────────────────────────────────────────
   return (
     <div style={{ padding: '1.25rem' }}>
 
@@ -335,7 +496,8 @@ export default function OtherPromosTab({ storeId, allCountries = [], allBanks = 
         <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
           <button
             onClick={() => setShowCreate(true)}
-            style={{ padding: '0.45rem 1rem', borderRadius: 7, border: 'none', background: '#0f172a', color: '#fff', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}>
+            style={{ padding: '0.45rem 1rem', borderRadius: 7, border: 'none', background: '#0f172a', color: '#fff', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}
+          >
             + Add Promo
           </button>
         </div>
@@ -347,6 +509,7 @@ export default function OtherPromosTab({ storeId, allCountries = [], allBanks = 
           initial={EMPTY_FORM}
           allCountries={allCountries}
           allBanks={allBanks}
+          allPaymentMethods={allPaymentMethods}
           saving={saving}
           onSave={handleCreate}
           onCancel={() => setShowCreate(false)}
@@ -359,25 +522,30 @@ export default function OtherPromosTab({ storeId, allCountries = [], allBanks = 
       {loading ? (
         <div style={{ textAlign: 'center', padding: '3rem', color: '#94a3b8' }}>Loading…</div>
       ) : promos.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '3rem', color: '#94a3b8', fontSize: '0.85rem' }}>No other promos for this store yet.</div>
+        <div style={{ textAlign: 'center', padding: '3rem', color: '#94a3b8', fontSize: '0.85rem' }}>
+          No other promos for this store yet.
+        </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
           {promos.map(p => {
-            const enTitle = p.translations?.find(t => t.locale === 'en')?.title;
-            const arTitle = p.translations?.find(t => t.locale === 'ar')?.title;
-            const bank    = p.bankId ? bankName(p.bankId) : null;
-            const country = p.countryId ? countryName(p.countryId) : '—';
+            const enTitle  = p.translations?.find(t => t.locale === 'en')?.title;
+            const arTitle  = p.translations?.find(t => t.locale === 'ar')?.title;
+            const bName    = p.bankId          ? bankName(p.bankId)          : null;
+            const pmLabel  = p.paymentMethodId ? pmName(p.paymentMethodId)  : null;
+            const cName    = p.countryId       ? countryName(p.countryId)   : '—';
             const isEditing = editId === p.id;
 
             return (
               <div key={p.id}>
-                {/* ── Edit form (inline) ── */}
+
+                {/* ── Inline edit form ── */}
                 {isEditing && editInit && (
                   <PromoForm
                     title={`Edit: ${enTitle || `Promo #${p.id}`}`}
                     initial={editInit}
                     allCountries={allCountries}
                     allBanks={allBanks}
+                    allPaymentMethods={allPaymentMethods}
                     saving={saving}
                     onSave={handleEdit}
                     onCancel={() => { setEditId(null); setEditInit(null); }}
@@ -398,28 +566,47 @@ export default function OtherPromosTab({ storeId, allCountries = [], allBanks = 
 
                     {/* main info */}
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap', marginBottom: 3 }}>
-                        <span style={{ fontWeight: 700, fontSize: '0.85rem', color: '#0f172a' }}>{enTitle || `Promo #${p.id}`}</span>
-                        {arTitle && <span style={{ fontSize: '0.8rem', color: '#64748b', direction: 'rtl' }}>{arTitle}</span>}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap', marginBottom: 4 }}>
+                        <span style={{ fontWeight: 700, fontSize: '0.85rem', color: '#0f172a' }}>
+                          {enTitle || `Promo #${p.id}`}
+                        </span>
+                        {arTitle && (
+                          <span style={{ fontSize: '0.8rem', color: '#64748b', direction: 'rtl' }}>{arTitle}</span>
+                        )}
                       </div>
 
                       <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', alignItems: 'center' }}>
-                        {/* type badge */}
+
+                        {/* type */}
                         <span style={{ fontSize: '0.68rem', fontWeight: 700, padding: '2px 7px', borderRadius: 5, background: '#eef2ff', color: '#4338ca' }}>
-                          {p.type?.replace('_', ' ')}
+                          {p.type?.replace(/_/g, ' ')}
                         </span>
 
+                        {/* payment method badge — NEW */}
+                        {pmLabel && (
+                          <span style={{ fontSize: '0.68rem', fontWeight: 600, padding: '2px 7px', borderRadius: 5, background: '#f0fdf4', color: '#15803d', border: '1px solid #bbf7d0' }}>
+                            💳 {pmLabel}
+                          </span>
+                        )}
+
                         {/* bank badge */}
-                        {bank && (
+                        {bName && (
                           <span style={{ fontSize: '0.68rem', fontWeight: 600, padding: '2px 7px', borderRadius: 5, background: '#dbeafe', color: '#1d4ed8' }}>
-                            🏦 {bank}
+                            🏦 {bName}
+                          </span>
+                        )}
+
+                        {/* voucher code badge — NEW */}
+                        {p.voucherCode && (
+                          <span style={{ fontSize: '0.68rem', fontWeight: 700, padding: '2px 7px', borderRadius: 5, background: '#faf5ff', color: '#7c3aed', border: '1px solid #e9d5ff', fontFamily: 'monospace', letterSpacing: '0.04em' }}>
+                            {p.voucherCode}
                           </span>
                         )}
 
                         {/* country */}
-                        <span style={{ fontSize: '0.68rem', color: '#64748b' }}>{country}</span>
+                        <span style={{ fontSize: '0.68rem', color: '#64748b' }}>{cName}</span>
 
-                        {/* active status */}
+                        {/* active */}
                         <span style={{
                           fontSize: '0.65rem', fontWeight: 700, padding: '1px 6px', borderRadius: 4,
                           background: p.isActive ? '#dcfce7' : '#fee2e2',
@@ -441,12 +628,14 @@ export default function OtherPromosTab({ storeId, allCountries = [], allBanks = 
                     <div style={{ display: 'flex', gap: '0.4rem', flexShrink: 0 }}>
                       <button
                         onClick={() => openEdit(p)}
-                        style={{ padding: '0.3rem 0.7rem', borderRadius: 6, border: '1px solid #e2e8f0', background: '#f8fafc', fontSize: '0.75rem', cursor: 'pointer', fontWeight: 600 }}>
+                        style={{ padding: '0.3rem 0.7rem', borderRadius: 6, border: '1px solid #e2e8f0', background: '#f8fafc', fontSize: '0.75rem', cursor: 'pointer', fontWeight: 600 }}
+                      >
                         Edit
                       </button>
                       <button
                         onClick={() => handleDelete(p)}
-                        style={{ padding: '0.3rem 0.7rem', borderRadius: 6, border: '1px solid #fee2e2', background: '#fef2f2', color: '#dc2626', fontSize: '0.75rem', cursor: 'pointer', fontWeight: 600 }}>
+                        style={{ padding: '0.3rem 0.7rem', borderRadius: 6, border: '1px solid #fee2e2', background: '#fef2f2', color: '#dc2626', fontSize: '0.75rem', cursor: 'pointer', fontWeight: 600 }}
+                      >
                         Delete
                       </button>
                     </div>
