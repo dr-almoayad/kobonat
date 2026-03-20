@@ -1,381 +1,504 @@
-/* components/StoreIntelligenceCard/StoreIntelligenceCard.css */
-/* Design: Authoritative, Dashboard-style, High-Contrast, Minimal. */
-
-:root {
-  --sic-bg:            #ffffff;
-  --sic-surface:       #f8fafc;
-  --sic-border:        #e2e8f0;
-  --sic-border-dark:   #cbd5e1;
-  --sic-text-primary:  #0f172a;
-  --sic-text-secondary:#475569;
-  --sic-text-muted:    #64748b;
-  
-  --sic-ring-track:    #f1f5f9;
-  --sic-shadow:        0 1px 3px rgba(15, 23, 42, 0.05);
-}
+/* components/StoreIntelligenceCard/StoreIntelligenceCard.css
+   Editorial / Magazine layout — inspired by authoritative coupon guides.
+   Accent: #470ae2 | Fonts: Alexandria (AR) · Open Sans (EN)
+   ========================================================================== */
 
 .sic {
-  font-family: 'Alexandria', 'Segoe UI', system-ui, sans-serif;
-  background: var(--sic-bg);
+  --sic-accent:      #470ae2;
+  --sic-accent-soft: rgba(71, 10, 226, 0.06);
+  --sic-accent-mid:  rgba(71, 10, 226, 0.12);
+  --sic-text:        #0f041c;
+  --sic-body:        #2d2d3a;
+  --sic-muted:       #6b7280;
+  --sic-border:      #ebebf0;
+  --sic-surface:     #f8f8fb;
+  --sic-white:       #ffffff;
+  --sic-green:       #059669;
+  --sic-amber:       #d97706;
+  --sic-red:         #dc2626;
+  --sic-radius:      14px;
+  --sic-font-en:     var(--font-open-sans, 'Segoe UI', sans-serif);
+  --sic-font-ar:     var(--font-alexandria, 'Noto Sans Arabic', sans-serif);
+
+  font-family: var(--sic-font-en);
+  color: var(--sic-body);
+  background: var(--sic-white);
   border: 1px solid var(--sic-border);
-  border-radius: 8px; /* Sharp, professional corners */
+  border-radius: var(--sic-radius);
   overflow: hidden;
-  box-shadow: var(--sic-shadow);
-  border-top: 3px solid var(--sic-accent); /* Strict accent line */
-  box-sizing: border-box;
 }
 
-.sic * {
-  box-sizing: border-box;
-}
+[dir='rtl'] .sic { font-family: var(--sic-font-ar); }
+.sic * { box-sizing: border-box; }
 
-/* Material Icons Standardization */
-.sic .sic-icon {
-  font-size: 16px;
-  line-height: 1;
-  display: inline-flex;
-  flex-shrink: 0;
-  color: var(--sic-text-muted);
-  font-variation-settings: 'FILL' 0, 'wght' 500, 'GRAD' 0, 'opsz' 20;
-}
-
-/* ── Typography Atoms ── */
-.sic-eyebrow {
-  font-size: 0.625rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--sic-text-muted);
-  line-height: 1;
-}
-
-.sic-name {
-  margin: 0;
-  font-size: 1.125rem;
-  font-weight: 800;
-  color: var(--sic-text-primary);
-  line-height: 1.2;
-  letter-spacing: -0.01em;
-}
-
-/* ── MASTHEAD ── */
-.sic-masthead {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  padding: 1.25rem;
-  background: var(--sic-bg);
+/* ── HERO ──────────────────────────────────────────────────────────────── */
+.sic-hero {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 1.5rem;
+  align-items: center;
+  padding: 2rem 1.75rem;
+  background: var(--sic-surface);
   border-bottom: 1px solid var(--sic-border);
-  gap: 1rem;
 }
 
-.sic-masthead__brand {
+.sic-hero__left { min-width: 0; }
+
+.sic-hero__eyebrow {
   display: flex;
   align-items: center;
-  gap: 0.875rem;
+  gap: 0.4rem;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--sic-accent);
+  margin-bottom: 0.5rem;
 }
 
-.sic-masthead__logo-box {
-  width: 44px;
-  height: 44px;
-  border-radius: 6px;
+.sic-hero__title {
+  font-size: clamp(1.25rem, 3.5vw, 1.75rem);
+  font-weight: 900;
+  color: var(--sic-text);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  margin: 0 0 0.875rem;
+}
+
+[dir='rtl'] .sic-hero__title { letter-spacing: 0; }
+
+.sic-hero__title span { color: var(--sic-accent); }
+
+.sic-hero__intro {
+  font-size: 0.875rem;
+  color: var(--sic-muted);
+  line-height: 1.7;
+  margin: 0;
+  max-width: 480px;
+}
+
+/* Logo block */
+.sic-hero__brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.sic-hero__logo-wrap {
+  position: relative;
+  width: 88px;
+  height: 88px;
+}
+
+.sic-hero__logo-bg {
+  width: 88px;
+  height: 88px;
+  border-radius: 14px;
   border: 1px solid var(--sic-border);
-  padding: 4px;
-  background: #fff;
+  background: var(--sic-white);
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
+  overflow: hidden;
+  padding: 8px;
 }
 
-.sic-masthead__logo-box img {
+.sic-hero__logo-bg img {
   max-width: 100%;
   max-height: 100%;
   object-fit: contain;
 }
 
-.sic-masthead__titles {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.sic-masthead__actions {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 0.5rem;
-}
-
-.sic-verified-tag {
+.sic-hero__rank {
   display: flex;
   align-items: center;
-  gap: 0.25rem;
-  font-size: 0.6875rem;
-  font-weight: 600;
-  color: #059669; /* Strict Emerald */
-}
-.sic-verified-tag .sic-icon { color: inherit; font-size: 14px; font-variation-settings: 'FILL' 1; }
-
-/* ── RANK BADGE ── */
-.sic-rank {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.375rem;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  background: var(--sic-text-primary);
+  gap: 0.3rem;
+  background: var(--sic-accent);
   color: #fff;
-}
-.sic-rank--up { background: #059669; }
-.sic-rank--down { background: #dc2626; }
-
-.sic-rank__label {
-  font-size: 0.55rem;
-  font-weight: 700;
-  opacity: 0.7;
-  letter-spacing: 0.05em;
-}
-.sic-rank__num {
-  font-size: 0.8125rem;
+  font-size: 0.62rem;
   font-weight: 800;
+  padding: 0.22rem 0.6rem;
+  border-radius: 99px;
+  white-space: nowrap;
 }
-.sic-rank__ico { font-size: 14px; color: #fff !important; }
 
-/* ── EXECUTIVE SUMMARY ── */
-.sic-executive {
-  display: flex;
-  align-items: center;
-  gap: 1.5rem;
-  padding: 1.5rem 1.25rem;
-  background: var(--sic-surface);
+.sic-hero__rank .material-symbols-sharp { font-size: 0.75rem; }
+
+/* ── QUICK STATS BAR ────────────────────────────────────────────────────── */
+.sic-statsbar {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
   border-bottom: 1px solid var(--sic-border);
 }
 
-.sic-executive__gauge {
+.sic-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1.125rem 0.5rem;
+  border-inline-end: 1px solid var(--sic-border);
+  text-align: center;
+  gap: 0.25rem;
+}
+
+.sic-stat:last-child { border-inline-end: none; }
+
+.sic-stat__num {
+  font-size: 1.375rem;
+  font-weight: 900;
+  color: var(--sic-text);
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+
+.sic-stat__num--accent { color: var(--sic-accent); }
+.sic-stat__num--green  { color: var(--sic-green); }
+.sic-stat__num--amber  { color: var(--sic-amber); }
+
+.sic-stat__icon {
+  font-size: 1rem;
+  color: var(--sic-muted);
+  margin-bottom: 0.125rem;
+}
+
+.sic-stat__label {
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--sic-muted);
+}
+
+/* ── SECTION FRAME ──────────────────────────────────────────────────────── */
+.sic-section {
+  padding: 1.5rem 1.75rem;
+  border-bottom: 1px solid var(--sic-border);
+}
+
+.sic-section:last-child { border-bottom: none; }
+
+.sic-section__head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.sic-section__icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: var(--sic-accent-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
 }
 
-.sic-executive__details {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
+.sic-section__icon .material-symbols-sharp {
+  font-size: 1rem;
+  color: var(--sic-accent);
 }
 
-.sic-executive__metrics {
-  display: flex;
-  gap: 1.5rem;
-}
-
-.sic-emetric {
-  display: flex;
-  flex-direction: column;
-}
-.sic-emetric__val {
-  font-size: 1.25rem;
+.sic-section__title {
+  font-size: 0.8125rem;
   font-weight: 800;
-  color: var(--sic-text-primary);
-  line-height: 1.1;
-}
-.sic-emetric__lbl {
-  font-size: 0.6875rem;
-  font-weight: 600;
-  color: var(--sic-text-secondary);
   text-transform: uppercase;
-  letter-spacing: 0.02em;
-}
-
-.sic-executive__formula {
+  letter-spacing: 0.07em;
+  color: var(--sic-text);
   margin: 0;
-  display: flex;
-  align-items: flex-start;
-  gap: 0.375rem;
-  font-size: 0.6875rem;
-  color: var(--sic-text-muted);
-  line-height: 1.4;
-}
-.sic-executive__formula .sic-icon { font-size: 12px; margin-top: 2px; }
-
-/* ── TILES (Metrics Grid) ── */
-.sic-tiles {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  background: var(--sic-border);
-  gap: 1px;
-  border-bottom: 1px solid var(--sic-border);
 }
 
-.sic-ct {
-  background: var(--sic-bg);
-  padding: 0.875rem 0.5rem;
+/* ── EDITORIAL ITEMS (numbered guide sections) ──────────────────────────── */
+.sic-editorial {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
+  gap: 1.25rem;
 }
 
-.sic-ct__header {
+.sic-item {
   display: flex;
-  align-items: baseline;
-  gap: 0.375rem;
+  gap: 1rem;
+  align-items: flex-start;
 }
-.sic-ct__icon { font-size: 14px; color: var(--sic-text-primary); }
-.sic-ct__val {
-  font-size: 1.25rem;
+
+.sic-item__num {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--sic-accent);
+  color: #fff;
+  font-size: 0.7rem;
   font-weight: 800;
-  color: var(--sic-text-primary);
-  line-height: 1;
-  letter-spacing: -0.02em;
-}
-
-.sic-ct__footer {
   display: flex;
   align-items: center;
-  gap: 0.25rem;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 2px;
 }
-.sic-ct__label {
-  font-size: 0.625rem;
+
+.sic-item__body { flex: 1; min-width: 0; }
+
+.sic-item__heading {
+  font-size: 0.875rem;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--sic-text-muted);
-  text-align: center;
+  color: var(--sic-text);
+  margin: 0 0 0.35rem;
+  line-height: 1.3;
 }
 
-/* ── SECTION ARCHITECTURE ── */
-.sic-section {
-  padding: 1.25rem;
-  border-bottom: 1px solid var(--sic-border);
+.sic-item__text {
+  font-size: 0.82rem;
+  color: var(--sic-body);
+  line-height: 1.65;
+  margin: 0;
 }
-.sic-section--last { border-bottom: none; }
 
-.sic-sh {
+.sic-item__text strong {
+  color: var(--sic-text);
+  font-weight: 700;
+}
+
+/* ── PILL CHIPS ─────────────────────────────────────────────────────────── */
+.sic-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.sic-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.3rem 0.7rem;
+  border-radius: 99px;
+  font-size: 0.73rem;
+  font-weight: 600;
+  border: 1px solid;
+  white-space: nowrap;
+}
+
+.sic-chip .material-symbols-sharp { font-size: 0.8rem; }
+
+.sic-chip--accent  { background: var(--sic-accent-soft); color: var(--sic-accent); border-color: var(--sic-accent-mid); }
+.sic-chip--green   { background: #ecfdf5; color: #065f46; border-color: #a7f3d0; }
+.sic-chip--amber   { background: #fffbeb; color: #92400e; border-color: #fde68a; }
+.sic-chip--neutral { background: var(--sic-surface); color: var(--sic-muted); border-color: var(--sic-border); }
+
+/* ── SEASONS GRID ───────────────────────────────────────────────────────── */
+.sic-seasons {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.875rem;
+}
+
+@media (min-width: 560px) {
+  .sic-seasons { grid-template-columns: repeat(2, 1fr); }
+}
+
+.sic-season {
+  border: 1px solid var(--sic-border);
+  border-radius: 10px;
+  padding: 1rem 1.125rem;
+  background: var(--sic-white);
+  border-inline-start: 3px solid var(--sic-accent);
+}
+
+.sic-season__header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 1.25rem;
+  margin-bottom: 0.5rem;
 }
-.sic-sh__group {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-.sic-sh__text {
-  margin: 0;
-  font-size: 0.75rem;
+
+.sic-season__name {
+  font-size: 0.875rem;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--sic-text-primary);
+  color: var(--sic-text);
 }
 
-/* ── GAUGE CARDS ── */
-.sic-gauges {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 1rem;
-}
-
-/* For score breakdown, maybe 3 cols */
-.sic-gauges--breakdown {
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1.25rem 1rem;
-}
-
-.sic-gc {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.625rem;
-}
-
-.sic-gc__ring-wrap {
-  position: relative;
+.sic-season__icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  background: var(--sic-accent-soft);
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.sic-ring {
-  position: absolute;
-  inset: 0;
-  overflow: visible;
+.sic-season__icon .material-symbols-sharp {
+  font-size: 0.9rem;
+  color: var(--sic-accent);
 }
 
-.sic-gc__center {
+.sic-season__desc {
+  font-size: 0.78rem;
+  color: var(--sic-muted);
+  line-height: 1.55;
+  margin: 0;
+}
+
+/* ── EVENTS LIST ────────────────────────────────────────────────────────── */
+.sic-events {
   display: flex;
   flex-direction: column;
-  align-items: center;
-}
-.sic-gc__val {
-  font-size: 1.125rem;
-  font-weight: 800;
-  color: var(--sic-text-primary);
-  line-height: 1;
-}
-.sic-gc__sub {
-  font-size: 0.625rem;
-  font-weight: 600;
-  color: var(--sic-text-muted);
-  margin-top: 2px;
-}
-
-.sic-gc__footer {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-}
-.sic-gc__label {
-  font-size: 0.6875rem;
-  font-weight: 600;
-  color: var(--sic-text-secondary);
-  text-align: center;
-  line-height: 1.2;
-}
-
-/* ── LOGISTICS ── */
-.sic-logistics-grid {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 2rem;
-  align-items: center;
-}
-.sic-logistics-gauges {
-  display: flex;
-  gap: 1.5rem;
-}
-
-.sic-rows {
-  display: flex;
-  flex-direction: column;
-  border-inline-start: 1px dashed var(--sic-border-dark);
-  padding-inline-start: 1.5rem;
   gap: 0.75rem;
 }
 
-.sic-row {
+.sic-event {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 1rem;
+  align-items: start;
+  padding: 0.875rem 1rem;
+  background: var(--sic-surface);
+  border-radius: 10px;
+  border: 1px solid var(--sic-border);
+}
+
+.sic-event__cal {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: var(--sic-accent);
+  color: #fff;
+  border-radius: 8px;
+  width: 44px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.sic-event__cal-month {
+  background: rgba(0,0,0,0.2);
+  font-size: 0.55rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  width: 100%;
+  text-align: center;
+  padding: 0.2rem 0;
+}
+
+.sic-event__cal-year {
+  font-size: 0.75rem;
+  font-weight: 800;
+  padding: 0.35rem 0;
+}
+
+.sic-event__body { min-width: 0; }
+
+.sic-event__name {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--sic-text);
+  line-height: 1.2;
+  margin: 0 0 0.3rem;
+}
+
+.sic-event__desc {
+  font-size: 0.775rem;
+  color: var(--sic-muted);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.sic-event__right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.375rem;
+  flex-shrink: 0;
+}
+
+.sic-event__forecast {
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: var(--sic-green);
+  background: #ecfdf5;
+  padding: 0.2rem 0.5rem;
+  border-radius: 5px;
+  white-space: nowrap;
+}
+
+.sic-event__conf {
+  display: flex;
+  gap: 2px;
+}
+
+.sic-conf-pip {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--sic-border);
+}
+
+.sic-conf-pip--on { background: var(--sic-accent); }
+
+/* ── LOGISTICS TABLE ────────────────────────────────────────────────────── */
+.sic-logistics {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border: 1px solid var(--sic-border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.sic-logrow {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 1rem;
+  padding: 0.875rem 1rem;
+  border-bottom: 1px solid var(--sic-border);
 }
-.sic-row__label {
-  font-size: 0.8125rem;
-  color: var(--sic-text-secondary);
-  font-weight: 500;
-}
-.sic-row__value-group {
+
+.sic-logrow:last-child { border-bottom: none; }
+
+.sic-logrow:nth-child(even) { background: var(--sic-surface); }
+
+.sic-logrow__left {
   display: flex;
   align-items: center;
   gap: 0.5rem;
 }
-.sic-row__value {
-  font-size: 0.875rem;
-  font-weight: 700;
-  color: var(--sic-text-primary);
+
+.sic-logrow__left .material-symbols-sharp {
+  font-size: 1rem;
+  color: var(--sic-accent);
 }
 
-/* ── PAYMENTS ── */
+.sic-logrow__label {
+  font-size: 0.8125rem;
+  color: var(--sic-body);
+  font-weight: 500;
+}
+
+.sic-logrow__value {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--sic-text);
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.sic-logrow__badge {
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 0.18rem 0.45rem;
+  border-radius: 4px;
+  background: #ecfdf5;
+  color: #065f46;
+}
+
+/* ── PAYMENT CHIPS ──────────────────────────────────────────────────────── */
 .sic-payments {
   display: flex;
   flex-wrap: wrap;
@@ -385,159 +508,102 @@
 .sic-pay {
   display: flex;
   align-items: center;
-  gap: 0.375rem;
-  padding: 0.375rem 0.625rem;
-  background: #fff;
+  gap: 0.4rem;
+  padding: 0.4rem 0.7rem;
+  background: var(--sic-white);
   border: 1px solid var(--sic-border);
-  border-radius: 4px;
+  border-radius: 8px;
+  transition: border-color 0.15s;
 }
+
+.sic-pay:hover { border-color: var(--sic-accent-mid); }
 .sic-pay--bnpl { border-style: dashed; }
-.sic-pay__logo { height: 20px; max-width: 64px; object-fit: contain; }
-.sic-pay__name { font-size: 0.75rem; font-weight: 600; color: var(--sic-text-secondary); }
 
-/* ── UPCOMING EVENTS ── */
-.sic-events {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.sic-event {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.75rem 1rem;
-  background: var(--sic-surface);
-  border: 1px solid var(--sic-border);
-  border-radius: 6px;
-}
-
-.sic-event__info {
-  display: flex;
-  flex-direction: column;
-  gap: 0.125rem;
-}
-.sic-event__name {
-  font-size: 0.875rem;
-  font-weight: 700;
-  color: var(--sic-text-primary);
-}
-.sic-event__date {
-  font-size: 0.6875rem;
-  color: var(--sic-text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.sic-event__right {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-.sic-event__forecast {
-  font-size: 0.75rem;
-  font-weight: 800;
-  color: #059669;
-  background: #dcfce7;
-  padding: 2px 6px;
-  border-radius: 4px;
-}
-
-/* ── PIPS ── */
-.sic-pips { display: flex; gap: 3px; align-items: center; }
-.sic-pip { width: 6px; height: 6px; border-radius: 50%; background: var(--sic-border-dark); }
-.sic-pip--on { background: var(--sic-text-primary); }
-
-/* ── CHIPS ── */
-.sic-chip {
-  display: inline-flex;
-  padding: 2px 6px;
-  border-radius: 3px;
-  font-size: 0.625rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-.sic-chip--accent { background: rgba(15, 23, 42, 0.05); color: var(--sic-text-primary); border: 1px solid var(--sic-border); }
-.sic-chip--neutral { background: var(--sic-surface); color: var(--sic-text-secondary); border: 1px solid var(--sic-border); }
-
-/* ── TOOLTIPS (CSS-only) ── */
-.sic-tip {
-  position: relative;
-  display: inline-flex;
-  cursor: help;
-}
-.sic-tip__icon { font-size: 14px; color: var(--sic-text-muted); transition: color 0.2s; }
-.sic-tip:hover .sic-tip__icon { color: var(--sic-text-primary); }
-
-.sic-tip__box {
-  display: none;
-  position: absolute;
-  bottom: calc(100% + 6px);
-  inset-inline-start: 50%;
-  transform: translateX(-50%);
-  width: max-content;
-  max-width: 200px;
-  background: var(--sic-text-primary);
-  color: #fff;
-  font-size: 0.6875rem;
-  font-weight: 500;
-  line-height: 1.4;
-  padding: 0.5rem 0.75rem;
-  border-radius: 4px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-  z-index: 10;
-  white-space: normal;
-  text-align: center;
-  pointer-events: none;
-}
-.sic-tip:hover .sic-tip__box { display: block; }
-
-/* ── COMPACT VARIANT ── */
-.sic--compact {
-  padding: 1rem;
-}
-.sic-compact__header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 1.25rem;
-}
-.sic-compact__id {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-.sic-compact__logo {
-  width: 36px;
-  height: 36px;
-  border-radius: 4px;
-  border: 1px solid var(--sic-border);
-  padding: 2px;
+.sic-pay__logo {
+  height: 20px;
+  max-width: 60px;
   object-fit: contain;
 }
-.sic-compact__title {
+
+.sic-pay__name {
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--sic-body);
+}
+
+.sic-pay__bnpl-tag {
+  font-size: 0.58rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  background: var(--sic-accent-soft);
+  color: var(--sic-accent);
+  padding: 0.1rem 0.35rem;
+  border-radius: 3px;
+}
+
+/* ── VERIFIED FOOTER ────────────────────────────────────────────────────── */
+.sic-footer {
   display: flex;
-  flex-direction: column;
-}
-.sic-compact__gauges {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 0.75rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.875rem 1.75rem;
+  background: var(--sic-surface);
+  border-top: 1px solid var(--sic-border);
 }
 
-/* ── RESPONSIVE FOLD ── */
-@media (max-width: 640px) {
-  .sic-executive {
-    flex-direction: column;
-    align-items: flex-start;
+.sic-footer__verified {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--sic-green);
+}
+
+.sic-footer__verified .material-symbols-sharp {
+  font-size: 0.875rem;
+  font-variation-settings: 'FILL' 1;
+}
+
+.sic-footer__date {
+  font-size: 0.72rem;
+  color: var(--sic-muted);
+}
+
+/* ── RESPONSIVE ─────────────────────────────────────────────────────────── */
+@media (max-width: 600px) {
+  .sic-hero {
+    grid-template-columns: 1fr;
     gap: 1.25rem;
+    padding: 1.5rem 1.25rem;
   }
-  .sic-tiles { grid-template-columns: repeat(2, 1fr); }
-  .sic-gauges { grid-template-columns: repeat(2, 1fr); gap: 1.25rem 0.5rem; }
-  .sic-logistics-grid { grid-template-columns: 1fr; gap: 1.5rem; }
-  .sic-rows { border-inline-start: none; padding-inline-start: 0; padding-top: 1rem; border-top: 1px dashed var(--sic-border-dark); }
-}
 
-/* ── RTL OVERRIDES ── */
-[dir="rtl"] .sic-tip__box { transform: translateX(50%); }
+  .sic-hero__brand {
+    flex-direction: row;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .sic-hero__logo-wrap,
+  .sic-hero__logo-bg { width: 64px; height: 64px; }
+
+  .sic-statsbar { grid-template-columns: repeat(2, 1fr); }
+  .sic-stat { border-bottom: 1px solid var(--sic-border); }
+  .sic-stat:nth-child(2n) { border-inline-end: none; }
+  .sic-stat:nth-last-child(-n+2) { border-bottom: none; }
+
+  .sic-section { padding: 1.25rem; }
+
+  .sic-event {
+    grid-template-columns: auto 1fr;
+    grid-template-rows: auto auto;
+  }
+
+  .sic-event__right {
+    grid-column: 2;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+  }
+}
