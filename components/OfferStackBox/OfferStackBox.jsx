@@ -2,6 +2,7 @@
 import StackCta from './StackCta';
 import './OfferStackBox.css';
 
+// Per-type visual tokens — drive both the item block and badge
 const TYPE_META = {
   CODE: {
     labelAr: 'كود خصم',
@@ -23,55 +24,61 @@ const TYPE_META = {
   },
 };
 
+// ── Store logo: white pill ─────────────────────────────────────────────────────
+function StoreLogo({ logo, name }) {
+  if (logo) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img src={logo} alt={name || 'Store'} className="sb-store-logo" />
+    );
+  }
+  const initials = (name || 'S').split(/\s+/).slice(0, 2).map(w => w[0]).join('').toUpperCase();
+  return <div className="sb-store-logo-fallback">{initials}</div>;
+}
+
+// ── Bank logo inside item block ────────────────────────────────────────────────
 function BankLogo({ logo, name }) {
   if (logo) {
     return (
-      <img
-        src={logo}
-        alt={name || 'Bank'}
-        className="stack-bank-logo"
-      />
+      // eslint-disable-next-line @next/next/no-img-element
+      <img src={logo} alt={name || 'Bank'} className="sb-bank-logo" />
     );
   }
-  const initials = (name || 'B')
-    .split(/\s+/)
-    .map(w => w[0])
-    .slice(0, 2)
-    .join('')
-    .toUpperCase();
-  return (
-    <span className="stack-bank-logo-fallback">{initials}</span>
-  );
+  const initials = (name || 'B').split(/\s+/).slice(0, 2).map(w => w[0]).join('').toUpperCase();
+  return <div className="sb-bank-logo-fallback">{initials}</div>;
 }
 
+// ── Single offer item block ────────────────────────────────────────────────────
 function StackItem({ item, isAr }) {
   const meta   = TYPE_META[item.itemType] || TYPE_META.DEAL;
   const isBank = item.itemType === 'BANK_OFFER';
 
   return (
-    <div className={`stack-item${isBank ? ' stack-item--bank' : ''}`}>
+    <div className={`sb-item ${meta.cls}`}>
 
-      <div className="stack-item-header">
-        {isBank && (
-          <BankLogo logo={item.bankLogo} name={item.bankName} />
-        )}
-        <span className={`stack-item-badge ${meta.cls}`}>
+      {/* Top row: icon badge + bank logo */}
+      <div className="sb-item-top">
+        <span className="sb-item-type-badge">
           <span className="material-symbols-sharp">{meta.icon}</span>
           {isAr ? meta.labelAr : meta.labelEn}
         </span>
+        {isBank && <BankLogo logo={item.bankLogo} name={item.bankName} />}
       </div>
 
-      <span className="stack-item-title">{item.title}</span>
-
-      {(item.discount || item.discountPercent != null) && (
-        <span className="stack-item-pct">
-          {item.discount || `${item.discountPercent}%`}
-        </span>
+      {/* Discount number — the hero stat */}
+      {(item.discountPercent != null || item.discount) && (
+        <div className="sb-item-pct">
+          {item.discountPercent != null ? `${item.discountPercent}%` : item.discount}
+        </div>
       )}
 
+      {/* Title */}
+      <p className="sb-item-title">{item.title}</p>
+
+      {/* Code pill — monospace, white dashed border */}
       {item.code && (
-        <span className="stack-item-code">
-          <span className="material-symbols-sharp">content_cut</span>
+        <span className="sb-item-code">
+          <span className="material-symbols-sharp">confirmation_number</span>
           {item.code}
         </span>
       )}
@@ -79,15 +86,8 @@ function StackItem({ item, isAr }) {
   );
 }
 
-/**
- * OfferStackBox
- *
- * @param {object}  stack      - Stack data (store, items, combinedSavingsPercent)
- * @param {string}  locale     - Current locale string
- * @param {boolean} horizontal - When true, renders in a wide single-row layout
- *                               suitable for flex-direction: column parent containers.
- */
-export default function OfferStackBox({ stack, locale, horizontal = false }) {
+// ── Card ───────────────────────────────────────────────────────────────────────
+export default function OfferStackBox({ stack, locale }) {
   const lang = locale?.split('-')[0] || 'ar';
   const isAr = lang === 'ar';
 
@@ -101,94 +101,67 @@ export default function OfferStackBox({ stack, locale, horizontal = false }) {
   const topRight   = codeItem && dealItem ? dealItem : null;
   const hasTopPair = !!topRight;
   const hasBottom  = !!bankItem;
-
-  // In vertical mode: plus connector position
-  const plusPos = hasTopPair && !hasBottom ? 'horizontal' : 'vertical';
-
-  // Ordered items for horizontal strip
-  const orderedItems = [topLeft, topRight, bankItem].filter(Boolean);
+  const plusPos    = hasTopPair && !hasBottom ? 'horizontal' : 'vertical';
 
   return (
-    <div
-      className={[
-        'stack-box',
-        horizontal ? 'stack-box--horizontal' : '',
-      ].filter(Boolean).join(' ')}
-      dir={isAr ? 'rtl' : 'ltr'}
-    >
-      {/* ── Savings ribbon ─────────────────────────────────────────────── */}
-      {combinedSavingsPercent != null && combinedSavingsPercent > 0 && (
-        <div className={`stack-ribbon${isAr ? ' stack-ribbon--rtl' : ''}`}>
-          {isAr ? `وفر ${combinedSavingsPercent}%` : `Save ${combinedSavingsPercent}%`}
-        </div>
-      )}
+    <div className="sb-card" dir={isAr ? 'rtl' : 'ltr'}>
 
-      {/* ── Store identity ─────────────────────────────────────────────── */}
-      <div className="stack-store-panel">
-        <div className="stack-store-identity">
-          {store.logo ? (
-            <img src={store.logo} alt={store.name} className="stack-store-logo" />
-          ) : (
-            <div className="stack-store-logo-placeholder">
-              <span className="material-symbols-sharp">storefront</span>
-            </div>
-          )}
-          <div className="stack-store-text">
-            <span className="stack-store-name">{store.name}</span>
-            <span className="stack-sub-label">
-              {isAr ? 'عروض قابلة للجمع' : 'Stackable Offers'}
+      {/* ── Dark header: store identity + savings badge ── */}
+      <div className="sb-header">
+        <div className="sb-store-row">
+          <StoreLogo logo={store.logo} name={store.name} />
+          <div className="sb-store-text">
+            <span className="sb-store-name">{store.name}</span>
+            <span className="sb-store-sub">
+              {isAr ? 'عروض قابلة للجمع' : 'Stackable offers'}
             </span>
           </div>
         </div>
+
+        {combinedSavingsPercent != null && combinedSavingsPercent > 0 && (
+          <div className="sb-savings-badge">
+            <span className="sb-savings-pct">{combinedSavingsPercent}%</span>
+            <span className="sb-savings-label">{isAr ? 'توفير' : 'off'}</span>
+          </div>
+        )}
       </div>
 
-      {/* ── Items ─────────────────────────────────────────────────────── */}
-      {horizontal ? (
-        /* Horizontal strip: items side-by-side in a flex row */
-        <div className="stack-items-strip">
-          {orderedItems.map((item, idx) => (
-            <div key={idx} className="stack-strip-slot">
-              <StackItem item={item} isAr={isAr} />
-              {idx < orderedItems.length - 1 && (
-                <span className="stack-plus stack-plus--strip" aria-hidden="true">+</span>
-              )}
-            </div>
-          ))}
+      {/* ── Item blocks grid ── */}
+      <div className={[
+        'sb-grid',
+        hasTopPair ? 'has-top-pair' : '',
+        hasBottom  ? 'has-bottom'   : '',
+      ].filter(Boolean).join(' ')}>
+
+        {topLeft && (
+          <div className="sb-grid-div1">
+            <StackItem item={topLeft} isAr={isAr} />
+          </div>
+        )}
+
+        {topRight && (
+          <div className="sb-grid-div2">
+            <StackItem item={topRight} isAr={isAr} />
+          </div>
+        )}
+
+        {bankItem && (
+          <div className="sb-grid-div3">
+            <StackItem item={bankItem} isAr={isAr} />
+          </div>
+        )}
+
+        {/* "+" connector */}
+        <div className={`sb-plus sb-plus--${plusPos}`} aria-hidden="true">
+          <span>+</span>
         </div>
-      ) : (
-        /* Vertical grid: original 2×2 layout */
-        <div className={[
-          'stack-items-grid',
-          hasTopPair ? 'has-top-pair' : '',
-          hasBottom  ? 'has-bottom'   : '',
-        ].filter(Boolean).join(' ')}>
+      </div>
 
-          {topLeft && (
-            <div className="stack-grid-div1">
-              <StackItem item={topLeft} isAr={isAr} />
-            </div>
-          )}
-
-          {topRight && (
-            <div className="stack-grid-div2">
-              <StackItem item={topRight} isAr={isAr} />
-            </div>
-          )}
-
-          {bankItem && (
-            <div className="stack-grid-div3">
-              <StackItem item={bankItem} isAr={isAr} />
-            </div>
-          )}
-
-          <span className={`stack-plus stack-plus--${plusPos}`} aria-hidden="true">+</span>
-        </div>
-      )}
-
-      {/* ── CTA ────────────────────────────────────────────────────────── */}
-      <div className="stack-cta-panel">
+      {/* ── CTA ── */}
+      <div className="sb-cta-wrap">
         <StackCta stack={stack} locale={locale} />
       </div>
+
     </div>
   );
 }
