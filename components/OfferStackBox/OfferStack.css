@@ -229,9 +229,7 @@
   line-height: 0.9;
   letter-spacing:0.1em;
   -webkit-text-fill-color: transparent;
-  text-shadow: 
-						8px 8px #ff1f8f,
-						20px 20px #000000;
+  text-shadow: 0px 0px #ff1f8f, 2px 2px #000000;
 }
 
 
