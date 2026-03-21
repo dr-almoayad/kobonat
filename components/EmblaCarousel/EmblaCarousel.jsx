@@ -26,7 +26,7 @@ export default function EmblaCarousel({
     direction:     isAr ? 'rtl' : 'ltr',
     align:         'start',
     dragFree:      false,
-    loop:          true,
+    loop:          false,
     containScroll: false,
   });
 
