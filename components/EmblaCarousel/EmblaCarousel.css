@@ -12,7 +12,6 @@
 .ec-viewport {
   overflow: hidden;
   width: 100%;
-  /* Force a composited layer so transforms don't trigger main-thread repaints */
   transform: translateZ(0);
 }
 
@@ -20,28 +19,21 @@
 .ec-container {
   display: flex;
   touch-action: pan-y pinch-zoom;
-  /* gap is set inline per section */
-  /* Promote to GPU layer BEFORE any animation begins — eliminates jank */
   will-change: transform;
-  /* Prevent subpixel aliasing on transform updates */
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
 }
 
 /* ── Slide ──────────────────────────────────────────────────────────────────*/
 .ec-slide {
-  /* flex-basis set inline per section */
   min-width: 0;
-  /* stretch slides to same height */
   display: flex;
   flex-direction: column;
-  /* Each slide gets its own composited layer — prevents per-card repaint */
   transform: translateZ(0);
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
 }
 
-/* Ensure direct RSC children (cards) fill slide height */
 .ec-slide > * {
   flex: 1;
 }
@@ -54,7 +46,6 @@
   gap: 0.75rem;
 }
 
-/* Arrows */
 .ec-arrow {
   width: 32px;
   height: 32px;
@@ -87,7 +78,6 @@
   line-height: 1;
 }
 
-/* Dots */
 .ec-dots {
   display: flex;
   align-items: center;
@@ -112,10 +102,7 @@
   border-radius: 4px;
 }
 
-/* ── Full‑bleed on mobile (used by OfferStacksSection) ─────────────────────
-   When .ec-root has .ec-full-bleed, the carousel breaks out of its padded
-   parent and renders edge‑to‑edge. The first/last slide get inline padding
-   so content never touches the screen edge.                                  */
+/* ── Full‑bleed on mobile (used by OfferStacksSection) ───────────────────── */
 @media (max-width: 768px) {
   .ec-full-bleed {
     margin-left: calc(-1 * var(--section-px, 1rem));
@@ -127,11 +114,9 @@
     /* Use logical properties for RTL support */
     padding-inline-start: var(--section-px, 1rem);
     padding-inline-end: var(--section-px, 1rem);
-    /* Make padding part of scroll area, not invisible overflow */
     box-sizing: content-box;
   }
 
-  /* Hide arrows/dots on small screens — swipe is the main affordance */
   .ec-full-bleed .ec-controls {
     display: none;
   }
