@@ -27,9 +27,6 @@ export default function EmblaCarousel({
     align:         'start',
     dragFree:      false,
     loop:          false,
-    // containScroll: false — let slide margins define the natural boundary.
-    // With the default 'trimSnaps', Embla treats trailing padding/margin as
-    // unreachable empty space and clips the scroll range before it's visible.
     containScroll: false,
   });
 
@@ -64,12 +61,22 @@ export default function EmblaCarousel({
 
       {/* ── Viewport ────────────────────────────────────────────────────── */}
       <div className="ec-viewport" ref={emblaRef}>
-        <div className="ec-container" style={{ gap: slideGap }}>
+        {/*
+          NO gap on the container — Embla doesn't measure CSS gap when
+          calculating its scroll range. Use margin on each slide instead,
+          exactly like HeroCuratedCarousel (gap:0 + margin on slide).
+        */}
+        <div className="ec-container">
           {slides.map((slide, i) => (
             <div
               key={i}
               className="ec-slide"
-              style={{ flex: `0 0 ${slideWidth}` }}
+              style={{
+                flex: `0 0 ${slideWidth}`,
+                // Half-gap on each side → uniform spacing Embla can measure
+                marginInlineStart: i === 0 ? 0 : `calc(${slideGap} / 2)`,
+                marginInlineEnd:   i === slides.length - 1 ? 0 : `calc(${slideGap} / 2)`,
+              }}
             >
               {slide}
             </div>
