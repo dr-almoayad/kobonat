@@ -1,117 +1,234 @@
 'use client';
 // components/OfferStackBox/StackCta.jsx
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 
+// ─── Step builder (unchanged logic, new presentation) ──────────
 function buildSteps(items, isAr) {
   return items.map((item, idx) => {
     const base = { num: idx + 1 };
-    
+
     if (item.itemType === 'CODE') return {
       ...base, type: 'code', icon: 'confirmation_number',
       labelAr: 'كود الخصم', labelEn: 'Coupon Code',
-      title: item.title, code: item.code, pct: item.discountPercent, url: item.landingUrl,
+      title: item.title, code: item.code,
+      pct: item.discountPercent,
+      url: item.landingUrl,
       instructions: isAr
-        ? ['انتقل إلى المتجر من الرابط أدناه.', 'أضف المنتجات لسلة التسوق.', item.code ? 'في صفحة الدفع، أدخل الكود في خانة الكوبون.' : 'الخصم يطبق تلقائياً.', 'تأكد من انخفاض المجموع.']
-        : ['Visit the store via the link.', 'Add items to cart.', item.code ? 'Paste the code at checkout.' : 'Discount applies automatically.', 'Confirm the total dropped.'],
+        ? [
+            'انتقل للمتجر عبر الرابط أدناه.',
+            'أضف المنتجات المطلوبة للسلة.',
+            item.code
+              ? 'في صفحة الدفع، أدخل الكود في خانة كود الخصم.'
+              : 'الخصم يطبق تلقائياً على السلة.',
+            'تحقق من انخفاض الإجمالي قبل الإتمام.',
+          ]
+        : [
+            'Visit the store via the link below.',
+            'Add items to your cart.',
+            item.code
+              ? 'At checkout, paste the code in the coupon field.'
+              : 'Discount applies automatically to your cart.',
+            'Verify the total decreased before completing.',
+          ],
     };
 
     if (item.itemType === 'DEAL') return {
-      ...base, type: 'deal', icon: 'local_fire_department',
+      ...base, type: 'deal', icon: 'bolt',
       labelAr: 'خصم تلقائي', labelEn: 'Auto Deal',
-      title: item.title, pct: item.discountPercent, url: item.landingUrl,
+      title: item.title,
+      pct: item.discountPercent,
+      url: item.landingUrl,
       instructions: isAr
-        ? ['اضغط "تفعيل العرض".', 'الخصم مُدمج في السعر النهائي.', 'أكمل الشراء.']
-        : ['Click "Activate Deal".', 'Discount is already applied to prices.', 'Complete purchase.'],
+        ? [
+            'اضغط "تفعيل العرض" للانتقال للمتجر.',
+            'الخصم مدمج في السعر المعروض مباشرةً.',
+            'أكمل الشراء دون الحاجة لأي كود.',
+          ]
+        : [
+            'Click "Activate Deal" to visit the store.',
+            'The discount is already reflected in displayed prices.',
+            'Complete purchase — no code needed.',
+          ],
     };
 
     if (item.itemType === 'BANK_OFFER') return {
       ...base, type: 'bank', icon: 'account_balance',
       labelAr: 'عرض بنكي', labelEn: 'Bank Offer',
-      title: item.title, pct: item.discountPercent, bankName: item.bankName, bankLogo: item.bankLogo, url: item.landingUrl,
+      title: item.title,
+      pct: item.discountPercent,
+      bankName: item.bankName,
+      bankLogo: item.bankLogo,
+      url: item.landingUrl,
       instructions: isAr
-        ? [`ادفع ببطاقة ${item.bankName || 'البنك'}.`, item.code ? `أدخل الكود: ${item.code}` : `الخصم يطبق تلقائياً بالبطاقة المؤهلة.`, 'تحقق من ملخص الطلب.']
-        : [`Pay with your ${item.bankName || 'bank'} card.`, item.code ? `Enter code: ${item.code}` : `Applies automatically with eligible card.`, 'Verify the order summary.'],
+        ? [
+            `ادفع ببطاقة ${item.bankName || 'البنك'} المؤهلة.`,
+            item.code
+              ? `أدخل الكود ${item.code} إن طُلب.`
+              : 'الخصم يطبق تلقائياً عند استخدام البطاقة.',
+            'تحقق من ملخص الطلب قبل التأكيد.',
+          ]
+        : [
+            `Pay using your ${item.bankName || 'bank'} card.`,
+            item.code
+              ? `Enter code ${item.code} if prompted.`
+              : 'Cashback or discount applies automatically with the card.',
+            'Review the order summary before confirming.',
+          ],
     };
 
     return null;
   }).filter(Boolean);
 }
 
+// ─── Modal ─────────────────────────────────────────────────────
 function StackModal({ stack, isAr, onClose }) {
   const [copied, setCopied] = useState(null);
-  const steps = buildSteps(stack.items, isAr);
+  const [mounted, setMounted] = useState(false);
+
+  const ORDER = { CODE: 0, DEAL: 1, BANK_OFFER: 2 };
+  const ordered = [...stack.items].sort(
+    (a, b) => (ORDER[a.itemType] ?? 9) - (ORDER[b.itemType] ?? 9)
+  );
+  const steps = buildSteps(ordered, isAr);
+
+  useEffect(() => { setMounted(true); }, []);
+
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = prev; };
+  }, []);
+
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onClose]);
 
   function copy(code) {
     navigator.clipboard.writeText(code).catch(() => {});
     setCopied(code);
-    setTimeout(() => setCopied(null), 2000);
+    setTimeout(() => setCopied(null), 2200);
   }
 
-  return (
-    <div className="os-modal-backdrop" onClick={(e) => e.target === e.currentTarget && onClose()} dir={isAr ? 'rtl' : 'ltr'}>
-      <div className="os-modal" role="dialog" aria-modal="true">
-        <button className="os-modal__close" onClick={onClose} aria-label={isAr ? 'إغلاق' : 'Close'}>
-          <span className="material-symbols-sharp">close</span>
-        </button>
+  if (!mounted) return null;
 
+  const modal = (
+    <div
+      className="os-modal-backdrop"
+      onClick={(e) => e.target === e.currentTarget && onClose()}
+      dir={isAr ? 'rtl' : 'ltr'}
+    >
+      <div className="os-modal" role="dialog" aria-modal="true">
+
+        {/* Colour strip */}
+        <div className="os-modal-strip" aria-hidden="true" />
+
+        {/* ── Header ── */}
         <div className="os-modal__header">
           <div className="os-modal__brand">
             {stack.store.logo && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={stack.store.logo} alt={stack.store.name} className="os-store-logo os-store-logo--large" />
+              <div className="os-modal__logo-wrap">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={stack.store.logo}
+                  alt={stack.store.name}
+                  className="os-store-logo--large"
+                />
+              </div>
             )}
             <div>
-              <h2 className="os-modal__title">{stack.store.name}</h2>
+              <h2 className="os-modal__store-name">{stack.store.name}</h2>
               {stack.combinedSavingsPercent > 0 && (
                 <p className="os-modal__subtitle">
-                  {isAr ? `توفير إجمالي يصل إلى ${stack.combinedSavingsPercent}%` : `Save up to ${stack.combinedSavingsPercent}% total`}
+                  <span className="material-symbols-sharp">savings</span>
+                  {isAr
+                    ? `توفير إجمالي يصل إلى ${stack.combinedSavingsPercent}%`
+                    : `Stack saves up to ${stack.combinedSavingsPercent}%`}
                 </p>
               )}
             </div>
           </div>
+
+          <button
+            className="os-modal__close"
+            onClick={onClose}
+            aria-label={isAr ? 'إغلاق' : 'Close'}
+          >
+            <span className="material-symbols-sharp">close</span>
+          </button>
         </div>
 
-        <div className="os-modal__body">
-          <p className="os-modal__intro">
-            {isAr ? 'اتبع هذه الخطوات بالترتيب لضمان الحصول على أقصى توفير:' : 'Follow these steps in order to maximize your savings:'}
-          </p>
+        {/* Intro strip */}
+        <div className="os-modal__intro-strip">
+          <span className="material-symbols-sharp">info</span>
+          <span>
+            {isAr
+              ? 'اتّبع هذه الخطوات بالترتيب المحدد لضمان تطبيق جميع العروض وتحقيق أقصى توفير ممكن.'
+              : 'Follow these steps in exact order to ensure all offers stack correctly and maximise your savings.'}
+          </span>
+        </div>
 
+        {/* ── Steps ── */}
+        <div className="os-modal__body">
           <div className="os-timeline">
             {steps.map((step) => (
-              <div key={step.num} className="os-step">
+              <div key={step.num} className={`os-step os-step--${step.type}`}>
                 <div className="os-step__marker">{step.num}</div>
+
                 <div className="os-step__content">
                   <div className="os-step__head">
-                    <span className={`os-step__tag os-step__tag--${step.type}`}>
+                    <span className="os-step__tag">
                       <span className="material-symbols-sharp">{step.icon}</span>
                       {isAr ? step.labelAr : step.labelEn}
                     </span>
                     {step.bankLogo && (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={step.bankLogo} alt={step.bankName || ''} className="os-bank-logo" />
+                      <img
+                        src={step.bankLogo}
+                        alt={step.bankName || ''}
+                        className="os-step__bank-logo"
+                      />
                     )}
                   </div>
-                  
+
                   <h4 className="os-step__title">{step.title}</h4>
 
                   {step.code && (
                     <div className="os-copy-box">
                       <span className="os-copy-box__code">{step.code}</span>
-                      <button className={`os-copy-box__btn ${copied === step.code ? 'copied' : ''}`} onClick={() => copy(step.code)}>
-                        <span className="material-symbols-sharp">{copied === step.code ? 'check' : 'content_copy'}</span>
-                        {copied === step.code ? (isAr ? 'تم النسخ' : 'Copied') : (isAr ? 'نسخ الكود' : 'Copy Code')}
+                      <button
+                        className={`os-copy-box__btn${copied === step.code ? ' copied' : ''}`}
+                        onClick={() => copy(step.code)}
+                        aria-label={isAr ? 'نسخ الكود' : 'Copy code'}
+                      >
+                        <span className="material-symbols-sharp">
+                          {copied === step.code ? 'check' : 'content_copy'}
+                        </span>
+                        {copied === step.code
+                          ? (isAr ? 'تم النسخ' : 'Copied')
+                          : (isAr ? 'نسخ' : 'Copy')}
                       </button>
                     </div>
                   )}
 
                   <ul className="os-step__list">
-                    {step.instructions.map((ins, i) => <li key={i}>{ins}</li>)}
+                    {step.instructions.map((ins, i) => (
+                      <li key={i}>{ins}</li>
+                    ))}
                   </ul>
 
                   {step.url && (
-                    <a href={step.url} target="_blank" rel="noopener noreferrer" className="os-step__link">
-                      {isAr ? 'الذهاب للعرض' : 'Go to Offer'} <span className="material-symbols-sharp">arrow_outward</span>
+                    <a
+                      href={step.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="os-step__link"
+                    >
+                      {isAr ? 'الانتقال للعرض' : 'Go to offer'}
+                      <span className="material-symbols-sharp">arrow_outward</span>
                     </a>
                   )}
                 </div>
@@ -119,26 +236,58 @@ function StackModal({ stack, isAr, onClose }) {
             ))}
           </div>
         </div>
+
+        {/* Footer disclaimer */}
+        <div className="os-modal__footer">
+          <span className="material-symbols-sharp">info</span>
+          <p>
+            {isAr
+              ? 'قد تتغير الشروط أو تنتهي العروض في أي وقت. تحقق من صفحة المتجر لأحدث الشروط.'
+              : 'Offer terms may change or expire at any time. Check the store page for the latest conditions.'}
+          </p>
+        </div>
+
       </div>
     </div>
   );
+
+  return createPortal(modal, document.body);
 }
 
+// ─── Main export ───────────────────────────────────────────────
 export default function StackCta({ stack, locale }) {
   const [open, setOpen] = useState(false);
   const isAr = (locale?.split('-')[0] || 'ar') === 'ar';
 
   return (
     <>
-      <button className="os-btn os-btn--ghost" onClick={() => setOpen(true)}>
-        <span className="material-symbols-sharp">help</span>
+      <button
+        className="os-btn os-btn--ghost"
+        onClick={() => setOpen(true)}
+        aria-label={isAr ? 'كيف تعمل العروض المدمجة؟' : 'How do stacked offers work?'}
+      >
+        <span className="material-symbols-sharp">help_outline</span>
         {isAr ? 'كيف تعمل؟' : 'How it works'}
       </button>
-      <button className="os-btn os-btn--primary" onClick={() => setOpen(true)}>
+
+      <button
+        className="os-btn os-btn--primary"
+        onClick={() => setOpen(true)}
+        aria-label={isAr ? 'استخدم العروض المدمجة' : 'Apply stacked offers'}
+      >
         {isAr ? 'استخدم العروض' : 'Apply Offers'}
-        <span className="material-symbols-sharp">{isAr ? 'keyboard_arrow_left' : 'keyboard_arrow_right'}</span>
+        <span className="material-symbols-sharp">
+          {isAr ? 'keyboard_arrow_left' : 'keyboard_arrow_right'}
+        </span>
       </button>
-      {open && <StackModal stack={stack} isAr={isAr} onClose={() => setOpen(false)} />}
+
+      {open && (
+        <StackModal
+          stack={stack}
+          isAr={isAr}
+          onClose={() => setOpen(false)}
+        />
+      )}
     </>
   );
 }
