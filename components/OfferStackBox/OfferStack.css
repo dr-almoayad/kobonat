@@ -411,7 +411,8 @@
 .os-btn--primary:active { transform: translateY(0); }
 
 /* ═══════════════════════════════════════════════════════════════
-   MODAL
+   MODAL — matches card style exactly
+   Variables resolved from .os-card scope since modal is portalled
    ═══════════════════════════════════════════════════════════════ */
 
 .os-modal-backdrop {
@@ -433,25 +434,30 @@
   .os-modal-backdrop { align-items: center; padding: 1.5rem; }
 }
 
+/* Matches card: white bg, same border, same radius, same shadow */
 .os-modal {
   background: #ffffff;
   border: 1px solid #e4e7ed;
-  box-shadow: 0 40px 100px rgba(0,0,0,0.2), 0 8px 24px rgba(0,0,0,0.08);
+  box-shadow:
+    0 1px 3px rgba(0,0,0,0.05),
+    0 8px 24px rgba(0,0,0,0.07),
+    0 24px 56px rgba(0,0,0,0.04);
   width: 100%;
   max-width: 500px;
   max-height: 93dvh;
-  border-radius: 20px 20px 0 0;
+  border-radius: 14px 14px 0 0;
   display: flex;
   flex-direction: column;
   overflow: hidden;
   font-family: 'Alexandria', 'Segoe UI', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
   color: #0d1117;
   animation: os-sheet-up 0.3s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
 @media (min-width: 640px) {
   .os-modal {
-    border-radius: 16px;
+    border-radius: 14px;
     animation: os-sheet-in 0.26s cubic-bezier(0.22, 1, 0.36, 1) forwards;
   }
 }
@@ -466,11 +472,12 @@
   to   { transform: scale(1) translateY(0);       opacity: 1; }
 }
 
+/* Mobile drag handle */
 .os-modal::before {
   content: '';
   display: block;
   width: 32px; height: 3px;
-  background: #d0d5de;
+  background: #c8cdd8;
   border-radius: 99px;
   margin: 0.625rem auto 0;
   flex-shrink: 0;
@@ -478,14 +485,16 @@
 
 @media (min-width: 640px) { .os-modal::before { display: none; } }
 
+/* Matches card top strip exactly */
 .os-modal-strip {
   height: 3px;
-  background: linear-gradient(90deg, #5a24d8, #b87d00, #00a882);
+  background: linear-gradient(90deg, #5a24d8 0%, #b87d00 50%, #00a882 100%);
   flex-shrink: 0;
 }
 
+/* Header — matches os-card__header padding */
 .os-modal__header {
-  padding: 1.25rem 1.25rem 1rem;
+  padding: 1rem;
   border-bottom: 1px solid #e4e7ed;
   flex-shrink: 0;
   position: relative;
@@ -497,16 +506,17 @@
   gap: 0.875rem;
 }
 
+/* Store name — matches os-store-name weight and style */
 .os-modal__store-name {
-  font-size: 1.125rem;
-  font-weight: 900;
+  font-size: 1rem;
+  font-weight: 600;
   color: #0d1117;
-  margin: 0 0 0.2rem;
+  margin: 0 0 0.15rem;
   letter-spacing: -0.02em;
 }
 
 .os-modal__subtitle {
-  font-size: 0.78rem;
+  font-size: 0.75rem;
   font-weight: 700;
   color: #b87d00;
   margin: 0;
@@ -516,18 +526,19 @@
 }
 
 .os-modal__subtitle .material-symbols-sharp {
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   font-variation-settings: 'FILL' 1;
 }
 
+/* Close — matches os-btn--ghost radius and surface */
 .os-modal__close {
   position: absolute;
-  top: 1.125rem;
-  inset-inline-end: 1.125rem;
-  width: 32px; height: 32px;
-  background: #f3f4f6;
-  border: 1px solid #e4e7ed;
-  border-radius: 8px;
+  top: 1rem;
+  inset-inline-end: 1rem;
+  width: 30px; height: 30px;
+  background: #f7f8fa;
+  border: 1px solid #c8cdd8;
+  border-radius: 6px;
   color: #6b7280;
   display: flex;
   align-items: center;
@@ -536,37 +547,39 @@
   transition: all 0.14s;
 }
 
-.os-modal__close:hover { background: #e4e7ed; color: #0d1117; }
+.os-modal__close:hover { background: #eff1f5; color: #0d1117; border-color: #9ca3af; }
 .os-modal__close .material-symbols-sharp { font-size: 0.95rem; }
 
+/* Intro strip — matches os-tile surface + border pattern */
 .os-modal__intro-strip {
-  margin: 0.875rem 1.25rem;
-  padding: 0.75rem 1rem;
-  background: rgba(184, 125, 0, 0.05);
-  border: 1px solid rgba(184, 125, 0, 0.14);
-  border-radius: 8px;
+  margin: 0.75rem 1rem 0;
+  padding: 0.6rem 0.875rem;
+  background: #f7f8fa;
+  border: 1px solid #e4e7ed;
+  border-radius: 6px;
   display: flex;
   align-items: flex-start;
   gap: 0.5rem;
-  font-size: 0.8rem;
-  color: #4b4030;
+  font-size: 0.78rem;
+  color: #6b7280;
   line-height: 1.55;
   flex-shrink: 0;
 }
 
 .os-modal__intro-strip .material-symbols-sharp {
-  font-size: 0.9rem;
-  color: #b87d00;
+  font-size: 0.85rem;
+  color: #9ca3af;
   font-variation-settings: 'FILL' 1;
   flex-shrink: 0;
   margin-top: 1px;
 }
 
+/* Body — matches card's 1rem padding rhythm */
 .os-modal__body {
   overflow-y: auto;
   overscroll-behavior: contain;
   flex: 1;
-  padding: 0.25rem 1.25rem 1.25rem;
+  padding: 1rem;
 }
 
 /* Timeline */
@@ -582,55 +595,58 @@
   position: absolute;
   top: 16px; bottom: 16px;
   inset-inline-start: 14px;
-  width: 1.5px;
-  background: linear-gradient(to bottom, #c4b1f2, #f0d080, #a5e0c0);
+  width: 1px;
+  background: #e4e7ed;
 }
 
 .os-step {
   display: flex;
-  gap: 1rem;
-  padding-bottom: 1.25rem;
+  gap: 0.875rem;
+  padding-bottom: 1rem;
 }
 
 .os-step:last-child { padding-bottom: 0; }
 
+/* Markers — same colours as tile badges */
 .os-step__marker {
-  width: 30px; height: 30px;
+  width: 28px; height: 28px;
   border-radius: 50%;
-  font-size: 0.68rem; font-weight: 900;
+  font-size: 0.65rem; font-weight: 700;
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
   position: relative; z-index: 1;
-  border: 2px solid;
+  border: 1px solid;
 }
 
 .os-step--code .os-step__marker { background: #eff6ff; border-color: #bfdbfe; color: #1a6fd4; }
 .os-step--deal .os-step__marker { background: #fffbeb; border-color: #fde68a; color: #b87000; }
 .os-step--bank .os-step__marker { background: #f0fdf4; border-color: #bbf7d0; color: #157a3f; }
 
+/* Step content — matches os-tile surface and border */
 .os-step__content {
   flex: 1; min-width: 0;
-  background: #f9fafb;
+  background: #f7f8fa;
   border: 1px solid #e4e7ed;
   border-radius: 10px;
-  padding: 0.875rem 1rem;
-  margin-top: 0.125rem;
+  padding: 0.75rem 0.875rem;
+  margin-top: 0.1rem;
 }
 
 .os-step__head {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.4rem;
 }
 
+/* Tags — match os-tile__badge colours and style */
 .os-step__tag {
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
-  font-size: 0.55rem; font-weight: 900;
-  letter-spacing: 0.14em; text-transform: uppercase;
-  padding: 0.18rem 0.5rem;
+  font-size: 0.5rem; font-weight: 700;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  padding: 0.16rem 0.45rem;
   border-radius: 4px; border: 1px solid;
 }
 
@@ -638,80 +654,86 @@
 .os-step--deal .os-step__tag { background: #fffbeb; color: #b87000; border-color: #fde68a; }
 .os-step--bank .os-step__tag { background: #f0fdf4; color: #157a3f; border-color: #bbf7d0; }
 
-.os-step__tag .material-symbols-sharp { font-size: 0.7rem; font-variation-settings: 'FILL' 1; }
+.os-step__tag .material-symbols-sharp { font-size: 0.68rem; font-variation-settings: 'FILL' 1; }
 
-/* Bank logo in modal — bare, full color */
+/* Bank logo in modal — bare, full color, matches os-tile__logo */
 .os-step__bank-logo {
-  height: 26px;
-  max-width: 84px;
+  height: 24px;
+  max-width: 80px;
   object-fit: contain;
   display: block;
 }
 
+/* Step title — matches os-tile__title weight */
 .os-step__title {
-  font-size: 0.9rem; font-weight: 700;
-  color: #0d1117;
-  margin: 0 0 0.75rem;
+  font-size: 0.82rem; font-weight: 500;
+  color: #2a2d35;
+  margin: 0 0 0.625rem;
   line-height: 1.35;
 }
 
+/* Copy box — light, matches card's white/surface palette */
 .os-copy-box {
   display: flex; align-items: stretch;
-  background: #0f172a;
-  border-radius: 8px; overflow: hidden;
-  margin-bottom: 0.75rem;
+  background: #ffffff;
+  border: 1px solid #e4e7ed;
+  border-radius: 6px; overflow: hidden;
+  margin-bottom: 0.625rem;
 }
 
 .os-copy-box__code {
   flex: 1;
-  padding: 0.625rem 0.875rem;
+  padding: 0.55rem 0.875rem;
   font-family: 'Courier New', monospace;
-  font-size: 1rem; font-weight: 700;
-  letter-spacing: 0.1em; color: #7dd3fc;
+  font-size: 0.9rem; font-weight: 700;
+  letter-spacing: 0.08em; color: #1a6fd4;
   display: flex; align-items: center;
 }
 
+/* Copy button — matches os-btn--primary style */
 .os-copy-box__btn {
   display: flex; align-items: center; gap: 0.3rem;
   padding: 0 0.875rem;
-  background: #1a6fd4; border: none;
+  background: #470ae2; border: none;
   color: #fff;
   font-family: 'Alexandria', system-ui, sans-serif;
-  font-size: 0.7rem; font-weight: 800;
-  letter-spacing: 0.06em; text-transform: uppercase;
+  font-size: 0.68rem; font-weight: 700;
+  letter-spacing: 0.04em; text-transform: uppercase;
   cursor: pointer; transition: background 0.14s;
   white-space: nowrap; flex-shrink: 0;
 }
 
-.os-copy-box__btn:hover { background: #1559b3; }
+.os-copy-box__btn:hover { background: #4f46e5; }
 .os-copy-box__btn.copied { background: #157a3f; }
-.os-copy-box__btn .material-symbols-sharp { font-size: 0.85rem; }
+.os-copy-box__btn .material-symbols-sharp { font-size: 0.82rem; }
 
+/* Instructions — matches os-tile__title size and muted colour */
 .os-step__list {
   margin: 0; padding: 0; list-style: none;
-  display: flex; flex-direction: column; gap: 0.3rem;
+  display: flex; flex-direction: column; gap: 0.25rem;
 }
 
 .os-step__list li {
-  font-size: 0.79rem; color: #4b5563;
+  font-size: 0.75rem; color: #6b7280;
   line-height: 1.55;
-  display: flex; align-items: flex-start; gap: 0.45rem;
+  display: flex; align-items: flex-start; gap: 0.4rem;
 }
 
 .os-step__list li::before {
-  content: '›'; font-size: 0.85rem; font-weight: 800;
+  content: '›'; font-size: 0.82rem; font-weight: 800;
   flex-shrink: 0; margin-top: 0.05rem; opacity: 0.35;
 }
 
 [dir='rtl'] .os-step__list li::before { content: '‹'; }
 
+/* Step link — matches os-btn--ghost radius */
 .os-step__link {
   display: inline-flex; align-items: center; gap: 0.3rem;
-  font-size: 0.73rem; font-weight: 800;
+  font-size: 0.7rem; font-weight: 700;
   letter-spacing: 0.04em; text-transform: uppercase;
-  padding: 0.3rem 0.65rem;
-  border-radius: 5px; border: 1px solid;
-  text-decoration: none; margin-top: 0.625rem;
+  padding: 0.28rem 0.6rem;
+  border-radius: 6px; border: 1px solid;
+  text-decoration: none; margin-top: 0.5rem;
   transition: opacity 0.14s;
 }
 
@@ -719,23 +741,24 @@
 .os-step--deal .os-step__link { background: #fffbeb; color: #b87000; border-color: #fde68a; }
 .os-step--bank .os-step__link { background: #f0fdf4; color: #157a3f; border-color: #bbf7d0; }
 .os-step__link:hover { opacity: 0.75; }
-.os-step__link .material-symbols-sharp { font-size: 0.8rem; }
+.os-step__link .material-symbols-sharp { font-size: 0.78rem; }
 
+/* Footer — matches os-card__footer surface and border */
 .os-modal__footer {
-  padding: 0.875rem 1.25rem 1.125rem;
+  padding: 0.85rem 1rem;
   border-top: 1px solid #e4e7ed;
-  background: #f9fafb;
+  background: #f7f8fa;
   flex-shrink: 0;
   display: flex; align-items: flex-start; gap: 0.4rem;
 }
 
 .os-modal__footer .material-symbols-sharp {
-  font-size: 0.75rem; color: #9ca3af;
+  font-size: 0.72rem; color: #9ca3af;
   flex-shrink: 0; margin-top: 2px;
 }
 
 .os-modal__footer p {
-  font-size: 0.68rem; color: #9ca3af;
+  font-size: 0.66rem; color: #9ca3af;
   line-height: 1.55; margin: 0;
 }
 
