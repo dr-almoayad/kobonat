@@ -32,10 +32,8 @@ function OfferTile({ item, isAr }) {
           className="os-tile__logo"
         />
       ) : (
-      <></>
-      {/*<div className="os-tile__icon-wrap">
-          <span className="material-symbols-sharp">{meta.icon}</span>
-        </div>*/}
+        <div className="os-tile__icon-wrap">
+        </div>
       )}
 
       {/* Middle: label + title + code */}
