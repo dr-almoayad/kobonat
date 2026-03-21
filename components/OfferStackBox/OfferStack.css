@@ -91,8 +91,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1.125rem 1.375rem 1rem;
-  border-bottom: 1px solid var(--os-border);
+  padding: 1rem;
 }
 
 .os-header-left {
@@ -105,15 +104,15 @@
 /* Store logo — bare, no wrapper, no filter, no background */
 .os-store-logo {
   height: 34px;
-  max-width: 110px;
+  max-width: 98px;
   object-fit: contain;
   display: block;
   flex-shrink: 0;
 }
 
 .os-store-logo--large {
-  height: 44px;
-  max-width: 140px;
+  height: 40px;
+  max-width: 120px;
   object-fit: contain;
   display: block;
 }
@@ -127,7 +126,7 @@
 
 .os-store-eyebrow {
   font-size: 0.52rem;
-  font-weight: 900;
+  font-weight: 600;
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--os-muted-2);
@@ -135,7 +134,7 @@
 
 .os-store-name {
   font-size: 1rem;
-  font-weight: 900;
+  font-weight: 600;
   color: var(--os-text);
   margin: 0;
   white-space: nowrap;
@@ -179,9 +178,9 @@
 
 /* ── SAVINGS HERO ───────────────────────────────────────────── */
 .os-savings-hero {
-  padding: 1.375rem 1.375rem 1.125rem;
+  padding: 0 1rem 1rem;
   position: relative;
-  background: var(--os-surface);
+  background: transparent;
 }
 
 .os-savings-label {
@@ -228,8 +227,28 @@
   font-size: 4.5rem;
   font-weight: 900;
   line-height: 0.9;
-  color: var(--os-gold);
+  color: #5e18db;
   letter-spacing: -0.04em;
+   position: relative;
+
+  transform: translate(-50%, -50%);
+	letter-spacing:0.1em;
+  -webkit-text-fill-color: transparent;
+  -webkit-text-stroke-width: 3px;
+  -webkit-text-stroke-color: white;
+  text-shadow: 
+						8px 8px #ff1f8f,
+						20px 20px #000000;
+}
+
+.os-savings-number::before {
+   content: '';
+   position: absolute;
+   left: 0;
+   transform: skewX(20deg);
+   background: radial-gradient(circle,rgba(0, 217, 112, 1) 0%, rgba(25, 255, 121, 1) 100%);
+   width: 90%;
+   height: 90%;
 }
 
 [dir='rtl'] .os-savings-number { letter-spacing: 0; }
