@@ -76,25 +76,13 @@
   max-width: 140px;
 }
 
-.sb-more-btn {
+.sb-more-label {
   font-size: 0.72rem;
   font-weight: 600;
-  color: rgba(255,255,255,0.82);
+  color: rgba(255,255,255,0.72);
   white-space: nowrap;
-  background: none;
-  border: none;
-  padding: 0;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 0.15rem;
   flex-shrink: 0;
-  font-family: var(--sb-font);
-  transition: color 0.14s;
 }
-
-.sb-more-btn:hover { color: #fff; }
-.sb-more-btn .material-symbols-sharp { font-size: 0.8rem; }
 
 /* ── HEADLINE ─────────────────────────────────────────────── */
 .sb-headline {
