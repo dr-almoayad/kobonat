@@ -70,7 +70,7 @@ export default function OfferStackBox({ stack, locale }) {
       aria-label={`${store.name} — ${isAr ? 'عروض مدمجة' : 'stackable offers'}`}
     >
       {/* Top colour strip */}
-      <div className="os-top-strip" aria-hidden="true" />
+      {/* <div className="os-top-strip" aria-hidden="true" /> */}
 
       {/* ── Header ── */}
       <div className="os-card__header">
@@ -87,23 +87,24 @@ export default function OfferStackBox({ stack, locale }) {
           {/* Show name alongside logo only if logo present */}
           {store.logo && (
             <div className="os-store-name-block">
-              <span className="os-store-eyebrow">{isAr ? 'متجر' : 'store'}</span>
+              {/* <span className="os-store-eyebrow">{isAr ? 'متجر' : 'store'}</span> */}
               <span className="os-store-name">{store.name}</span>
             </div>
           )}
         </div>
 
-        <div className="os-live-badge">
+        {/*<div className="os-live-badge">
           <span className="os-live-dot" aria-hidden="true" />
           <span className="os-live-label">{isAr ? 'نشط' : 'Live'}</span>
-        </div>
+        </div>*/}
+        
       </div>
 
       {/* ── Savings hero ── */}
       <div className="os-savings-hero">
-        <p className="os-savings-label">
+        {/*<p className="os-savings-label">
           {isAr ? 'أقصى توفير بالتراكم' : 'max stacked savings'}
-        </p>
+        </p>*/}
         <div className="os-savings-amount-row">
           <span className="os-savings-prefix">{isAr ? 'وفّر حتى' : 'save up to'}</span>
           <span className="os-savings-number">
@@ -112,8 +113,8 @@ export default function OfferStackBox({ stack, locale }) {
         </div>
         <p className="os-savings-stacked-label">
           {isAr
-            ? <>بتطبيق <strong>{ordered.length} عروض</strong> في آنٍ واحد</>
-            : <>by stacking <strong>{ordered.length} offers</strong> together</>
+            ? <>بتطبيق العروض مع بعض</>
+            : <>by stacking offers</>
           }
         </p>
       </div>
@@ -122,9 +123,9 @@ export default function OfferStackBox({ stack, locale }) {
 
       {/* ── Stack track ── */}
       <div className="os-stack-track-wrap">
-        <p className="os-stack-track-label">
+        {/*<p className="os-stack-track-label">
           {isAr ? 'تركيبة العروض' : 'offer stack'}
-        </p>
+        </p>*/}
         <div className="os-stack-track" role="list">
           {ordered.map((item, idx) => (
             <div key={idx} role="listitem">
