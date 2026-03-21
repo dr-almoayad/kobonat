@@ -6,14 +6,14 @@
   background-color: transparent;
   background: #d28eff45;
   border-radius: 32px 0 32px 0;
-  overflow: hidden;
+  /* overflow: hidden;  <-- REMOVED: prevents full-bleed carousel from extending */
 }
 
 .offer-stacks-inner {
   max-width: 1312px;
   margin: 0 auto;
   padding: 2rem var(--section-px);
-  /* overflow-x: hidden; ← REMOVED – no longer clips the carousel */
+  /* No overflow-x: hidden here either */
 }
 
 /* ── Header ─────────────────────────────────────────────────────────────── */
