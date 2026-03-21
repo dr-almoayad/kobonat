@@ -46,7 +46,7 @@ export default async function OfferStacksSection({ locale, countryCode = 'SA' })
         </div>
 
         {/* ── Carousel (replaces offer-stacks-scroll) ── */}
-        <EmblaCarousel locale={locale} slideWidth="340px" slideGap="0.875rem" className="ec-full-bleed">
+        <EmblaCarousel locale={locale} slideWidth="280px" className="ec-full-bleed">
           {stacks.map((stack) => (
             <OfferStackBox key={stack.storeId} stack={stack} locale={locale} />
           ))}
