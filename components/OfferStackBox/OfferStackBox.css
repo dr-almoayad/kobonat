@@ -1,368 +1,367 @@
 /* components/OfferStackBox/OfferStackBox.css
    ─────────────────────────────────────────────────────────────
-   Design: Newegg-style combo savings card
-   Blue gradient outer shell · white inner item tiles · orange CTA
+   Fresh, professional card design
+   White/light gradient background, subtle depth, minimal ornaments
    ───────────────────────────────────────────────────────────── */
 
 .sb-card {
-  --sb-blue-a:  #5b9fd9;
-  --sb-blue-b:  #3a7bc8;
-  --sb-blue-c:  #2660a8;
-  --sb-orange:  #f5a623;
-  --sb-orange-h:#e8961a;
-  --sb-white:   #ffffff;
-  --sb-offwhite:#f0f5fc;
-  --sb-font:    'Alexandria', 'Segoe UI', system-ui, sans-serif;
+  --sb-primary: #3a7bc8;      /* blue accent */
+  --sb-orange:  #f5a623;      /* orange accent for primary CTA */
+  --sb-text:    #1f2937;
+  --sb-muted:   #6b7280;
+  --sb-border-light: #eef2f6;
 
-  font-family: var(--sb-font);
-  -webkit-font-smoothing: antialiased;
-  background: linear-gradient(160deg, #5b9fd9 0%, #3a7bc8 45%, #2660a8 100%);
-  border-radius: 16px;
-  padding: 1.125rem 1.125rem 1rem;
+  font-family: 'Alexandria', 'Segoe UI', system-ui, sans-serif;
+  background: linear-gradient(145deg, #ffffff 0%, #fefefe 100%);
+  border-radius: 28px;
+  box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.02);
+  padding: 1.5rem;
   display: flex;
   flex-direction: column;
-  gap: 0.875rem;
-  box-shadow:
-    0 2px 6px rgba(38, 96, 168, 0.22),
-    0 8px 28px rgba(38, 96, 168, 0.20);
-  position: relative;
-  overflow: hidden;
+  gap: 1.25rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-/* Soft highlight on top */
-.sb-card::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(to bottom, rgba(255,255,255,0.12) 0%, transparent 55%);
-  pointer-events: none;
-  border-radius: 16px;
+.sb-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 28px 40px -16px rgba(0, 0, 0, 0.12);
 }
 
-/* ── TOP ROW: logo + "كيف؟" ─────────────────────────────── */
+/* ── Top row: store + "stackable offers" badge ── */
 .sb-top {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 0.5rem;
-  position: relative;
-  z-index: 1;
 }
 
 .sb-brand {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  min-width: 0;
 }
 
+/* Store logo – no background, no border, original colours */
 .sb-brand__logo {
-  height: 24px;
-  max-width: 72px;
+  height: 32px;
+  max-width: 100px;
   object-fit: contain;
-  filter: brightness(0) invert(1);
-  opacity: 0.92;
-  flex-shrink: 0;
+  filter: none;       /* keep original colours */
+  background: none;
+  border: none;
 }
 
 .sb-brand__name {
   font-size: 1rem;
-  font-weight: 800;
-  color: #fff;
-  letter-spacing: -0.01em;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 140px;
+  font-weight: 700;
+  color: var(--sb-text);
+  letter-spacing: -0.2px;
 }
 
 .sb-more-label {
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   font-weight: 600;
-  color: rgba(255,255,255,0.72);
-  white-space: nowrap;
-  flex-shrink: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  background: rgba(58, 123, 200, 0.08);
+  padding: 0.25rem 0.75rem;
+  border-radius: 30px;
+  color: var(--sb-primary);
 }
 
-/* ── HEADLINE ─────────────────────────────────────────────── */
+/* ── Headline: "Save up to X%" ── */
 .sb-headline {
-  position: relative;
-  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
 }
 
 .sb-headline__sub {
-  display: block;
-  font-size: 0.78rem;
-  font-weight: 600;
-  color: rgba(255,255,255,0.78);
-  margin-bottom: 0.15rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--sb-muted);
+  letter-spacing: -0.2px;
 }
 
 .sb-headline__main {
   display: flex;
   align-items: baseline;
-  gap: 0.35rem;
+  gap: 0.4rem;
   flex-wrap: wrap;
 }
 
 .sb-headline__text {
-  font-size: 1rem;
-  font-weight: 700;
-  color: rgba(255,255,255,0.90);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--sb-text);
 }
 
 .sb-headline__amount {
-  font-size: 1.2rem;
-  font-weight: 900;
-  color: #fff;
-  letter-spacing: -0.02em;
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--sb-primary);
+  line-height: 1;
 }
 
-/* ── WHITE INNER CARD ────────────────────────────────────── */
+/* ── Offer items row (white card inner) ── */
 .sb-items-card {
-  background: #fff;
-  border-radius: 10px;
-  padding: 0.75rem 0.75rem 0.625rem;
   display: flex;
   align-items: stretch;
-  gap: 0;
-  position: relative;
-  z-index: 1;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.10);
+  justify-content: space-between;
+  gap: 0.25rem;
+  background: transparent;   /* no extra background */
+  padding: 0.5rem 0;
 }
 
-/* Each offer tile */
+/* Each offer tile – minimal design */
 .sb-item {
   flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.375rem;
-  padding: 0 0.25rem;
+  gap: 0.5rem;
+  text-align: center;
   min-width: 0;
 }
 
-/* Icon wrapper (shows when no bank logo) */
+/* Icon / bank logo – no borders, no backgrounds */
 .sb-item__icon-wrap {
-  width: 52px;
-  height: 52px;
-  border-radius: 8px;
-  background: #f0f5fc;
-  border: 1px solid #dde8f5;
+  width: 56px;
+  height: 56px;
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
+  background: transparent;    /* no background */
+  border: none;
 }
 
 .sb-item__icon-wrap .material-symbols-sharp {
-  font-size: 1.375rem;
+  font-size: 2rem;
   font-variation-settings: 'FILL' 1;
-  color: var(--sb-blue-b);
+  color: var(--sb-primary);
 }
 
-.sb-item--deal .sb-item__icon-wrap .material-symbols-sharp { color: #15803d; }
-.sb-item--bank .sb-item__icon-wrap .material-symbols-sharp { color: #a16207; }
+.sb-item--deal .sb-item__icon-wrap .material-symbols-sharp {
+  color: #15803d;
+}
 
-/* Bank logo replaces icon */
+.sb-item--bank .sb-item__icon-wrap .material-symbols-sharp {
+  color: #a16207;
+}
+
+/* Bank logo – original colours, no container background */
 .sb-item__bank-logo {
-  width: 52px;
-  height: 52px;
+  width: 56px;
+  height: 56px;
   object-fit: contain;
-  border-radius: 8px;
-  border: 1px solid #dde8f5;
-  background: #f0f5fc;
-  padding: 6px;
-  flex-shrink: 0;
+  background: transparent;
+  border: none;
 }
 
-/* Type badge */
+/* Badge (Code / Deal / Bank) – subtle */
 .sb-item__badge {
-  font-size: 0.55rem;
-  font-weight: 800;
+  font-size: 0.65rem;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.07em;
-  padding: 0.1rem 0.4rem;
-  border-radius: 3px;
-  white-space: nowrap;
+  letter-spacing: 0.03em;
+  padding: 0.15rem 0.6rem;
+  border-radius: 20px;
 }
 
-.sb-item--code .sb-item__badge { background: #dbeafe; color: #1d4ed8; }
-.sb-item--deal .sb-item__badge { background: #dcfce7; color: #15803d; }
-.sb-item--bank .sb-item__badge { background: #fef9c3; color: #854d0e; }
+.sb-item--code .sb-item__badge {
+  background: rgba(58, 123, 200, 0.1);
+  color: #1e40af;
+}
+.sb-item--deal .sb-item__badge {
+  background: rgba(21, 128, 61, 0.1);
+  color: #166534;
+}
+.sb-item--bank .sb-item__badge {
+  background: rgba(161, 98, 7, 0.1);
+  color: #b45309;
+}
 
 /* Offer title */
 .sb-item__title {
-  font-size: 0.72rem;
+  font-size: 0.85rem;
   font-weight: 600;
-  color: #1a2533;
-  text-align: center;
-  line-height: 1.35;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+  color: var(--sb-text);
+  line-height: 1.3;
+  max-width: 100%;
 }
 
-/* Percentage */
+/* Percentage / discount */
 .sb-item__pct {
-  font-size: 0.875rem;
-  font-weight: 900;
-  letter-spacing: -0.02em;
+  font-size: 1.1rem;
+  font-weight: 800;
+  letter-spacing: -0.3px;
 }
 
-.sb-item--code .sb-item__pct { color: #1d4ed8; }
-.sb-item--deal .sb-item__pct { color: #15803d; }
-.sb-item--bank .sb-item__pct { color: #a16207; }
+.sb-item--code .sb-item__pct { color: #1e40af; }
+.sb-item--deal .sb-item__pct { color: #166534; }
+.sb-item--bank .sb-item__pct { color: #b45309; }
 
-/* Code pill */
+/* Code pill – only if code exists */
 .sb-item__code {
   font-family: 'Courier New', monospace;
-  font-size: 0.6rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  color: #1d4ed8;
-  background: #eff6ff;
-  border-radius: 3px;
-  padding: 0.1rem 0.35rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  background: rgba(0, 0, 0, 0.05);
+  padding: 0.2rem 0.5rem;
+  border-radius: 30px;
+  color: var(--sb-primary);
   max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-/* + connector */
+/* Plus connector – subtle */
 .sb-plus {
-  width: 22px;
-  height: 22px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
-  background: #edf2fb;
-  border: 1px solid #c5d9f2;
-  font-size: 0.68rem;
-  font-weight: 800;
-  color: var(--sb-blue-b);
+  background: #f3f4f6;
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--sb-muted);
   align-self: center;
-  margin: 0 2px;
+  flex-shrink: 0;
 }
 
-/* ── SAVINGS EQUATION ─────────────────────────────────────── */
+/* ── Savings equation (total) ── */
 .sb-equation {
   display: flex;
   align-items: baseline;
-  gap: 0.45rem;
-  position: relative;
-  z-index: 1;
-  padding: 0 0.125rem;
+  gap: 0.5rem;
+  background: #f8fafc;
+  padding: 0.75rem 1rem;
+  border-radius: 60px;
+  margin-top: 0.25rem;
 }
 
 .sb-equation__eq {
-  font-size: 1.1rem;
+  font-size: 1rem;
   font-weight: 700;
-  color: rgba(255,255,255,0.65);
+  color: var(--sb-muted);
 }
 
 .sb-equation__pct {
-  font-size: 2rem;
-  font-weight: 900;
-  color: #fff;
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--sb-primary);
   line-height: 1;
-  letter-spacing: -0.03em;
 }
 
 .sb-equation__pct sup {
   font-size: 0.9rem;
-  font-weight: 700;
-  vertical-align: super;
-}
-
-.sb-equation__strikethrough {
-  font-size: 0.82rem;
   font-weight: 600;
-  color: rgba(255,255,255,0.50);
-  text-decoration: line-through;
-  align-self: flex-end;
-  padding-bottom: 0.25rem;
+  top: -0.2em;
 }
 
 .sb-equation__label {
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   font-weight: 600;
-  color: rgba(255,255,255,0.60);
-  align-self: flex-end;
-  padding-bottom: 0.25rem;
+  color: var(--sb-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
 }
 
-/* ── CTA ROW ──────────────────────────────────────────────── */
+/* ── CTA row ── */
 .sb-cta-row {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 0.5rem;
-  position: relative;
-  z-index: 1;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
 }
 
-/* Ghost / outline button */
+/* Ghost button – subtle outline */
 .sb-btn-ghost {
   display: flex;
   align-items: center;
   gap: 0.25rem;
-  padding: 0.5rem 0.875rem;
-  border: 1.5px solid rgba(255,255,255,0.45);
-  border-radius: 999px;
+  padding: 0.5rem 1rem;
+  border-radius: 40px;
   background: transparent;
-  color: rgba(255,255,255,0.92);
-  font-family: var(--sb-font);
-  font-size: 0.75rem;
-  font-weight: 700;
+  border: 1px solid #e2e8f0;
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--sb-muted);
   cursor: pointer;
-  transition: background 0.15s, border-color 0.15s;
-  white-space: nowrap;
+  transition: all 0.2s;
 }
 
 .sb-btn-ghost:hover {
-  background: rgba(255,255,255,0.12);
-  border-color: rgba(255,255,255,0.70);
+  background: #f1f5f9;
+  border-color: #cbd5e1;
 }
 
-/* Orange primary button */
+/* Primary button – orange, solid */
 .sb-btn-primary {
   display: flex;
   align-items: center;
   gap: 0.3rem;
-  padding: 0.5rem 1.125rem;
-  border-radius: 999px;
+  padding: 0.5rem 1.25rem;
+  border-radius: 40px;
   border: none;
   background: var(--sb-orange);
-  color: #1a0f00;
-  font-family: var(--sb-font);
-  font-size: 0.8125rem;
-  font-weight: 800;
+  color: #1f1a0f;
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
   cursor: pointer;
-  transition: background 0.14s, transform 0.12s;
-  white-space: nowrap;
-  box-shadow: 0 2px 8px rgba(245, 166, 35, 0.40);
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 8px rgba(245, 166, 35, 0.25);
 }
 
-.sb-btn-primary:hover  { background: var(--sb-orange-h); }
-.sb-btn-primary:active { transform: scale(0.97); }
-.sb-btn-primary .material-symbols-sharp { font-size: 0.875rem; }
-
-/* ── RTL ─────────────────────────────────────────────────── */
-[dir='rtl'] .sb-cta-row   { justify-content: flex-start; }
-[dir='rtl'] .sb-equation  { flex-direction: row-reverse; }
-
-/* ── RESPONSIVE ──────────────────────────────────────────── */
-@media (max-width: 360px) {
-  .sb-card { padding: 0.875rem; }
-  .sb-btn-ghost { display: none; }
-  .sb-item__icon-wrap, .sb-item__bank-logo { width: 44px; height: 44px; }
+.sb-btn-primary:hover {
+  background: #e8961a;
+  transform: scale(0.98);
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .sb-btn-primary { transition: none; }
+.sb-btn-primary .material-symbols-sharp {
+  font-size: 1rem;
+}
+
+/* RTL adjustments */
+[dir='rtl'] .sb-cta-row {
+  justify-content: flex-start;
+}
+
+[dir='rtl'] .sb-equation {
+  flex-direction: row-reverse;
+}
+
+/* Responsive: smaller screens */
+@media (max-width: 560px) {
+  .sb-card {
+    padding: 1rem;
+  }
+
+  .sb-item__icon-wrap,
+  .sb-item__bank-logo {
+    width: 44px;
+    height: 44px;
+  }
+
+  .sb-item__title {
+    font-size: 0.75rem;
+  }
+
+  .sb-item__pct {
+    font-size: 0.9rem;
+  }
+
+  .sb-equation__pct {
+    font-size: 1.4rem;
+  }
+
+  .sb-btn-ghost {
+    display: none; /* hide ghost button on very small screens to save space */
+  }
 }
