@@ -6,8 +6,8 @@
   --accent-color: #470ae2;
   --text-primary: #0f041c;
   --text-secondary: #333;
-  --bg-primary: rgba(250, 249, 250, 0.95);
-  --bg-hover: rgba(250, 249, 250, 0.95);
+  --bg-primary: rgba(255, 255, 255, 0.95);
+  --bg-hover: rgba(255, 255, 255, 0.95);
   --border-color: #eee;
   --dropdown-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
   --dropdown-radius: 16px;
