@@ -2,166 +2,141 @@
 import StackCta from './StackCta';
 import './OfferStackBox.css';
 
-// Per-type visual tokens — drive both the item block and badge
-const TYPE_META = {
-  CODE: {
-    labelAr: 'كود خصم',
-    labelEn: 'Code',
-    icon:    'confirmation_number',
-    cls:     'type-code',
-  },
-  DEAL: {
-    labelAr: 'عرض',
-    labelEn: 'Deal',
-    icon:    'local_fire_department',
-    cls:     'type-deal',
-  },
-  BANK_OFFER: {
-    labelAr: 'عرض بنكي',
-    labelEn: 'Bank Offer',
-    icon:    'account_balance',
-    cls:     'type-bank',
-  },
+// ─── Type meta ──────────────────────────────────────────────
+const TYPE = {
+  CODE:       { cls: 'code', icon: 'confirmation_number', labelAr: 'كود', labelEn: 'Code'       },
+  DEAL:       { cls: 'deal', icon: 'local_fire_department', labelAr: 'عرض', labelEn: 'Deal'     },
+  BANK_OFFER: { cls: 'bank', icon: 'account_balance', labelAr: 'بنكي', labelEn: 'Bank'          },
 };
 
-// ── Store logo: white pill ─────────────────────────────────────────────────────
-function StoreLogo({ logo, name }) {
-  if (logo) {
-    return (
-      // eslint-disable-next-line @next/next/no-img-element
-      <img src={logo} alt={name || 'Store'} className="sb-store-logo" />
-    );
-  }
-  const initials = (name || 'S').split(/\s+/).slice(0, 2).map(w => w[0]).join('').toUpperCase();
-  return <div className="sb-store-logo-fallback">{initials}</div>;
-}
-
-// ── Bank logo inside item block ────────────────────────────────────────────────
-function BankLogo({ logo, name }) {
-  if (logo) {
-    return (
-      // eslint-disable-next-line @next/next/no-img-element
-      <img src={logo} alt={name || 'Bank'} className="sb-bank-logo" />
-    );
-  }
-  const initials = (name || 'B').split(/\s+/).slice(0, 2).map(w => w[0]).join('').toUpperCase();
-  return <div className="sb-bank-logo-fallback">{initials}</div>;
-}
-
-// ── Single offer item block ────────────────────────────────────────────────────
-function StackItem({ item, isAr }) {
-  const meta   = TYPE_META[item.itemType] || TYPE_META.DEAL;
-  const isBank = item.itemType === 'BANK_OFFER';
+// ─── Single offer tile ───────────────────────────────────────
+function OfferTile({ item, isAr }) {
+  const meta = TYPE[item.itemType] ?? TYPE.DEAL;
 
   return (
-    <div className={`sb-item ${meta.cls}`}>
+    <div className={`sb-item sb-item--${meta.cls}`}>
 
-      {/* Top row: icon badge + bank logo */}
-      <div className="sb-item-top">
-        <span className="sb-item-type-badge">
+      {/* Icon / bank logo */}
+      {item.itemType === 'BANK_OFFER' && item.bankLogo ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={item.bankLogo} alt={item.bankName || 'Bank'} className="sb-item__bank-logo" />
+      ) : (
+        <div className="sb-item__icon-wrap" aria-hidden="true">
           <span className="material-symbols-sharp">{meta.icon}</span>
-          {isAr ? meta.labelAr : meta.labelEn}
-        </span>
-        {isBank && <BankLogo logo={item.bankLogo} name={item.bankName} />}
-      </div>
-
-      {/* Discount number — the hero stat */}
-      {(item.discountPercent != null || item.discount) && (
-        <div className="sb-item-pct">
-          {item.discountPercent != null ? `${item.discountPercent}%` : item.discount}
         </div>
       )}
 
-      {/* Title */}
-      <p className="sb-item-title">{item.title}</p>
+      {/* Type badge */}
+      <span className="sb-item__badge">
+        {isAr ? meta.labelAr : meta.labelEn}
+      </span>
 
-      {/* Code pill — monospace, white dashed border */}
-      {item.code && (
-        <span className="sb-item-code">
-          <span className="material-symbols-sharp">confirmation_number</span>
-          {item.code}
+      {/* Title */}
+      <span className="sb-item__title">{item.title}</span>
+
+      {/* Percentage */}
+      {(item.discountPercent != null || item.discount) && (
+        <span className="sb-item__pct">
+          {item.discount || `${Math.round(item.discountPercent)}%`}
         </span>
+      )}
+
+      {/* Code pill */}
+      {item.code && (
+        <span className="sb-item__code">{item.code}</span>
       )}
     </div>
   );
 }
 
-// ── Card ───────────────────────────────────────────────────────────────────────
+// ─── Main component ──────────────────────────────────────────
 export default function OfferStackBox({ stack, locale }) {
   const lang = locale?.split('-')[0] || 'ar';
   const isAr = lang === 'ar';
 
   const { store, items, combinedSavingsPercent } = stack;
 
-  const codeItem = items.find(i => i.itemType === 'CODE');
-  const dealItem = items.find(i => i.itemType === 'DEAL');
-  const bankItem = items.find(i => i.itemType === 'BANK_OFFER');
-
-  const topLeft    = codeItem || dealItem;
-  const topRight   = codeItem && dealItem ? dealItem : null;
-  const hasTopPair = !!topRight;
-  const hasBottom  = !!bankItem;
-  const plusPos    = hasTopPair && !hasBottom ? 'horizontal' : 'vertical';
+  // Ordered: CODE → DEAL → BANK_OFFER
+  const ORDER = { CODE: 0, DEAL: 1, BANK_OFFER: 2 };
+  const ordered = [...items].sort((a, b) =>
+    (ORDER[a.itemType] ?? 9) - (ORDER[b.itemType] ?? 9)
+  );
 
   return (
-    <div className="sb-card" dir={isAr ? 'rtl' : 'ltr'}>
+    <article
+      className="sb-card"
+      dir={isAr ? 'rtl' : 'ltr'}
+      aria-label={`${store.name} — ${isAr ? 'عروض مدمجة' : 'stackable offers'}`}
+    >
+      {/* ── Row 1: Brand + "كيف؟" ── */}
+      <div className="sb-top">
+        <div className="sb-brand">
+          {store.logo ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={store.logo} alt={store.name} className="sb-brand__logo" />
+          ) : (
+            <span className="sb-brand__name">{store.name}</span>
+          )}
+        </div>
+        <button className="sb-more-btn" onClick={() => {}}>
+          {isAr ? 'كيف تستخدمها؟' : 'How to use'}
+          <span className="material-symbols-sharp">chevron_right</span>
+        </button>
+      </div>
 
-      {/* ── Dark header: store identity + savings badge ── */}
-      <div className="sb-header">
-        <div className="sb-store-row">
-          <StoreLogo logo={store.logo} name={store.name} />
-          <div className="sb-store-text">
-            <span className="sb-store-name">{store.name}</span>
-            <span className="sb-store-sub">
-              {isAr ? 'عروض قابلة للجمع' : 'Stackable offers'}
+      {/* ── Row 2: Headline ── */}
+      <div className="sb-headline">
+        <span className="sb-headline__sub">
+          {isAr ? 'عروض قابلة للدمج من' : 'Combo savings at'} {store.name}
+        </span>
+        <div className="sb-headline__main">
+          <span className="sb-headline__text">
+            {isAr ? 'وفّر حتى' : 'Save up to'}
+          </span>
+          <span className="sb-headline__amount">
+            {combinedSavingsPercent != null && combinedSavingsPercent > 0
+              ? `${combinedSavingsPercent}%`
+              : (isAr ? 'خصومات مدمجة' : 'stacked discounts')
+            }
+          </span>
+        </div>
+      </div>
+
+      {/* ── Row 3: White card with offer tiles ── */}
+      <div className="sb-items-card">
+        {ordered.map((item, idx) => (
+          <div key={idx} style={{ display: 'contents' }}>
+            {idx > 0 && <div className="sb-plus">+</div>}
+            <OfferTile item={item} isAr={isAr} />
+          </div>
+        ))}
+      </div>
+
+      {/* ── Row 4: Savings equation ── */}
+      <div className="sb-equation">
+        <span className="sb-equation__eq">=</span>
+        {combinedSavingsPercent != null && combinedSavingsPercent > 0 ? (
+          <>
+            <span className="sb-equation__pct">
+              {combinedSavingsPercent}<sup>%</sup>
             </span>
-          </div>
-        </div>
-
-        {combinedSavingsPercent != null && combinedSavingsPercent > 0 && (
-          <div className="sb-savings-badge">
-            <span className="sb-savings-pct">{combinedSavingsPercent}%</span>
-            <span className="sb-savings-label">{isAr ? 'توفير' : 'off'}</span>
-          </div>
+            <span className="sb-equation__label">
+              {isAr ? 'توفير إجمالي' : 'total savings'}
+            </span>
+          </>
+        ) : (
+          <span className="sb-equation__label" style={{ fontSize: '0.875rem', color: 'rgba(255,255,255,0.75)', paddingBottom: 0 }}>
+            {isAr ? 'خصومات متعددة مدمجة' : 'multiple discounts stacked'}
+          </span>
         )}
       </div>
 
-      {/* ── Item blocks grid ── */}
-      <div className={[
-        'sb-grid',
-        hasTopPair ? 'has-top-pair' : '',
-        hasBottom  ? 'has-bottom'   : '',
-      ].filter(Boolean).join(' ')}>
-
-        {topLeft && (
-          <div className="sb-grid-div1">
-            <StackItem item={topLeft} isAr={isAr} />
-          </div>
-        )}
-
-        {topRight && (
-          <div className="sb-grid-div2">
-            <StackItem item={topRight} isAr={isAr} />
-          </div>
-        )}
-
-        {bankItem && (
-          <div className="sb-grid-div3">
-            <StackItem item={bankItem} isAr={isAr} />
-          </div>
-        )}
-
-        {/* "+" connector */}
-        <div className={`sb-plus sb-plus--${plusPos}`} aria-hidden="true">
-          <span>+</span>
-        </div>
-      </div>
-
-      {/* ── CTA ── */}
-      <div className="sb-cta-wrap">
+      {/* ── Row 5: CTA buttons ── */}
+      {/* StackCta is 'use client' — it renders both the ghost + orange button
+          so both share the same modal open state */}
+      <div className="sb-cta-row">
         <StackCta stack={stack} locale={locale} />
       </div>
-
-    </div>
+    </article>
   );
 }
