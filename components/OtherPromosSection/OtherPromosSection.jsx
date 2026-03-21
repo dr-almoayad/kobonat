@@ -7,21 +7,21 @@ import './other-promos.css';
 
 // ─── Type metadata ─────────────────────────────────────────────
 const TYPE_META = {
-  BANK_OFFER:    { icon: 'account_balance', labelAr: 'عرض بنكي',      labelEn: 'Bank Offer',    gradient: 'linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%)' },
-  CARD_OFFER:    { icon: 'credit_card',     labelAr: 'عرض بطاقة',     labelEn: 'Card Offer',    gradient: 'linear-gradient(135deg, #059669 0%, #047857 100%)' },
-  PAYMENT_OFFER: { icon: 'payments',        labelAr: 'عرض دفع',       labelEn: 'Payment Offer', gradient: 'linear-gradient(135deg, #470ae2 0%, #3730a3 100%)' },
-  SEASONAL:      { icon: 'celebration',     labelAr: 'عرض موسمي',     labelEn: 'Seasonal',      gradient: 'linear-gradient(135deg, #b45309 0%, #92400e 100%)' },
-  BUNDLE:        { icon: 'redeem',          labelAr: 'حزمة عروض',     labelEn: 'Bundle',        gradient: 'linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)' },
-  OTHER:         { icon: 'local_offer',     labelAr: 'عرض خاص',       labelEn: 'Special Offer', gradient: 'linear-gradient(135deg, #475569 0%, #334155 100%)' },
+  BANK_OFFER:    { icon: 'account_balance', labelAr: 'عرض بنكي',   labelEn: 'Bank Offer',    accent: '#1d4ed8' },
+  CARD_OFFER:    { icon: 'credit_card',     labelAr: 'عرض بطاقة',  labelEn: 'Card Offer',    accent: '#059669' },
+  PAYMENT_OFFER: { icon: 'payments',        labelAr: 'عرض دفع',    labelEn: 'Payment Offer', accent: '#470ae2' },
+  SEASONAL:      { icon: 'celebration',     labelAr: 'عرض موسمي',  labelEn: 'Seasonal',      accent: '#b45309' },
+  BUNDLE:        { icon: 'redeem',          labelAr: 'حزمة عروض',  labelEn: 'Bundle',        accent: '#dc2626' },
+  OTHER:         { icon: 'local_offer',     labelAr: 'عرض خاص',    labelEn: 'Special Offer', accent: '#475569' },
 };
 
 // ─── Helpers ───────────────────────────────────────────────────
 function formatExpiry(date, locale, isAr) {
   const d    = new Date(date);
   const diff = Math.ceil((d - Date.now()) / 86_400_000);
-  if (diff <  0)  return isAr ? 'منتهي'                    : 'Expired';
-  if (diff === 0) return isAr ? 'ينتهي اليوم'              : 'Expires today';
-  if (diff <= 3)  return isAr ? `ينتهي خلال ${diff} أيام`  : `${diff} days left`;
+  if (diff <  0)  return isAr ? 'منتهي'                   : 'Expired';
+  if (diff === 0) return isAr ? 'ينتهي اليوم'             : 'Expires today';
+  if (diff <= 3)  return isAr ? `ينتهي خلال ${diff} أيام` : `${diff} days left`;
   return d.toLocaleDateString(locale, { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
@@ -31,9 +31,8 @@ function isUrgent(date) {
 }
 
 /**
- * Resolve the secondary logo to display alongside the store logo.
- * Priority: paymentMethod → bank → card image
- * Returns { logo, name, isBnpl }
+ * Resolve the secondary logo (bank / payment method / card).
+ * Returns { logo, name, isBnpl } or null.
  */
 function resolveSecondary(promo) {
   if (promo.paymentMethod?.logo) {
@@ -83,60 +82,61 @@ function PromoModal({ promo, storeName, storeLogo, isAr, locale, onClose }) {
     >
       <div className="opm-sheet" role="dialog" aria-modal="true">
 
-        {/* ── Gradient hero ── */}
-        <div className="opm-hero" style={{ background: meta.gradient }}>
-          <button className="opm-close" onClick={onClose} aria-label={isAr ? 'إغلاق' : 'Close'}>
-            <span className="material-symbols-sharp">close</span>
-          </button>
-
-          {/* Overlapping logos */}
-          <div className="opm-hero__logos">
-            {storeLogo && (
-              <div className="opm-logo opm-logo--store">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={storeLogo} alt={storeName || ''} />
-              </div>
-            )}
-            {secondary?.logo && (
-              <div className="opm-logo opm-logo--secondary">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={secondary.logo} alt={secondary.name || ''} />
-              </div>
-            )}
+        {/* ── Image hero ── */}
+        {promo.image ? (
+          <div className="opm-hero opm-hero--image">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={promo.image} alt={promo.title} className="opm-hero__img" />
+            <div className="opm-hero__img-overlay" />
+            <button className="opm-close" onClick={onClose} aria-label={isAr ? 'إغلاق' : 'Close'}>
+              <span className="material-symbols-sharp">close</span>
+            </button>
+            <div className="opm-hero__badge" style={{ '--_accent': meta.accent }}>
+              <span className="material-symbols-sharp">{meta.icon}</span>
+              {typeLabel}
+            </div>
           </div>
-
-          <div className="opm-hero__badge">
-            <span className="material-symbols-sharp">{meta.icon}</span>
-            {typeLabel}
+        ) : (
+          <div className="opm-hero opm-hero--plain" style={{ '--_accent': meta.accent }}>
+            <button className="opm-close opm-close--dark" onClick={onClose} aria-label={isAr ? 'إغلاق' : 'Close'}>
+              <span className="material-symbols-sharp">close</span>
+            </button>
+            <div className="opm-hero__badge opm-hero__badge--plain" style={{ '--_accent': meta.accent }}>
+              <span className="material-symbols-sharp">{meta.icon}</span>
+              {typeLabel}
+            </div>
+            <h2 className="opm-hero__title--plain">{promo.title}</h2>
           </div>
+        )}
 
-          <h2 className="opm-hero__title">{promo.title}</h2>
-
-          {(storeName || secondary?.name) && (
-            <div className="opm-hero__partners">
-              {storeName && <span>{storeName}</span>}
-              {storeName && secondary?.name && <span className="opm-hero__dot" />}
-              {secondary?.name && (
-                <span>
-                  {secondary.name}
-                  {secondary.isBnpl && (
-                    <span className="opm-bnpl-tag">{isAr ? 'تقسيط' : 'BNPL'}</span>
-                  )}
-                </span>
+        {/* ── Sheet header: logos + title ── */}
+        <div className="opm-sheet-header">
+          {/* Logos — bare, no background, no border */}
+          {(storeLogo || secondary?.logo) && (
+            <div className="opm-sheet-logos">
+              {storeLogo && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={storeLogo} alt={storeName || ''} className="opm-sheet-logo" />
+              )}
+              {secondary?.logo && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={secondary.logo} alt={secondary.name || ''} className="opm-sheet-logo" />
               )}
             </div>
           )}
-        </div>
-
-        {/* ── Scrollable body ── */}
-        <div className="opm-body">
-
+          {promo.image && (
+            <h2 className="opm-sheet-title">{promo.title}</h2>
+          )}
           {promo.expiryDate && (
             <div className={`opm-expiry${urgent ? ' opm-expiry--urgent' : ''}`}>
               <span className="material-symbols-sharp">schedule</span>
               {formatExpiry(promo.expiryDate, locale, isAr)}
             </div>
           )}
+        </div>
+
+        {/* ── Scrollable body ── */}
+        <div className="opm-body">
 
           {/* Description */}
           {promo.description && (
@@ -149,7 +149,7 @@ function PromoModal({ promo, storeName, storeLogo, isAr, locale, onClose }) {
             </div>
           )}
 
-          {/* Payment method detail (Visa/Mastercard/Tabby/Tamara…) */}
+          {/* Payment method */}
           {promo.paymentMethod && (
             <div className="opm-section">
               <h3 className="opm-section__label">
@@ -159,7 +159,7 @@ function PromoModal({ promo, storeName, storeLogo, isAr, locale, onClose }) {
               <div className="opm-entity-row">
                 {promo.paymentMethod.logo && (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={promo.paymentMethod.logo} alt={promo.paymentMethod.name} className="opm-entity-row__logo" />
+                  <img src={promo.paymentMethod.logo} alt={promo.paymentMethod.name} className="opm-entity-logo" />
                 )}
                 <div className="opm-entity-row__info">
                   <span className="opm-entity-row__name">{promo.paymentMethod.name}</span>
@@ -174,7 +174,7 @@ function PromoModal({ promo, storeName, storeLogo, isAr, locale, onClose }) {
             </div>
           )}
 
-          {/* Bank detail */}
+          {/* Bank */}
           {promo.bank && (
             <div className="opm-section">
               <h3 className="opm-section__label">
@@ -184,14 +184,14 @@ function PromoModal({ promo, storeName, storeLogo, isAr, locale, onClose }) {
               <div className="opm-entity-row">
                 {promo.bank.logo && (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={promo.bank.logo} alt={promo.bank.name} className="opm-entity-row__logo" />
+                  <img src={promo.bank.logo} alt={promo.bank.name} className="opm-entity-logo" />
                 )}
                 <span className="opm-entity-row__name">{promo.bank.name}</span>
               </div>
             </div>
           )}
 
-          {/* Card detail */}
+          {/* Card */}
           {promo.card && (
             <div className="opm-section">
               <h3 className="opm-section__label">
@@ -201,7 +201,7 @@ function PromoModal({ promo, storeName, storeLogo, isAr, locale, onClose }) {
               <div className="opm-entity-row">
                 {promo.card.image && (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={promo.card.image} alt={promo.card.name} className="opm-entity-row__card-img" />
+                  <img src={promo.card.image} alt={promo.card.name} className="opm-entity-card-img" />
                 )}
                 <div className="opm-entity-row__info">
                   <span className="opm-entity-row__name">{promo.card.name}</span>
@@ -286,6 +286,7 @@ function PromoCard({ promo, storeName, storeLogo, isAr, locale, onClick }) {
   return (
     <article
       className={`op-card op-card--${promo.type.toLowerCase().replace(/_/g, '-')}`}
+      style={{ '--_accent': meta.accent }}
       onClick={onClick}
       role="button"
       tabIndex={0}
@@ -294,45 +295,41 @@ function PromoCard({ promo, storeName, storeLogo, isAr, locale, onClick }) {
       itemScope
       itemType="https://schema.org/Offer"
     >
-      {/* ── Gradient header ── */}
-      <div className="op-card__header" style={{ background: meta.gradient }}>
-
+      {/* ── Image area ── */}
+      <div className="op-card__image-wrap">
+        {promo.image ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={promo.image} alt={promo.title} className="op-card__image" loading="lazy" />
+        ) : (
+          <div className="op-card__image-placeholder" />
+        )}
+        {/* Type badge overlaid on image */}
         <span className="op-card__type-badge">
           <span className="material-symbols-sharp">{meta.icon}</span>
           {typeLabel}
         </span>
-
-        {/* Overlapping logos + partner names */}
-        <div className="op-card__logos">
-          {storeLogo && (
-            <div className="op-logo op-logo--store">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={storeLogo} alt={storeName || ''} />
-            </div>
-          )}
-          {secondary?.logo && (
-            <div className="op-logo op-logo--secondary">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={secondary.logo} alt={secondary.name || ''} />
-            </div>
-          )}
-          {(storeName || secondary?.name) && (
-            <div className="op-logo__names">
-              {storeName && <span>{storeName}</span>}
-              {storeName && secondary?.name && <span className="op-logo__sep">×</span>}
-              {secondary?.name && (
-                <span>
-                  {secondary.name}
-                  {secondary.isBnpl && <span className="op-bnpl-pip">{isAr ? 'تقسيط' : 'BNPL'}</span>}
-                </span>
-              )}
-            </div>
-          )}
-        </div>
       </div>
 
-      {/* ── White body ── */}
+      {/* ── Card body ── */}
       <div className="op-card__body">
+
+        {/* Logos row — bare, no background, no border */}
+        {(storeLogo || secondary?.logo) && (
+          <div className="op-card__logos">
+            {storeLogo && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={storeLogo} alt={storeName || ''} className="op-logo-bare" />
+            )}
+            {secondary?.logo && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={secondary.logo} alt={secondary.name || ''} className="op-logo-bare" />
+            )}
+            {secondary?.isBnpl && (
+              <span className="op-bnpl-pip">{isAr ? 'تقسيط' : 'BNPL'}</span>
+            )}
+          </div>
+        )}
+
         <h3 className="op-card__title" itemProp="name">{promo.title}</h3>
 
         {promo.voucherCode && (
