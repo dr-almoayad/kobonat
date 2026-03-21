@@ -210,15 +210,6 @@ export default function StackCta({ stack, locale }) {
   return (
     <>
       <button
-        className="os-btn os-btn--ghost"
-        onClick={() => setOpen(true)}
-        aria-label={isAr ? 'كيف تعمل العروض المدمجة؟' : 'How do stacked offers work?'}
-      >
-        <span className="material-symbols-sharp">help_outline</span>
-        {isAr ? 'كيف تعمل؟' : 'How it works'}
-      </button>
-
-      <button
         className="os-btn os-btn--primary"
         onClick={() => setOpen(true)}
         aria-label={isAr ? 'استخدم العروض المدمجة' : 'Apply stacked offers'}
