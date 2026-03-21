@@ -1,367 +1,267 @@
-/* components/OfferStackBox/OfferStackBox.css
-   ─────────────────────────────────────────────────────────────
-   Fresh, professional card design
-   White/light gradient background, subtle depth, minimal ornaments
-   ───────────────────────────────────────────────────────────── */
+/* =========================================
+   OfferStackBox.css
+   ========================================= */
+
+:root {
+  --sb-primary: #4f46e5;      /* Indigo */
+  --sb-primary-dark: #4338ca;
+  --sb-accent: #f97316;       /* Orange */
+  --sb-accent-hover: #ea580c;
+  --sb-bg-gradient: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
+  --sb-text-light: #ffffff;
+  --sb-text-muted: #c7d2fe;
+  --sb-card-radius: 16px;
+  --sb-transition: all 0.2s ease-in-out;
+}
 
 .sb-card {
-  --sb-primary: #3a7bc8;      /* blue accent */
-  --sb-orange:  #f5a623;      /* orange accent for primary CTA */
-  --sb-text:    #1f2937;
-  --sb-muted:   #6b7280;
-  --sb-border-light: #eef2f6;
-
-  font-family: 'Alexandria', 'Segoe UI', system-ui, sans-serif;
-  background: linear-gradient(145deg, #ffffff 0%, #fefefe 100%);
-  border-radius: 28px;
-  box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.02);
+  background: var(--sb-bg-gradient);
+  color: var(--sb-text-light);
+  border-radius: var(--sb-card-radius);
   padding: 1.5rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  font-family: system-ui, -apple-system, sans-serif;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  max-width: 480px;
+  width: 100%;
+  position: relative;
+  overflow: hidden;
 }
 
-.sb-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 28px 40px -16px rgba(0, 0, 0, 0.12);
-}
-
-/* ── Top row: store + "stackable offers" badge ── */
+/* Row 1: Top */
 .sb-top {
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  gap: 0.5rem;
-}
-
-.sb-brand {
-  display: flex;
   align-items: center;
-  gap: 0.5rem;
+  margin-bottom: 1rem;
 }
 
-/* Store logo – no background, no border, original colours */
 .sb-brand__logo {
   height: 32px;
-  max-width: 100px;
+  width: auto;
   object-fit: contain;
-  filter: none;       /* keep original colours */
-  background: none;
-  border: none;
+  background: #fff;
+  padding: 4px 8px;
+  border-radius: 6px;
 }
 
 .sb-brand__name {
-  font-size: 1rem;
   font-weight: 700;
-  color: var(--sb-text);
-  letter-spacing: -0.2px;
+  font-size: 1.125rem;
+  letter-spacing: -0.01em;
 }
 
 .sb-more-label {
-  font-size: 0.7rem;
+  background: rgba(255, 255, 255, 0.15);
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.75rem;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
-  background: rgba(58, 123, 200, 0.08);
-  padding: 0.25rem 0.75rem;
-  border-radius: 30px;
-  color: var(--sb-primary);
+  letter-spacing: 0.05em;
+  backdrop-filter: blur(4px);
 }
 
-/* ── Headline: "Save up to X%" ── */
+/* Row 2: Headline */
 .sb-headline {
-  display: flex;
-  flex-direction: column;
-  gap: 0.2rem;
+  margin-bottom: 1.5rem;
 }
 
 .sb-headline__sub {
-  font-size: 0.8rem;
-  font-weight: 500;
-  color: var(--sb-muted);
-  letter-spacing: -0.2px;
+  display: block;
+  font-size: 0.875rem;
+  color: var(--sb-text-muted);
+  margin-bottom: 0.25rem;
 }
 
 .sb-headline__main {
   display: flex;
   align-items: baseline;
-  gap: 0.4rem;
-  flex-wrap: wrap;
+  gap: 0.5rem;
 }
 
 .sb-headline__text {
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: var(--sb-text);
+  font-size: 1.5rem;
+  font-weight: 500;
 }
 
 .sb-headline__amount {
-  font-size: 2rem;
+  font-size: 2.5rem;
   font-weight: 800;
-  color: var(--sb-primary);
+  color: #fff;
   line-height: 1;
+  text-shadow: 0 2px 10px rgba(0,0,0,0.2);
 }
 
-/* ── Offer items row (white card inner) ── */
+/* Row 3: Items Card (The White Box) */
 .sb-items-card {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 1rem;
   display: flex;
-  align-items: stretch;
-  justify-content: space-between;
-  gap: 0.25rem;
-  background: transparent;   /* no extra background */
-  padding: 0.5rem 0;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: nowrap;
+  gap: 0.5rem;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+  margin-bottom: 1.25rem;
+  overflow-x: auto; /* In case of many offers */
 }
 
-/* Each offer tile – minimal design */
+.sb-plus {
+  color: #9ca3af;
+  font-weight: 700;
+  font-size: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Individual Tiles */
 .sb-item {
-  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.5rem;
   text-align: center;
-  min-width: 0;
+  padding: 0.75rem 0.5rem;
+  border-radius: 8px;
+  min-width: 80px;
+  flex: 1;
+  transition: var(--sb-transition);
 }
 
-/* Icon / bank logo – no borders, no backgrounds */
-.sb-item__icon-wrap {
-  width: 56px;
-  height: 56px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: transparent;    /* no background */
-  border: none;
+.sb-item:hover {
+  transform: translateY(-2px);
 }
 
-.sb-item__icon-wrap .material-symbols-sharp {
-  font-size: 2rem;
-  font-variation-settings: 'FILL' 1;
-  color: var(--sb-primary);
+/* Tile Colors based on type */
+.sb-item--code { background: #eff6ff; color: #1e3a8a; }
+.sb-item--deal { background: #fff7ed; color: #9a3412; }
+.sb-item--bank { background: #f0fdf4; color: #14532d; }
+
+.sb-item__icon-wrap span {
+  font-size: 1.5rem;
+  margin-bottom: 0.25rem;
+  opacity: 0.9;
 }
 
-.sb-item--deal .sb-item__icon-wrap .material-symbols-sharp {
-  color: #15803d;
-}
-
-.sb-item--bank .sb-item__icon-wrap .material-symbols-sharp {
-  color: #a16207;
-}
-
-/* Bank logo – original colours, no container background */
 .sb-item__bank-logo {
-  width: 56px;
-  height: 56px;
+  height: 24px;
+  width: auto;
+  margin-bottom: 0.5rem;
   object-fit: contain;
-  background: transparent;
-  border: none;
 }
 
-/* Badge (Code / Deal / Bank) – subtle */
 .sb-item__badge {
   font-size: 0.65rem;
-  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.03em;
-  padding: 0.15rem 0.6rem;
-  border-radius: 20px;
+  font-weight: 700;
+  opacity: 0.7;
+  margin-bottom: 0.25rem;
 }
 
-.sb-item--code .sb-item__badge {
-  background: rgba(58, 123, 200, 0.1);
-  color: #1e40af;
-}
-.sb-item--deal .sb-item__badge {
-  background: rgba(21, 128, 61, 0.1);
-  color: #166534;
-}
-.sb-item--bank .sb-item__badge {
-  background: rgba(161, 98, 7, 0.1);
-  color: #b45309;
-}
-
-/* Offer title */
 .sb-item__title {
-  font-size: 0.85rem;
+  font-size: 0.75rem;
   font-weight: 600;
-  color: var(--sb-text);
-  line-height: 1.3;
-  max-width: 100%;
-}
-
-/* Percentage / discount */
-.sb-item__pct {
-  font-size: 1.1rem;
-  font-weight: 800;
-  letter-spacing: -0.3px;
-}
-
-.sb-item--code .sb-item__pct { color: #1e40af; }
-.sb-item--deal .sb-item__pct { color: #166534; }
-.sb-item--bank .sb-item__pct { color: #b45309; }
-
-/* Code pill – only if code exists */
-.sb-item__code {
-  font-family: 'Courier New', monospace;
-  font-size: 0.7rem;
-  font-weight: 600;
-  background: rgba(0, 0, 0, 0.05);
-  padding: 0.2rem 0.5rem;
-  border-radius: 30px;
-  color: var(--sb-primary);
-  max-width: 100%;
+  line-height: 1.2;
+  margin-bottom: 0.25rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
-/* Plus connector – subtle */
-.sb-plus {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: #f3f4f6;
+.sb-item__pct {
+  font-size: 1.125rem;
+  font-weight: 800;
+}
+
+.sb-item__code {
+  margin-top: 0.5rem;
+  background: rgba(0,0,0,0.06);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+}
+
+/* Row 4: Equation */
+.sb-equation {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.9rem;
-  font-weight: 700;
-  color: var(--sb-muted);
-  align-self: center;
-  flex-shrink: 0;
-}
-
-/* ── Savings equation (total) ── */
-.sb-equation {
-  display: flex;
-  align-items: baseline;
   gap: 0.5rem;
-  background: #f8fafc;
-  padding: 0.75rem 1rem;
-  border-radius: 60px;
-  margin-top: 0.25rem;
+  margin-bottom: 1.5rem;
+  background: rgba(0,0,0,0.2);
+  padding: 0.5rem;
+  border-radius: 8px;
 }
 
 .sb-equation__eq {
-  font-size: 1rem;
   font-weight: 700;
-  color: var(--sb-muted);
+  color: var(--sb-accent);
 }
 
 .sb-equation__pct {
-  font-size: 1.8rem;
-  font-weight: 800;
-  color: var(--sb-primary);
-  line-height: 1;
+  font-size: 1.25rem;
+  font-weight: 700;
 }
 
 .sb-equation__pct sup {
-  font-size: 0.9rem;
-  font-weight: 600;
-  top: -0.2em;
+  font-size: 0.75rem;
 }
 
 .sb-equation__label {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--sb-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
+  font-size: 0.875rem;
+  color: var(--sb-text-muted);
 }
 
-/* ── CTA row ── */
+/* Row 5: CTA Buttons */
 .sb-cta-row {
   display: flex;
-  align-items: center;
-  justify-content: flex-end;
   gap: 0.75rem;
-  margin-top: 0.5rem;
 }
 
-/* Ghost button – subtle outline */
-.sb-btn-ghost {
+.sb-btn-ghost, .sb-btn-primary {
   display: flex;
   align-items: center;
-  gap: 0.25rem;
-  padding: 0.5rem 1rem;
-  border-radius: 40px;
-  background: transparent;
-  border: 1px solid #e2e8f0;
-  font-family: inherit;
-  font-size: 0.8rem;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  font-size: 0.95rem;
   font-weight: 600;
-  color: var(--sb-muted);
   cursor: pointer;
-  transition: all 0.2s;
+  transition: var(--sb-transition);
+  flex: 1;
+  font-family: inherit;
+}
+
+.sb-btn-ghost {
+  background: transparent;
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.4);
 }
 
 .sb-btn-ghost:hover {
-  background: #f1f5f9;
-  border-color: #cbd5e1;
+  background: rgba(255, 255, 255, 0.1);
+  border-color: #fff;
 }
 
-/* Primary button – orange, solid */
 .sb-btn-primary {
-  display: flex;
-  align-items: center;
-  gap: 0.3rem;
-  padding: 0.5rem 1.25rem;
-  border-radius: 40px;
+  background: var(--sb-accent);
+  color: #fff;
   border: none;
-  background: var(--sb-orange);
-  color: #1f1a0f;
-  font-family: inherit;
-  font-size: 0.85rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 4px 8px rgba(245, 166, 35, 0.25);
+  box-shadow: 0 4px 6px rgba(249, 115, 22, 0.25);
 }
 
 .sb-btn-primary:hover {
-  background: #e8961a;
-  transform: scale(0.98);
+  background: var(--sb-accent-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 12px rgba(249, 115, 22, 0.3);
 }
 
-.sb-btn-primary .material-symbols-sharp {
-  font-size: 1rem;
-}
-
-/* RTL adjustments */
-[dir='rtl'] .sb-cta-row {
-  justify-content: flex-start;
-}
-
-[dir='rtl'] .sb-equation {
-  flex-direction: row-reverse;
-}
-
-/* Responsive: smaller screens */
-@media (max-width: 560px) {
-  .sb-card {
-    padding: 1rem;
-  }
-
-  .sb-item__icon-wrap,
-  .sb-item__bank-logo {
-    width: 44px;
-    height: 44px;
-  }
-
-  .sb-item__title {
-    font-size: 0.75rem;
-  }
-
-  .sb-item__pct {
-    font-size: 0.9rem;
-  }
-
-  .sb-equation__pct {
-    font-size: 1.4rem;
-  }
-
-  .sb-btn-ghost {
-    display: none; /* hide ghost button on very small screens to save space */
-  }
+.sb-btn-primary span {
+  font-size: 1.25rem;
 }
