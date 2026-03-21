@@ -342,10 +342,10 @@
 }
 
 .os-tile__badge {
-  font-size: 0.52rem;
-  font-weight: 900;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+	font-size: .5rem;
+    font-weight: 700;
+    letter-spacing: .12em;
+    text-transform: uppercase;
 }
 
 .os-tile--code .os-tile__badge { color: var(--os-code-blue); }
@@ -353,8 +353,8 @@
 .os-tile--bank .os-tile__badge { color: var(--os-bank-green); }
 
 .os-tile__title {
-  font-size: 0.82rem;
-  font-weight: 700;
+  font-size: 0.75rem;
+  font-weight: 500;
   color: var(--os-body);
   line-height: 1.3;
   white-space: nowrap;
