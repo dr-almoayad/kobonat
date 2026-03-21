@@ -35,8 +35,10 @@
 
 .offer-stacks-header-content h2 .material-symbols-sharp {
   color: #fff;
-  font-size: 1.5rem;
+  font-size: 1.6rem;
   font-variation-settings: 'FILL' 1;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 0 #ff1f8f, 2px 2px #000;
 }
 
 .offer-stacks-header-content p {
