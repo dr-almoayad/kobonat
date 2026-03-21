@@ -1,8 +1,8 @@
 /* components/OtherPromosSection/other-promos.css
    ─────────────────────────────────────────────────────────────
-   Design: Compact clickable card with gradient header + modal
-   Palette: per-type gradient headers · #470ae2 accent
-   Font: Alexandria throughout (matches site)
+   Design: image-led card · logos bare in body · modal matches
+   Palette: per-type accent via CSS var · #470ae2 primary action
+   Font: Alexandria throughout
    ───────────────────────────────────────────────────────────── */
 
 /* ══ SECTION WRAPPER ══════════════════════════════════════════ */
@@ -71,7 +71,8 @@
 /* ══ CARD ═════════════════════════════════════════════════════ */
 
 .op-card {
-  border-radius: 16px;
+  --_accent: #470ae2;
+  border-radius: 12px;
   border: 1px solid #e5e7eb;
   background: #fff;
   overflow: hidden;
@@ -80,152 +81,116 @@
   flex-direction: column;
   transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
   outline: none;
-  --_accent: #470ae2;
-  --_gradient: linear-gradient(135deg, #470ae2 0%, #3730a3 100%);
 }
 
 .op-card:hover,
 .op-card:focus-visible {
   transform: translateY(-3px);
   box-shadow: 0 8px 28px rgba(0, 0, 0, 0.10), 0 2px 8px rgba(0, 0, 0, 0.06);
-  border-color: color-mix(in srgb, var(--_accent) 35%, transparent);
+  border-color: color-mix(in srgb, var(--_accent) 30%, transparent);
 }
 
 .op-card:active { transform: translateY(-1px); }
 
-/* Per-type accent tokens */
-.op-card--bank-offer    { --_accent: #1d4ed8; --_gradient: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%); }
-.op-card--card-offer    { --_accent: #059669; --_gradient: linear-gradient(135deg, #059669 0%, #047857 100%); }
-.op-card--payment-offer { --_accent: #470ae2; --_gradient: linear-gradient(135deg, #470ae2 0%, #3730a3 100%); }
-.op-card--seasonal      { --_accent: #b45309; --_gradient: linear-gradient(135deg, #b45309 0%, #92400e 100%); }
-.op-card--bundle        { --_accent: #dc2626; --_gradient: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); }
-.op-card--other         { --_accent: #475569; --_gradient: linear-gradient(135deg, #475569 0%, #334155 100%); }
-
-
-/* ── Card: coloured header band ─────────────────────────────── */
-.op-card__header {
+/* ── Image area ──────────────────────────────────────────────── */
+.op-card__image-wrap {
   position: relative;
-  background: var(--_gradient);
-  padding: 1.125rem 1.125rem 0.875rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.875rem;
+  width: 100%;
+  aspect-ratio: 16 / 9;
   overflow: hidden;
-  min-height: 118px;
+  background: #f1f5f9;
+  flex-shrink: 0;
 }
 
-/* subtle texture overlay */
-.op-card__header::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background-image:
-    radial-gradient(ellipse 120% 80% at 110% -10%, rgba(255,255,255,0.12) 0%, transparent 60%),
-    radial-gradient(ellipse 60% 100% at -10% 110%, rgba(0,0,0,0.08) 0%, transparent 60%);
-  pointer-events: none;
+.op-card__image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.3s ease;
 }
 
-/* ── Type badge ──────────────────────────────────────────────── */
+.op-card:hover .op-card__image {
+  transform: scale(1.03);
+}
+
+/* Placeholder when no image */
+.op-card__image-placeholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+}
+
+/* Type badge — bottom-start of image */
 .op-card__type-badge {
+  position: absolute;
+  bottom: 0.625rem;
+  inset-inline-start: 0.625rem;
   display: inline-flex;
   align-items: center;
   gap: 0.3rem;
-  background: rgba(255, 255, 255, 0.18);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: var(--_accent);
   color: #fff;
-  font-size: 0.62rem;
+  font-size: 0.58rem;
   font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   padding: 0.22rem 0.55rem;
   border-radius: 5px;
-  width: fit-content;
-  position: relative;
   z-index: 1;
 }
 
 .op-card__type-badge .material-symbols-sharp {
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   font-variation-settings: 'FILL' 1;
 }
 
-/* ── Logo cluster ────────────────────────────────────────────── */
-.op-card__logos {
-  display: flex;
-  align-items: center;
-  position: relative;
-  z-index: 1;
-}
-
-.op-logo {
-  width: 44px;
-  height: 44px;
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.95);
-  border: 2px solid rgba(255, 255, 255, 0.6);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.op-logo img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  padding: 5px;
-}
-
-/* Payment/bank logo overlaps the store logo */
-.op-logo--payment {
-  width: 34px;
-  height: 34px;
-  border-radius: 8px;
-  margin-inline-start: -10px;
-  margin-block-end: -8px;
-}
-
-/* Partner name labels */
-.op-logo__names {
-  margin-inline-start: 0.625rem;
-  display: flex;
-  align-items: center;
-  gap: 0.3rem;
-  flex-wrap: wrap;
-}
-
-.op-logo__names span {
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: rgba(255, 255, 255, 0.92);
-  line-height: 1.2;
-}
-
-.op-logo__sep {
-  opacity: 0.6;
-  font-size: 0.65rem !important;
-}
-
-
-/* ── Card: white body ────────────────────────────────────────── */
+/* ── Card body ───────────────────────────────────────────────── */
 .op-card__body {
-  padding: 1rem 1.125rem 1.125rem;
+  padding: 0.875rem 1rem 1rem;
   display: flex;
   flex-direction: column;
-  gap: 0.625rem;
+  gap: 0.5rem;
   flex: 1;
 }
 
+/* Logos row — bare images, no background, no border */
+.op-card__logos {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+/* Bare logo — just the image, full colour, no decoration */
+.op-logo-bare {
+  height: 22px;
+  max-width: 72px;
+  object-fit: contain;
+  display: block;
+  flex-shrink: 0;
+}
+
+.op-bnpl-pip {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.56rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.1rem 0.35rem;
+  border-radius: 3px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+}
+
 .op-card__title {
-  font-size: 0.9rem;
-  font-weight: 700;
+  font-size: 0.875rem;
+  font-weight: 600;
   color: #0f172a;
   margin: 0;
-  line-height: 1.35;
+  line-height: 1.4;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -237,12 +202,12 @@
   display: inline-flex;
   align-items: center;
   gap: 0.3rem;
-  background: #f3f0ff;
-  border: 1px dashed color-mix(in srgb, var(--_accent) 50%, transparent);
-  border-radius: 6px;
-  padding: 0.3rem 0.65rem;
+  background: #f5f3ff;
+  border: 1px dashed color-mix(in srgb, var(--_accent) 45%, transparent);
+  border-radius: 5px;
+  padding: 0.25rem 0.6rem;
   font-family: 'Courier New', monospace;
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   font-weight: 800;
   letter-spacing: 0.1em;
   color: var(--_accent);
@@ -250,51 +215,51 @@
 }
 
 .op-card__code-preview .material-symbols-sharp {
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   font-variation-settings: 'FILL' 1;
   color: var(--_accent);
 }
 
-/* Footer row: expiry + "view details" hint */
+/* Footer row */
 .op-card__footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-top: auto;
-  padding-top: 0.625rem;
-  border-top: 1px solid #f3f4f6;
+  padding-top: 0.5rem;
+  border-top: 1px solid #f1f5f9;
 }
 
 .op-card__expiry {
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   font-weight: 600;
   color: #6b7280;
 }
 
-.op-card__expiry .material-symbols-sharp { font-size: 0.75rem; }
+.op-card__expiry .material-symbols-sharp { font-size: 0.72rem; }
 
 .op-card__expiry--urgent {
   color: #dc2626;
   background: #fef2f2;
-  padding: 0.2rem 0.45rem;
-  border-radius: 5px;
+  padding: 0.18rem 0.4rem;
+  border-radius: 4px;
 }
 
 .op-card__view-hint {
   display: inline-flex;
   align-items: center;
   gap: 0.1rem;
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   font-weight: 700;
   color: var(--_accent);
   white-space: nowrap;
 }
 
 .op-card__view-hint .material-symbols-sharp {
-  font-size: 0.875rem;
+  font-size: 0.85rem;
   transition: transform 0.15s;
 }
 
@@ -332,19 +297,19 @@
   width: 100%;
   max-width: 480px;
   max-height: 92dvh;
-  border-radius: 24px 24px 0 0;
+  border-radius: 16px 16px 0 0;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  box-shadow: 0 -4px 32px rgba(0,0,0,0.18);
+  box-shadow: 0 -4px 32px rgba(0,0,0,0.14);
   animation: opm-sheet-up 0.28s cubic-bezier(0.32, 0.72, 0, 1) forwards;
 }
 
 @media (min-width: 640px) {
   .opm-sheet {
-    border-radius: 24px;
+    border-radius: 16px;
     max-height: 86dvh;
-    box-shadow: 0 24px 80px rgba(0,0,0,0.22);
+    box-shadow: 0 24px 80px rgba(0,0,0,0.18);
     animation: opm-sheet-in 0.26s cubic-bezier(0.32, 0.72, 0, 1) forwards;
   }
 }
@@ -366,7 +331,7 @@
   width: 36px;
   height: 4px;
   border-radius: 999px;
-  background: rgba(255,255,255,0.4);
+  background: #d1d5db;
   margin: 0.7rem auto 0;
   flex-shrink: 0;
 }
@@ -375,34 +340,58 @@
   .opm-sheet::before { display: none; }
 }
 
-/* ── Modal hero ──────────────────────────────────────────────── */
+/* ── Image hero ──────────────────────────────────────────────── */
 .opm-hero {
   position: relative;
-  padding: 1.5rem 1.5rem 1.375rem;
-  overflow: hidden;
   flex-shrink: 0;
 }
 
-.opm-hero::after {
-  content: '';
+.opm-hero--image {
+  aspect-ratio: 16 / 7;
+  overflow: hidden;
+}
+
+.opm-hero__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Subtle bottom scrim so badge reads clearly */
+.opm-hero__img-overlay {
   position: absolute;
   inset: 0;
-  background-image:
-    radial-gradient(ellipse 140% 80% at 110% -10%, rgba(255,255,255,0.14) 0%, transparent 60%),
-    radial-gradient(ellipse 70% 120% at -10% 120%, rgba(0,0,0,0.08) 0%, transparent 60%);
+  background: linear-gradient(to top, rgba(0,0,0,0.35) 0%, transparent 50%);
   pointer-events: none;
 }
 
+/* Plain hero (no image) */
+.opm-hero--plain {
+  padding: 1.25rem 1.25rem 1rem;
+  background: #f7f8fa;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.opm-hero__title--plain {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0.5rem 0 0;
+  line-height: 1.35;
+}
+
+/* Close button — on image */
 .opm-close {
   position: absolute;
-  top: 1rem;
-  inset-inline-end: 1rem;
+  top: 0.875rem;
+  inset-inline-end: 0.875rem;
   z-index: 2;
-  width: 32px;
-  height: 32px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
-  background: rgba(0, 0, 0, 0.22);
-  border: 1px solid rgba(255,255,255,0.2);
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255,255,255,0.25);
   color: #fff;
   display: flex;
   align-items: center;
@@ -411,100 +400,106 @@
   transition: background 0.15s;
 }
 
-.opm-close:hover { background: rgba(0,0,0,0.38); }
-.opm-close .material-symbols-sharp { font-size: 1rem; }
+.opm-close:hover { background: rgba(0,0,0,0.5); }
 
-/* Overlapping logos in hero */
-.opm-hero__logos {
-  display: flex;
-  align-items: flex-end;
-  margin-bottom: 1rem;
-  position: relative;
-  z-index: 1;
+/* Close — on plain hero */
+.opm-close--dark {
+  background: #f1f5f9;
+  border-color: #e2e8f0;
+  color: #6b7280;
 }
 
-.opm-logo {
-  width: 56px;
-  height: 56px;
-  border-radius: 14px;
-  background: rgba(255,255,255,0.95);
-  border: 3px solid rgba(255,255,255,0.7);
-  box-shadow: 0 4px 14px rgba(0,0,0,0.2);
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
+.opm-close--dark:hover { background: #e2e8f0; color: #0f172a; }
+.opm-close .material-symbols-sharp { font-size: 0.95rem; }
 
-.opm-logo img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  padding: 6px;
-}
-
-.opm-logo--payment {
-  width: 44px;
-  height: 44px;
-  border-radius: 11px;
-  margin-inline-start: -14px;
-  margin-block-end: -4px;
-}
-
+/* Type badge on image */
 .opm-hero__badge {
+  position: absolute;
+  bottom: 0.875rem;
+  inset-inline-start: 0.875rem;
   display: inline-flex;
   align-items: center;
   gap: 0.3rem;
-  background: rgba(255,255,255,0.18);
-  backdrop-filter: blur(6px);
-  border: 1px solid rgba(255,255,255,0.28);
+  background: var(--_accent);
   color: #fff;
-  font-size: 0.63rem;
+  font-size: 0.6rem;
   font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   padding: 0.25rem 0.6rem;
   border-radius: 5px;
-  width: fit-content;
-  margin-bottom: 0.75rem;
-  position: relative;
-  z-index: 1;
+  z-index: 2;
 }
 
-.opm-hero__badge .material-symbols-sharp {
-  font-size: 0.72rem;
+/* Type badge on plain hero */
+.opm-hero__badge--plain {
+  position: static;
+  display: inline-flex;
+  background: color-mix(in srgb, var(--_accent) 10%, transparent);
+  color: var(--_accent);
+  border: 1px solid color-mix(in srgb, var(--_accent) 25%, transparent);
+}
+
+.opm-hero__badge .material-symbols-sharp,
+.opm-hero__badge--plain .material-symbols-sharp {
+  font-size: 0.7rem;
   font-variation-settings: 'FILL' 1;
 }
 
-.opm-hero__title {
-  font-size: 1.125rem;
-  font-weight: 800;
-  color: #fff;
-  margin: 0 0 0.5rem;
-  line-height: 1.28;
-  letter-spacing: -0.01em;
-  position: relative;
-  z-index: 1;
+/* ── Sheet header (logos + title + expiry) ───────────────────── */
+.opm-sheet-header {
+  padding: 1rem 1.25rem 0.875rem;
+  border-bottom: 1px solid #f1f5f9;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
-.opm-hero__partners {
+/* Logos in modal — bare, no background, no border */
+.opm-sheet-logos {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
-  font-size: 0.78rem;
-  font-weight: 600;
-  color: rgba(255,255,255,0.78);
-  position: relative;
-  z-index: 1;
+  gap: 0.875rem;
+  flex-wrap: wrap;
 }
 
-.opm-hero__dot {
-  width: 3px;
-  height: 3px;
-  border-radius: 50%;
-  background: rgba(255,255,255,0.5);
+.opm-sheet-logo {
+  height: 24px;
+  max-width: 80px;
+  object-fit: contain;
+  display: block;
   flex-shrink: 0;
+}
+
+.opm-sheet-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+  line-height: 1.35;
+}
+
+.opm-expiry {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #374151;
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  padding: 0.3rem 0.65rem;
+  width: fit-content;
+}
+
+.opm-expiry .material-symbols-sharp { font-size: 0.82rem; }
+
+.opm-expiry--urgent {
+  color: #dc2626;
+  background: #fef2f2;
+  border-color: #fecaca;
 }
 
 /* ── Scrollable body ─────────────────────────────────────────── */
@@ -512,32 +507,10 @@
   overflow-y: auto;
   overscroll-behavior: contain;
   flex: 1;
-  padding: 1.25rem 1.5rem;
+  padding: 1rem 1.25rem;
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
-}
-
-.opm-expiry {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: #374151;
-  background: #f3f4f6;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  padding: 0.4rem 0.75rem;
-  width: fit-content;
-}
-
-.opm-expiry .material-symbols-sharp { font-size: 0.85rem; }
-
-.opm-expiry--urgent {
-  color: #dc2626;
-  background: #fef2f2;
-  border-color: #fecaca;
+  gap: 1rem;
 }
 
 .opm-section {
@@ -550,80 +523,124 @@
   display: flex;
   align-items: center;
   gap: 0.35rem;
-  font-size: 0.68rem;
+  font-size: 0.62rem;
   font-weight: 800;
-  letter-spacing: 0.07em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #6b7280;
+  color: #9ca3af;
   margin: 0;
 }
 
 .opm-section__label .material-symbols-sharp {
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   font-variation-settings: 'FILL' 1;
 }
 
 .opm-desc {
-  font-size: 0.9rem;
+  font-size: 0.875rem;
   color: #374151;
-  line-height: 1.7;
+  line-height: 1.65;
   margin: 0;
 }
 
-/* Card detail row */
-.opm-card-detail {
+/* Entity row — used for bank, payment method, card */
+.opm-entity-row {
   display: flex;
   align-items: center;
   gap: 0.875rem;
-  padding: 0.75rem;
+  padding: 0.75rem 1rem;
   background: #f9fafb;
-  border: 1px solid #e5e7eb;
+  border: 1px solid #f1f5f9;
   border-radius: 10px;
 }
 
-.opm-card-detail__img {
-  width: 64px;
-  height: 40px;
+/* Entity logos — bare, no background, no border */
+.opm-entity-logo {
+  height: 32px;
+  max-width: 80px;
+  object-fit: contain;
+  display: block;
+  flex-shrink: 0;
+}
+
+.opm-entity-card-img {
+  width: 72px;
+  height: 46px;
   object-fit: contain;
   border-radius: 5px;
   flex-shrink: 0;
 }
 
-.opm-card-detail__info {
+.opm-entity-row__info {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
+  min-width: 0;
 }
 
-.opm-card-detail__name {
+.opm-entity-row__name {
   font-size: 0.875rem;
   font-weight: 700;
   color: #0f172a;
+  line-height: 1.2;
 }
 
-.opm-card-detail__meta {
-  font-size: 0.72rem;
-  color: #6b7280;
+.opm-entity-row__tags {
+  display: flex;
+  gap: 0.375rem;
+  flex-wrap: wrap;
+}
+
+.opm-tag {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  font-weight: 600;
+  padding: 0.16rem 0.4rem;
+  border-radius: 4px;
+  background: #f3f4f6;
+  color: #374151;
+  border: 1px solid #e5e7eb;
+}
+
+.opm-tag--bnpl {
+  background: #eff6ff;
+  color: #1d4ed8;
+  border-color: #bfdbfe;
+}
+
+.opm-bnpl-tag {
+  display: inline-flex;
+  align-items: center;
+  margin-inline-start: 0.35rem;
+  font-size: 0.56rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.1rem 0.38rem;
+  border-radius: 3px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
 }
 
 /* Code box */
 .opm-code-box {
   display: flex;
   align-items: stretch;
-  border: 2px dashed #c4b5fd;
-  border-radius: 12px;
+  border: 1.5px dashed #c4b5fd;
+  border-radius: 10px;
   overflow: hidden;
   background: #faf8ff;
 }
 
 .opm-code-value {
   flex: 1;
-  padding: 0.8rem 1rem;
+  padding: 0.75rem 1rem;
   font-family: 'Courier New', monospace;
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   font-weight: 800;
   letter-spacing: 0.14em;
   color: #470ae2;
@@ -635,13 +652,13 @@
   display: flex;
   align-items: center;
   gap: 0.3rem;
-  padding: 0 1.125rem;
+  padding: 0 1rem;
   background: #470ae2;
   color: #fff;
   border: none;
   cursor: pointer;
   font-family: 'Alexandria', system-ui, sans-serif;
-  font-size: 0.78rem;
+  font-size: 0.75rem;
   font-weight: 700;
   white-space: nowrap;
   transition: opacity 0.15s;
@@ -650,23 +667,23 @@
 
 .opm-code-copy:hover { opacity: 0.88; }
 .opm-code-copy--done { background: #059669; }
-.opm-code-copy .material-symbols-sharp { font-size: 0.9rem; }
+.opm-code-copy .material-symbols-sharp { font-size: 0.875rem; }
 
 .opm-terms-text {
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   color: #6b7280;
   line-height: 1.7;
   margin: 0;
-  padding: 0.875rem 1rem;
+  padding: 0.75rem 0.875rem;
   background: #f9fafb;
-  border-radius: 10px;
-  border: 1px solid #f3f4f6;
+  border-radius: 8px;
+  border: 1px solid #f1f5f9;
 }
 
 /* ── Sticky footer CTA ───────────────────────────────────────── */
 .opm-footer {
-  padding: 1rem 1.5rem 1.25rem;
-  border-top: 1px solid #f3f4f6;
+  padding: 0.875rem 1.25rem 1.125rem;
+  border-top: 1px solid #f1f5f9;
   background: #fff;
   flex-shrink: 0;
 }
@@ -678,15 +695,15 @@
   gap: 0.5rem;
   width: 100%;
   padding: 0.875rem 1.5rem;
-  border-radius: 12px;
-  background: linear-gradient(135deg, #470ae2 0%, #3730a3 100%);
+  border-radius: 10px;
+  background: #470ae2;
   color: #fff;
   font-family: 'Alexandria', system-ui, sans-serif;
-  font-size: 0.9rem;
+  font-size: 0.875rem;
   font-weight: 800;
   text-decoration: none;
   transition: opacity 0.15s, transform 0.12s;
-  box-shadow: 0 4px 16px rgba(71, 10, 226, 0.3);
+  box-shadow: 0 4px 14px rgba(71, 10, 226, 0.25);
 }
 
 .opm-cta:hover  { opacity: 0.92; }
@@ -722,8 +739,8 @@
 @media (min-width: 960px) { .op-skeleton-grid { grid-template-columns: repeat(3, 1fr); } }
 
 .op-skeleton-card {
-  height: 220px;
-  border-radius: 16px;
+  height: 240px;
+  border-radius: 12px;
   background: linear-gradient(90deg, #f0f2f5 25%, #e4e6ea 50%, #f0f2f5 75%);
   background-size: 200% 100%;
   animation: op-shimmer 1.5s infinite;
@@ -747,108 +764,9 @@
 
 /* ══ REDUCED MOTION ═══════════════════════════════════════════ */
 @media (prefers-reduced-motion: reduce) {
-  .op-card, .opm-sheet, .opm-backdrop, .opm-cta { transition: none; animation: none; }
-}
-
-/* ── Entity row (payment method / bank / card in modal) ──────── */
-.opm-entity-row {
-  display: flex;
-  align-items: center;
-  gap: 0.875rem;
-  padding: 0.75rem 1rem;
-  background: #f9fafb;
-  border: 1px solid #e5e7eb;
-  border-radius: 10px;
-}
-
-.opm-entity-row__logo {
-  width: 48px;
-  height: 48px;
-  object-fit: contain;
-  border-radius: 8px;
-  background: #fff;
-  border: 1px solid #e5e7eb;
-  padding: 4px;
-  flex-shrink: 0;
-}
-
-.opm-entity-row__card-img {
-  width: 72px;
-  height: 46px;
-  object-fit: contain;
-  border-radius: 5px;
-  flex-shrink: 0;
-}
-
-.opm-entity-row__info {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  min-width: 0;
-}
-
-.opm-entity-row__name {
-  font-size: 0.875rem;
-  font-weight: 700;
-  color: #0f172a;
-  line-height: 1.2;
-}
-
-.opm-entity-row__tags {
-  display: flex;
-  gap: 0.375rem;
-  flex-wrap: wrap;
-}
-
-/* Small tag pill */
-.opm-tag {
-  display: inline-flex;
-  align-items: center;
-  font-size: 0.65rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  padding: 0.18rem 0.45rem;
-  border-radius: 4px;
-  background: #f3f4f6;
-  color: #374151;
-  border: 1px solid #e5e7eb;
-}
-
-.opm-tag--bnpl {
-  background: #eff6ff;
-  color: #1d4ed8;
-  border-color: #bfdbfe;
-}
-
-/* BNPL inline label in hero partner row */
-.opm-bnpl-tag {
-  display: inline-flex;
-  align-items: center;
-  margin-inline-start: 0.35rem;
-  font-size: 0.58rem;
-  font-weight: 800;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  padding: 0.12rem 0.4rem;
-  border-radius: 3px;
-  background: rgba(255,255,255,0.22);
-  color: #fff;
-  vertical-align: middle;
-}
-
-/* Card BNPL pip on card grid */
-.op-bnpl-pip {
-  display: inline-flex;
-  align-items: center;
-  margin-inline-start: 0.3rem;
-  font-size: 0.58rem;
-  font-weight: 800;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  padding: 0.1rem 0.35rem;
-  border-radius: 3px;
-  background: rgba(255,255,255,0.25);
-  color: #fff;
-  vertical-align: middle;
+  .op-card,
+  .op-card__image,
+  .opm-sheet,
+  .opm-backdrop,
+  .opm-cta { transition: none; animation: none; }
 }
