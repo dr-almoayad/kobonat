@@ -60,7 +60,7 @@ function getSeasonDesc(seasonKey, nameEn, nameAr, isAr) {
 // Season icon per key
 function getSeasonIcon(seasonKey) {
   const map = {
-    ramadan:        'crescent_moon',
+    ramadan:        'prayer_times',
     white_friday:   'local_offer',
     national_day:   'flag',
     back_to_school: 'school',
