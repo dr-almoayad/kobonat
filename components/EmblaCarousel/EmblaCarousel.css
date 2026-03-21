@@ -105,24 +105,32 @@
 /* ── Full‑bleed on mobile (used by OfferStacksSection) ───────────────────── */
 @media (max-width: 768px) {
   .ec-full-bleed {
-    margin-left: calc(-1 * var(--section-px, 1rem));
+    /*
+      Extend the root edge-to-edge so the carousel visually bleeds to the
+      screen edges, while the parent section still has its own padding.
+    */
+    margin-left:  calc(-1 * var(--section-px, 1rem));
     margin-right: calc(-1 * var(--section-px, 1rem));
     width: calc(100% + 2 * var(--section-px, 1rem));
   }
 
-  .ec-full-bleed .ec-container {
-    /* Leading gutter only.
-       DO NOT add padding-inline-end here — Embla's containScroll trims it
-       out of the scroll range, causing the last card to have no trailing space. */
+  /*
+    Clearance from screen edge is achieved with padding on the viewport
+    (NOT on the container — Embla ignores container padding in range calc).
+    This pushes the first slide inward visually.
+  */
+  .ec-full-bleed .ec-viewport {
     padding-inline-start: var(--section-px, 1rem);
-    box-sizing: content-box;
+    box-sizing: border-box;
   }
 
-  /* Trailing clearance via last-child margin.
-     Embla counts slide margins as part of the slide's footprint, so the
-     scroll range extends far enough to show the full margin. */
+  /*
+    Trailing clearance: override the last slide's inline-end margin to match
+    the leading padding. Embla DOES measure slide margins, so the scroll range
+    extends fully to reveal the last card.
+  */
   .ec-full-bleed .ec-slide:last-child {
-    margin-inline-end: var(--section-px, 1rem);
+    margin-inline-end: var(--section-px, 1rem) !important;
   }
 
   .ec-full-bleed .ec-controls {
