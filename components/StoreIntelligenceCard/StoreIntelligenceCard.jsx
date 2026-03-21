@@ -53,7 +53,7 @@ function getSeasonDesc(seasonKey, nameEn, nameAr, isAr) {
   if (map[key]) return map[key];
   // Generic fallback
   return isAr
-    ? `موسم تسوق ${nameAr || nameEn}. تحقق من صفحة المتجر لمعرفة آخر العروض والأكواد الخاصة بهذا الموسم.`
+    ? `موسم تسوق ${nameAr || nameEn}. تحقق من المتجر لمعرفة آخر العروض والأكواد الخاصة بهذا الموسم.`
     : `${nameEn} shopping season. Check the store page for the latest deals and exclusive codes for this event.`;
 }
 
@@ -220,25 +220,25 @@ export default async function StoreIntelligenceCard({
 
   // Strings
   const L = isAr ? {
-    expect:       `ما تتوقعه من كوبونات`,
+    expect:       `ايش نعرف عن`,
     storeTitle:   storeName,
-    eyebrow:      'تقرير ذكاء المتجر',
+    eyebrow:      'دليل التوفير',
     intro_prefix: 'تقدم',
-    intro_suffix: `مجموعة واسعة من العروض والأكواد. يُحدَّث هذا الدليل باستمرار بناءً على بيانات حقيقية وأداء الكوبونات السابق.`,
+    intro_suffix: `مجموعة واسعة من العروض والأكواد. يُحدَّث هذا الدليل باستمرار بناءً على بيانات حقيقية وأداء العروض وأكواد الخصم السابقة.`,
     offers:       'عرض نشط',
     exclusive:    'حصري',
     maxSave:      'أعلى توفير',
     avgDisc:      'متوسط الخصم',
     score:        'تقييم المتجر',
     outOf10:      '/ 10',
-    savingsTitle: 'كيف تتوفر في هذا المتجر؟',
+    savingsTitle: 'كيف توفر في ${storeName}؟',
     s1h: 'أنواع العروض المتاحة',
-    s1p: `يقدم ${storeName} مزيجاً من${codeCount > 0 ? ` أكواد الخصم (${codeCount})` : ''}${dealCount > 0 ? `، والصفقات المباشرة (${dealCount})` : ''}${shipCount > 0 ? `، وعروض الشحن المجاني (${shipCount})` : ''}. ${exclCount > 0 ? `من بينها **${exclCount} عرضاً حصرياً** لا تجدها في أي مكان آخر.` : ''}`,
+    s1p: `يقدم ${storeName} مزيجاً من${codeCount > 0 ? ` أكواد الخصم (${codeCount})` : ''}${dealCount > 0 ? `، والعروض المباشرة (${dealCount})` : ''}${shipCount > 0 ? `، وعروض الشحن المجاني (${shipCount})` : ''}. ${exclCount > 0 ? `من بينها **${exclCount} عرضاً حصرياً** لا تجدها في أي مكان آخر.` : ''}`,
     s2h: 'أقصى توفير ممكن',
     s2p: maxSavePct != null
-      ? `بدمج الكود مع الصفقة والعرض البنكي، يمكن الوصول لتوفير يصل إلى **${maxSavePct}٪**. يُنصح بالاطلاع على قسم "العروض المتراكمة" للحصول على أقصى خصم.`
-      : `تتيح المنصة عروضاً قابلة للتراكم عند دمجها مع بطاقات بنكية مختارة. تحقق من قسم "العروض البنكية" في الأسفل.`,
-    s3h: 'دقة الكوبونات',
+      ? `بدمج الكود مع العرض والعرض البنكي، يمكن الوصول لتوفير يصل إلى **${maxSavePct}٪**.`
+      : `تتيح المنصة عروضاً قابلة للتراكم عند دمجها مع بطاقات بنكية مختارة. تحقق من العروض البنكية في الأسفل.`,
+    s3h: 'فعالية أكواد الخصم',
     s3p: successPct != null
       ? `معدل نجاح الأكواد عند الدفع يبلغ **${successPct}٪**. يتم التحقق من صلاحية كل كوبون باستمرار لضمان تجربة تسوق سلسة.`
       : 'يتم التحقق من صلاحية الكوبونات بشكل دوري. إذا لم يعمل الكود، تأكد من انطباق الشروط على منتجاتك.',
@@ -378,7 +378,7 @@ export default async function StoreIntelligenceCard({
 
         {maxSavePct != null && (
           <div className="sic-stat">
-            <span className="material-symbols-sharp sic-stat__icon">savings</span>
+            <span className="material-symbols-sharp sic-stat__icon">percent_discount</span>
             <span className="sic-stat__num sic-stat__num--green">{maxSavePct}%</span>
             <span className="sic-stat__label">{L.maxSave}</span>
           </div>
