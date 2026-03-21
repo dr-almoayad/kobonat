@@ -10,7 +10,6 @@
 
 /* ── Viewport — Embla needs overflow:hidden ─────────────────────────────────*/
 .ec-viewport {
-  overflow: hidden;
   width: 100%;
   transform: translateZ(0);
 }
