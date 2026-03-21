@@ -15,7 +15,7 @@
   .hcc-root {
     /* Fade the trailing 5% to hint at more slides */
     -webkit-mask-image: linear-gradient(to right, black 92%, transparent 100%);
-    height: 72vh;
+    height: 54vh;
     mask-image: linear-gradient(to right, black 92%, transparent 100%);
   }
 
@@ -211,7 +211,7 @@
 /* Medium — tighten text padding, slightly smaller headline */
 @media (max-width: 1024px) {
   .hcc-slide {
-    flex: 0 0 82%;
+    flex: 0 0 80%;
   }
 
   .hcc-slide-card {
