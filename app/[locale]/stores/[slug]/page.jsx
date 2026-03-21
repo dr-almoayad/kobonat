@@ -652,13 +652,13 @@ export default async function StorePage({ params }) {
                     />
                   )}
 
-                  {/* Leaderboard */}
+                  {/* Leaderboard 
                   <StoreLeaderboardSidebar
                     storeId={store.id}
                     locale={locale}
                     countryCode={countryCode}
                     snapshots={leaderboardSnapshots}
-                  />
+                  />*/}
 
                 </aside>
 
