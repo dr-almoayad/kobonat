@@ -34,13 +34,13 @@ export default async function OfferStacksSection({ locale, countryCode = 'SA' })
         <div className="offer-stacks-header">
           <div className="offer-stacks-header-content">
             <h2>
-              <span className="material-symbols-sharp">layers</span>
-              {isAr ? 'عروض قابلة للجمع' : 'Stackable Offers'}
+              <span className="material-symbols-sharp">bolt</span>
+              {isAr ? 'اجمع ووفّر!' : 'Stack & Save!'}
             </h2>
             <p>
               {isAr
-                ? 'ادمج أكواد الخصم مع العروض البنكية لأعلى توفير ممكن'
-                : 'Combine coupon codes with bank deals for maximum savings'}
+                ? 'ادمج أكواد الخصم، العروض البنكية، والخصومات التلقائية لأعلى توفير'
+                : 'Stack coupon codes, bank offers & auto‑deals for maximum savings'}
             </p>
           </div>
         </div>
