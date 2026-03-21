@@ -112,17 +112,9 @@
   border-radius: 4px;
 }
 
-/* ── Small screen: make slides wider so they peek ───────────────────────────*/
-@media (max-width: 480px) {
-  .ec-slide {
-    /* Override section-specific slideWidth to ensure touch usability */
-    flex: 0 0 min(var(--slide-width, 300px), calc(100vw - 2.5rem)) !important;
-  }
-}
-
-/* ── Full-bleed on mobile (used by OfferStacksSection) ─────────────────────
+/* ── Full‑bleed on mobile (used by OfferStacksSection) ─────────────────────
    When .ec-root has .ec-full-bleed, the carousel breaks out of its padded
-   parent and renders edge-to-edge. The first/last slide get inline padding
+   parent and renders edge‑to‑edge. The first/last slide get inline padding
    so content never touches the screen edge.                                  */
 @media (max-width: 768px) {
   .ec-full-bleed {
@@ -132,14 +124,14 @@
   }
 
   .ec-full-bleed .ec-container {
-    padding-left: var(--section-px, 1rem);
-    /* Trailing padding so last card doesn't sit flush against edge */
-    padding-right: var(--section-px, 1rem);
+    /* Use logical properties for RTL support */
+    padding-inline-start: var(--section-px, 1rem);
+    padding-inline-end: var(--section-px, 1rem);
     /* Make padding part of scroll area, not invisible overflow */
     box-sizing: content-box;
   }
 
-  /* Suppress dots+arrows on small screens — swipe is the affordance */
+  /* Hide arrows/dots on small screens — swipe is the main affordance */
   .ec-full-bleed .ec-controls {
     display: none;
   }
