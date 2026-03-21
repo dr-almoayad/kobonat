@@ -105,14 +105,24 @@
 /* ── Full‑bleed on mobile (used by OfferStacksSection) ───────────────────── */
 @media (max-width: 768px) {
   .ec-full-bleed {
-    width: 100%;
+    margin-left: calc(-1 * var(--section-px, 1rem));
+    margin-right: calc(-1 * var(--section-px, 1rem));
+    width: calc(100% + 2 * var(--section-px, 1rem));
   }
 
   .ec-full-bleed .ec-container {
-    /* Use logical properties for RTL support */
+    /* Leading gutter only.
+       DO NOT add padding-inline-end here — Embla's containScroll trims it
+       out of the scroll range, causing the last card to have no trailing space. */
     padding-inline-start: var(--section-px, 1rem);
-    padding-inline-end: var(--section-px, 1rem);
     box-sizing: content-box;
+  }
+
+  /* Trailing clearance via last-child margin.
+     Embla counts slide margins as part of the slide's footprint, so the
+     scroll range extends far enough to show the full margin. */
+  .ec-full-bleed .ec-slide:last-child {
+    margin-inline-end: var(--section-px, 1rem);
   }
 
   .ec-full-bleed .ec-controls {
