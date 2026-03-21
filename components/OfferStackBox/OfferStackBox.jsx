@@ -1,3 +1,4 @@
+'use client';
 // components/OfferStackBox/OfferStackBox.jsx
 import StackCta from './StackCta';
 import './OfferStackBox.css';
@@ -78,10 +79,9 @@ export default function OfferStackBox({ stack, locale }) {
             <span className="sb-brand__name">{store.name}</span>
           )}
         </div>
-        <button className="sb-more-btn" onClick={() => {}}>
-          {isAr ? 'كيف تستخدمها؟' : 'How to use'}
-          <span className="material-symbols-sharp">chevron_right</span>
-        </button>
+        <span className="sb-more-label">
+          {isAr ? 'عروض مدمجة' : 'Stackable offers'}
+        </span>
       </div>
 
       {/* ── Row 2: Headline ── */}
