@@ -307,7 +307,8 @@
 
 /* Icon wrap */
 .os-tile__icon-wrap {
-  width: 36px;
+	display: none;
+  width: 0;
   border-radius: 8px;
   display: flex;
   align-items: center;
