@@ -1,7 +1,8 @@
 'use client';
 // components/OfferStackBox/StackCta.jsx
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import './StackModal.css';
 
 // ─── Build steps from items ─────────────────────────────────
@@ -181,7 +182,15 @@ function StackModal({ stack, isAr, onClose }) {
 // ─── Exported CTA — renders ghost + orange buttons + modal ───────
 export default function StackCta({ stack, locale }) {
   const [open, setOpen] = useState(false);
+  // Track whether we're mounted on the client so createPortal works safely
+  const [mounted, setMounted] = useState(false);
   const isAr = (locale?.split('-')[0] || 'ar') === 'ar';
+
+  useEffect(() => { setMounted(true); }, []);
+
+  const modal = open ? (
+    <StackModal stack={stack} isAr={isAr} onClose={() => setOpen(false)} />
+  ) : null;
 
   return (
     <>
@@ -196,9 +205,12 @@ export default function StackCta({ stack, locale }) {
         </span>
       </button>
 
-      {open && (
-        <StackModal stack={stack} isAr={isAr} onClose={() => setOpen(false)} />
-      )}
+      {/*
+        Portal to document.body — escapes the card's overflow:hidden and
+        any transform/will-change stacking context that would trap
+        position:fixed inside the card's bounds.
+      */}
+      {mounted && modal && createPortal(modal, document.body)}
     </>
   );
 }
