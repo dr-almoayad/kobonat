@@ -4,7 +4,6 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 
-// ─── Step builder (unchanged logic, new presentation) ──────────
 function buildSteps(items, isAr) {
   return items.map((item, idx) => {
     const base = { num: idx + 1 };
@@ -13,84 +12,41 @@ function buildSteps(items, isAr) {
       ...base, type: 'code', icon: 'confirmation_number',
       labelAr: 'كود الخصم', labelEn: 'Coupon Code',
       title: item.title, code: item.code,
-      pct: item.discountPercent,
-      url: item.landingUrl,
+      pct: item.discountPercent, url: item.landingUrl,
       instructions: isAr
-        ? [
-            'انتقل للمتجر عبر الرابط أدناه.',
-            'أضف المنتجات المطلوبة للسلة.',
-            item.code
-              ? 'في صفحة الدفع، أدخل الكود في خانة كود الخصم.'
-              : 'الخصم يطبق تلقائياً على السلة.',
-            'تحقق من انخفاض الإجمالي قبل الإتمام.',
-          ]
-        : [
-            'Visit the store via the link below.',
-            'Add items to your cart.',
-            item.code
-              ? 'At checkout, paste the code in the coupon field.'
-              : 'Discount applies automatically to your cart.',
-            'Verify the total decreased before completing.',
-          ],
+        ? ['انتقل للمتجر عبر الرابط أدناه.', 'أضف المنتجات المطلوبة للسلة.', item.code ? 'في صفحة الدفع، أدخل الكود في خانة كود الخصم.' : 'الخصم يطبق تلقائياً على السلة.', 'تحقق من انخفاض الإجمالي قبل الإتمام.']
+        : ['Visit the store via the link below.', 'Add items to your cart.', item.code ? 'At checkout, paste the code in the coupon field.' : 'Discount applies automatically to your cart.', 'Verify the total decreased before completing.'],
     };
 
     if (item.itemType === 'DEAL') return {
       ...base, type: 'deal', icon: 'bolt',
       labelAr: 'خصم تلقائي', labelEn: 'Auto Deal',
-      title: item.title,
-      pct: item.discountPercent,
-      url: item.landingUrl,
+      title: item.title, pct: item.discountPercent, url: item.landingUrl,
       instructions: isAr
-        ? [
-            'اضغط "تفعيل العرض" للانتقال للمتجر.',
-            'الخصم مدمج في السعر المعروض مباشرةً.',
-            'أكمل الشراء دون الحاجة لأي كود.',
-          ]
-        : [
-            'Click "Activate Deal" to visit the store.',
-            'The discount is already reflected in displayed prices.',
-            'Complete purchase — no code needed.',
-          ],
+        ? ['اضغط "تفعيل العرض" للانتقال للمتجر.', 'الخصم مدمج في السعر المعروض مباشرةً.', 'أكمل الشراء دون الحاجة لأي كود.']
+        : ['Click "Activate Deal" to visit the store.', 'The discount is already reflected in displayed prices.', 'Complete purchase — no code needed.'],
     };
 
     if (item.itemType === 'BANK_OFFER') return {
       ...base, type: 'bank', icon: 'account_balance',
       labelAr: 'عرض بنكي', labelEn: 'Bank Offer',
-      title: item.title,
-      pct: item.discountPercent,
-      bankName: item.bankName,
-      bankLogo: item.bankLogo,
-      url: item.landingUrl,
+      title: item.title, pct: item.discountPercent,
+      bankName: item.bankName, bankLogo: item.bankLogo, url: item.landingUrl,
       instructions: isAr
-        ? [
-            `ادفع ببطاقة ${item.bankName || 'البنك'} المؤهلة.`,
-            item.code
-              ? `أدخل الكود ${item.code} إن طُلب.`
-              : 'الخصم يطبق تلقائياً عند استخدام البطاقة.',
-            'تحقق من ملخص الطلب قبل التأكيد.',
-          ]
-        : [
-            `Pay using your ${item.bankName || 'bank'} card.`,
-            item.code
-              ? `Enter code ${item.code} if prompted.`
-              : 'Cashback or discount applies automatically with the card.',
-            'Review the order summary before confirming.',
-          ],
+        ? [`ادفع ببطاقة ${item.bankName || 'البنك'} المؤهلة.`, item.code ? `أدخل الكود ${item.code} إن طُلب.` : 'الخصم يطبق تلقائياً عند استخدام البطاقة.', 'تحقق من ملخص الطلب قبل التأكيد.']
+        : [`Pay using your ${item.bankName || 'bank'} card.`, item.code ? `Enter code ${item.code} if prompted.` : 'Cashback or discount applies automatically with the card.', 'Review the order summary before confirming.'],
     };
 
     return null;
   }).filter(Boolean);
 }
 
-// ─── Modal ─────────────────────────────────────────────────────
 function StackModal({ stack, isAr, onClose }) {
   const [copied, setCopied] = useState(null);
   const [mounted, setMounted] = useState(false);
 
   const ORDER = { CODE: 0, DEAL: 1, BANK_OFFER: 2 };
-  const ordered = [...stack.items].sort(
-    (a, b) => (ORDER[a.itemType] ?? 9) - (ORDER[b.itemType] ?? 9)
-  );
+  const ordered = [...stack.items].sort((a, b) => (ORDER[a.itemType] ?? 9) - (ORDER[b.itemType] ?? 9));
   const steps = buildSteps(ordered, isAr);
 
   useEffect(() => { setMounted(true); }, []);
@@ -123,21 +79,19 @@ function StackModal({ stack, isAr, onClose }) {
     >
       <div className="os-modal" role="dialog" aria-modal="true">
 
-        {/* Colour strip */}
         <div className="os-modal-strip" aria-hidden="true" />
 
-        {/* ── Header ── */}
+        {/* Header */}
         <div className="os-modal__header">
           <div className="os-modal__brand">
+            {/* Store logo — bare, no background, no filter */}
             {stack.store.logo && (
-              <div className="os-modal__logo-wrap">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={stack.store.logo}
-                  alt={stack.store.name}
-                  className="os-store-logo--large"
-                />
-              </div>
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={stack.store.logo}
+                alt={stack.store.name}
+                className="os-store-logo--large"
+              />
             )}
             <div>
               <h2 className="os-modal__store-name">{stack.store.name}</h2>
@@ -152,16 +106,12 @@ function StackModal({ stack, isAr, onClose }) {
             </div>
           </div>
 
-          <button
-            className="os-modal__close"
-            onClick={onClose}
-            aria-label={isAr ? 'إغلاق' : 'Close'}
-          >
+          <button className="os-modal__close" onClick={onClose} aria-label={isAr ? 'إغلاق' : 'Close'}>
             <span className="material-symbols-sharp">close</span>
           </button>
         </div>
 
-        {/* Intro strip */}
+        {/* Intro */}
         <div className="os-modal__intro-strip">
           <span className="material-symbols-sharp">info</span>
           <span>
@@ -171,7 +121,7 @@ function StackModal({ stack, isAr, onClose }) {
           </span>
         </div>
 
-        {/* ── Steps ── */}
+        {/* Steps */}
         <div className="os-modal__body">
           <div className="os-timeline">
             {steps.map((step) => (
@@ -184,6 +134,7 @@ function StackModal({ stack, isAr, onClose }) {
                       <span className="material-symbols-sharp">{step.icon}</span>
                       {isAr ? step.labelAr : step.labelEn}
                     </span>
+                    {/* Bank logo — bare, full color, no filter */}
                     {step.bankLogo && (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
@@ -215,9 +166,7 @@ function StackModal({ stack, isAr, onClose }) {
                   )}
 
                   <ul className="os-step__list">
-                    {step.instructions.map((ins, i) => (
-                      <li key={i}>{ins}</li>
-                    ))}
+                    {step.instructions.map((ins, i) => <li key={i}>{ins}</li>)}
                   </ul>
 
                   {step.url && (
@@ -237,7 +186,7 @@ function StackModal({ stack, isAr, onClose }) {
           </div>
         </div>
 
-        {/* Footer disclaimer */}
+        {/* Footer */}
         <div className="os-modal__footer">
           <span className="material-symbols-sharp">info</span>
           <p>
@@ -254,7 +203,6 @@ function StackModal({ stack, isAr, onClose }) {
   return createPortal(modal, document.body);
 }
 
-// ─── Main export ───────────────────────────────────────────────
 export default function StackCta({ stack, locale }) {
   const [open, setOpen] = useState(false);
   const isAr = (locale?.split('-')[0] || 'ar') === 'ar';
