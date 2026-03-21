@@ -373,7 +373,7 @@ const Header = () => {
                           onClick={() => handleLanguageChange(lang.code)}
                         >
                           <span className="lang-name" style={{fontSize: '13px'}}>
-                            {currentLanguage === 'ar' ? (lang.name_ar || lang.name) : lang.name}
+                            {currentLanguage === 'ar' ? lang.name : lang.name}
                           </span>
                           {currentLanguage === lang.code && (
                             <span className="material-symbols-sharp check-icon">check</span>
