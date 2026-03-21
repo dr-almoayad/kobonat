@@ -11,7 +11,6 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import useEmblaCarousel from 'embla-carousel-react';
-import Autoplay from 'embla-carousel-autoplay';
 import './EmblaCarousel.css';
 
 export default function EmblaCarousel({
@@ -23,15 +22,16 @@ export default function EmblaCarousel({
 }) {
   const isAr = locale?.split('-')[0] === 'ar';
 
-  const [emblaRef, emblaApi] = useEmblaCarousel(
-    {
-      direction: isAr ? 'rtl' : 'ltr',
-      align:     'start',
-      dragFree:  false,
-      loop:      true, // Required for continuous autoplay
-    },
-    [Autoplay({ delay: 20000, stopOnInteraction: true })] // 20s delay
-  );
+  const [emblaRef, emblaApi] = useEmblaCarousel({
+    direction:     isAr ? 'rtl' : 'ltr',
+    align:         'start',
+    dragFree:      false,
+    loop:          false,
+    // containScroll: false — let slide margins define the natural boundary.
+    // With the default 'trimSnaps', Embla treats trailing padding/margin as
+    // unreachable empty space and clips the scroll range before it's visible.
+    containScroll: false,
+  });
 
   const [canPrev,     setCanPrev]     = useState(false);
   const [canNext,     setCanNext]     = useState(false);
