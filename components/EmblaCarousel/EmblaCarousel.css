@@ -22,6 +22,7 @@
   will-change: transform;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
+    margin-inline-start: 1rem;
 }
 
 /* ── Slide ──────────────────────────────────────────────────────────────────*/
