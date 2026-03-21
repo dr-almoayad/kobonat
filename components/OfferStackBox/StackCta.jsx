@@ -1,275 +1,199 @@
 'use client';
 // components/OfferStackBox/StackCta.jsx
-//
-// Client wrapper for the OfferStackBox CTA.
-// Receives serialised `stack` and `locale` as plain props from the RSC parent,
-// handles modal state, and renders the step-by-step guide.
 
 import { useState } from 'react';
 import './StackModal.css';
 
-// ─── Step builders ────────────────────────────────────────────────────────────
+// ─── Build steps from items ─────────────────────────────────
 function buildSteps(items, isAr) {
-  const steps = [];
-  const total = items.length;
+  return items
+    .map((item, idx) => {
+      const base = { num: idx + 1 };
 
-  items.forEach((item, idx) => {
-    const stepNum = idx + 1;
-
-    if (item.itemType === 'CODE') {
-      steps.push({
-        num:    stepNum,
-        total,
-        type:   'CODE',
-        icon:   'confirmation_number',
-        color:  'indigo',
-        label:  isAr ? 'كود الخصم' : 'Coupon Code',
-        title:  item.title,
-        code:   item.code,
-        pct:    item.discountPercent,
-        url:    item.landingUrl,
+      if (item.itemType === 'CODE') return {
+        ...base, type: 'code',
+        icon: 'confirmation_number',
+        labelAr: 'كود الخصم', labelEn: 'Coupon Code',
+        title: item.title, code: item.code,
+        pct: item.discountPercent, url: item.landingUrl,
         instructions: isAr
-          ? [
-              item.landingUrl ? 'اضغط على زر "تسوّق الآن" للانتقال إلى الموقع.' : 'انتقل إلى موقع المتجر.',
-              'أضف المنتجات التي تريدها إلى سلة التسوق.',
-              item.code ? `في خطوة الدفع، ابحث عن خانة "كود الخصم" والصق الكود: ${item.code}` : 'الخصم يُطبَّق تلقائياً — لا تحتاج كوداً.',
-              'تحقق من انخفاض المبلغ الإجمالي قبل إتمام الطلب.',
-            ]
-          : [
-              item.landingUrl ? 'Click "Shop Now" to go to the store.' : 'Visit the store website.',
-              'Add the items you want to your cart.',
-              item.code ? `At checkout, find the "Coupon Code" or "Promo Code" field and enter: ${item.code}` : 'The discount applies automatically — no code needed.',
-              'Confirm the total drops before completing your order.',
-            ],
-      });
-    }
+          ? ['انتقل إلى موقع المتجر من خلال الرابط أدناه.', 'أضف المنتجات إلى سلة التسوق.', item.code ? `في صفحة الدفع، أدخل الكود في خانة "كوبون الخصم".` : 'الخصم يطبق تلقائياً — لا تحتاج كوداً.', 'تأكد من انخفاض المجموع قبل إتمام الطلب.']
+          : ['Visit the store via the link below.', 'Add your items to the cart.', item.code ? 'At checkout, paste the code into the "Coupon Code" field.' : 'Discount applies automatically — no code needed.', 'Confirm the total has dropped before placing your order.'],
+      };
 
-    if (item.itemType === 'DEAL') {
-      steps.push({
-        num:    stepNum,
-        total,
-        type:   'DEAL',
-        icon:   'local_fire_department',
-        color:  'green',
-        label:  isAr ? 'عرض' : 'Deal',
-        title:  item.title,
-        pct:    item.discountPercent,
-        url:    item.landingUrl,
+      if (item.itemType === 'DEAL') return {
+        ...base, type: 'deal',
+        icon: 'local_fire_department',
+        labelAr: 'خصم تلقائي', labelEn: 'Auto Deal',
+        title: item.title, pct: item.discountPercent, url: item.landingUrl,
         instructions: isAr
-          ? [
-              item.landingUrl ? 'اضغط على "تفعيل العرض" للانتقال مباشرة إلى صفحة العرض.' : 'انتقل إلى صفحة العرض على الموقع.',
-              'الخصم مُطبَّق تلقائياً على الأسعار المعروضة — لا يلزم كود.',
-              'أضف المنتجات إلى سلة التسوق وأكمل الطلب.',
-            ]
-          : [
-              item.landingUrl ? 'Click "Activate Deal" to go directly to the deal page.' : 'Navigate to the deal page on the store.',
-              'The discount is already built into the displayed prices — no code required.',
-              'Add items to your cart and complete checkout.',
-            ],
-      });
-    }
+          ? ['اضغط "تفعيل العرض" للذهاب مباشرة إلى صفحة العرض.', 'الخصم مُدمج في السعر — لا يلزم كود.', 'أضف المنتجات وأكمل عملية الشراء.']
+          : ['Click "Activate Deal" to go to the offer page.', 'The discount is already applied to the listed prices — no code needed.', 'Add items and complete your purchase.'],
+      };
 
-    if (item.itemType === 'BANK_OFFER') {
-      const bankName = item.bankName || (isAr ? 'البنك' : 'the bank');
-      steps.push({
-        num:    stepNum,
-        total,
-        type:   'BANK_OFFER',
-        icon:   'account_balance',
-        color:  'amber',
-        label:  isAr ? 'عرض بنكي' : 'Bank Offer',
-        title:  item.title,
-        pct:    item.discountPercent,
-        bankName: item.bankName,
-        bankLogo: item.bankLogo,
-        url:    item.landingUrl,
+      if (item.itemType === 'BANK_OFFER') return {
+        ...base, type: 'bank',
+        icon: 'account_balance',
+        labelAr: 'عرض بنكي', labelEn: 'Bank Offer',
+        title: item.title, pct: item.discountPercent,
+        bankName: item.bankName, bankLogo: item.bankLogo, url: item.landingUrl,
         instructions: isAr
-          ? [
-              `عند الدفع، اختر الدفع ببطاقة ${bankName}.`,
-              item.code
-                ? `أدخل الكود الخاص بالعرض البنكي: ${item.code}`
-                : `سيُطبَّق الخصم تلقائياً عند استخدام بطاقة ${bankName} المؤهلة.`,
-              'تحقق من انعكاس الخصم في ملخص الطلب قبل الإتمام.',
-              item.landingUrl ? `اضغط "شروط العرض" للاطلاع على الأحكام الكاملة.` : 'راجع شروط العرض على موقع البنك.',
-            ]
-          : [
-              `At checkout, select ${bankName} as your payment method.`,
-              item.code
-                ? `Enter the bank offer code: ${item.code}`
-                : `The discount is applied automatically when you pay with an eligible ${bankName} card.`,
-              'Verify the discount is reflected in the order summary before confirming.',
-              item.landingUrl ? `Click "Offer Terms" to read the full conditions.` : `Check the full terms on ${bankName}'s website.`,
-            ],
-      });
-    }
-  });
+          ? [`اختر الدفع ببطاقة ${item.bankName || 'البنك'} عند الدفع.`, item.code ? `أدخل كود العرض: ${item.code}` : `الخصم يطبق تلقائياً ببطاقة ${item.bankName || 'البنك'} المؤهلة.`, 'تحقق من ظهور الخصم في ملخص الطلب قبل تأكيده.']
+          : [`At checkout, select ${item.bankName || 'the bank'} as your payment method.`, item.code ? `Enter the offer code: ${item.code}` : `Discount applies automatically with an eligible ${item.bankName || 'bank'} card.`, 'Verify the saving shows in the order summary before confirming.'],
+      };
 
-  return steps;
+      return null;
+    })
+    .filter(Boolean);
 }
 
-// ─── Step card ────────────────────────────────────────────────────────────────
-function StepCard({ step, isAr, onCopy, copied }) {
-  const colorMap = {
-    indigo: { bg: '#eef2ff', border: '#e0e7ff', icon: '#4338ca', badge: '#4338ca', badgeBg: '#eef2ff' },
-    green:  { bg: '#f0fdf4', border: '#dcfce7', icon: '#15803d', badge: '#15803d', badgeBg: '#f0fdf4' },
-    amber:  { bg: '#fefce8', border: '#fef08a', icon: '#a16207', badge: '#a16207', badgeBg: '#fefce8' },
-  };
-  const c = colorMap[step.color] || colorMap.indigo;
-
-  return (
-    <div className="sm-step" style={{ '--step-bg': c.bg, '--step-border': c.border }}>
-      {/* Step header */}
-      <div className="sm-step-header">
-        <div className="sm-step-num" style={{ background: c.icon, color: '#fff' }}>
-          {step.num}
-        </div>
-        <div className="sm-step-meta">
-          <span className="sm-step-badge" style={{ background: c.badgeBg, color: c.badge, borderColor: c.border }}>
-            <span className="material-symbols-sharp">{step.icon}</span>
-            {step.label}
-          </span>
-          {step.pct != null && (
-            <span className="sm-step-pct">{step.pct}% {isAr ? 'خصم' : 'off'}</span>
-          )}
-        </div>
-      </div>
-
-      {/* Title */}
-      <div className="sm-step-title">{step.title}</div>
-
-      {/* Bank logo */}
-      {step.bankLogo && (
-        <img src={step.bankLogo} alt={step.bankName || 'Bank'} className="sm-step-bank-logo" />
-      )}
-
-      {/* Code pill */}
-      {step.code && (
-        <div className="sm-step-code-row">
-          <span className="sm-step-code">{step.code}</span>
-          <button
-            className="sm-step-copy"
-            onClick={() => onCopy(step.code)}
-            style={{ background: copied === step.code ? '#dcfce7' : '#f1f5f9', color: copied === step.code ? '#15803d' : '#334155' }}
-          >
-            <span className="material-symbols-sharp">{copied === step.code ? 'check' : 'content_copy'}</span>
-            {copied === step.code ? (isAr ? 'تم النسخ' : 'Copied!') : (isAr ? 'نسخ' : 'Copy')}
-          </button>
-        </div>
-      )}
-
-      {/* Instructions */}
-      <ol className="sm-step-list">
-        {step.instructions.map((ins, i) => <li key={i}>{ins}</li>)}
-      </ol>
-
-      {/* CTA link */}
-      {step.url && (
-        <a href={step.url} target="_blank" rel="noopener noreferrer" className="sm-step-link">
-          <span className="material-symbols-sharp">open_in_new</span>
-          {isAr
-            ? (step.type === 'CODE' ? 'تسوّق الآن' : step.type === 'DEAL' ? 'تفعيل العرض' : 'شروط العرض')
-            : (step.type === 'CODE' ? 'Shop Now' : step.type === 'DEAL' ? 'Activate Deal' : 'Offer Terms')
-          }
-        </a>
-      )}
-    </div>
-  );
-}
-
-// ─── Modal ────────────────────────────────────────────────────────────────────
+// ─── Modal component ────────────────────────────────────────
 function StackModal({ stack, isAr, onClose }) {
   const [copied, setCopied] = useState(null);
   const steps = buildSteps(stack.items, isAr);
 
-  function handleCopy(code) {
+  function copy(code) {
     navigator.clipboard.writeText(code).catch(() => {});
     setCopied(code);
-    setTimeout(() => setCopied(null), 2000);
+    setTimeout(() => setCopied(null), 2400);
   }
-
-  // Close on backdrop click
-  function handleBackdrop(e) {
-    if (e.target === e.currentTarget) onClose();
-  }
-
-  const totalSaved = stack.combinedSavingsPercent;
 
   return (
-    <div className="sm-backdrop" onClick={handleBackdrop} dir={isAr ? 'rtl' : 'ltr'}>
-      <div className="sm-panel">
+    <div
+      className="sbm-backdrop"
+      onClick={(e) => e.target === e.currentTarget && onClose()}
+      dir={isAr ? 'rtl' : 'ltr'}
+    >
+      <div className="sbm-panel" role="dialog" aria-modal="true">
 
-        {/* Header */}
-        <div className="sm-header">
-          <div className="sm-header-left">
-            {stack.store.logo && (
-              <img src={stack.store.logo} alt={stack.store.name} className="sm-store-logo" />
-            )}
-            <div>
-              <div className="sm-store-name">{stack.store.name}</div>
-              <div className="sm-header-sub">
-                {isAr ? 'كيف تطبّق العروض المتراكمة؟' : 'How to stack these offers'}
-              </div>
+        {/* Blue header */}
+        <div className="sbm-head">
+          <div className="sbm-head__row">
+            <div className="sbm-head__store">
+              {stack.store.logo && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={stack.store.logo} alt={stack.store.name} className="sbm-head__logo" />
+              )}
+              <span className="sbm-head__name">{stack.store.name}</span>
             </div>
+            <button className="sbm-close" onClick={onClose} aria-label={isAr ? 'إغلاق' : 'Close'}>
+              <span className="material-symbols-sharp">close</span>
+            </button>
           </div>
-          <button className="sm-close" onClick={onClose} aria-label="Close">
-            <span className="material-symbols-sharp">close</span>
-          </button>
+
+          {stack.combinedSavingsPercent > 0 && (
+            <div className="sbm-savings">
+              <span className="material-symbols-sharp">savings</span>
+              <span className="sbm-savings__text">
+                {isAr
+                  ? <><strong>وفّر حتى {stack.combinedSavingsPercent}٪</strong> بدمج جميع العروض</>
+                  : <>Stack all offers and save up to <strong>{stack.combinedSavingsPercent}% total</strong></>
+                }
+              </span>
+            </div>
+          )}
         </div>
 
-        {/* Savings summary banner */}
-        {totalSaved != null && totalSaved > 0 && (
-          <div className="sm-savings-banner">
-            <span className="material-symbols-sharp sm-savings-icon">savings</span>
-            <span>
-              {isAr
-                ? <><strong>{totalSaved}%</strong> توفير إجمالي بدمج هذه العروض</>
-                : <>Stack all offers and save up to <strong>{totalSaved}%</strong> total</>
-              }
-            </span>
-          </div>
-        )}
-
         {/* Steps */}
-        <div className="sm-body">
-          <div className="sm-steps-intro">
+        <div className="sbm-body">
+          <p className="sbm-intro">
             {isAr
-              ? `اتبع هذه الخطوات ${steps.length === 2 ? 'الاثنتين' : steps.length === 3 ? 'الثلاث' : ''} بالترتيب للحصول على أقصى خصم ممكن.`
-              : `Follow these ${steps.length} step${steps.length > 1 ? 's' : ''} in order to get the maximum discount.`
+              ? `اتبع هذه الخطوات ${steps.length > 1 ? 'بالترتيب' : ''} للحصول على أقصى خصم في ${stack.store.name}.`
+              : `Follow these ${steps.length} step${steps.length !== 1 ? 's' : ''} in order to maximise your savings at ${stack.store.name}.`
             }
-          </div>
+          </p>
 
-          {steps.map(step => (
-            <StepCard key={step.num} step={step} isAr={isAr} onCopy={handleCopy} copied={copied} />
-          ))}
+          <div className="sbm-steps">
+            {steps.map(step => (
+              <div key={step.num} className={`sbm-step sbm-step--${step.type}`}>
+                <div className="sbm-step__num">{step.num}</div>
+                <div className="sbm-step__body">
+
+                  <div className="sbm-step__tag">
+                    <span className="material-symbols-sharp">{step.icon}</span>
+                    {isAr ? step.labelAr : step.labelEn}
+                    {step.pct != null && ` · ${step.pct}%`}
+                  </div>
+
+                  <div className="sbm-step__title">{step.title}</div>
+
+                  {step.bankLogo && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={step.bankLogo} alt={step.bankName || ''} className="sbm-step__bank-logo" />
+                  )}
+
+                  {step.code && (
+                    <div className="sbm-code-block">
+                      <span className="sbm-code-val">{step.code}</span>
+                      <button
+                        className={`sbm-code-copy${copied === step.code ? ' sbm-code-copy--done' : ''}`}
+                        onClick={() => copy(step.code)}
+                      >
+                        <span className="material-symbols-sharp">
+                          {copied === step.code ? 'check' : 'content_copy'}
+                        </span>
+                        {copied === step.code
+                          ? (isAr ? 'تم' : 'Copied')
+                          : (isAr ? 'نسخ' : 'Copy')}
+                      </button>
+                    </div>
+                  )}
+
+                  <ul className="sbm-list">
+                    {step.instructions.map((ins, i) => <li key={i}>{ins}</li>)}
+                  </ul>
+
+                  {step.url && (
+                    <a
+                      href={step.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="sbm-step-link"
+                    >
+                      <span className="material-symbols-sharp">open_in_new</span>
+                      {isAr
+                        ? (step.type === 'code' ? 'تسوّق الآن' : step.type === 'deal' ? 'تفعيل العرض' : 'شروط العرض')
+                        : (step.type === 'code' ? 'Shop Now'   : step.type === 'deal' ? 'Activate Deal' : 'Offer Terms')
+                      }
+                    </a>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* Footer */}
-        <div className="sm-footer">
-          <span className="material-symbols-sharp sm-footer-icon">info</span>
-          <span>
+        <div className="sbm-foot" dir={isAr ? 'rtl' : 'ltr'}>
+          <span className="material-symbols-sharp">info</span>
+          <p>
             {isAr
-              ? 'قد تتغير شروط العروض في أي وقت. تأكد دائماً من صلاحية الكود قبل إتمام طلبك.'
-              : 'Offer terms may change at any time. Always verify the discount is applied before completing your order.'
+              ? 'قد تتغير شروط العروض. تأكد دائماً من تطبيق الخصم قبل إتمام طلبك.'
+              : 'Offer terms may change. Always confirm the discount is applied before completing your purchase.'
             }
-          </span>
+          </p>
         </div>
       </div>
     </div>
   );
 }
 
-// ─── StackCta — exported; used by OfferStackBox RSC ──────────────────────────
+// ─── Exported CTA — renders ghost + orange buttons + modal ───────
 export default function StackCta({ stack, locale }) {
   const [open, setOpen] = useState(false);
-  const lang = locale?.split('-')[0] || 'ar';
-  const isAr = lang === 'ar';
+  const isAr = (locale?.split('-')[0] || 'ar') === 'ar';
 
   return (
     <>
-      <button className="stack-cta" onClick={() => setOpen(true)}>
-        <span className="material-symbols-sharp">bolt</span>
-        {isAr ? 'احصل على الخصم' : 'Stack & Save'}
-        <span className="material-symbols-sharp">{isAr ? 'chevron_left' : 'chevron_right'}</span>
+      <button className="sb-btn-ghost" onClick={() => setOpen(true)}>
+        {isAr ? 'كيف تستخدمها؟' : 'How to stack'}
+      </button>
+
+      <button className="sb-btn-primary" onClick={() => setOpen(true)}>
+        {isAr ? 'احصل على الخصم' : 'Get the deal'}
+        <span className="material-symbols-sharp">
+          {isAr ? 'arrow_back' : 'arrow_forward'}
+        </span>
       </button>
 
       {open && (
