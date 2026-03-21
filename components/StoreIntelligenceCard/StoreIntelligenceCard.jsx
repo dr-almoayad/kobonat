@@ -231,7 +231,7 @@ export default async function StoreIntelligenceCard({
     avgDisc:      'متوسط الخصم',
     score:        'تقييم المتجر',
     outOf10:      '/ 10',
-    savingsTitle: 'كيف توفر في ${storeName}؟',
+    savingsTitle: `كيف توفر في ${storeName}؟`,
     s1h: 'أنواع العروض المتاحة',
     s1p: `يقدم ${storeName} مزيجاً من${codeCount > 0 ? ` أكواد الخصم (${codeCount})` : ''}${dealCount > 0 ? `، والعروض المباشرة (${dealCount})` : ''}${shipCount > 0 ? `، وعروض الشحن المجاني (${shipCount})` : ''}. ${exclCount > 0 ? `من بينها **${exclCount} عرضاً حصرياً** لا تجدها في أي مكان آخر.` : ''}`,
     s2h: 'أقصى توفير ممكن',
