@@ -17,11 +17,6 @@ import FeaturedStoresCarousel2 from '@/components/FeaturedStoresCarousel2/Featur
 import { getCurrentWeekIdentifier } from '@/lib/leaderboard/calculateStoreSavings';
 import HeroCuratedSection from '@/components/HeroCuratedCarousel/HeroCuratedSection';
 
-
-// ✅ PERF FIX: Removed `import WebSiteStructuredData` — it was being rendered
-// both here (page level) AND in layout.jsx, injecting duplicate JSON-LD into
-// every page response. The layout already handles structured data for all routes.
-
 export const revalidate = 60;
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://cobonat.me';
@@ -73,23 +68,24 @@ export default async function Home({ params }) {
   if (!allLocaleCodes.includes(locale)) notFound();
 
   const [language, countryCode] = locale.split('-');
+  const country = countryCode || 'SA';
   const currentWeek = getCurrentWeekIdentifier();
+  const isArabic = language === 'ar';
 
-  // ── Data fetching — only what the hero section needs ──────────────────────
-  // All other sections are self-fetching RSCs.
   const [
     featuredStoresWithCovers,
     allActiveBrands,
     leaderboardSnapshots,
+    rawTopStores,
   ] = await Promise.all([
 
-    // 1. Hero stores
+    // 1. Hero stores (color slots 1–5)
     prisma.store.findMany({
       where: {
         isActive:   true,
         color:      { in: ['1', '2', '3', '4', '5'] },
         coverImage: { not: null },
-        countries:  { some: { country: { code: countryCode || 'SA' } } },
+        countries:  { some: { country: { code: country } } },
       },
       select: {
         id:         true,
@@ -106,11 +102,11 @@ export default async function Home({ params }) {
       take: 5,
     }),
 
-    // 2. Brands Carousel
+    // 2. Brands carousel
     prisma.store.findMany({
       where: {
         isActive:  true,
-        countries: { some: { country: { code: countryCode || 'SA' } } },
+        countries: { some: { country: { code: country } } },
       },
       include: {
         translations: {
@@ -144,7 +140,36 @@ export default async function Home({ params }) {
         },
       },
     }),
+
+    // 4. Featured stores carousel — up to 27 stores (3 pages × 9)
+    prisma.store.findMany({
+      where: {
+        isActive:  true,
+        countries: { some: { country: { code: country } } },
+      },
+      select: {
+        id:   true,
+        logo: true,
+        translations: {
+          where:  { locale: language },
+          select: { name: true, slug: true, showOffer: true },
+        },
+        vouchers: {
+          where:   {
+            OR: [{ expiryDate: null }, { expiryDate: { gte: new Date() } }],
+            discountPercent: { not: null },
+          },
+          orderBy: { discountPercent: 'desc' },
+          take:    1,
+          select:  { discountPercent: true },
+        },
+      },
+      orderBy: [{ isFeatured: 'desc' }, { id: 'asc' }],
+      take: 27,
+    }),
   ]);
+
+  // ── Transforms ─────────────────────────────────────────────────────────────
 
   const transformStore = (store) => {
     const t = store.translations?.[0] || {};
@@ -160,6 +185,7 @@ export default async function Home({ params }) {
   };
 
   const transformedCarouselStores = featuredStoresWithCovers.map(transformStore);
+
   const transformedBrands = allActiveBrands.map(b => ({
     id:                  b.id,
     name:                b.translations?.[0]?.name || '',
@@ -168,13 +194,35 @@ export default async function Home({ params }) {
     activeVouchersCount: b._count?.vouchers || 0,
   }));
 
-  // ── Render ────────────────────────────────────────────────────────────────
+  const topStores = rawTopStores.map(s => {
+    const translation = s.translations?.[0] || {};
+    const topDiscount = s.vouchers?.[0]?.discountPercent;
+    const discountText = translation.showOffer
+      || (topDiscount
+          ? (isArabic ? `خصم يصل إلى ${Math.round(topDiscount)}%` : `Up to ${Math.round(topDiscount)}% off`)
+          : (isArabic ? 'عروض متاحة' : 'Deals available'));
+
+    return {
+      id:               s.id,
+      name:             translation.name || '',
+      slug:             translation.slug || '',
+      logo:             s.logo,
+      ctaUrl:           null,
+      discount:         discountText,
+      previousDiscount: null,
+      isPersonalized:   false,
+    };
+  });
+
+  const carouselTitle = isArabic ? 'متاجر مميزة' : 'Featured Stores with Discounts';
+
+  // ── Render ─────────────────────────────────────────────────────────────────
   return (
     <main className="homepage-wrapper">
 
       {/* Hero */}
-      <HeroCuratedSection locale={locale} countryCode={countryCode || 'SA'} />
-      
+      <HeroCuratedSection locale={locale} countryCode={country} />
+
       {/*{transformedCarouselStores.length > 0 && (
         <HomepageHeroSection
           stores={transformedCarouselStores}
@@ -188,35 +236,29 @@ export default async function Home({ params }) {
         <BrandsCarousel brands={transformedBrands} />
       )}*/}
 
-      {/* Curated Offers 
-      <CuratedOffersSection locale={locale} countryCode={countryCode || 'SA'} />*/}
+      {/* Curated Offers */}
+      {/* <CuratedOffersSection locale={locale} countryCode={country} /> */}
 
-      <FeaturedStoresCarousel2
-        title={t('featuredStores')}
-        locale={locale}
-        stores={topStores.map(store => ({
-          id:               store.id,
-          name:             store.name,
-          logo:             store.logo,
-          slug:             store.slug,
-          ctaUrl:           null,
-          discount:         store.showOffer || `Up to ${store.maxDiscount}% off`,
-          previousDiscount: store.previousDiscount || null,
-          isPersonalized:   false,
-        }))}
-      />
+      {/* Featured Stores Carousel */}
+      {topStores.length > 0 && (
+        <FeaturedStoresCarousel2
+          title={carouselTitle}
+          locale={locale}
+          stores={topStores}
+        />
+      )}
 
       {/* Stackable Offers */}
-      <OfferStacksSection locale={locale} countryCode={countryCode || 'SA'} />
+      <OfferStacksSection locale={locale} countryCode={country} />
 
       {/* Blog */}
       <HomepageBlogSection locale={locale} count={3} />
 
       {/* Featured Products */}
-      <HomeFeaturedProductsSection locale={locale} countryCode={countryCode || 'SA'} />
+      <HomeFeaturedProductsSection locale={locale} countryCode={country} />
 
       {/* Featured Vouchers */}
-      <FeaturedVouchersSection locale={locale} countryCode={countryCode || 'SA'} />
+      <FeaturedVouchersSection locale={locale} countryCode={country} />
 
       {/* Featured Stores */}
       <FeaturedStoresSection locale={locale} />
