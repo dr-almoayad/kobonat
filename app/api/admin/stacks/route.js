@@ -1,9 +1,6 @@
 // app/api/admin/stacks/route.js
-// GET — every store with ≥2 stackable offers.
-//
-// Schema facts (from prisma/schema.prisma):
-//   Voucher    — NO isActive field, HAS isFeaturedStack Boolean @default(false)
-//   OtherPromo — HAS isActive Boolean,  NO isFeaturedStack
+// GET — all OfferStack records across all stores (for the global overview page).
+// Uses the explicit OfferStack model, NOT the dynamic isStackable approach.
 
 import { NextResponse }     from 'next/server';
 import { prisma }           from '@/lib/prisma';
@@ -12,6 +9,43 @@ import { authOptions }      from '@/app/api/auth/[...nextauth]/route';
 
 export const dynamic = 'force-dynamic';
 
+const STACK_INCLUDE = {
+  store: {
+    select: {
+      id:   true,
+      logo: true,
+      translations: {
+        where:  { locale: 'en' },
+        select: { name: true, slug: true },
+      },
+    },
+  },
+  codeVoucher: {
+    select: {
+      id: true, code: true, discount: true, discountPercent: true, verifiedAvgPercent: true,
+      translations: { where: { locale: 'en' }, select: { title: true } },
+    },
+  },
+  dealVoucher: {
+    select: {
+      id: true, code: true, discount: true, discountPercent: true, verifiedAvgPercent: true,
+      translations: { where: { locale: 'en' }, select: { title: true } },
+    },
+  },
+  promo: {
+    select: {
+      id: true, type: true, discountPercent: true, verifiedAvgPercent: true,
+      translations: { where: { locale: 'en' }, select: { title: true } },
+      bank: {
+        select: {
+          id: true, logo: true,
+          translations: { where: { locale: 'en' }, select: { name: true } },
+        },
+      },
+    },
+  },
+};
+
 export async function GET(request) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.isAdmin)
@@ -19,191 +53,54 @@ export async function GET(request) {
 
   const { searchParams } = new URL(request.url);
   const search       = searchParams.get('search')?.trim().toLowerCase() || '';
-  const featuredOnly = searchParams.get('featured') === '1';
-  const now          = new Date();
+  const activeOnly   = searchParams.get('active') === '1';
+  const storeId      = searchParams.get('storeId') ? parseInt(searchParams.get('storeId')) : null;
 
-  let vouchers, promos;
   try {
-    [vouchers, promos] = await Promise.all([
-
-      // ── Voucher: no isActive field ─────────────────────────────────────────
-      prisma.voucher.findMany({
-        where: {
-          isStackable: true,
-          stackGroup:  { in: ['CODE', 'DEAL'] },
-          OR: [{ expiryDate: null }, { expiryDate: { gte: now } }],
-        },
-        select: {
-          id:                 true,
-          code:               true,
-          discount:           true,
-          discountPercent:    true,
-          verifiedAvgPercent: true,
-          stackGroup:         true,
-          isFeaturedStack:    true,   // exists in schema
-          expiryDate:         true,
-          storeId:            true,
+    const where = {
+      ...(activeOnly && { isActive: true }),
+      ...(storeId    && { storeId }),
+      ...(search && {
+        store: {
           translations: {
-            where:  { locale: 'en' },
-            select: { title: true },
-          },
-          store: {
-            select: {
-              id:   true,
-              logo: true,
-              translations: {
-                where:  { locale: 'en' },
-                select: { name: true, slug: true },
-              },
-            },
+            some: { locale: 'en', name: { contains: search, mode: 'insensitive' } },
           },
         },
-        orderBy: [
-          { storeId:            'asc'  },
-          { stackGroup:         'asc'  },
-          { isFeaturedStack:    'desc' },
-          { verifiedAvgPercent: 'desc' },
-          { discountPercent:    'desc' },
-        ],
       }),
+    };
 
-      // ── OtherPromo: has isActive field ────────────────────────────────────
-      prisma.otherPromo.findMany({
-        where: {
-          isActive:    true,
-          isStackable: true,
-          stackGroup:  'BANK_OFFER',
-          OR: [{ expiryDate: null }, { expiryDate: { gte: now } }],
-        },
-        select: {
-          id:                 true,
-          discountPercent:    true,
-          verifiedAvgPercent: true,
-          storeId:            true,
-          translations: {
-            where:  { locale: 'en' },
-            select: { title: true },
-          },
-          store: {
-            select: {
-              id:   true,
-              logo: true,
-              translations: {
-                where:  { locale: 'en' },
-                select: { name: true, slug: true },
-              },
-            },
-          },
-          bank: {
-            select: {
-              logo: true,
-              translations: {
-                where:  { locale: 'en' },
-                select: { name: true },
-              },
-            },
-          },
-        },
-        orderBy: [
-          { storeId:            'asc'  },
-          { verifiedAvgPercent: 'desc' },
-          { discountPercent:    'desc' },
-        ],
-      }),
-    ]);
+    const stacks = await prisma.offerStack.findMany({
+      where,
+      include: STACK_INCLUDE,
+      orderBy: [{ storeId: 'asc' }, { order: 'asc' }, { createdAt: 'desc' }],
+    });
+
+    // Group by store for the overview display
+    const byStore = new Map();
+    for (const stack of stacks) {
+      const sid = stack.storeId;
+      if (!byStore.has(sid)) {
+        byStore.set(sid, {
+          storeId:   sid,
+          storeName: stack.store?.translations?.[0]?.name || `Store #${sid}`,
+          storeSlug: stack.store?.translations?.[0]?.slug || '',
+          storeLogo: stack.store?.logo || null,
+          stacks:    [],
+        });
+      }
+      byStore.get(sid).stacks.push(stack);
+    }
+
+    return NextResponse.json({
+      data:  [...byStore.values()],
+      meta: {
+        total:       stacks.length,
+        storeCount:  byStore.size,
+        activeCount: stacks.filter(s => s.isActive).length,
+      },
+    });
   } catch (err) {
-    console.error('[/api/admin/stacks] Prisma error:', err);
+    console.error('[/api/admin/stacks]', err);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
-
-  // ── Group by storeId ───────────────────────────────────────────────────────
-  const byStore = new Map();
-
-  const ensureStore = (storeId, storeRel) => {
-    if (!byStore.has(storeId)) {
-      const t = storeRel?.translations?.[0] || {};
-      byStore.set(storeId, {
-        storeId,
-        storeName: t.name  || `Store #${storeId}`,
-        storeSlug: t.slug  || '',
-        storeLogo: storeRel?.logo || null,
-        vouchers:  [],
-        promos:    [],
-      });
-    }
-    return byStore.get(storeId);
-  };
-
-  for (const v of vouchers) {
-    const entry = ensureStore(v.storeId, v.store);
-    // One CODE and one DEAL per store — already ordered best-first
-    if (entry.vouchers.some(x => x.itemType === v.stackGroup)) continue;
-    entry.vouchers.push({
-      id:              v.id,
-      itemType:        v.stackGroup,
-      title:           v.translations?.[0]?.title || v.discount || '—',
-      discount:        v.discount || null,
-      discountPercent: v.verifiedAvgPercent ?? v.discountPercent ?? null,
-      code:            v.code    || null,
-      isFeaturedStack: v.isFeaturedStack ?? false,
-      expiryDate:      v.expiryDate,
-    });
-  }
-
-  for (const p of promos) {
-    const entry = ensureStore(p.storeId, p.store);
-    // One BANK_OFFER per store — already ordered best-first
-    if (entry.promos.length > 0) continue;
-    const bankName = p.bank?.translations?.[0]?.name || null;
-    entry.promos.push({
-      id:              p.id,
-      itemType:        'BANK_OFFER',
-      title:           p.translations?.[0]?.title || bankName || 'Bank Offer',
-      discountPercent: p.verifiedAvgPercent ?? p.discountPercent ?? null,
-      bankName,
-      bankLogo:        p.bank?.logo || null,
-    });
-  }
-
-  // ── Build result list ──────────────────────────────────────────────────────
-  const stacks = [];
-
-  for (const entry of byStore.values()) {
-    if (entry.vouchers.length + entry.promos.length < 2) continue;
-    if (search && !entry.storeName.toLowerCase().includes(search)) continue;
-
-    const isFeaturedStack = entry.vouchers.some(v => v.isFeaturedStack);
-    if (featuredOnly && !isFeaturedStack) continue;
-
-    // Best % per type, stacked multiplicatively
-    const bestByType = {};
-    for (const v of entry.vouchers) {
-      const pct = v.discountPercent || 0;
-      if (pct > (bestByType[v.itemType] || 0)) bestByType[v.itemType] = pct;
-    }
-    for (const p of entry.promos) {
-      const pct = p.discountPercent || 0;
-      if (pct > (bestByType.BANK_OFFER || 0)) bestByType.BANK_OFFER = pct;
-    }
-    const percents = Object.values(bestByType).filter(p => p > 0).map(p => p / 100);
-    const combinedSavingsPercent =
-      percents.length >= 2
-        ? Math.round((1 - percents.reduce((acc, p) => acc * (1 - p), 1)) * 100)
-        : null;
-
-    stacks.push({ ...entry, isFeaturedStack, combinedSavingsPercent });
-  }
-
-  stacks.sort((a, b) => {
-    if (a.isFeaturedStack !== b.isFeaturedStack) return a.isFeaturedStack ? -1 : 1;
-    return (b.combinedSavingsPercent || 0) - (a.combinedSavingsPercent || 0);
-  });
-
-  return NextResponse.json({
-    data: stacks,
-    meta: {
-      total:            stacks.length,
-      homepageFeatured: stacks.filter(s => s.isFeaturedStack).length,
-    },
-  });
 }
