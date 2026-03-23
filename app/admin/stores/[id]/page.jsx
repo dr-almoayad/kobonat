@@ -411,9 +411,13 @@ export default function StoreEditPage({ params }) {
         <ProductsSection storeId={store.id} products={products} />
       )}
 
-      {/* ── OTHER PROMOS ──────────────────────────────────────────────────────── */}
       {tab === 'other-promos' && (
-        <OtherPromosTab storeId={store.id} allCountries={allCountries} allBanks={allBanks} />
+        <OtherPromosTab
+          storeId={store.id}
+          allCountries={allCountries}
+          allBanks={allBanks}
+          allPaymentMethods={allPaymentMethods}
+        />
       )}
 
       {/* ── OFFER STACKS ──────────────────────────────────────────────────────── */}
