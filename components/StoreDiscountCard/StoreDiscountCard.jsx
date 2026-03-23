@@ -19,7 +19,7 @@ export default function StoreDiscountCard({ store, locale }) {
       <div className="sdc-logo">
         {store.logo ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={store.logo} alt={store.name} />
+          <img src={store.bigLogo} alt={store.name} />
         ) : (
           <div className="sdc-logo-fallback">
             {store.name?.[0]?.toUpperCase() || '?'}
