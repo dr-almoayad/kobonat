@@ -19,7 +19,7 @@
 
 import { useState } from 'react';
 import StoreDiscountCard from '../StoreDiscountCard/StoreDiscountCard';
-import './FeaturedStoresCarousel.css';
+import './FeaturedStoresCarousel2.css';
 
 const PAGE_SIZE = 9; // 3 columns × 3 rows
 
