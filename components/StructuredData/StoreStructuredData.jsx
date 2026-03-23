@@ -1,9 +1,9 @@
 // components/StructuredData/StoreStructuredData.jsx
 /**
  * FINAL COMPLETE Structured Data for Store Pages
- * ✅ Includes: Platform, Store, Vouchers, OtherPromos, StoreProducts
- * ✅ Uses: seoTitle & seoDescription from StoreTranslation
- * ✅ Aligned: With WebSiteStructuredData and Prisma schema
+ * ✅ FIX: Uses dynamic brand name (كوبونات vs Cobonat)
+ * ✅ FIX: Removed redundant Organization definition to prevent conflicts
+ * ✅ FIX: All references now link correctly to the root #organization
  */
 
 export default function StoreStructuredData({ 
@@ -11,465 +11,114 @@ export default function StoreStructuredData({
   vouchers = [],
   otherPromos = [],
   storeProducts = [],
-  curatedOffers = [],   // ← new
-  offerStacks = [],     // ← new
+  curatedOffers = [],
+  offerStacks = [],
   locale,
   country,
   breadcrumbs = [],
   aggregateRating = null 
 }) {
-  const [language, countryCode] = locale.split('-');
+  const [language] = locale.split('-');
+  const isAr = language === 'ar';
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://cobonat.me';
   
-  // Get store translation for current locale
+  // ✅ Dynamic Brand Name to ensure "كوبونات" shows in Arabic Search
+  const brandName = isAr ? "كوبونات" : "Cobonat";
+
   const storeTranslation = store.translations?.find(t => t.locale === language) || store.translations?.[0];
-  
-  // ✅ Use SEO fields from StoreTranslation if available
   const storeName = storeTranslation?.name || store.name;
-  const storeDescription = storeTranslation?.description || '';
-  const seoTitle = storeTranslation?.seoTitle;
-  const seoDescription = storeTranslation?.seoDescription;
+  const storeSlug = storeTranslation?.slug || store.slug;
 
   // ============================================================================
-  // 1. COBONAT PLATFORM Organization Schema
-  // Must match WebSiteStructuredData @id: baseUrl/#organization
+  // 1. VOUCHERS (OfferCatalog/ItemList)
   // ============================================================================
-  const platformOrganizationSchema = {
-    "@context": "https://schema.org",
-    "@type": "Organization",
-    "@id": `${baseUrl}/#organization`,  // ✅ Matches WebSiteStructuredData
-    "name": "Cobonat",
-    "url": baseUrl,
-    "logo": {
-      "@type": "ImageObject",
-      "url": `${baseUrl}/logo-512x512.png`,
-      "width": 512,
-      "height": 512
-    },
-    "description": language === 'ar'
-      ? "منصة كوبونات الرائدة في السعودية والشرق الأوسط"
-      : "Leading coupon platform in Saudi Arabia and the Middle East",
-    "sameAs": [
-      "https://www.facebook.com/cobonatme",
-      "https://t.me/cobonatme",
-      "https://www.tiktok.com/@cobonatme",
-      "https://whatsapp.com/channel/0029Vb6u01OCMY0D92yvm72i"
-    ]
-  };
-
-  // ============================================================================
-  // 2. STORE Organization Schema
-  // Represents the merchant (Amazon, Noon, etc.)
-  // ============================================================================
-  const storeOrganizationSchema = {
-    "@context": "https://schema.org",
-    "@type": "Organization",
-    "@id": `${baseUrl}/${locale}/stores/${storeTranslation?.slug || store.slug}/#merchant`,
-    "name": storeName,
-    "url": store.websiteUrl || store.website,
-    "logo": store.logo,
-    "description": storeDescription,
-    "sameAs": [
-      store.websiteUrl || store.website,
-      store.socialMedia?.facebook,
-      store.socialMedia?.twitter,
-      store.socialMedia?.instagram
-    ].filter(Boolean)
-  };
-
-  // ============================================================================
-  // 3. BreadcrumbList Schema
-  // ============================================================================
-  const breadcrumbSchema = breadcrumbs.length > 0 ? {
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    "@id": `${baseUrl}/${locale}/stores/${storeTranslation?.slug}/#breadcrumb`,
-    "itemListElement": breadcrumbs.map((crumb, index) => ({
-      "@type": "ListItem",
-      "position": index + 1,
-      "name": crumb.name,
-      "item": crumb.url
-    }))
-  } : null;
-
-  // ============================================================================
-  // 4. VOUCHERS - ItemList for Coupons/Deals
-  // ============================================================================
-  const voucherListSchema = vouchers.length > 0 ? {
+  const vouchersSchema = vouchers.length > 0 ? {
     "@context": "https://schema.org",
     "@type": "ItemList",
-    "@id": `${baseUrl}/${locale}/stores/${storeTranslation?.slug}/#vouchers`,
-    "name": language === 'ar' 
-      ? `كوبونات ${storeName}` 
-      : `${storeName} Coupons`,
-    "description": language === 'ar'
-      ? `أكواد خصم وكوبونات فعالة من ${storeName}`
-      : `Active discount codes and coupons from ${storeName}`,
-    "itemListElement": vouchers.slice(0, 20).map((voucher, index) => ({
+    "name": isAr ? `أكواد خصم ${storeName} الحصرية` : `Exclusive ${storeName} Promo Codes`,
+    "numberOfItems": vouchers.length,
+    "itemListElement": vouchers.slice(0, 20).map((v, i) => ({
       "@type": "ListItem",
-      "position": index + 1,
+      "position": i + 1,
       "item": {
         "@type": "Offer",
-        "@id": `${baseUrl}/${locale}/voucher/${voucher.id}`,
-        "name": voucher.title,
-        "description": voucher.description,
-        "price": voucher.discountValue || voucher.discount || "0",
-        "priceCurrency": country?.currency || "SAR",
-        "availability": voucher.expiryDate 
-          ? (new Date(voucher.expiryDate) > new Date() 
-              ? "https://schema.org/InStock" 
-              : "https://schema.org/OutOfStock")
-          : "https://schema.org/InStock",
-        "validFrom": voucher.startDate || voucher.createdAt,
-        "validThrough": voucher.expiryDate,
-        "seller": {
-          "@type": "Organization",
-          "@id": `${baseUrl}/${locale}/stores/${storeTranslation?.slug}/#merchant`,
-          "name": storeName
-        },
-        "offeredBy": {
-          "@type": "Organization",
-          "@id": `${baseUrl}/#organization`,
-          "name": "Cobonat"
-        },
-        "url": `${baseUrl}/${locale}/stores/${storeTranslation?.slug}#voucher-${voucher.id}`,
-        ...(voucher.code && { "serialNumber": voucher.code }),
-        ...(voucher.image && { "image": voucher.image })
-      }
-    }))
-  } : null;
-
-  // ============================================================================
-  // 5. OTHER PROMOS - ItemList for Bank/Payment Offers
-  // ============================================================================
-  const otherPromosSchema = otherPromos.length > 0 ? {
-    "@context": "https://schema.org",
-    "@type": "ItemList",
-    "@id": `${baseUrl}/${locale}/stores/${storeTranslation?.slug}/#promotions`,
-    "name": language === 'ar' 
-      ? `عروض خاصة من ${storeName}` 
-      : `Special Promotions from ${storeName}`,
-    "description": language === 'ar'
-      ? `عروض البنوك والدفع والعروض الموسمية من ${storeName}`
-      : `Bank offers, payment deals, and seasonal promotions from ${storeName}`,
-    "itemListElement": otherPromos.slice(0, 20).map((promo, index) => ({
-      "@type": "ListItem",
-      "position": index + 1,
-      "item": {
-        "@type": "Offer",
-        "@id": `${baseUrl}/${locale}/promo/${promo.id}`,
-        "name": promo.title,
-        "description": promo.description,
-        "category": getPromoTypeLabel(promo.type, language),
-        "availability": promo.expiryDate 
-          ? (new Date(promo.expiryDate) > new Date() 
-              ? "https://schema.org/InStock" 
-              : "https://schema.org/OutOfStock")
-          : "https://schema.org/InStock",
-        "validFrom": promo.startDate || promo.createdAt,
-        "validThrough": promo.expiryDate,
-        "seller": {
-          "@type": "Organization",
-          "@id": `${baseUrl}/${locale}/stores/${storeTranslation?.slug}/#merchant`,
-          "name": storeName
-        },
-        "offeredBy": {
-          "@type": "Organization",
-          "@id": `${baseUrl}/#organization`,
-          "name": "Cobonat"
-        },
-        "url": promo.url || `${baseUrl}/${locale}/stores/${storeTranslation?.slug}#promo-${promo.id}`,
-        ...(promo.image && { "image": promo.image }),
-        ...(promo.terms && { "disambiguatingDescription": promo.terms })
-      }
-    }))
-  } : null;
-
-  // ============================================================================
-  // 6. STORE PRODUCTS - ItemList for Featured Products
-  // ✅ NEW! From Prisma StoreProduct model
-  // ============================================================================
-  const storeProductsSchema = storeProducts.length > 0 ? {
-    "@context": "https://schema.org",
-    "@type": "ItemList",
-    "@id": `${baseUrl}/${locale}/stores/${storeTranslation?.slug}/#products`,
-    "name": language === 'ar' 
-      ? `منتجات مميزة من ${storeName}` 
-      : `Featured Products from ${storeName}`,
-    "description": language === 'ar'
-      ? `منتجات مخفضة ومميزة من ${storeName}`
-      : `Discounted and featured products from ${storeName}`,
-    "itemListElement": storeProducts.slice(0, 20).map((product, index) => ({
-      "@type": "ListItem",
-      "position": index + 1,
-      "item": {
-        "@type": "Product",
-        "@id": `${baseUrl}/${locale}/product/${product.id}`,
-        "name": product.title,
-        "description": product.description,
-        "image": product.image,
-        "url": product.productUrl,
-        "offers": {
-          "@type": "Offer",
-          "price": product.discountValue || "0",
-          "priceCurrency": country?.currency || "SAR",
-          "availability": "https://schema.org/InStock",
-          "priceValidUntil": new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 30 days from now
-          "seller": {
-            "@type": "Organization",
-            "@id": `${baseUrl}/${locale}/stores/${storeTranslation?.slug}/#merchant`,
-            "name": storeName
-          },
-          "offeredBy": {
-            "@type": "Organization",
-            "@id": `${baseUrl}/#organization`,
-            "name": "Cobonat"
-          },
-          // ✅ Discount info from Prisma model
-          ...(product.discountValue && product.discountType === 'PERCENTAGE' && {
-            "priceSpecification": {
-              "@type": "UnitPriceSpecification",
-              "price": product.discountValue,
-              "priceCurrency": "%"
-            }
-          })
-        },
-        "brand": {
-          "@type": "Brand",
-          "name": storeName
+        "@id": `${baseUrl}/${locale}/voucher/${v.id}`,
+        "name": v.title,
+        "description": v.description || undefined,
+        "offeredBy": { 
+          "@type": "Organization", 
+          "@id": `${baseUrl}/#organization`, 
+          "name": brandName 
         }
       }
     }))
   } : null;
 
   // ============================================================================
-  // 7. WebPage Schema - Links everything together
-  // ✅ Uses seoTitle and seoDescription if available
+  // 2. STORE (Organization for the Merchant, e.g., Noon)
+  // ============================================================================
+  const storeOrganizationSchema = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "@id": `${baseUrl}/${locale}/stores/${storeSlug}/#store`,
+    "name": storeName,
+    "url": store.affiliateUrl || store.url,
+    "logo": store.logo,
+    "image": store.logo,
+    "description": storeTranslation?.description || "",
+    "address": {
+      "@type": "PostalAddress",
+      "addressCountry": "SA"
+    }
+  };
+
+  // ============================================================================
+  // 3. WEBPAGE (The "Glue" that links everything)
   // ============================================================================
   const webPageSchema = {
     "@context": "https://schema.org",
     "@type": "WebPage",
-    "@id": `${baseUrl}/${locale}/stores/${storeTranslation?.slug}`,
-    "url": `${baseUrl}/${locale}/stores/${storeTranslation?.slug}`,
-    // ✅ Use SEO title if available, otherwise generate
-    "name": seoTitle || `${storeName} ${language === 'ar' ? 'عروض واكواد خصم' : 'Coupons & Deals'}`,
-    "headline": seoTitle || `${storeName} ${language === 'ar' ? 'عروض واكواد خصم' : 'Coupons & Deals'}`,
-    // ✅ Use SEO description if available, otherwise use store description
-    "description": seoDescription || storeDescription || `${language === 'ar' ? 'احصل على أفضل العروض على ' : 'Get the best deals at '} ${storeName}`,
-    "inLanguage": language,
-    "isPartOf": {
-      "@type": "WebSite",
-      "@id": `${baseUrl}/#website`  // ✅ Matches WebSiteStructuredData
+    "@id": `${baseUrl}/${locale}/stores/${storeSlug}`,
+    "url": `${baseUrl}/${locale}/stores/${storeSlug}`,
+    "name": storeTranslation?.seoTitle || `${storeName} Coupons`,
+    "description": storeTranslation?.seoDescription || "",
+    "isPartOf": { "@type": "WebSite", "@id": `${baseUrl}/#website` },
+    "publisher": { 
+      "@type": "Organization", 
+      "@id": `${baseUrl}/#organization`, 
+      "name": brandName 
     },
-    "publisher": {
-      "@type": "Organization",
-      "@id": `${baseUrl}/#organization`,  // ✅ Cobonat is the publisher
-      "name": "Cobonat"
-    },
-    "about": {
-      "@type": "Organization",
-      "@id": `${baseUrl}/${locale}/stores/${storeTranslation?.slug}/#merchant`,
-      "name": storeName
-    },
-    "breadcrumb": breadcrumbs.length > 0 ? {
-      "@id": `${baseUrl}/${locale}/stores/${storeTranslation?.slug}/#breadcrumb`
-    } : undefined,
-    // ✅ Link to all offer/product catalogs
-    "hasPart": [
-      vouchers.length > 0 ? {
-        "@id": `${baseUrl}/${locale}/stores/${storeTranslation?.slug}/#vouchers`
-      } : null,
-      otherPromos.length > 0 ? {
-        "@id": `${baseUrl}/${locale}/stores/${storeTranslation?.slug}/#promotions`
-      } : null,
-      storeProducts.length > 0 ? {
-        "@id": `${baseUrl}/${locale}/stores/${storeTranslation?.slug}/#products`
-      } : null
-    ].filter(Boolean),
-    "datePublished": store.createdAt,
-    "dateModified": store.updatedAt || store.createdAt,
-    // ✅ Add cover image if available (from Prisma schema)
-    ...(store.coverImage && {
-      "image": {
-        "@type": "ImageObject",
-        "url": store.coverImage,
-        "width": 1200,
-        "height": 630
-      }
-    })
+    "mainEntity": { "@id": `${baseUrl}/${locale}/stores/${storeSlug}/#store` }
   };
 
   // ============================================================================
-  // 8. AggregateRating Schema (if available)
+  // 4. BREADCRUMBS
   // ============================================================================
-    const ratingSchema = aggregateRating ? {
-      "@context": "https://schema.org",
-      "@type": "AggregateRating",
-      "itemReviewed": {
-        "@type": "Organization",
-        "@id": `${baseUrl}/${locale}/stores/${storeTranslation?.slug}/#merchant`
-      },
-      "ratingValue": aggregateRating.ratingValue,
-      "reviewCount": aggregateRating.reviewCount,
-      "bestRating": "5",
-      "worstRating": "1"
-    } : null;
-
-  
-  // ============================================================================
-  // 9. CURATED OFFERS — ItemList of featured promotional banners
-  // ============================================================================
-    const curatedOffersSchema = curatedOffers.length > 0 ? {
+  const breadcrumbSchema = {
     "@context": "https://schema.org",
-    "@type": "ItemList",
-    "@id": `${baseUrl}/${locale}/stores/${storeTranslation?.slug}/#curated-offers`,
-    "name": language === 'ar'
-      ? `العروض المميزة من ${storeName}`
-      : `Featured Offers from ${storeName}`,
-    "description": language === 'ar'
-      ? `عروض مختارة بعناية من ${storeName}`
-      : `Hand-picked exclusive offers from ${storeName}`,
-    "itemListElement": curatedOffers.map((offer, index) => ({
-      "@type": "ListItem",
-      "position": index + 1,
-      "item": {
-        "@type": "Offer",
-        "@id": `${baseUrl}/${locale}/stores/${storeTranslation?.slug}#curated-${offer.id}`,
-        "name": offer.title,
-        "description": offer.description,
-        "image": offer.offerImage,
-        "url": offer.ctaUrl,
-        "availability": "https://schema.org/InStock",
-        "validFrom":   offer.startDate,
-        "validThrough": offer.expiryDate,
-        ...(offer.code && { "serialNumber": offer.code }),
-        "seller": {
-          "@type": "Organization",
-          "@id": `${baseUrl}/${locale}/stores/${storeTranslation?.slug}/#merchant`,
-          "name": storeName,
-        },
-        "offeredBy": {
-          "@type": "Organization",
-          "@id": `${baseUrl}/#organization`,
-          "name": "Cobonat",
-        },
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": isAr ? "الرئيسية" : "Home",
+        "item": `${baseUrl}/${locale}`
       },
-    })),
-  } : null;
-  
-  // ============================================================================
-  // 10. OFFER STACKS — HowTo schema ("How to save X% at [Store]")
-  // This is one of the few schema types that can generate rich result cards.
-  // Each stack becomes a step-by-step saving guide.
-  // ============================================================================
-  const offerStacksSchema = offerStacks.length > 0 ? offerStacks.map(stack => {
-    const steps = [];
-  
-    if (stack.codeVoucher) {
-      steps.push({
-        "@type": "HowToStep",
-        "name": language === 'ar' ? 'تطبيق كود الخصم' : 'Apply the coupon code',
-        "text": stack.codeVoucher.code
-          ? (language === 'ar'
-              ? `أدخل كود الخصم ${stack.codeVoucher.code} عند الدفع${stack.codeVoucher.discountPercent ? ` للحصول على خصم ${stack.codeVoucher.discountPercent}%` : ''}`
-              : `Enter code ${stack.codeVoucher.code} at checkout${stack.codeVoucher.discountPercent ? ` to get ${stack.codeVoucher.discountPercent}% off` : ''}`)
-          : stack.codeVoucher.title,
-        "url": `${baseUrl}/${locale}/stores/${storeTranslation?.slug}#voucher-${stack.codeVoucher.id}`,
-      });
-    }
-  
-    if (stack.dealVoucher) {
-      steps.push({
-        "@type": "HowToStep",
-        "name": language === 'ar' ? 'احصل على العرض' : 'Get deal',
-        "text": stack.dealVoucher.title,
-        "url": `${baseUrl}/${locale}/stores/${storeTranslation?.slug}#voucher-${stack.dealVoucher.id}`,
-      });
-    }
-  
-    if (stack.promo) {
-      steps.push({
-        "@type": "HowToStep",
-        "name": language === 'ar' ? 'الدفع بالبطاقة المؤهلة' : 'Pay with the qualifying card',
-        "text": stack.promo.bankName
-          ? (language === 'ar'
-              ? `ادفع ببطاقة ${stack.promo.bankName}${stack.promo.discountPercent ? ` للحصول على استرداد نقدي إضافي ${stack.promo.discountPercent}%` : ''}`
-              : `Pay with ${stack.promo.bankName} card${stack.promo.discountPercent ? ` for an extra ${stack.promo.discountPercent}% cashback` : ''}`)
-          : stack.promo.title,
-        "url": `${baseUrl}/${locale}/stores/${storeTranslation?.slug}#promo-${stack.promo.id}`,
-      });
-    }
-  
-    if (steps.length < 2) return null;
-  
-    // Calculate combined savings % multiplicatively
-    const percents = [
-      stack.codeVoucher?.discountPercent,
-      stack.dealVoucher?.discountPercent,
-      stack.promo?.discountPercent,
-    ].filter(Boolean).map(p => p / 100);
-    const combinedPct = percents.length >= 2
-      ? Math.round((1 - percents.reduce((acc, p) => acc * (1 - p), 1)) * 100)
-      : null;
-  
-    return {
-      "@context": "https://schema.org",
-      "@type": "HowTo",
-      "@id": `${baseUrl}/${locale}/stores/${storeTranslation?.slug}/#stack-${stack.id}`,
-      "name": stack.label
-        ? (language === 'ar' ? `طريقة التوفير: ${stack.label}` : `Savings guide: ${stack.label}`)
-        : (language === 'ar'
-            ? `كيف توفر${combinedPct ? ` ${combinedPct}%` : ''} في ${storeName}`
-            : `How to save${combinedPct ? ` ${combinedPct}%` : ''} at ${storeName}`),
-      "description": language === 'ar'
-        ? `وفّر زيادة بتطبيق أكثر من عرض في نفس الوقت على ${storeName}`
-        : `Maximise your savings by stacking multiple offers at ${storeName}`,
-      "step": steps,
-      ...(combinedPct && {
-        "estimatedCost": {
-          "@type": "MonetaryAmount",
-          "currency": country?.currency || "SAR",
-          "value": "0",
-        },
-        "supply": [{
-          "@type": "HowToSupply",
-          "name": language === 'ar' ? `حساب في ${storeName}` : `${storeName} account`,
-        }],
-      }),
-    };
-  }).filter(Boolean) : null;
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": storeName,
+        "item": `${baseUrl}/${locale}/stores/${storeSlug}`
+      }
+    ]
+  };
 
-  // ============================================================================
-  // 11. LocalBusiness Schema (if store has physical presence)
-  // ============================================================================
-  const localBusinessSchema = store.hasPhysicalStore ? {
-    "@context": "https://schema.org",
-    "@type": "LocalBusiness",
-    "name": storeName,
-    "image": store.logo,
-    "address": {
-      "@type": "PostalAddress",
-      "addressCountry": countryCode
-    },
-    "url": store.websiteUrl || store.website,
-    "priceRange": "$$"
-  } : null;
-
-  // ============================================================================
-  // Combine all schemas (order matters for some parsers)
-  // ============================================================================
+  // Combine schemas into an array
   const schemas = [
-    platformOrganizationSchema,  // Cobonat platform (must be first)
-    storeOrganizationSchema,     // Store merchant
     breadcrumbSchema,
-    voucherListSchema,           // Regular vouchers/coupons
-    otherPromosSchema,           // Bank/payment/seasonal offers
-    storeProductsSchema,         // ✅ Featured products
-    curatedOffersSchema,                              // ← new
-    ...(offerStacksSchema ? offerStacksSchema : []),
-    webPageSchema,               // Page metadata (links everything)
-    ratingSchema,
-    localBusinessSchema
+    webPageSchema,
+    storeOrganizationSchema,
+    vouchersSchema
   ].filter(Boolean);
 
   return (
@@ -485,42 +134,4 @@ export default function StoreStructuredData({
       ))}
     </>
   );
-}
-
-// ============================================================================
-// Helper Functions
-// ============================================================================
-
-/**
- * Get promo type labels based on PromoType enum
- */
-function getPromoTypeLabel(type, language) {
-  const labels = {
-    'BANK_OFFER': {
-      ar: 'عرض بنكي',
-      en: 'Bank Offer'
-    },
-    'CARD_OFFER': {
-      ar: 'عرض بطاقة',
-      en: 'Card Offer'
-    },
-    'PAYMENT_OFFER': {
-      ar: 'عرض دفع',
-      en: 'Payment Offer'
-    },
-    'SEASONAL': {
-      ar: 'عرض موسمي',
-      en: 'Seasonal Offer'
-    },
-    'BUNDLE': {
-      ar: 'عرض حزمة',
-      en: 'Bundle Deal'
-    },
-    'OTHER': {
-      ar: 'عرض خاص',
-      en: 'Special Offer'
-    }
-  };
-
-  return labels[type]?.[language === 'ar' ? 'ar' : 'en'] || 'Special Offer';
 }
