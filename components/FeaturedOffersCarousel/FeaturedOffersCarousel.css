@@ -1,179 +1,118 @@
-/* components/FeaturedOffersCarousel.css */
+/* components/FeaturedStoresCarousel/FeaturedStoresCarousel.css */
 
-.featured-offers-carousel {
-  padding: 1.5rem 0;
-  /* background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%); */
-  background: transparent;
-  overflow: hidden;
+.fsc {
+  padding: 2rem 0;
 }
 
-/* Reusing .home-section styles from parent if possible, otherwise define container */
-.carousel-container {
+.fsc-inner {
   max-width: 1280px;
   margin: 0 auto;
   padding: 0 1.5rem;
 }
 
-.carousel-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  margin-bottom: 1.5rem;
+.fsc-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 1.25rem 0;
 }
 
-.carousel-title {
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: var(--text-main, #1e293b);
-  margin: 0;
+/* Body: grid + flanking arrow */
+.fsc-body {
   display: flex;
   align-items: center;
   gap: 0.75rem;
 }
 
-.carousel-title .material-symbols-sharp {
-  color: #470ae2;
-  font-size: 2rem;
+/* 3-column grid */
+.fsc-grid {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  min-width: 0;
 }
 
-/* Controls */
-.carousel-controls {
-  display: flex;
-  gap: 0.75rem;
-}
-
-.control-btn {
-  width: 40px;
-  height: 40px;
+/* Arrow button */
+.fsc-arrow {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   border: 1px solid #e2e8f0;
-  background: white;
+  background: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.2s ease;
-  color: #64748b;
+  color: #475569;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+  align-self: center;
 }
 
-.control-btn:hover:not(:disabled) {
+.fsc-arrow:hover:not(:disabled) {
   border-color: #470ae2;
   color: #470ae2;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  background: #f5f3ff;
 }
 
-.control-btn:disabled {
-  opacity: 0.3;
-  cursor: not-allowed;
-  background: #f1f5f9;
+.fsc-arrow:disabled {
+  opacity: 0;
+  pointer-events: none;
 }
 
-/* Track */
-.carousel-track-container {
-  overflow: hidden;
-  margin: 0 -10px; /* Offset padding for cards */
-  padding: 10px;   /* Space for shadows */
-}
-
-.carousel-track {
+/* Dot indicators */
+.fsc-dots {
   display: flex;
-  transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1);
-  /* The track width depends on items. Flexbox handles it. */
-}
-
-.carousel-slide {
-  flex: 0 0 100%; /* Default: 1 item visible */
-  padding: 0 8px; /* Gap between slides */
-  min-width: 0;   /* Fix flex overflow */
-}
-
-/* Indicators */
-.mobile-scroll-indicator {
-  display: none;
   justify-content: center;
   gap: 6px;
-  margin-top: 1.5rem;
+  margin-top: 1.25rem;
 }
 
-.indicator-dot {
+.fsc-dot {
   width: 6px;
   height: 6px;
   border-radius: 50%;
+  border: none;
   background: #cbd5e1;
-  transition: all 0.3s ease;
   cursor: pointer;
+  padding: 0;
+  transition: background 0.2s, width 0.2s;
 }
 
-.indicator-dot.active {
+.fsc-dot--active {
   background: #470ae2;
   width: 18px;
-  border-radius: 10px;
+  border-radius: 3px;
 }
 
-/* --- Responsive --- */
-
-/* Desktop (Large): 2 items per view */
-@media (min-width: 1024px) {
-  .carousel-slide {
-    flex: 0 0 50%; 
+/* Tablet: 2 columns */
+@media (max-width: 900px) {
+  .fsc-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
-/* Mobile & Tablet */
-@media (max-width: 1023px) {
-  .carousel-title {
-    font-size: 1.5rem;
-  }
-  
-  .carousel-controls {
-    display: none; /* Hide buttons on mobile, use swipe/scroll */
+/* Mobile: 1 column, hide arrow */
+@media (max-width: 560px) {
+  .fsc-grid {
+    grid-template-columns: 1fr;
   }
 
-  .carousel-track-container {
-    overflow-x: auto;
-    overflow-y: hidden;
-    scroll-snap-type: x mandatory;
-    -webkit-overflow-scrolling: touch;
-    
-    /* Hide scrollbar */
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-  }
-  
-  .carousel-track-container::-webkit-scrollbar {
+  .fsc-arrow {
     display: none;
   }
 
-  /* Disable transform on mobile to allow native scroll */
-  .carousel-track {
-    transform: none !important; 
-  }
-
-  .carousel-slide {
-    flex: 0 0 85%; /* Shows part of next card for "peeking" effect */
-    scroll-snap-align: center;
-  }
-  
-  .mobile-scroll-indicator {
-    display: flex;
+  .fsc-title {
+    font-size: 1.25rem;
   }
 }
 
-/* Small Mobile */
-@media (max-width: 640px) {
-  .carousel-slide {
-    flex: 0 0 100%; /* Full width on very small screens */
-  }
-  
-  .carousel-header {
-    margin-bottom: 1rem;
-  }
+/* RTL */
+[dir="rtl"] .fsc-title {
+  text-align: right;
 }
 
-/* RTL Support for Slide logic handled in JS, but flex direction needs handling */
-[dir="rtl"] .carousel-track {
-  /* Flex direction row-reverse might be needed depending on implementation, 
-     but usually standard row works if transform logic is inverted.
-     The JS provided handles transform logic check. 
-  */
+[dir="rtl"] .fsc-dots {
+  direction: ltr; /* keep dot order LTR regardless */
 }
