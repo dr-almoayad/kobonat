@@ -17,7 +17,7 @@ export default function StoreDiscountCard({ store, locale }) {
     >
       {/* Logo */}
       <div className="sdc-logo">
-        {store.logo ? (
+        {store.bigLogo ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={store.bigLogo} alt={store.name} />
         ) : (
