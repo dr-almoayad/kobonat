@@ -3,6 +3,10 @@
 
 export default function BlogPostStructuredData({ post, locale, baseUrl }) {
   const lang = locale?.split('-')[0] || 'ar';
+  const isAr = lang === 'ar';
+  
+  // ✅ Dynamic Brand Name for Site Name consistency
+  const brandName = isAr ? 'كوبونات' : 'Cobonat';
 
   // ── 1. BlogPosting ─────────────────────────────────────────────────────
   const blogPostingSchema = {
@@ -13,12 +17,13 @@ export default function BlogPostStructuredData({ post, locale, baseUrl }) {
     headline:      post.metaTitle || post.title,
     name:          post.title,
     description:   post.metaDescription || post.excerpt,
-    articleBody:   post.excerpt,  // intentional: never dump raw HTML here
+    articleBody:   post.excerpt,
     inLanguage:    lang,
     datePublished: post.publishedAt,
     dateModified:  post.updatedAt || post.publishedAt,
     isPartOf:  { '@type': 'WebSite',      '@id': `${baseUrl}/#website` },
-    publisher: { '@type': 'Organization', '@id': `${baseUrl}/#organization`, name: 'Cobonat' },
+    // ✅ FIX: Use dynamic brandName here
+    publisher: { '@type': 'Organization', '@id': `${baseUrl}/#organization`, name: brandName },
     ...(post.featuredImage && {
       image: { '@type': 'ImageObject', url: post.featuredImage, width: 1200, height: 630 },
     }),
@@ -26,26 +31,17 @@ export default function BlogPostStructuredData({ post, locale, baseUrl }) {
       author: {
         '@type': 'Person',
         name: lang === 'ar' ? (post.author.nameAr || post.author.name) : post.author.name,
-        ...(post.author.avatar && { image: post.author.avatar }),
-        ...(post.author.twitterHandle && {
-          sameAs: [`https://twitter.com/${post.author.twitterHandle}`],
-        }),
+        url:  `${baseUrl}/${locale}/authors/${post.author.slug}`,
       },
-    }),
-    ...(post.category && {
-      articleSection: post.category.translations?.[0]?.name || post.category.slug,
-    }),
-    ...(post.readingTime && {
-      timeRequired: `PT${post.readingTime}M`,
     }),
   };
 
-  // ── 2. BreadcrumbList ──────────────────────────────────────────────────
+  // ── 2. Breadcrumbs ──────────────────────────────────────────────────────
   const crumbs = [
-    { name: lang === 'ar' ? 'الرئيسية' : 'Home', item: `${baseUrl}/${locale}` },
-    { name: lang === 'ar' ? 'المدونة'  : 'Blog', item: `${baseUrl}/${locale}/blog` },
+    { name: isAr ? 'الرئيسية' : 'Home', item: `${baseUrl}/${locale}` },
+    { name: isAr ? 'المدونة' : 'Blog', item: `${baseUrl}/${locale}/blog` },
     ...(post.category ? [{
-      name: post.category.translations?.[0]?.name || post.category.slug,
+      name: post.category.translations?.find(t => t.locale === lang)?.name || post.category.slug,
       item: `${baseUrl}/${locale}/blog?category=${post.category.slug}`,
     }] : []),
     { name: post.title, item: `${baseUrl}/${locale}/blog/${post.slug}` },
@@ -62,12 +58,12 @@ export default function BlogPostStructuredData({ post, locale, baseUrl }) {
     })),
   };
 
-  // ── 3. FAQPage (only if faqJson is present and valid) ─────────────────
+  // ── 3. FAQPage ────────────────────────────────────────────────────────
   let faqSchema = null;
   if (post.faqJson) {
     try {
       const items = JSON.parse(post.faqJson);
-      if (Array.isArray(items) && items.length > 0 && items.every(i => i.q && i.a)) {
+      if (Array.isArray(items) && items.length > 0) {
         faqSchema = {
           '@context': 'https://schema.org',
           '@type':    'FAQPage',
@@ -78,16 +74,14 @@ export default function BlogPostStructuredData({ post, locale, baseUrl }) {
           })),
         };
       }
-    } catch { /* invalid JSON — skip */ }
+    } catch { /* skip */ }
   }
 
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(blogPostingSchema) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
-      {faqSchema && (
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
-      )}
+      {faqSchema && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />}
     </>
   );
 }
