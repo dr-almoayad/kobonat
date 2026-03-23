@@ -1,5 +1,5 @@
 'use client';
-// components/FeaturedStoresCarousel/FeaturedStoresCarousel.jsx
+// components/FeaturedStoresCarousel2/FeaturedStoresCarousel2.jsx
 //
 // Displays a 3-column × 3-row grid of StoreDiscountCard items.
 // Arrow buttons page through sets of 9.
