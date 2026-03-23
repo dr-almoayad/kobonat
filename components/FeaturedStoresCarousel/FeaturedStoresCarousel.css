@@ -1,11 +1,11 @@
-/* components/FeaturedStoresCarousel/FeaturedStoresCarousel.css */
+/* FeaturedStoresCarousel.css */
 
 .fsc {
   padding: 2rem 0;
 }
 
 .fsc-inner {
-  max-width: 1280px;
+  max-width: 1312px;
   margin: 0 auto;
   padding: 0 1.5rem;
 }
@@ -84,93 +84,47 @@
   border-radius: 3px;
 }
 
-/* ── Mobile: horizontal scroll with peek ────────────────────────────── */
-@media (max-width: 900px) {
-
-  /* Remove outer padding so scroll bleeds to viewport edge */
-  .fsc-inner {
-    padding: 0;
-  }
-
-  /* Title and dots keep their indent */
-  .fsc-title,
-  .fsc-dots {
-    padding-left: 1.25rem;
-    padding-right: 1.25rem;
-  }
-
-  /* Body becomes the scroll track */
-  .fsc-body {
-    overflow-x: auto;
-    overflow-y: hidden;
-    scroll-snap-type: x mandatory;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-    gap: 0;
-    /* left indent so first card aligns with the title */
-    padding-left: 1.25rem;
-    /* NO padding-right — lets the next card peek naturally */
-  }
-
-  .fsc-body::-webkit-scrollbar {
-    display: none;
-  }
-
-  /* Hide arrows on touch — use swipe */
-  .fsc-arrow {
-    display: none;
-  }
-
-  /* Grid becomes a horizontal flex row */
-  .fsc-grid {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: nowrap;
-    gap: 10px;
-  }
-
-  /* Each card: fixed width so ~2.3 cards are visible at once,
-     revealing the edge of the third to signal scrollability.
-     42vw = ~2.3 on most phones; adjust to taste. */
-  .fsc-grid > * {
-    flex: 0 0 42vw;
-    min-width: 0;
-    scroll-snap-align: start;
-  }
-
-  /* Trailing right padding via a ghost element would be cleaner but
-     margin on the last child achieves the same result */
-  .fsc-grid > *:last-child {
-    margin-right: 1.25rem;
-  }
+/* ── Mobile: 3‑row horizontal scroll ────────────────────────────────── */
+.fsc-mobile-scroll {
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
 }
 
-/* Smaller phones: show ~1.5 cards + peek */
+.fsc-mobile-grid {
+  display: grid;
+  grid-auto-flow: column;
+  grid-template-rows: repeat(3, auto);
+  gap: 10px;
+  width: max-content;
+  padding-bottom: 4px; /* space for scrollbar */
+}
+
+/* Each card has a sensible width (3 cards fill the screen in portrait) */
+.fsc-mobile-grid > * {
+  width: 220px;
+  min-width: 0;
+}
+
+/* Slightly smaller cards on narrow phones */
 @media (max-width: 480px) {
-  .fsc-grid > * {
-    flex: 0 0 72vw;
+  .fsc-mobile-grid > * {
+    width: 180px;
   }
 }
 
-/* ── RTL ─────────────────────────────────────────────────────────────── */
-[dir="rtl"] .fsc-title {
-  text-align: right;
+/* RTL support for mobile scroll */
+[dir="rtl"] .fsc-mobile-scroll {
+  direction: rtl;
 }
 
-[dir="rtl"] .fsc-dots {
-  direction: ltr;
-}
-
+/* Ensure title and container padding are consistent on mobile */
 @media (max-width: 900px) {
-  [dir="rtl"] .fsc-body {
-    padding-left: 0;
-    padding-right: 1.25rem;
-    direction: rtl;
+  .fsc-inner {
+    padding: 0 1.25rem;
   }
-
-  [dir="rtl"] .fsc-grid > *:last-child {
-    margin-right: 0;
-    margin-left: 1.25rem;
+  .fsc-title {
+    margin-bottom: 1rem;
   }
 }
