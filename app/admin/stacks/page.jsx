@@ -1,217 +1,183 @@
-// app/admin/stacks/page.jsx
 'use client';
+// app/admin/stacks/page.jsx
+// Global overview of all OfferStack records.
+// Management happens at the per-store level — this page shows what exists
+// and deep-links into each store's Offer Stacks tab.
 
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import '../admin-panel.css';
 
 const TYPE_STYLE = {
-  CODE:       { label: 'Code',       bg: 'rgba(99,102,241,0.13)', border: 'rgba(99,102,241,0.3)', color: '#818cf8', icon: 'confirmation_number' },
-  DEAL:       { label: 'Deal',       bg: 'rgba(16,185,129,0.13)', border: 'rgba(16,185,129,0.3)', color: '#34d399', icon: 'local_fire_department' },
-  BANK_OFFER: { label: 'Bank Offer', bg: 'rgba(245,158,11,0.13)', border: 'rgba(245,158,11,0.3)', color: '#fbbf24', icon: 'account_balance' },
+  CODE:       { bg: 'rgba(99,102,241,0.12)',  border: 'rgba(99,102,241,0.3)',  color: '#818cf8', icon: 'confirmation_number', label: 'Code'       },
+  DEAL:       { bg: 'rgba(16,185,129,0.12)',  border: 'rgba(16,185,129,0.3)',  color: '#34d399', icon: 'local_fire_department', label: 'Deal'       },
+  BANK_OFFER: { bg: 'rgba(245,158,11,0.12)',  border: 'rgba(245,158,11,0.3)',  color: '#fbbf24', icon: 'account_balance',       label: 'Bank Offer' },
 };
 
-// ── Offer chip ─────────────────────────────────────────────────────────────────
-function OfferChip({ item }) {
-  const s = TYPE_STYLE[item.itemType] || TYPE_STYLE.DEAL;
+function OfferPill({ type, title, subtitle, code }) {
+  const s = TYPE_STYLE[type] || TYPE_STYLE.DEAL;
   return (
     <div style={{
-      display: 'flex', flexDirection: 'column', gap: '3px',
+      display: 'inline-flex', flexDirection: 'column', gap: 2,
       background: s.bg, border: `1px solid ${s.border}`,
-      borderRadius: '8px', padding: '0.4rem 0.65rem',
-      minWidth: '80px', maxWidth: '160px',
+      borderRadius: 7, padding: '0.3rem 0.55rem',
+      maxWidth: 160, minWidth: 72,
     }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
-        <span className="material-symbols-sharp" style={{ fontSize: '0.7rem', color: s.color }}>
-          {s.icon}
-        </span>
-        <span style={{ fontSize: '0.6rem', fontWeight: 700, color: s.color,
-          textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+        <span className="material-symbols-sharp" style={{ fontSize: '0.65rem', color: s.color }}>{s.icon}</span>
+        <span style={{ fontSize: '0.58rem', fontWeight: 700, color: s.color, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
           {s.label}
         </span>
       </div>
-      <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--ap-text-primary)',
-        lineHeight: 1.25, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-        {item.title}
+      <span style={{ fontSize: '0.73rem', fontWeight: 600, color: 'var(--ap-text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        {title || '—'}
       </span>
-      {item.discountPercent != null && (
-        <span style={{ fontSize: '0.72rem', fontWeight: 700, color: s.color }}>
-          {item.discountPercent}%
-        </span>
-      )}
-      {item.code && (
-        <code style={{ fontSize: '0.65rem', background: 'rgba(0,0,0,0.15)',
-          padding: '1px 5px', borderRadius: '3px', color: 'var(--ap-text-primary)',
-          letterSpacing: '0.04em' }}>
-          {item.code}
+      {code && (
+        <code style={{ fontSize: '0.6rem', background: 'rgba(0,0,0,0.12)', padding: '1px 4px', borderRadius: 3, color: 'var(--ap-text-primary)', letterSpacing: '0.04em' }}>
+          {code}
         </code>
+      )}
+      {subtitle && !code && (
+        <span style={{ fontSize: '0.65rem', color: s.color }}>{subtitle}</span>
       )}
     </div>
   );
 }
 
-// ── Homepage featured toggle ───────────────────────────────────────────────────
-// PATCHes isFeaturedStack on every CODE+DEAL voucher for the store simultaneously.
-function HomepageToggle({ storeId, vouchers, value, onChange }) {
-  const [saving, setSaving] = useState(false);
+function StackRow({ stack }) {
+  const items = [];
 
-  async function toggle() {
-    const next = !value;
-    setSaving(true);
-    try {
-      await Promise.all(
-        vouchers.map(v =>
-          fetch(`/api/admin/vouchers/${v.id}/calculator`, {
-            method:  'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body:    JSON.stringify({ isFeaturedStack: next }),
-          }).then(r => { if (!r.ok) throw new Error(`voucher ${v.id} PATCH failed`); })
-        )
-      );
-      onChange(storeId, next);
-    } catch (err) {
-      alert('Save failed: ' + err.message);
-    } finally {
-      setSaving(false);
-    }
+  if (stack.codeVoucher) {
+    const t = stack.codeVoucher.translations?.[0];
+    items.push({ type: 'CODE', title: t?.title || stack.codeVoucher.discount || '—', subtitle: stack.codeVoucher.discount, code: stack.codeVoucher.code });
+  }
+  if (stack.dealVoucher) {
+    const t = stack.dealVoucher.translations?.[0];
+    items.push({ type: 'DEAL', title: t?.title || stack.dealVoucher.discount || '—', subtitle: stack.dealVoucher.discount });
+  }
+  if (stack.promo) {
+    const t = stack.promo.translations?.[0];
+    const bankName = stack.promo.bank?.translations?.[0]?.name;
+    items.push({ type: 'BANK_OFFER', title: t?.title || bankName || '—' });
   }
 
   return (
-    <button
-      onClick={toggle}
-      disabled={saving}
-      title={value ? 'Remove from homepage stacks section' : 'Add to homepage stacks section'}
-      style={{
-        display: 'inline-flex', alignItems: 'center', gap: '0.35rem',
-        padding: '0.35rem 0.75rem', borderRadius: '7px',
-        border: value ? 'none' : '1px solid var(--ap-border)',
-        cursor: saving ? 'wait' : 'pointer',
-        fontWeight: 700, fontSize: '0.75rem', transition: 'all 0.15s', whiteSpace: 'nowrap',
-        background: value ? 'linear-gradient(135deg,#f59e0b,#f97316)' : 'var(--ap-surface-2)',
-        color:      value ? '#fff' : 'var(--ap-text-secondary)',
-        boxShadow:  value ? '0 2px 10px rgba(249,115,22,0.3)' : 'none',
-        opacity:    saving ? 0.65 : 1,
-      }}
-    >
-      {saving
-        ? <span className="ap-spinner" style={{ width: 11, height: 11 }} />
-        : <span className="material-symbols-sharp" style={{ fontSize: '0.9rem' }}>
-            {value ? 'star' : 'star_border'}
-          </span>
-      }
-      {value ? 'On Homepage' : 'Add to Homepage'}
-    </button>
+    <tr style={{ opacity: stack.isActive ? 1 : 0.45 }}>
+      <td>
+        <div style={{ fontFamily: 'var(--ap-mono)', fontSize: '0.72rem', color: 'var(--ap-text-muted)' }}>#{stack.id}</div>
+        {stack.label && <div style={{ fontSize: '0.78rem', fontWeight: 500, marginTop: 2 }}>{stack.label}</div>}
+      </td>
+      <td>
+        <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '0.4rem' }}>
+          {items.map((item, idx) => (
+            <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+              {idx > 0 && <span style={{ color: 'var(--ap-text-muted)', fontWeight: 700, fontSize: '0.8rem' }}>+</span>}
+              <OfferPill {...item} />
+            </div>
+          ))}
+          {items.length === 0 && <span style={{ color: 'var(--ap-text-muted)', fontSize: '0.75rem' }}>No offers linked</span>}
+        </div>
+      </td>
+      <td>
+        <span style={{ fontFamily: 'var(--ap-mono)', fontSize: '0.72rem', color: 'var(--ap-text-secondary)' }}>{stack.order}</span>
+      </td>
+      <td>
+        <span style={{
+          fontSize: '0.65rem', fontWeight: 700, padding: '2px 7px', borderRadius: 3,
+          background: stack.isActive ? 'rgba(63,185,80,0.12)' : 'rgba(255,255,255,0.05)',
+          color: stack.isActive ? 'var(--ap-green)' : 'var(--ap-text-muted)',
+        }}>
+          {stack.isActive ? 'Active' : 'Inactive'}
+        </span>
+      </td>
+    </tr>
   );
 }
 
-// ── Stack card ────────────────────────────────────────────────────────────────
-function StackCard({ stack, onFeaturedChange }) {
-  const allItems = [
-    ...stack.vouchers.map(v => ({ ...v, _src: 'voucher' })),
-    ...stack.promos.map(p =>  ({ ...p, _src: 'promo' })),
-  ];
+function StoreCard({ group }) {
+  const [open, setOpen] = useState(false);
+  const activeCount = group.stacks.filter(s => s.isActive).length;
 
   return (
     <div style={{
-      background: 'var(--ap-surface)',
-      border: `1px solid ${stack.isFeaturedStack ? 'rgba(249,115,22,0.45)' : 'var(--ap-border)'}`,
-      borderRadius: 'var(--ap-radius)', overflow: 'hidden',
-      boxShadow: stack.isFeaturedStack ? '0 0 0 1px rgba(249,115,22,0.12)' : 'none',
-      transition: 'border-color 0.15s',
+      border: '1px solid var(--ap-border)', borderRadius: 'var(--ap-radius)',
+      overflow: 'hidden', background: 'var(--ap-surface)',
     }}>
-      {/* Header */}
-      <div style={{
-        display: 'flex', alignItems: 'center', gap: '0.75rem',
-        padding: '0.75rem 1rem', borderBottom: '1px solid var(--ap-border-light)',
-        background: stack.isFeaturedStack
-          ? 'linear-gradient(90deg,rgba(249,115,22,0.07) 0%,transparent 100%)'
-          : 'var(--ap-surface-2)',
-      }}>
-        {stack.storeLogo ? (
-          <img src={stack.storeLogo} alt={stack.storeName} width={28} height={28}
-            style={{ borderRadius: 6, objectFit: 'contain', background: '#fff',
-              padding: 2, flexShrink: 0 }} />
+      {/* Store header */}
+      <button
+        type="button"
+        onClick={() => setOpen(v => !v)}
+        style={{
+          width: '100%', display: 'flex', alignItems: 'center', gap: '0.75rem',
+          padding: '0.75rem 1rem', background: 'var(--ap-surface-2)',
+          border: 'none', cursor: 'pointer', borderBottom: open ? '1px solid var(--ap-border)' : 'none',
+        }}
+      >
+        {group.storeLogo ? (
+          <img src={group.storeLogo} alt={group.storeName} style={{ width: 28, height: 28, objectFit: 'contain', borderRadius: 4, background: '#fff', padding: 2, flexShrink: 0 }} />
         ) : (
-          <div style={{ width: 28, height: 28, borderRadius: 6, flexShrink: 0,
-            background: 'var(--ap-surface)', border: '1px solid var(--ap-border)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.9rem' }}>
+          <div style={{ width: 28, height: 28, borderRadius: 4, background: 'var(--ap-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem', flexShrink: 0 }}>
             🏪
           </div>
         )}
-
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontWeight: 700, fontSize: '0.88rem', color: 'var(--ap-text-primary)' }}>
-            {stack.storeName}
-          </div>
+        <div style={{ flex: 1, textAlign: 'left' }}>
+          <div style={{ fontWeight: 600, fontSize: '0.85rem', color: 'var(--ap-text-primary)' }}>{group.storeName}</div>
           <div style={{ fontSize: '0.68rem', color: 'var(--ap-text-muted)', fontFamily: 'var(--ap-mono)' }}>
-            {stack.vouchers.length} voucher{stack.vouchers.length !== 1 ? 's' : ''}
-            {stack.promos.length > 0 && ` · ${stack.promos.length} bank offer${stack.promos.length !== 1 ? 's' : ''}`}
+            {group.stacks.length} stack{group.stacks.length !== 1 ? 's' : ''} · {activeCount} active
           </div>
         </div>
-
-        {stack.combinedSavingsPercent != null && (
-          <div style={{ textAlign: 'right', flexShrink: 0 }}>
-            <div style={{ fontSize: '0.6rem', color: 'var(--ap-text-muted)', fontFamily: 'var(--ap-mono)',
-              textTransform: 'uppercase', letterSpacing: '0.06em' }}>up to</div>
-            <div style={{
-              fontSize: '1.15rem', fontWeight: 800, fontFamily: 'var(--ap-mono)', lineHeight: 1,
-              color: stack.combinedSavingsPercent >= 20 ? 'var(--ap-green)'
-                   : stack.combinedSavingsPercent >= 10 ? 'var(--ap-amber)'
-                   : 'var(--ap-text-secondary)',
-            }}>
-              {stack.combinedSavingsPercent}%
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Offer chips */}
-      <div style={{ display: 'flex', alignItems: 'flex-start', flexWrap: 'wrap',
-        gap: '0.5rem', padding: '0.75rem 1rem' }}>
-        {allItems.map((item, idx) => (
-          <div key={`${item._src}-${item.id}`}
-            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            {idx > 0 && (
-              <span style={{ color: 'var(--ap-text-muted)', fontWeight: 700,
-                fontSize: '0.85rem', alignSelf: 'center' }}>+</span>
-            )}
-            <OfferChip item={item} />
-          </div>
-        ))}
-      </div>
-
-      {/* Footer */}
-      <div style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '0.6rem 1rem', borderTop: '1px solid var(--ap-border-light)',
-        background: 'var(--ap-surface-2)', gap: '0.75rem',
-      }}>
-        <HomepageToggle
-          storeId={stack.storeId}
-          vouchers={stack.vouchers}
-          value={stack.isFeaturedStack}
-          onChange={onFeaturedChange}
-        />
-        <Link href={`/admin/stores/${stack.storeId}/offers`}
-          style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--ap-accent)',
-            textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '3px' }}>
-          <span className="material-symbols-sharp" style={{ fontSize: '0.85rem' }}>tune</span>
-          Manage offers
+        <Link
+          href={`/admin/stores/${group.storeId}?tab=offer-stacks`}
+          onClick={e => e.stopPropagation()}
+          style={{
+            fontSize: '0.72rem', fontWeight: 600, color: 'var(--ap-accent)',
+            textDecoration: 'none', padding: '0.2rem 0.6rem',
+            border: '1px solid rgba(31,111,235,0.3)', borderRadius: 4,
+            whiteSpace: 'nowrap',
+            display: 'flex', alignItems: 'center', gap: 3,
+          }}
+        >
+          <span className="material-symbols-sharp" style={{ fontSize: '0.78rem' }}>tune</span>
+          Manage
         </Link>
-      </div>
+        <span className="material-symbols-sharp" style={{ fontSize: '1rem', color: 'var(--ap-text-muted)' }}>
+          {open ? 'expand_less' : 'expand_more'}
+        </span>
+      </button>
+
+      {/* Stack rows */}
+      {open && (
+        <div style={{ overflowX: 'auto' }}>
+          <table className="ap-table">
+            <thead>
+              <tr>
+                <th style={{ width: 80 }}>ID / Label</th>
+                <th>Offers in Stack</th>
+                <th style={{ width: 60 }}>Order</th>
+                <th style={{ width: 80 }}>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {group.stacks
+                .sort((a, b) => a.order - b.order)
+                .map(stack => <StackRow key={stack.id} stack={stack} />)
+              }
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }
 
-// ── Page ──────────────────────────────────────────────────────────────────────
 export default function StacksPage() {
-  const [stacks,       setStacks]       = useState([]);
-  const [meta,         setMeta]         = useState({ total: 0, homepageFeatured: 0 });
-  const [loading,      setLoading]      = useState(true);
-  const [error,        setError]        = useState(null);
-  const [search,       setSearch]       = useState('');
-  const [featuredOnly, setFeaturedOnly] = useState(false);
-  const [debSearch,    setDebSearch]    = useState('');
+  const [groups,     setGroups]     = useState([]);
+  const [meta,       setMeta]       = useState({ total: 0, storeCount: 0, activeCount: 0 });
+  const [loading,    setLoading]    = useState(true);
+  const [error,      setError]      = useState(null);
+  const [search,     setSearch]     = useState('');
+  const [activeOnly, setActiveOnly] = useState(false);
+  const [debSearch,  setDebSearch]  = useState('');
 
   useEffect(() => {
     const t = setTimeout(() => setDebSearch(search), 280);
@@ -223,38 +189,21 @@ export default function StacksPage() {
     setError(null);
     try {
       const p = new URLSearchParams();
-      if (debSearch)    p.set('search',   debSearch);
-      if (featuredOnly) p.set('featured', '1');
+      if (debSearch)  p.set('search', debSearch);
+      if (activeOnly) p.set('active', '1');
       const res  = await fetch(`/api/admin/stacks?${p}`);
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        throw new Error(body.error || `HTTP ${res.status}`);
-      }
+      if (!res.ok) throw new Error((await res.json()).error || `HTTP ${res.status}`);
       const json = await res.json();
-      setStacks(json.data ?? []);
-      setMeta(json.meta  ?? { total: 0, homepageFeatured: 0 });
+      setGroups(json.data || []);
+      setMeta(json.meta || { total: 0, storeCount: 0, activeCount: 0 });
     } catch (e) {
       setError(e.message);
     } finally {
       setLoading(false);
     }
-  }, [debSearch, featuredOnly]);
+  }, [debSearch, activeOnly]);
 
   useEffect(() => { load(); }, [load]);
-
-  function handleFeaturedChange(storeId, next) {
-    setStacks(prev => prev.map(s =>
-      s.storeId !== storeId ? s : {
-        ...s,
-        isFeaturedStack: next,
-        vouchers: s.vouchers.map(v => ({ ...v, isFeaturedStack: next })),
-      }
-    ));
-    setMeta(prev => ({
-      ...prev,
-      homepageFeatured: prev.homepageFeatured + (next ? 1 : -1),
-    }));
-  }
 
   return (
     <div className="ap-root">
@@ -271,87 +220,69 @@ export default function StacksPage() {
         {/* Stats */}
         <div className="ap-stats-row" style={{ marginBottom: '1.25rem' }}>
           <div className="ap-stat">
-            <span className="ap-stat__label">Stores with Stacks</span>
+            <span className="ap-stat__label">Total Stacks</span>
             <span className="ap-stat__value">{loading ? '…' : meta.total}</span>
-            <span className="ap-stat__sub">≥2 stackable offers</span>
           </div>
           <div className="ap-stat">
-            <span className="ap-stat__label">On Homepage</span>
-            <span className="ap-stat__value ap-stat__value--amber">
-              {loading ? '…' : meta.homepageFeatured}
-            </span>
-            <span className="ap-stat__sub">featured in homepage section</span>
+            <span className="ap-stat__label">Active</span>
+            <span className="ap-stat__value ap-stat__value--green">{loading ? '…' : meta.activeCount}</span>
           </div>
           <div className="ap-stat">
-            <span className="ap-stat__label">Store-Page Only</span>
-            <span className="ap-stat__value ap-stat__value--accent">
-              {loading ? '…' : Math.max(0, meta.total - meta.homepageFeatured)}
-            </span>
+            <span className="ap-stat__label">Stores with Stacks</span>
+            <span className="ap-stat__value ap-stat__value--accent">{loading ? '…' : meta.storeCount}</span>
           </div>
         </div>
 
-        {/* Info */}
+        {/* Info callout */}
         <div className="ap-alert ap-alert--info" style={{ marginBottom: '1.25rem' }}>
-          Stores appear here automatically once their offers are flagged{' '}
-          <strong>Stackable = Yes</strong> on their Offers page (at least 2 offers needed).
-          Use the <strong>★ Homepage</strong> toggle to curate which stores appear in
-          the homepage stacks section. Store pages always show all stacks regardless.
+          Stacks are managed <strong>per store</strong>. Click <strong>Manage →</strong> next to any store to
+          create, edit or delete its stacks. This page is a read-only overview.
         </div>
 
-        {/* Error */}
-        {error && (
-          <div className="ap-alert ap-alert--error" style={{ marginBottom: '1.25rem' }}>
-            <strong>Error:</strong> {error}
-          </div>
-        )}
+        {error && <div className="ap-alert ap-alert--error" style={{ marginBottom: '1.25rem' }}>{error}</div>}
 
         {/* Filters */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem',
-          marginBottom: '1.25rem', flexWrap: 'wrap' }}>
-          <input className="ap-input" type="search" placeholder="Search store…"
-            value={search} onChange={e => setSearch(e.target.value)}
-            style={{ maxWidth: 220 }} />
+        <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.25rem', flexWrap: 'wrap', alignItems: 'center' }}>
+          <input
+            className="ap-input" type="search"
+            placeholder="Search by store name…"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            style={{ maxWidth: 240 }}
+          />
           <label className="ap-checkbox-row">
-            <input type="checkbox" checked={featuredOnly}
-              onChange={e => setFeaturedOnly(e.target.checked)} />
-            <span className="ap-checkbox-label" style={{ fontSize: '0.8rem' }}>Homepage only</span>
+            <input type="checkbox" checked={activeOnly} onChange={e => setActiveOnly(e.target.checked)} />
+            <span className="ap-checkbox-label" style={{ fontSize: '0.8rem' }}>Active stacks only</span>
           </label>
-          <span style={{ marginLeft: 'auto', fontSize: '0.75rem',
-            color: 'var(--ap-text-muted)', fontFamily: 'var(--ap-mono)' }}>
-            {!loading && `${stacks.length} store${stacks.length !== 1 ? 's' : ''}`}
+          <span style={{ marginLeft: 'auto', fontSize: '0.72rem', color: 'var(--ap-text-muted)', fontFamily: 'var(--ap-mono)' }}>
+            {!loading && `${meta.storeCount} store${meta.storeCount !== 1 ? 's' : ''}`}
           </span>
         </div>
 
-        {/* Cards */}
+        {/* Content */}
         {loading ? (
           <div style={{ textAlign: 'center', padding: '4rem', color: 'var(--ap-text-muted)' }}>
             <span className="ap-spinner" />
           </div>
-        ) : stacks.length === 0 && !error ? (
+        ) : groups.length === 0 ? (
           <div className="ap-empty" style={{ padding: '3rem' }}>
-            {search || featuredOnly
+            {search || activeOnly
               ? 'No stacks match your filters.'
-              : <>
-                  No stacks yet — open a store's{' '}
-                  <Link href="/admin/vouchers" style={{ color: 'var(--ap-accent)' }}>
-                    Offers page
+              : (
+                <>
+                  No stacks yet. Go to a store's{' '}
+                  <Link href="/admin/stores" style={{ color: 'var(--ap-accent)' }}>
+                    Offer Stacks tab
                   </Link>{' '}
-                  and set <strong>Stackable = Yes</strong> on at least 2 offers.
+                  to create the first one.
                 </>
+              )
             }
           </div>
         ) : (
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(400px, 1fr))',
-            gap: '1rem',
-          }}>
-            {stacks.map(stack => (
-              <StackCard
-                key={stack.storeId}
-                stack={stack}
-                onFeaturedChange={handleFeaturedChange}
-              />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            {groups.map(group => (
+              <StoreCard key={group.storeId} group={group} />
             ))}
           </div>
         )}
