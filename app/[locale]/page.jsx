@@ -150,6 +150,7 @@ export default async function Home({ params }) {
       select: {
         id:   true,
         logo: true,
+        bigLogo: true,
         translations: {
           where:  { locale: language },
           select: { name: true, slug: true, showOffer: true },
