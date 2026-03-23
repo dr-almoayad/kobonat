@@ -207,6 +207,7 @@ export default async function Home({ params }) {
       name:             translation.name || '',
       slug:             translation.slug || '',
       logo:             s.logo,
+      bigLogo:          s.bigLogo,
       ctaUrl:           null,
       discount:         discountText,
       previousDiscount: null,
