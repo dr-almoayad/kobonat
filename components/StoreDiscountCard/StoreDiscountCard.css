@@ -116,7 +116,7 @@
 
 /* RTL */
 [dir="rtl"] .sdc {
-  flex-direction: row-reverse;
+  flex-direction: row;
 }
 
 [dir="rtl"] .sdc-ext-icon {
