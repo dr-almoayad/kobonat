@@ -44,6 +44,8 @@ export async function PATCH(req, { params }) {
     startDate, expiryDate,
     isActive, order,
     bankId, cardId, cardNetwork, installmentMonths,
+    paymentMethodId,   // ← add
+    voucherCode,       // ← add
     title_en, title_ar,
     description_en, description_ar,
     terms_en, terms_ar,
@@ -66,6 +68,8 @@ export async function PATCH(req, { params }) {
         cardId:             cardId      ? parseInt(cardId)             : null,
         cardNetwork:        cardNetwork || null,
         installmentMonths:  installmentMonths ? parseInt(installmentMonths) : null,
+        paymentMethodId:    paymentMethodId ? parseInt(paymentMethodId) : null,  // ← add
+        voucherCode:        voucherCode?.trim().toUpperCase() || null,           // ← add
       },
     });
 
