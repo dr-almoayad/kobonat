@@ -13,6 +13,7 @@ import HomepageHeroSection from '@/components/HomepageHeroSection/HomepageHeroSe
 import OfferStacksSection from '@/components/OfferStacksSection/OfferStacksSection';
 import FeaturedVouchersSection from '@/components/FeaturedVouchersSection/FeaturedVouchersSection';
 import FeaturedStoresSection from '@/components/FeaturedStoresSection/FeaturedStoresSection';
+import FeaturedStoresCarousel2 from '@/components/FeaturedStoresCarousel2/FeaturedStoresCarousel2';
 import { getCurrentWeekIdentifier } from '@/lib/leaderboard/calculateStoreSavings';
 import HeroCuratedSection from '@/components/HeroCuratedCarousel/HeroCuratedSection';
 
@@ -189,6 +190,20 @@ export default async function Home({ params }) {
 
       {/* Curated Offers 
       <CuratedOffersSection locale={locale} countryCode={countryCode || 'SA'} />*/}
+
+      <FeaturedStoresCarousel2
+        title={t('featuredStores')}
+        locale={locale}
+        stores={topStores.map(store => ({
+        id:               store.id,
+        name:             store.name,
+        logo:             store.logo,
+        slug:             store.slug,
+        ctaUrl:           null,
+        discount:         store.showOffer || `Up to ${store.maxDiscount}% off`,
+        previousDiscount: store.previousDiscount || null,
+        isPersonalized:   false,
+      }))}
 
       {/* Stackable Offers */}
       <OfferStacksSection locale={locale} countryCode={countryCode || 'SA'} />
