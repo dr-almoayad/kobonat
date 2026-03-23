@@ -195,15 +195,16 @@ export default async function Home({ params }) {
         title={t('featuredStores')}
         locale={locale}
         stores={topStores.map(store => ({
-        id:               store.id,
-        name:             store.name,
-        logo:             store.logo,
-        slug:             store.slug,
-        ctaUrl:           null,
-        discount:         store.showOffer || `Up to ${store.maxDiscount}% off`,
-        previousDiscount: store.previousDiscount || null,
-        isPersonalized:   false,
-      }))}
+          id:               store.id,
+          name:             store.name,
+          logo:             store.logo,
+          slug:             store.slug,
+          ctaUrl:           null,
+          discount:         store.showOffer || `Up to ${store.maxDiscount}% off`,
+          previousDiscount: store.previousDiscount || null,
+          isPersonalized:   false,
+        }))}
+      />
 
       {/* Stackable Offers */}
       <OfferStacksSection locale={locale} countryCode={countryCode || 'SA'} />
