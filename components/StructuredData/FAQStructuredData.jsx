@@ -1,29 +1,31 @@
 // components/StructuredData/FAQStructuredData.jsx
-// ✅ NO 'use client' — JSON-LD must be server-rendered so Googlebot
-// sees it in the initial HTML response. A client component would only
-// inject the script after hydration, which Google may miss entirely.
-
 /**
  * FAQ Structured Data Component
- * 
- * Generates schema.org FAQPage markup for Google Search Console
- * 
- * @param {Array} faqs - Array of FAQ objects with translations
- * @param {string} locale - Current locale (e.g., 'en-SA', 'ar-SA')
+ * ✅ FIX: Added publisher reference to reinforce site name ("كوبونات")
+ * ✅ FIX: Consistent locale and baseUrl handling
  */
+
 export default function FAQStructuredData({ faqs, locale }) {
   // Don't render if no FAQs
   if (!faqs || faqs.length === 0) {
     return null;
   }
 
-  // Extract language from locale
-  const language = locale ? locale.split('-')[0] : 'en';
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://cobonat.me';
+  const language = locale ? locale.split('-')[0] : 'ar';
+  const isAr = language === 'ar';
+  const brandName = isAr ? 'كوبونات' : 'Cobonat';
 
   // Build FAQ schema
   const faqSchema = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
+    // ✅ Reference your platform to help Google identify the site name
+    "publisher": {
+      "@type": "Organization",
+      "@id": `${baseUrl}/#organization`,
+      "name": brandName
+    },
     "mainEntity": faqs
       .filter(faq => faq.isActive !== false) // Only include active FAQs
       .map(faq => {
@@ -36,10 +38,10 @@ export default function FAQStructuredData({ faqs, locale }) {
 
         return {
           "@type": "Question",
-          "name": translation.question, // ✅ REQUIRED: The question text
+          "name": translation.question,
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": translation.answer // ✅ REQUIRED: The answer text
+            "text": translation.answer
           }
         };
       })
