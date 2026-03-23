@@ -1,110 +1,104 @@
-// components/FeaturedOffersCarousel.jsx
 'use client';
+// components/FeaturedStoresCarousel/FeaturedStoresCarousel.jsx
+//
+// Displays a 3-column × 3-row grid of StoreDiscountCard items.
+// Arrow buttons page through sets of 9.
+// Completely separate from the CuratedOffer / OfferCard system.
+//
+// Required prop shape for each item in `stores`:
+// {
+//   id:               number | string,
+//   name:             string,
+//   logo:             string | null,
+//   slug:             string,
+//   ctaUrl:           string | null,   // overrides slug-based URL
+//   discount:         string,          // e.g. "Up to 15% off"
+//   previousDiscount: string | null,   // e.g. "10% off"  → shown as "was 10% off"
+//   isPersonalized:   boolean,         // shows "Just for you" badge
+// }
 
 import { useState } from 'react';
-import OfferCard from '../OfferCard/OfferCard'; // Adjust path if needed based on your folder structure
-import './FeaturedOffersCarousel.css';
+import StoreDiscountCard from '../StoreDiscountCard/StoreDiscountCard';
+import './FeaturedStoresCarousel.css';
 
-export default function FeaturedOffersCarousel({ title, offers = [], locale }) {
-  const [currentSlide, setCurrentSlide] = useState(0);
+const PAGE_SIZE = 9; // 3 columns × 3 rows
 
-  // If no offers, don't render
-  if (!offers || offers.length === 0) {
-    return null;
-  }
+export default function FeaturedStoresCarousel({ title, stores = [], locale = 'en-SA' }) {
+  const [page, setPage] = useState(0);
 
-  // Determine items per view logic for navigation boundaries
-  // Note: CSS controls visual width, this controls logic
-  const itemsPerView = 2; // Matches CSS calc (50% on desktop)
-  const maxSlideIndex = Math.max(0, offers.length - 1); 
-  // Simplified navigation: Scroll one by one, but clamp at end based on view
+  if (!stores.length) return null;
 
-  const handlePrev = () => {
-    setCurrentSlide((prev) => (prev === 0 ? 0 : prev - 1));
-  };
+  const totalPages = Math.ceil(stores.length / PAGE_SIZE);
+  const start      = page * PAGE_SIZE;
+  const visible    = stores.slice(start, start + PAGE_SIZE);
+  const isRtl      = locale.startsWith('ar');
 
-  const handleNext = () => {
-    setCurrentSlide((prev) => {
-      // If we are at the end (taking into account visible items)
-      // Mobile sees 1 item, Desktop sees 2. 
-      // Simple logic: Allow scrolling until the last item is fully visible.
-      // Since CSS handles overflow, we just increment index.
-      return prev >= offers.length - 1 ? 0 : prev + 1;
-    });
-  };
+  function prev() { setPage(p => Math.max(0, p - 1)); }
+  function next() { setPage(p => Math.min(totalPages - 1, p + 1)); }
 
   return (
-    <section className="featured-offers-carousel">
-      <div className="carousel-container home-section"> {/* Added home-section class to align with page layout */}
-        <div className="carousel-header">
-          <h2 className="carousel-title">
-             <span className="material-symbols-sharp">verified</span>
-             {title}
-          </h2>
-          
-          <div className="carousel-controls">
-            <button 
-              className="control-btn prev" 
-              onClick={handlePrev}
-              disabled={currentSlide === 0}
+    <section className="fsc">
+      <div className="fsc-inner">
+
+        {/* Header */}
+        <h2 className="fsc-title">{title}</h2>
+
+        {/* Grid + side arrow */}
+        <div className="fsc-body">
+
+          {/* Prev arrow (RTL only — mirrors layout) */}
+          {isRtl && (
+            <button
+              className="fsc-arrow fsc-arrow--prev"
+              onClick={prev}
+              disabled={page === 0}
               aria-label="Previous"
             >
-              <span className="material-symbols-sharp">arrow_back</span>
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <path d="M12 5l-5 5 5 5" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
             </button>
-            <button 
-              className="control-btn next" 
-              onClick={handleNext}
-              disabled={currentSlide >= offers.length - 1}
-              aria-label="Next"
-            >
-              <span className="material-symbols-sharp">arrow_forward</span>
-            </button>
-          </div>
-        </div>
+          )}
 
-        <div className="carousel-track-container">
-          <div 
-            className="carousel-track" 
-            style={{ 
-              // Logic: Shift by percentage based on item width.
-              // We rely on CSS variables or fixed percentages. 
-              // Let's assume on desktop (min-width 1024px) items are 50% width.
-              // On mobile they are 100%.
-              // To make this responsive in JS without ResizeObserver is tricky.
-              // Better approach: Use a scroll container or simple transform based on 100% of ITEM width.
-              // However, the simplest way given the previous code is to translate by percentage of the TRACK.
-              
-              // Let's use CSS scroll snap instead for native feel, or keep the transform logic simple:
-              // Mobile: -100% * currentSlide
-              // Desktop: -50% * currentSlide
-              
-              // We will handle this via a CSS variable set by media query, but JS doesn't see CSS vars easily.
-              // Let's use a class-based modifier or just standard scrolling.
-              
-              // FALLBACK: Simple Transform
-               transform: `translateX(${locale.startsWith('ar') ? '' : '-'}${currentSlide * 100}%)` 
-               // Note: This assumes 1 item scroll at a time. 
-               // We need to adjust the CSS to ensure the track moves correctly.
-            }}
-          >
-            {offers.map((offer) => (
-              <div key={offer.id} className="carousel-slide">
-                <OfferCard offer={offer} />
-              </div>
+          {/* Card grid */}
+          <div className="fsc-grid">
+            {visible.map(store => (
+              <StoreDiscountCard
+                key={store.id}
+                store={store}
+                locale={locale}
+              />
             ))}
           </div>
+
+          {/* Next arrow */}
+          <button
+            className="fsc-arrow fsc-arrow--next"
+            onClick={isRtl ? prev : next}
+            disabled={isRtl ? page === 0 : page >= totalPages - 1}
+            aria-label="Next"
+          >
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <path d="M8 5l5 5-5 5" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
+
         </div>
 
-        {/* Mobile Scroll Indicator */}
-        <div className="mobile-scroll-indicator">
-          {offers.map((_, index) => (
-            <div 
-              key={index}
-              className={`indicator-dot ${index === currentSlide ? 'active' : ''}`}
-              onClick={() => setCurrentSlide(index)}
-            />
-          ))}
-        </div>
+        {/* Dot indicators — only when more than one page */}
+        {totalPages > 1 && (
+          <div className="fsc-dots">
+            {Array.from({ length: totalPages }).map((_, i) => (
+              <button
+                key={i}
+                className={`fsc-dot${i === page ? ' fsc-dot--active' : ''}`}
+                onClick={() => setPage(i)}
+                aria-label={`Page ${i + 1}`}
+              />
+            ))}
+          </div>
+        )}
+
       </div>
     </section>
   );
