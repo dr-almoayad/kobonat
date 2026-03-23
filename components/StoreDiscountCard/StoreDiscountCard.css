@@ -13,12 +13,6 @@
   min-width: 0;
 }
 
-.sdc:hover {
-  border-color: #c7c0f5;
-  padding-inline-start: 8px;
-  box-shadow: 0 2px 12px rgba(71, 10, 226, 0.08);
-}
-
 .sdc-logo {
   flex-shrink: 0;
   width: 56px;
