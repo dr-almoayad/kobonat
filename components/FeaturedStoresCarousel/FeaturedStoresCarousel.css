@@ -1,0 +1,176 @@
+/* components/FeaturedStoresCarousel/FeaturedStoresCarousel.css */
+
+.fsc {
+  padding: 2rem 0;
+}
+
+.fsc-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.fsc-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 1.25rem 0;
+}
+
+.fsc-body {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.fsc-grid {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  min-width: 0;
+}
+
+/* Arrow button */
+.fsc-arrow {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #475569;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+  align-self: center;
+}
+
+.fsc-arrow:hover:not(:disabled) {
+  border-color: #470ae2;
+  color: #470ae2;
+  background: #f5f3ff;
+}
+
+.fsc-arrow:disabled {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Dot indicators */
+.fsc-dots {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 1.25rem;
+}
+
+.fsc-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  border: none;
+  background: #cbd5e1;
+  cursor: pointer;
+  padding: 0;
+  transition: background 0.2s, width 0.2s;
+}
+
+.fsc-dot--active {
+  background: #470ae2;
+  width: 18px;
+  border-radius: 3px;
+}
+
+/* ── Mobile: horizontal scroll with peek ────────────────────────────── */
+@media (max-width: 900px) {
+
+  /* Remove outer padding so scroll bleeds to viewport edge */
+  .fsc-inner {
+    padding: 0;
+  }
+
+  /* Title and dots keep their indent */
+  .fsc-title,
+  .fsc-dots {
+    padding-left: 1.25rem;
+    padding-right: 1.25rem;
+  }
+
+  /* Body becomes the scroll track */
+  .fsc-body {
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    gap: 0;
+    /* left indent so first card aligns with the title */
+    padding-left: 1.25rem;
+    /* NO padding-right — lets the next card peek naturally */
+  }
+
+  .fsc-body::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Hide arrows on touch — use swipe */
+  .fsc-arrow {
+    display: none;
+  }
+
+  /* Grid becomes a horizontal flex row */
+  .fsc-grid {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    gap: 10px;
+  }
+
+  /* Each card: fixed width so ~2.3 cards are visible at once,
+     revealing the edge of the third to signal scrollability.
+     42vw = ~2.3 on most phones; adjust to taste. */
+  .fsc-grid > * {
+    flex: 0 0 42vw;
+    min-width: 0;
+    scroll-snap-align: start;
+  }
+
+  /* Trailing right padding via a ghost element would be cleaner but
+     margin on the last child achieves the same result */
+  .fsc-grid > *:last-child {
+    margin-right: 1.25rem;
+  }
+}
+
+/* Smaller phones: show ~1.5 cards + peek */
+@media (max-width: 480px) {
+  .fsc-grid > * {
+    flex: 0 0 72vw;
+  }
+}
+
+/* ── RTL ─────────────────────────────────────────────────────────────── */
+[dir="rtl"] .fsc-title {
+  text-align: right;
+}
+
+[dir="rtl"] .fsc-dots {
+  direction: ltr;
+}
+
+@media (max-width: 900px) {
+  [dir="rtl"] .fsc-body {
+    padding-left: 0;
+    padding-right: 1.25rem;
+    direction: rtl;
+  }
+
+  [dir="rtl"] .fsc-grid > *:last-child {
+    margin-right: 0;
+    margin-left: 1.25rem;
+  }
+}
