@@ -103,14 +103,14 @@
 
 /* Each card has a sensible width (3 cards fill the screen in portrait) */
 .fsc-mobile-grid > * {
-  width: 220px;
+  width: 284px;
   min-width: 0;
 }
 
 /* Slightly smaller cards on narrow phones */
 @media (max-width: 480px) {
   .fsc-mobile-grid > * {
-    width: 180px;
+    width: 284px;
   }
 }
 
