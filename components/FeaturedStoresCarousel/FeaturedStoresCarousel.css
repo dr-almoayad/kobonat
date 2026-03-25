@@ -17,23 +17,62 @@
   margin: 0 0 1.25rem 0;
 }
 
-.fsc-body {
+/* ----- Carousel ----- */
+.fsc-carousel {
+  width: 100%;
+  position: relative;
+}
+
+/* Viewport – padding gives 1rem gap from screen edges */
+.fsc-viewport {
+  overflow: hidden;
+  width: 100%;
+  padding-inline: 1rem;
+  transform: translateZ(0);
+}
+
+.fsc-container {
+  display: flex;
+  touch-action: pan-y pinch-zoom;
+  will-change: transform;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.fsc-slide {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.fsc-slide > * {
+  flex: 1;
+}
+
+/* Full‑bleed variant (mobile) */
+.fsc-carousel--full-bleed {
+  margin-left: calc(-1 * 1rem);
+  margin-right: calc(-1 * 1rem);
+  width: calc(100% + 2rem);
+}
+
+.fsc-carousel--full-bleed .fsc-viewport {
+  padding-inline: 1rem; /* consistent 1rem gap from screen edges */
+}
+
+/* Controls */
+.fsc-controls {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 0.75rem;
+  margin-top: 1.25rem;
 }
 
-.fsc-grid {
-  flex: 1;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-  min-width: 0;
-}
-
-/* Arrow button */
 .fsc-arrow {
-  flex-shrink: 0;
   width: 36px;
   height: 36px;
   border-radius: 50%;
@@ -45,7 +84,7 @@
   cursor: pointer;
   color: #475569;
   transition: border-color 0.15s, color 0.15s, background 0.15s;
-  align-self: center;
+  flex-shrink: 0;
 }
 
 .fsc-arrow:hover:not(:disabled) {
@@ -55,76 +94,47 @@
 }
 
 .fsc-arrow:disabled {
-  opacity: 0;
-  pointer-events: none;
+  opacity: 0.3;
+  cursor: default;
 }
 
-/* Dot indicators */
 .fsc-dots {
   display: flex;
-  justify-content: center;
+  align-items: center;
   gap: 6px;
-  margin-top: 1.25rem;
 }
 
 .fsc-dot {
-  width: 6px;
-  height: 6px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
   border: none;
   background: #cbd5e1;
   cursor: pointer;
   padding: 0;
-  transition: background 0.2s, width 0.2s;
+  transition: background 0.2s, width 0.2s, border-radius 0.2s;
+  flex-shrink: 0;
 }
 
 .fsc-dot--active {
   background: #470ae2;
-  width: 18px;
-  border-radius: 3px;
+  width: 22px;
+  border-radius: 4px;
 }
 
-/* ── Mobile: 3‑row horizontal scroll ────────────────────────────────── */
-.fsc-mobile-scroll {
-  overflow-x: auto;
-  overflow-y: hidden;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: thin;
-}
-
-.fsc-mobile-grid {
-  display: grid;
-  grid-auto-flow: column;
-  grid-template-rows: repeat(3, auto);
-  gap: 10px;
-  width: max-content;
-  padding-bottom: 4px; /* space for scrollbar */
-}
-
-/* Each card has a sensible width (3 cards fill the screen in portrait) */
-.fsc-mobile-grid > * {
-  width: 284px;
-  min-width: 0;
-}
-
-/* Slightly smaller cards on narrow phones */
-@media (max-width: 480px) {
-  .fsc-mobile-grid > * {
-    width: 284px;
-  }
-}
-
-/* RTL support for mobile scroll */
-[dir="rtl"] .fsc-mobile-scroll {
-  direction: rtl;
-}
-
-/* Ensure title and container padding are consistent on mobile */
-@media (max-width: 900px) {
+/* Responsive adjustments */
+@media (max-width: 768px) {
   .fsc-inner {
-    padding: 0 1.25rem;
+    padding: 0 1rem;
   }
-  .fsc-title {
-    margin-bottom: 1rem;
+
+  .fsc-controls {
+    display: none; /* hide arrows and dots on mobile */
+  }
+}
+
+@media (max-width: 480px) {
+  .fsc-slide {
+    flex-basis: 284px !important;
   }
 }
