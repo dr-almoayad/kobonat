@@ -27,7 +27,7 @@
 .fsc-viewport {
   overflow: hidden;
   width: 100%;
-  padding-inline: 1rem;
+  padding-inline-start: 1rem;
   transform: translateZ(0);
 }
 
@@ -52,7 +52,7 @@
 .fsc-slide-column {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
   width: 100%;
   height: 100%;
 }
@@ -140,6 +140,6 @@
 
 @media (max-width: 480px) {
   .fsc-slide {
-    flex-basis: 284px !important;
+    flex-basis: 274px !important;
   }
 }
