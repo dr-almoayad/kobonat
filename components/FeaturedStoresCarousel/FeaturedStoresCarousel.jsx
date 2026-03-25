@@ -28,6 +28,12 @@ function useMediaQuery(query) {
 }
 
 export default function FeaturedStoresCarousel({ title, stores = [], locale = 'en-SA' }) {
+  // Group stores into slides of 2 cards each
+  const slides = [];
+  for (let i = 0; i < stores.length; i += 2) {
+    slides.push(stores.slice(i, i + 2));
+  }
+
   const [emblaRef, emblaApi] = useEmblaCarousel({
     direction: isRtl(locale) ? 'rtl' : 'ltr',
     align: 'start',
@@ -75,9 +81,9 @@ export default function FeaturedStoresCarousel({ title, stores = [], locale = 'e
           {/* Viewport with padding for 1rem gap */}
           <div className="fsc-viewport" ref={emblaRef}>
             <div className="fsc-container">
-              {stores.map((store) => (
+              {slides.map((slideStores, idx) => (
                 <div
-                  key={store.id}
+                  key={idx}
                   className="fsc-slide"
                   style={{
                     flex: `0 0 ${slideWidth}`,
@@ -85,7 +91,11 @@ export default function FeaturedStoresCarousel({ title, stores = [], locale = 'e
                     marginInlineEnd: `calc(${slideGap} / 2)`,
                   }}
                 >
-                  <StoreDiscountCard store={store} locale={locale} />
+                  <div className="fsc-slide-column">
+                    {slideStores.map((store) => (
+                      <StoreDiscountCard key={store.id} store={store} locale={locale} />
+                    ))}
+                  </div>
                 </div>
               ))}
             </div>
@@ -146,4 +156,4 @@ export default function FeaturedStoresCarousel({ title, stores = [], locale = 'e
       </div>
     </section>
   );
-}
+                }
