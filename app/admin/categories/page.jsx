@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { upsertCategory, deleteCategory } from '../_lib/actions';
 import { DataTable } from '../_components/DataTable';
 import { FormField, FormRow, FormSection } from '../_components/FormField';
+import CategoryOrderPanel from '@/components/admin/CategoryOrderPanel';
 import styles from '../admin.module.css';
 
 // ─── All criteria the scoring engine understands ──────────────────────────────
@@ -324,6 +325,17 @@ export default function CategoriesPage() {
           </div>
         </form>
       )}
+
+      // In the list view (before the DataTable), add:
+      <div style={{ marginBottom: 32 }}>
+        <CategoryOrderPanel
+          categories={categories}
+          onSaved={() => {
+            fetch('/api/admin/categories?locale=en')
+              .then(r => r.json()).then(setCategories);
+          }}
+        />
+      </div>
 
       {/* ── Category List ───────────────────────────────────────────────────── */}
       {!showCreate && !editId && (
