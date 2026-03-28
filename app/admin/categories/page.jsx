@@ -141,20 +141,15 @@ export default function CategoriesPage() {
   const [formError,   setFormError]   = useState('');
   const [weights,     setWeights]     = useState({});
 
+  async function refetchCategories() {
+    const res  = await fetch('/api/admin/categories?locale=en');
+    const data = await res.json();
+    setCategories(data);
+  }
+
   // ── Fetch categories ──────────────────────────────────────────────────────
   useEffect(() => {
-    async function fetchData() {
-      try {
-        const res  = await fetch('/api/admin/categories?locale=en');
-        const data = await res.json();
-        setCategories(data);
-      } catch (err) {
-        console.error('Error fetching categories:', err);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchData();
+    refetchCategories().finally(() => setLoading(false));
   }, []);
 
   // ── Load category for editing ─────────────────────────────────────────────
@@ -177,7 +172,6 @@ export default function CategoriesPage() {
       return;
     }
 
-    // Inject the weights JSON so the server action can read it
     formData.set(
       'bankScoringWeights',
       Object.keys(weights).length > 0 ? JSON.stringify(weights) : ''
@@ -186,9 +180,7 @@ export default function CategoriesPage() {
     startTransition(async () => {
       const result = await upsertCategory(editId, formData);
       if (result.success) {
-        const res  = await fetch('/api/admin/categories?locale=en');
-        const data = await res.json();
-        setCategories(data);
+        await refetchCategories();
         router.push('/admin/categories');
         setEditing(null);
         setWeights({});
@@ -203,16 +195,14 @@ export default function CategoriesPage() {
     startTransition(async () => {
       const result = await deleteCategory(id);
       if (result.success) {
-        const res  = await fetch('/api/admin/categories?locale=en');
-        const data = await res.json();
-        setCategories(data);
+        await refetchCategories();
       } else {
         alert(result.error || 'Failed to delete category');
       }
     });
   }
 
-  function handleEdit(id) { router.push(`/admin/categories?edit=${id}`); }
+  function handleEdit(id)  { router.push(`/admin/categories?edit=${id}`); }
   function handleCreate()  { router.push('/admin/categories?create=true'); }
   function handleCancel()  { router.push('/admin/categories'); setEditing(null); setFormError(''); setWeights({}); }
 
@@ -249,14 +239,23 @@ export default function CategoriesPage() {
           <FormSection title="Basic Information">
             <FormRow>
               <FormField
-                label="Emoji Icon" name="icon"
-                defaultValue={editing?.icon || ''}
-                placeholder="🛒, 🛍️, 📱"
-                helpText="Optional emoji icon"
+                label="Display Order"
+                name="order"
+                type="number"
+                defaultValue={editing?.order ?? 0}
+                helpText="Lower number = appears first in carousel"
               />
               <FormField
                 label="Color" name="color" type="color"
                 defaultValue={editing?.color || '#0070f3'}
+              />
+            </FormRow>
+            <FormRow>
+              <FormField
+                label="Emoji Icon" name="icon"
+                defaultValue={editing?.icon || ''}
+                placeholder="🛒, 🛍️, 📱"
+                helpText="Optional emoji icon"
               />
               <FormField
                 label="Image URL" name="image"
@@ -310,7 +309,6 @@ export default function CategoriesPage() {
             </FormRow>
           </FormSection>
 
-          {/* ── Bank Niche Section ─────────────────────────────────────────── */}
           <FormSection title="Bank Leaderboard">
             <BankNicheSection category={editing} weights={weights} setWeights={setWeights} />
           </FormSection>
@@ -326,20 +324,18 @@ export default function CategoriesPage() {
         </form>
       )}
 
-      // In the list view (before the DataTable), add:
-      <div style={{ marginBottom: 32 }}>
-        <CategoryOrderPanel
-          categories={categories}
-          onSaved={() => {
-            fetch('/api/admin/categories?locale=en')
-              .then(r => r.json()).then(setCategories);
-          }}
-        />
-      </div>
-
-      {/* ── Category List ───────────────────────────────────────────────────── */}
+      {/* ── List View ───────────────────────────────────────────────────────── */}
       {!showCreate && !editId && (
         <>
+          {/* ── Order panel ─────────────────────────────────────────────────── */}
+          <div style={{ marginBottom: 32 }}>
+            <CategoryOrderPanel
+              categories={categories}
+              onSaved={refetchCategories}
+            />
+          </div>
+
+          {/* ── Card grid ───────────────────────────────────────────────────── */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 20, marginBottom: 40 }}>
             {categories.map(category => {
               const enTrans = category.translations?.find(t => t.locale === 'en') || {};
@@ -367,14 +363,14 @@ export default function CategoriesPage() {
                         <div style={{ fontSize: 12, color: '#666' }}>{enTrans.slug || 'no-slug'}</div>
                       </div>
                     </div>
+                    {/* Order badge */}
+                    <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 10, background: '#f1f5f9', color: '#64748b', flexShrink: 0 }}>
+                      #{category.order ?? 0}
+                    </span>
                   </div>
 
                   <div className={styles.cardContent}>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <span style={{ color: '#666' }}>ID:</span>
-                        <strong>{category.id}</strong>
-                      </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                         <span style={{ color: '#666' }}>Linked Stores:</span>
                         <strong>{category._count?.stores || 0}</strong>
@@ -388,14 +384,10 @@ export default function CategoriesPage() {
                           </div>
                         </div>
                       )}
-                      {/* Bank niche badge */}
                       {isNiche && (
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                           <span style={{ color: '#666' }}>Bank Niche:</span>
-                          <span style={{
-                            fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 10,
-                            background: '#dbeafe', color: '#1d4ed8',
-                          }}>
+                          <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 10, background: '#dbeafe', color: '#1d4ed8' }}>
                             {Object.keys(category.bankScoringWeights).length} criteria
                           </span>
                         </div>
@@ -420,11 +412,13 @@ export default function CategoriesPage() {
             })}
           </div>
 
+          {/* ── Table view ──────────────────────────────────────────────────── */}
           <h2 style={{ marginTop: 40, marginBottom: 20 }}>Table View</h2>
           <DataTable
             data={categories}
             columns={[
-              { key: 'id', label: 'ID', sortable: true },
+              { key: 'order', label: 'Order', sortable: true, render: (o) => <span style={{ fontFamily: 'monospace', fontWeight: 700 }}>{o ?? 0}</span> },
+              { key: 'id',    label: 'ID',    sortable: true },
               {
                 key: 'icon', label: 'Icon', sortable: false,
                 render: (icon) => <div style={{ fontSize: 24 }}>{icon || '📂'}</div>,
