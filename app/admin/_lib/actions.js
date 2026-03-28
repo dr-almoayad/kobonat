@@ -93,8 +93,8 @@ export async function updateStore(id, formData) {
       websiteUrl: formData.get('websiteUrl') || currentStore.websiteUrl,
       affiliateNetwork: formData.get('affiliateNetwork') || currentStore.affiliateNetwork,
       trackingUrl: formData.get('trackingUrl') || currentStore.trackingUrl,
-      isActive: formData.has('isActive') ? formData.get('isActive') === 'on' : currentStore.isActive,
-      isFeatured: formData.has('isFeatured') ? formData.get('isFeatured') === 'on' : currentStore.isFeatured,
+      isActive: formData.get('isActive') === 'on',
+      isFeatured: formData.get('isFeatured') === 'on',
       showOfferType: formData.has('showOfferType') ? formData.get('showOfferType') : currentStore.showOfferType,
     };
 
