@@ -18,13 +18,15 @@ const CategoryCarouselSubHeader = () => {
 
     const lastScrollYRef = useRef(0);
 
-    // ── Embla setup ────────────────────────────────────────────────────────
+    // ── Embla ──────────────────────────────────────────────────────────────
+    // containScroll:'trimSnaps' is critical — prevents the empty gap at the
+    // end by trimming the scroll range to exactly the last slide edge.
     const [emblaRef, emblaApi] = useEmblaCarousel({
         direction:     isAr ? 'rtl' : 'ltr',
         align:         'start',
         dragFree:      true,
         loop:          false,
-        containScroll: false,
+        containScroll: 'trimSnaps',
     });
 
     const syncArrows = useCallback((api) => {
@@ -43,18 +45,19 @@ const CategoryCarouselSubHeader = () => {
     const scrollPrev = useCallback(() => emblaApi?.scrollPrev(), [emblaApi]);
     const scrollNext = useCallback(() => emblaApi?.scrollNext(), [emblaApi]);
 
-    // ── Fetch categories ───────────────────────────────────────────────────
+    // ── Fetch ──────────────────────────────────────────────────────────────
     useEffect(() => {
         const fetchCategories = async () => {
             try {
                 const [language, region] = locale.split('-');
-                const url = `/api/categories?locale=${language}&country=${region}`;
-                const response = await fetch(url, { cache: 'no-store' });
-                if (!response.ok) throw new Error('Failed to load');
-                const data = await response.json();
-                setCategories(data);
-            } catch (error) {
-                console.error('CategoryCarousel error:', error);
+                const res = await fetch(
+                    `/api/categories?locale=${language}&country=${region}`,
+                    { cache: 'no-store' }
+                );
+                if (!res.ok) throw new Error('Failed to load');
+                setCategories(await res.json());
+            } catch (err) {
+                console.error('CategoryCarousel:', err);
             } finally {
                 setLoading(false);
             }
@@ -62,20 +65,17 @@ const CategoryCarouselSubHeader = () => {
         fetchCategories();
     }, [locale]);
 
-    // ── Hide on scroll-down, show on scroll-up ─────────────────────────────
+    // ── Hide on scroll-down, reveal on scroll-up ───────────────────────────
     useEffect(() => {
         let ticking = false;
         const handleScroll = () => {
             if (ticking) return;
             ticking = true;
             window.requestAnimationFrame(() => {
-                const currentScrollY = window.scrollY;
-                if (currentScrollY > lastScrollYRef.current && currentScrollY > 60) {
-                    setIsVisible(false);
-                } else if (currentScrollY < lastScrollYRef.current || currentScrollY < 40) {
-                    setIsVisible(true);
-                }
-                lastScrollYRef.current = currentScrollY;
+                const y = window.scrollY;
+                if (y > lastScrollYRef.current && y > 60) setIsVisible(false);
+                else if (y < lastScrollYRef.current || y < 40) setIsVisible(true);
+                lastScrollYRef.current = y;
                 ticking = false;
             });
         };
@@ -89,7 +89,7 @@ const CategoryCarouselSubHeader = () => {
         <div className={`ccs-wrapper ${isVisible ? 'ccs-visible' : 'ccs-hidden'}`}>
             <div className="ccs-inner">
 
-                {/* ── Prev arrow — desktop only ──────────────────────────── */}
+                {/* Prev — desktop only */}
                 <button
                     className="ccs-arrow"
                     onClick={isAr ? scrollNext : scrollPrev}
@@ -101,16 +101,14 @@ const CategoryCarouselSubHeader = () => {
                     </span>
                 </button>
 
-                {/* ── Embla viewport ────────────────────────────────────── */}
+                {/* Embla viewport */}
                 <div className="ccs-viewport" ref={emblaRef}>
                     <div className="ccs-track">
                         {categories.map((category, idx) => (
                             <div
                                 key={category.id}
                                 className="ccs-slide"
-                                style={{
-                                    marginInlineStart: idx === 0 ? 0 : undefined,
-                                }}
+                                style={idx === 0 ? { marginInlineStart: 0 } : undefined}
                             >
                                 <Link
                                     href={`/${locale}/stores/${category.slug}`}
@@ -120,8 +118,8 @@ const CategoryCarouselSubHeader = () => {
                                         {category.image ? (
                                             <Image
                                                 src={category.image}
-                                                width={30}
-                                                height={30}
+                                                width={56}
+                                                height={56}
                                                 alt={category.name}
                                                 className="ccs-img"
                                             />
@@ -138,7 +136,7 @@ const CategoryCarouselSubHeader = () => {
                     </div>
                 </div>
 
-                {/* ── Next arrow — desktop only ──────────────────────────── */}
+                {/* Next — desktop only */}
                 <button
                     className="ccs-arrow"
                     onClick={isAr ? scrollPrev : scrollNext}
