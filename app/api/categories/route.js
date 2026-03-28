@@ -62,7 +62,7 @@ export async function GET(req) {
           }
         }
       },
-      orderBy: { id: 'asc' }
+      orderBy: [{ order: 'asc' }, { id: 'asc' }]
     });
 
     // Debug: Check what database returned
