@@ -806,7 +806,8 @@
       "featured": "FEATURED",
       "verified": "Verified",
       "featuredFull": "FEATURED",
-      "active": "Active"
+      "active": "Active",
+      "exclusive": "Exclusive"
     },
     "meta": {
       "endingSoon": "Ending Soon",
