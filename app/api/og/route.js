@@ -2,10 +2,8 @@
 // Generates open-graph images for store pages on the fly.
 // Uses Next.js built-in ImageResponse (no extra packages required).
 //
-// Usage (already wired in generateStoreMetadata.js, but kept here for reference):
-//   /api/og?store=Noon&logo=https://…/noon.png
-//
-// Falls back gracefully if the logo URL can't be fetched (network error, bad domain).
+// Usage:
+//   /api/og?store=Noon&logo=https://…/noon.png&lang=ar
 
 import { ImageResponse } from 'next/og';
 
@@ -28,7 +26,7 @@ export async function GET(request) {
 
     // Attempt to pre-fetch the logo so ImageResponse can embed it.
     // If it fails (remote domain not allowed, network issue, etc.) we skip it.
-    let logoData: string | null = null;
+    let logoData = null;
     if (logoUrl) {
       try {
         const res = await fetch(logoUrl);
@@ -47,13 +45,13 @@ export async function GET(request) {
       (
         <div
           style={{
-            display:        'flex',
-            flexDirection:  'column',
-            width:          '100%',
-            height:         '100%',
-            background:     WHITE,
-            position:       'relative',
-            overflow:       'hidden',
+            display:       'flex',
+            flexDirection: 'column',
+            width:         '100%',
+            height:        '100%',
+            background:    WHITE,
+            position:      'relative',
+            overflow:      'hidden',
           }}
         >
           {/* Purple accent bar at top */}
@@ -97,16 +95,16 @@ export async function GET(request) {
             {logoData && (
               <div
                 style={{
-                  display:         'flex',
-                  alignItems:      'center',
-                  justifyContent:  'center',
-                  width:           '120px',
-                  height:          '120px',
-                  borderRadius:    '24px',
-                  background:      WHITE,
-                  boxShadow:       '0 4px 24px rgba(71,10,226,0.12)',
-                  padding:         '16px',
-                  overflow:        'hidden',
+                  display:        'flex',
+                  alignItems:     'center',
+                  justifyContent: 'center',
+                  width:          '120px',
+                  height:         '120px',
+                  borderRadius:   '24px',
+                  background:     WHITE,
+                  boxShadow:      '0 4px 24px rgba(71,10,226,0.12)',
+                  padding:        '16px',
+                  overflow:       'hidden',
                 }}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -121,12 +119,12 @@ export async function GET(request) {
             {/* Store name */}
             <div
               style={{
-                fontSize:    '56px',
-                fontWeight:  800,
-                color:       '#0f041c',
-                textAlign:   'center',
-                lineHeight:  1.15,
-                maxWidth:    '800px',
+                fontSize:   '56px',
+                fontWeight: 800,
+                color:      '#0f041c',
+                textAlign:  'center',
+                lineHeight: 1.15,
+                maxWidth:   '800px',
               }}
             >
               {storeName}
@@ -135,10 +133,10 @@ export async function GET(request) {
             {/* Tagline */}
             <div
               style={{
-                fontSize:     '26px',
-                fontWeight:   500,
-                color:        '#64748b',
-                textAlign:    'center',
+                fontSize:   '26px',
+                fontWeight: 500,
+                color:      '#64748b',
+                textAlign:  'center',
               }}
             >
               {tagline}
@@ -175,7 +173,6 @@ export async function GET(request) {
       }
     );
   } catch (err) {
-    // Never let OG generation crash the rest of the site
     console.error('[/api/og]', err);
     return new Response('Failed to generate image', { status: 500 });
   }
