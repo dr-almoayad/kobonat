@@ -1,4 +1,24 @@
-// app/[locale]/stores/[slug]/page.jsx - FULLY SEO OPTIMIZED WITH FAQ + SIDEBAR
+// app/[locale]/stores/[slug]/page.jsx
+// FIXES APPLIED:
+//
+// FIX 1 — Category hreflang broken (primary indexing blocker for category pages)
+//   Before: both 'ar-SA' and 'en-SA' alternates used the current locale's slug,
+//   e.g. Arabic category "إلكترونيات" produced `/en-SA/stores/إلكترونيات` → 404.
+//   Google drops the entire hreflang set when any alternate 404s, causing the
+//   page to be treated as uncanonicalised and often not indexed.
+//   After: we look up the other-locale CategoryTranslation slug explicitly and
+//   pass arSlug/enSlug to generateEnhancedCategoryMetadata.
+//
+// FIX 2 — Store hreflang for stores missing one language translation
+//   Before: `otherTranslation?.slug || slug` fell back to the current slug when
+//   the other-language translation was absent, producing a broken alternate URL.
+//   After: if the other-language translation is absent we omit that alternate
+//   entirely rather than pointing to a broken URL.
+//
+// FIX 3 — /api/og route that didn't exist is no longer referenced.
+//   generateEnhancedStoreMetadata in generateStoreMetadata.js now uses
+//   coverImage > logo > static fallback instead of the nonexistent /api/og.
+
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import { getTranslations } from 'next-intl/server';
@@ -42,7 +62,7 @@ export async function generateMetadata({ params }) {
     const isArabic = language === 'ar';
 
     const country = await prisma.country.findUnique({
-      where: { code: countryCode, isActive: true },
+      where:   { code: countryCode, isActive: true },
       include: { translations: { where: { locale: language } } },
     });
 
@@ -51,52 +71,70 @@ export async function generateMetadata({ params }) {
     if (category) {
       const categoryTranslation = category.translations[0];
 
+      // ── FIX 1: look up the other-locale slug so hreflang alternates are correct
+      const otherLanguage        = language === 'ar' ? 'en' : 'ar';
+      const otherCatTranslation  = category.translations.find(t => t.locale === otherLanguage)
+        // getCategoryData may not include the other locale — fetch it separately
+        || await prisma.categoryTranslation.findFirst({
+            where: { categoryId: category.id, locale: otherLanguage },
+            select: { slug: true, name: true },
+          });
+
+      const arCatSlug = language === 'ar' ? slug : (otherCatTranslation?.slug || null);
+      const enCatSlug = language === 'en' ? slug : (otherCatTranslation?.slug || null);
+
+      // Build alternates only for languages where we have a real slug
+      const hreflangLanguages = {};
+      if (arCatSlug) hreflangLanguages['ar-SA'] = `${BASE_URL}/ar-SA/stores/${arCatSlug}`;
+      if (enCatSlug) hreflangLanguages['en-SA'] = `${BASE_URL}/en-SA/stores/${enCatSlug}`;
+      // x-default always points to the Arabic version (primary market)
+      hreflangLanguages['x-default'] = `${BASE_URL}/ar-SA/stores/${arCatSlug || slug}`;
+
+      // Fast-exit branch: category has explicit SEO fields
       if (categoryTranslation?.seoTitle || categoryTranslation?.seoDescription) {
         const categoryName = categoryTranslation?.name || 'Category';
         return {
           metadataBase: new URL(BASE_URL),
           icons: {
-            icon: [
+            icon:  [
               { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
               { url: '/favicon-96x96.png', sizes: '96x96', type: 'image/png' },
             ],
             apple: [{ url: '/apple-touch-icon.png', sizes: '180x180' }],
           },
-          title: categoryTranslation.seoTitle || categoryName,
+          title:       categoryTranslation.seoTitle || categoryName,
           description: categoryTranslation.seoDescription || categoryTranslation?.description || '',
-          // ✅ FIX: category fast-exit was missing alternates entirely
           alternates: {
             canonical: `${BASE_URL}/${locale}/stores/${slug}`,
-            languages: {
-              'ar-SA': `${BASE_URL}/ar-SA/stores/${slug}`,
-              'en-SA': `${BASE_URL}/en-SA/stores/${slug}`,
-              'x-default': `${BASE_URL}/ar-SA/stores/${slug}`,
-            },
+            languages: hreflangLanguages,
           },
           openGraph: {
-            siteName: isArabic ? 'كوبونات' : 'Cobonat',
-            title: categoryTranslation.seoTitle || categoryName,
+            siteName:    isArabic ? 'كوبونات' : 'Cobonat',
+            title:       categoryTranslation.seoTitle || categoryName,
             description: categoryTranslation.seoDescription || '',
-            type: 'website',
+            type:        'website',
             locale,
-            url: `${BASE_URL}/${locale}/stores/${slug}`,
+            url:         `${BASE_URL}/${locale}/stores/${slug}`,
           },
         };
       }
 
-      const stores = await getStoresData({ language, countryCode, categoryId: category.id });
-      const voucherCount = stores.reduce((sum, s) => sum + s.activeVouchersCount, 0);
+      // Standard metadata via generator
+      const stores         = await getStoresData({ language, countryCode, categoryId: category.id });
+      const voucherCount   = stores.reduce((sum, s) => sum + s.activeVouchersCount, 0);
       return generateEnhancedCategoryMetadata({
         category: {
           ...category,
-          name: categoryTranslation?.name || 'Category',
+          name:        categoryTranslation?.name        || 'Category',
           description: categoryTranslation?.description || '',
           slug,
         },
         locale,
-        storeCount: stores.length,
+        storeCount:  stores.length,
         voucherCount,
         country: country ? { name: country.translations[0]?.name || country.code } : null,
+        arSlug: arCatSlug, // ← FIX 1: pass resolved slugs
+        enSlug: enCatSlug, // ← FIX 1
       });
     }
 
@@ -105,51 +143,52 @@ export async function generateMetadata({ params }) {
     if (store) {
       const storeTranslation = store.translations[0];
 
-      // ✅ FIX: Fetch the other-locale slug once, shared by both branches.
-      // Without this, generateHreflangAlternates used the same slug for both
-      // ar-SA and en-SA, producing broken hreflang URLs for stores whose AR
-      // and EN slugs differ (e.g. "نون" vs "noon").
-      const otherLocale = language === 'ar' ? 'en' : 'ar';
+      // ── FIX 2: look up the other-locale slug
+      const otherLocale      = language === 'ar' ? 'en' : 'ar';
       const otherTranslation = await prisma.storeTranslation.findFirst({
-        where: { storeId: store.id, locale: otherLocale },
+        where:  { storeId: store.id, locale: otherLocale },
         select: { slug: true },
       });
-      const arSlug = language === 'ar' ? slug : (otherTranslation?.slug || slug);
-      const enSlug = language === 'en' ? slug : (otherTranslation?.slug || slug);
 
-      // Fast-exit branch: store has explicit seoTitle / seoDescription set
+      // ── FIX 2: only include the other-language alternate when we have a real slug.
+      // Using `|| slug` as a fallback would create a hreflang pointing to a 404
+      // for stores that only exist in one language (e.g. Arabic-only stores).
+      const arSlug = language === 'ar' ? slug : (otherTranslation?.slug || null);
+      const enSlug = language === 'en' ? slug : (otherTranslation?.slug || null);
+
+      const hreflangLanguages = {};
+      if (arSlug) hreflangLanguages['ar-SA'] = `${BASE_URL}/ar-SA/stores/${arSlug}`;
+      if (enSlug) hreflangLanguages['en-SA'] = `${BASE_URL}/en-SA/stores/${enSlug}`;
+      hreflangLanguages['x-default'] = `${BASE_URL}/ar-SA/stores/${arSlug || slug}`;
+
+      // Fast-exit branch: store has explicit SEO fields
       if (storeTranslation?.seoTitle || storeTranslation?.seoDescription) {
         const storeName = storeTranslation?.name || slug;
         return {
           metadataBase: new URL(BASE_URL),
           icons: {
-            icon: [
+            icon:  [
               { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
               { url: '/favicon-96x96.png', sizes: '96x96', type: 'image/png' },
             ],
             apple: [{ url: '/apple-touch-icon.png', sizes: '180x180' }],
           },
-          title: storeTranslation.seoTitle || storeName,
+          title:       storeTranslation.seoTitle || storeName,
           description:
             storeTranslation.seoDescription ||
-            storeTranslation?.description ||
+            storeTranslation?.description   ||
             `Find the best coupons and deals for ${storeName}`,
-          // ✅ FIX: was missing alternates entirely in this branch
           alternates: {
             canonical: `${BASE_URL}/${locale}/stores/${slug}`,
-            languages: {
-              'ar-SA': `${BASE_URL}/ar-SA/stores/${arSlug}`,
-              'en-SA': `${BASE_URL}/en-SA/stores/${enSlug}`,
-              'x-default': `${BASE_URL}/ar-SA/stores/${arSlug}`,
-            },
+            languages: hreflangLanguages, // ← FIX 2
           },
           openGraph: {
-            siteName: isArabic ? 'كوبونات' : 'Cobonat',
-            title: storeTranslation.seoTitle || storeName,
+            siteName:    isArabic ? 'كوبونات' : 'Cobonat',
+            title:       storeTranslation.seoTitle || storeName,
             description: storeTranslation.seoDescription || storeTranslation?.description || '',
-            type: 'website',
+            type:        'website',
             locale,
-            url: `${BASE_URL}/${locale}/stores/${slug}`,
+            url:         `${BASE_URL}/${locale}/stores/${slug}`,
             images: [
               ...(store.coverImage
                 ? [{ url: store.coverImage, width: 1200, height: 630 }]
@@ -159,13 +198,15 @@ export async function generateMetadata({ params }) {
         };
       }
 
-      // Fallback: no custom SEO fields — use the generator function.
-      // ✅ FIX: pass arSlug/enSlug so the function uses correct per-locale slugs
+      // Fallback: standard metadata via generator.
+      // Pass arSlug / enSlug — if either is null the generator will omit that
+      // alternate (see generateStoreMetadata.js). This is safe because the page
+      // itself only exists in the locales for which a translation exists.
       return generateEnhancedStoreMetadata({
         store,
         locale,
-        arSlug,
-        enSlug,
+        arSlug: arSlug || undefined, // ← FIX 2: null → undefined so generator skips it
+        enSlug: enSlug || undefined,
         country: country ? { name: country.translations[0]?.name || country.code } : null,
       });
     }
@@ -185,8 +226,8 @@ export default async function StorePage({ params }) {
   try {
     const { slug, locale } = await params;
     const [language, countryCode] = locale.split('-');
-    const tStore = await getTranslations('StorePage');
-    const t      = await getTranslations('StoresPage');
+    const tStore      = await getTranslations('StorePage');
+    const t           = await getTranslations('StoresPage');
     const currentWeek = getCurrentWeekIdentifier();
 
     // ── Try as category ────────────────────────────────────────────────────
@@ -202,12 +243,6 @@ export default async function StorePage({ params }) {
         .filter(s => s.coverImage)
         .slice(0, 8)
         .map(s => ({ id: s.id, image: s.coverImage, name: s.name, logo: s.logo }));
-
-      const breadcrumbs = [
-        { name: language === 'ar' ? 'الرئيسية' : 'Home',    url: `${BASE_URL}/${locale}` },
-        { name: language === 'ar' ? 'المتاجر'  : 'Stores',  url: `${BASE_URL}/${locale}/stores` },
-        { name: translation?.name || slug,                    url: `${BASE_URL}/${locale}/stores/${slug}` },
-      ];
 
       return (
         <div className="stores-page-wrapper">
@@ -239,8 +274,12 @@ export default async function StorePage({ params }) {
               </div>
               <StoresGrid stores={featuredStores.length > 0 ? regularStores : stores} locale={locale} />
             </section>
-            <section className="promo-faq-section"><PromoCodesFAQ /></section>
+
+            <section className="promo-faq-section">
+              <PromoCodesFAQ />
+            </section>
           </main>
+
           <HelpBox locale={locale} />
         </div>
       );
@@ -251,7 +290,7 @@ export default async function StorePage({ params }) {
 
     if (store) {
       const country = await prisma.country.findUnique({
-        where: { code: countryCode, isActive: true },
+        where:   { code: countryCode, isActive: true },
         include: { translations: { where: { locale: language } } },
       });
       if (!country) return notFound();
@@ -273,8 +312,6 @@ export default async function StorePage({ params }) {
       };
 
       // ── Parallel data fetch ──────────────────────────────────────────────
-      // StoreIntelligenceCard is a self-fetching Server Component —
-      // no need to include its data here.
       const [
         vouchers,
         paymentMethodsData,
@@ -283,9 +320,9 @@ export default async function StorePage({ params }) {
         storeProducts,
         leaderboardSnapshots,
         relatedPostsRaw,
-        otherPromos,      // ← Step 1: was missing from server fetch
-        curatedOffers,    // ← Step 2: new
-        offerStacks,      // ← Step 2: new
+        otherPromos,
+        curatedOffers,
+        offerStacks,
       ] = await Promise.all([
 
         // 1. Vouchers
@@ -299,18 +336,18 @@ export default async function StorePage({ params }) {
           },
           include: {
             translations: { where: { locale: language } },
-            _count: { select: { clicks: true } },
+            _count:        { select: { clicks: true } },
           },
           orderBy: [
-            { isExclusive: 'desc' },
-            { isVerified: 'desc' },
+            { isExclusive:    'desc' },
+            { isVerified:     'desc' },
             { popularityScore: 'desc' },
           ],
         }),
 
         // 2. Payment methods
         prisma.storePaymentMethod.findMany({
-          where: { storeId: store.id, countryId: country.id },
+          where:   { storeId: store.id, countryId: country.id },
           include: {
             paymentMethod: { include: { translations: { where: { locale: language } } } },
           },
@@ -318,7 +355,7 @@ export default async function StorePage({ params }) {
 
         // 3. FAQs
         prisma.storeFAQ.findMany({
-          where: { storeId: store.id, countryId: country.id, isActive: true },
+          where:   { storeId: store.id, countryId: country.id, isActive: true },
           include: { translations: { where: { locale: language } } },
           orderBy: { order: 'asc' },
         }),
@@ -326,8 +363,8 @@ export default async function StorePage({ params }) {
         // 4. Related stores (same categories, same country)
         prisma.store.findMany({
           where: {
-            id: { not: store.id },
-            isActive: true,
+            id:        { not: store.id },
+            isActive:  true,
             countries: { some: { country: { code: countryCode } } },
             categories: {
               some: { categoryId: { in: store.categories.map(sc => sc.categoryId) } },
@@ -346,33 +383,32 @@ export default async function StorePage({ params }) {
               },
             },
           },
-          take: 6,
+          take:    6,
           orderBy: { isFeatured: 'desc' },
         }),
 
         // 5. Featured products
         prisma.storeProduct.findMany({
           where: {
-            storeId: store.id,
+            storeId:    store.id,
             isFeatured: true,
-            countries: { some: { country: { code: countryCode } } },
+            countries:  { some: { country: { code: countryCode } } },
           },
           include: { translations: { where: { locale: language } } },
           orderBy: [{ order: 'asc' }, { createdAt: 'desc' }],
-          take: 12,
+          take:    12,
         }),
 
         // 6. Leaderboard snapshots for sidebar
         prisma.storeSavingsSnapshot.findMany({
           where: { storeId: store.id, weekIdentifier: currentWeek },
-          take: 1,
+          take:  1,
         }),
 
-        // 7. Blog posts related to this store (max 6 → 2 full groups in RelatedPostsSidebar)
+        // 7. Blog posts related to this store
         getStoreRelatedPosts(store.id, language, 6),
 
-        // 8. Other promos (bank/card offers) — fetched here so they're crawler-visible
-        //    in structured data (OtherPromosSection fetches client-side separately for UI)
+        // 8. Other promos (bank/card offers)
         prisma.otherPromo.findMany({
           where: {
             storeId:   store.id,
@@ -384,7 +420,7 @@ export default async function StorePage({ params }) {
           orderBy: { order: 'asc' },
         }),
 
-        // 9. Curated offers — fetched here so they're crawler-visible in structured data
+        // 9. Curated offers
         prisma.curatedOffer.findMany({
           where: {
             storeId:  store.id,
@@ -396,8 +432,7 @@ export default async function StorePage({ params }) {
           orderBy: [{ isFeatured: 'desc' }, { order: 'asc' }],
         }),
 
-        // 10. Offer stacks — fetched here so HowTo schema is crawler-visible
-        //     (StoreOfferStacks component still fetches client-side for the interactive UI)
+        // 10. Offer stacks
         prisma.offerStack.findMany({
           where:   { storeId: store.id, isActive: true },
           include: {
@@ -422,7 +457,7 @@ export default async function StorePage({ params }) {
         store:       transformedStore,
       }));
 
-      const allPaymentMethods  = paymentMethodsData.map(spm => ({
+      const allPaymentMethods   = paymentMethodsData.map(spm => ({
         ...spm.paymentMethod,
         name:        spm.paymentMethod.translations[0]?.name        || '',
         description: spm.paymentMethod.translations[0]?.description || null,
@@ -459,7 +494,6 @@ export default async function StorePage({ params }) {
         } : null,
       }));
 
-      // Step 1 transform: otherPromos
       const transformedOtherPromos = otherPromos.map(p => ({
         id:          p.id,
         type:        p.type,
@@ -472,7 +506,6 @@ export default async function StorePage({ params }) {
         terms:       p.translations[0]?.terms       || null,
       }));
 
-      // Step 2 transform: curatedOffers
       const transformedCuratedOffers = curatedOffers.map(o => ({
         id:          o.id,
         type:        o.type,
@@ -486,7 +519,6 @@ export default async function StorePage({ params }) {
         ctaText:     o.translations[0]?.ctaText     || null,
       }));
 
-      // Step 2 transform: offerStacks
       const transformedOfferStacks = offerStacks.map(s => ({
         id:    s.id,
         label: s.label,
@@ -535,10 +567,10 @@ export default async function StorePage({ params }) {
           <StoreStructuredData
             store={transformedStore}
             vouchers={transformedVouchers}
-            otherPromos={transformedOtherPromos}       // ← Step 1 fix
-            storeProducts={transformedProducts}         // ← Step 1 fix
-            curatedOffers={transformedCuratedOffers}    // ← Step 2
-            offerStacks={transformedOfferStacks}        // ← Step 2
+            otherPromos={transformedOtherPromos}
+            storeProducts={transformedProducts}
+            curatedOffers={transformedCuratedOffers}
+            offerStacks={transformedOfferStacks}
             locale={locale}
             country={country}
             breadcrumbs={breadcrumbs}
@@ -586,14 +618,14 @@ export default async function StorePage({ params }) {
                     </section>
                   )}
 
-                  {/* Offer stacks — interactive UI (fetches own data client-side) */}
+                  {/* Offer stacks — interactive UI */}
                   <StoreOfferStacks
                     storeId={store.id}
                     locale={locale}
                     countryCode={countryCode || 'SA'}
                   />
 
-                  {/* Other promos — interactive UI (fetches own data client-side) */}
+                  {/* Other promos — interactive UI */}
                   <OtherPromosSection
                     storeSlug={transformedStore.slug}
                     storeName={transformedStore.name}
@@ -608,7 +640,7 @@ export default async function StorePage({ params }) {
                     />
                   )}
 
-                  {/* Intelligence card — score, savings %, logistics, payments */}
+                  {/* Intelligence card */}
                   <StoreIntelligenceCard
                     storeId={store.id}
                     locale={locale}
@@ -644,7 +676,6 @@ export default async function StorePage({ params }) {
                 {/* ════ SIDEBAR ════ */}
                 <aside className="store-content-sidebar">
 
-                  {/* Related blog posts */}
                   {relatedPosts.length > 0 && (
                     <RelatedPostsSidebar
                       posts={relatedPosts}
@@ -652,13 +683,13 @@ export default async function StorePage({ params }) {
                     />
                   )}
 
-                  {/* Leaderboard 
+                  {/* Leaderboard sidebar — uncomment when ready
                   <StoreLeaderboardSidebar
                     storeId={store.id}
                     locale={locale}
                     countryCode={countryCode}
                     snapshots={leaderboardSnapshots}
-                  />*/}
+                  /> */}
 
                 </aside>
 
