@@ -3,30 +3,68 @@
 // Sections:
 //  1. Homepage
 //  2. All-stores page
-//  3. Coupons page
+//  3. Coupons page  (page 1 only — paginated pages discovered via rel=next/prev)
 //  4. Static pages
 //  5. Category (store-category) pages
 //  6. Individual store pages
-//  7. Blog index page             ← NEW
-//  8. Blog category filter pages  ← NEW
-//  9. Individual blog post pages  ← NEW
-// 10. [commented] Individual coupon/voucher pages
+//  7. Blog index page
+//  8. Individual blog post pages
+//
+// FIXES APPLIED:
+//
+// FIX 1 — Blog category filter pages REMOVED from sitemap.
+//   The blog page (app/[locale]/blog/page.jsx) already sets
+//   `robots: 'noindex, follow'` on filtered views (?category= / ?tag=).
+//   Including noindex pages in the sitemap sends contradictory signals and
+//   creates "Submitted URL marked noindex" errors in Google Search Console,
+//   which wastes crawl budget and suppresses nearby pages. Removed entirely.
+//
+// FIX 2 — x-default added to every alternates object.
+//   Google uses x-default to decide which page to show users whose locale
+//   doesn't match any hreflang tag. Without it Google makes its own guess.
+//   Arabic (ar-SA) is the primary market, so x-default → ar-SA.
+//
+// FIX 3 — Store pages changeFrequency changed from 'hourly' → 'daily'.
+//   'hourly' was misleading — store-level content (description, logo) rarely
+//   changes that often. Vouchers have their own pages. Using 'hourly' across
+//   all store pages signals low-quality metadata to crawlers.
+//
+// FIX 4 — Category and store alternates already only include locales where
+//   a real translation exists (existing logic was correct). Added x-default
+//   pointing to the ar-SA variant in every case.
 // ─────────────────────────────────────────────────────────────────────────────
-import { prisma } from '@/lib/prisma';
+
+import { prisma }        from '@/lib/prisma';
 import { allLocaleCodes } from '@/i18n/locales';
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://cobonat.me';
-const LOCALES   = allLocaleCodes;
+const LOCALES  = allLocaleCodes;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Helpers
+// ─────────────────────────────────────────────────────────────────────────────
 
 function getMostRecentDate(...dates) {
   const valid = dates.filter(d => d instanceof Date && !isNaN(d));
   return valid.length > 0 ? new Date(Math.max(...valid.map(d => d.getTime()))) : new Date();
 }
 
-/** Build the full alternates map for a path that exists in every locale */
+/**
+ * Build the full alternates map for a path that exists identically in every
+ * locale (e.g. /coupons, /stores, /blog).
+ * FIX 2: includes x-default pointing to the ar-SA variant.
+ */
 function allAlternates(path = '') {
-  return Object.fromEntries(LOCALES.map(loc => [loc, `${BASE_URL}/${loc}${path}`]));
+  const languages = Object.fromEntries(
+    LOCALES.map(loc => [loc, `${BASE_URL}/${loc}${path}`])
+  );
+  languages['x-default'] = `${BASE_URL}/ar-SA${path}`;
+  return languages;
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Sitemap
+// ─────────────────────────────────────────────────────────────────────────────
 
 export default async function sitemap() {
   const urls = [];
@@ -71,7 +109,9 @@ export default async function sitemap() {
     });
 
     // =========================================================================
-    // 3. COUPONS PAGE
+    // 3. COUPONS PAGE  (page 1 only)
+    // Paginated pages (/coupons?page=N) are not included here — Google
+    // discovers them through the rel="next"/"prev" links in the HTML.
     // =========================================================================
     LOCALES.forEach(locale => {
       urls.push({
@@ -109,12 +149,17 @@ export default async function sitemap() {
 
     // =========================================================================
     // 5. STORE CATEGORY PAGES  (path: /locale/stores/[category-slug])
+    //
+    // Each category may have a different slug per locale (e.g. "إلكترونيات"
+    // in Arabic vs "electronics" in English). We build a validUrls map keyed
+    // by locale so hreflang alternates only reference URLs that actually exist.
+    // FIX 2: x-default added pointing to the ar-SA variant.
     // =========================================================================
     const categories = await prisma.category.findMany({
       include: {
         translations: true,
         stores: {
-          where: { store: { isActive: true } },
+          where:   { store: { isActive: true } },
           include: { store: { select: { updatedAt: true } } },
         },
       },
@@ -125,8 +170,9 @@ export default async function sitemap() {
 
       const storeUpdates = category.stores.map(s => s.store.updatedAt);
       const lastModified = getMostRecentDate(category.updatedAt, ...storeUpdates);
-      const validUrls    = new Map();
 
+      // Build a URL only for locales where this category has a translation slug
+      const validUrls = new Map();
       for (const locale of LOCALES) {
         const [language] = locale.split('-');
         const translation = category.translations.find(t => t.locale === language);
@@ -137,19 +183,31 @@ export default async function sitemap() {
 
       if (validUrls.size === 0) continue;
 
-      for (const [locale, url] of validUrls.entries()) {
+      // FIX 2: x-default → ar-SA variant (or first available if ar-SA missing)
+      const arSAUrl = validUrls.get('ar-SA') || validUrls.values().next().value;
+      const languages = {
+        ...Object.fromEntries(validUrls.entries()),
+        'x-default': arSAUrl,
+      };
+
+      for (const [, url] of validUrls.entries()) {
         urls.push({
           url,
           lastModified,
           changeFrequency: 'daily',
           priority:        0.8,
-          alternates: { languages: Object.fromEntries(validUrls.entries()) },
+          alternates: { languages },
         });
       }
     }
 
     // =========================================================================
     // 6. INDIVIDUAL STORE PAGES
+    //
+    // Each store may have different slugs per locale. Only locales where both
+    // a translation AND a matching country-region exist are included.
+    // FIX 2: x-default added.
+    // FIX 3: changeFrequency changed from 'hourly' to 'daily'.
     // =========================================================================
     const stores = await prisma.store.findMany({
       where:   { isActive: true },
@@ -157,7 +215,7 @@ export default async function sitemap() {
         translations: true,
         countries:    { include: { country: true } },
         vouchers: {
-          where: { OR: [{ expiryDate: null }, { expiryDate: { gte: new Date() } }] },
+          where:   { OR: [{ expiryDate: null }, { expiryDate: { gte: new Date() } }] },
           orderBy: { updatedAt: 'desc' },
           take:    1,
           select:  { updatedAt: true },
@@ -168,8 +226,8 @@ export default async function sitemap() {
     for (const store of stores) {
       const countryCodes = store.countries.map(sc => sc.country.code);
       const lastModified = getMostRecentDate(store.updatedAt, store.vouchers[0]?.updatedAt);
-      const validUrls    = new Map();
 
+      const validUrls = new Map();
       for (const locale of LOCALES) {
         const [language, region] = locale.split('-');
         if (!countryCodes.includes(region)) continue;
@@ -182,13 +240,20 @@ export default async function sitemap() {
 
       if (validUrls.size === 0) continue;
 
-      for (const [locale, url] of validUrls.entries()) {
+      // FIX 2: x-default → ar-SA variant (or first available)
+      const arSAUrl = validUrls.get('ar-SA') || validUrls.values().next().value;
+      const languages = {
+        ...Object.fromEntries(validUrls.entries()),
+        'x-default': arSAUrl,
+      };
+
+      for (const [, url] of validUrls.entries()) {
         urls.push({
           url,
           lastModified,
-          changeFrequency: 'hourly',
+          changeFrequency: 'daily',   // FIX 3: was 'hourly'
           priority:        store.isFeatured ? 0.85 : 0.75,
-          alternates: { languages: Object.fromEntries(validUrls.entries()) },
+          alternates: { languages },
         });
       }
     }
@@ -213,47 +278,23 @@ export default async function sitemap() {
     });
 
     // =========================================================================
-    // 8. BLOG CATEGORY FILTER PAGES  (/locale/blog?category=slug)
-    //    These use query-string URLs, not path segments.
-    //    Google indexes query-param URLs when they're canonicalized correctly.
-    //    We include them so Googlebot knows they exist, but at lower priority.
+    // NOTE — Blog category filter pages (?category=slug) intentionally omitted.
+    //
+    // FIX 1: The blog page already sets `robots: 'noindex, follow'` on those
+    // filtered views. Including noindex pages in the sitemap creates
+    // "Submitted URL marked noindex" errors in Google Search Console,
+    // wastes crawl budget, and can suppress coverage of nearby indexable pages.
+    // Google discovers the filtered pages through internal links and the
+    // category pill navigation on the blog index — no sitemap entry needed.
     // =========================================================================
-    const blogCategories = await prisma.blogCategory.findMany({
-      include: {
-        translations: true,
-        // Only include categories that have at least one published post
-        _count: { select: { posts: { where: { status: 'PUBLISHED' } } } },
-      },
-    });
-
-    for (const cat of blogCategories) {
-      if (cat._count.posts === 0) continue;
-
-      // Same slug for all locales — only the UI label differs
-      LOCALES.forEach(locale => {
-        urls.push({
-          url:             `${BASE_URL}/${locale}/blog?category=${cat.slug}`,
-          lastModified:    cat.updatedAt,
-          changeFrequency: 'weekly',
-          priority:        0.6,
-          alternates: {
-            languages: Object.fromEntries(
-              LOCALES.map(loc => [loc, `${BASE_URL}/${loc}/blog?category=${cat.slug}`])
-            ),
-          },
-        });
-      });
-    }
 
     // =========================================================================
-    // 9. INDIVIDUAL BLOG POST PAGES
-    //    - Both locale variants share the same slug.
-    //    - lastModified: use updatedAt so Google re-crawls edited posts.
-    //    - priority: featured posts get 0.8, regular posts 0.7.
-    //    - changeFrequency: 'weekly' — posts are edited less often than stores.
+    // 8. INDIVIDUAL BLOG POST PAGES
+    // Both locale variants share the same slug.
+    // FIX 2: x-default added pointing to the ar-SA variant.
     // =========================================================================
     const blogPosts = await prisma.blogPost.findMany({
-      where: { status: 'PUBLISHED' },
+      where:   { status: 'PUBLISHED' },
       select: {
         slug:        true,
         isFeatured:  true,
@@ -266,10 +307,10 @@ export default async function sitemap() {
     for (const post of blogPosts) {
       const lastModified = getMostRecentDate(post.updatedAt, post.publishedAt);
 
-      // Both locale variants of a post are alternate versions of each other
-      const postAlternates = Object.fromEntries(
-        LOCALES.map(loc => [loc, `${BASE_URL}/${loc}/blog/${post.slug}`])
-      );
+      const postAlternates = {
+        ...Object.fromEntries(LOCALES.map(loc => [loc, `${BASE_URL}/${loc}/blog/${post.slug}`])),
+        'x-default': `${BASE_URL}/ar-SA/blog/${post.slug}`, // FIX 2
+      };
 
       LOCALES.forEach(locale => {
         urls.push({
@@ -296,7 +337,7 @@ export default async function sitemap() {
   } catch (error) {
     console.error('❌ Sitemap generation error:', error);
 
-    // Minimal fallback so the site is never crawled without a sitemap
+    // Minimal fallback — site is never crawled without a sitemap
     return LOCALES.map(locale => ({
       url:             `${BASE_URL}/${locale}`,
       lastModified:    new Date(),
