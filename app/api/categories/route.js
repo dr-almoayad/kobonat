@@ -1,9 +1,6 @@
 // app/api/categories/route.js - FIXED: Always include image field regardless of locale
 import { NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
-
-const prisma = global.prisma || new PrismaClient();
-if (process.env.NODE_ENV === "development") global.prisma = prisma;
+import { prisma } from '@/lib/prisma';
 
 export async function GET(req) {
   try {
