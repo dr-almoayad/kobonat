@@ -111,7 +111,7 @@ const CategoryCarouselSubHeader = () => {
                                 style={idx === 0 ? { marginInlineStart: 0 } : undefined}
                             >
                                 <Link
-                                    href={`/${locale}/stores/${category.slug}`}
+                                    href={`/${locale}/categories/${category.slug}`}
                                     className="ccs-item"
                                 >
                                     <div className="ccs-icon-wrap">
