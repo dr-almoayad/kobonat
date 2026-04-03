@@ -308,7 +308,7 @@ const MobileFooter = () => {
                 {categories.map((cat) => (
                   <Link 
                     key={cat.id}
-                    href={`/${locale}/stores?category=${cat.slug}`}
+                    href={`/${locale}/categories?category=${cat.slug}`}
                     className="category-grid-item"
                     onClick={() => setShowCategoriesMenu(false)}
                   >
