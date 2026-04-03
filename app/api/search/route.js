@@ -1,10 +1,9 @@
 // app/api/search/route.js - FIXED WITH PROPER LOCAL SEARCH ENGINE INTEGRATION
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import localSearchEngine from '@/lib/search/localSearchEngine';
 
-const prisma = global.prisma || new PrismaClient();
-if (process.env.NODE_ENV === "development") global.prisma = prisma;
+
 
 // Cache with country-specific data
 const searchCache = new Map();
