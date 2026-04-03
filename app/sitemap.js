@@ -3,35 +3,19 @@
 // Sections:
 //  1. Homepage
 //  2. All-stores page
-//  3. Coupons page  (page 1 only — paginated pages discovered via rel=next/prev)
-//  4. Static pages
-//  5. Category (store-category) pages
-//  6. Individual store pages
-//  7. Blog index page
-//  8. Individual blog post pages
+//  3. Categories listing page      ← NEW
+//  4. Coupons page
+//  5. Static pages
+//  6. Individual category pages    ← now at /categories/[slug]
+//  7. Individual store pages
+//  8. Blog index page
+//  9. Individual blog post pages
 //
-// FIXES APPLIED:
-//
-// FIX 1 — Blog category filter pages REMOVED from sitemap.
-//   The blog page (app/[locale]/blog/page.jsx) already sets
-//   `robots: 'noindex, follow'` on filtered views (?category= / ?tag=).
-//   Including noindex pages in the sitemap sends contradictory signals and
-//   creates "Submitted URL marked noindex" errors in Google Search Console,
-//   which wastes crawl budget and suppresses nearby pages. Removed entirely.
-//
-// FIX 2 — x-default added to every alternates object.
-//   Google uses x-default to decide which page to show users whose locale
-//   doesn't match any hreflang tag. Without it Google makes its own guess.
-//   Arabic (ar-SA) is the primary market, so x-default → ar-SA.
-//
-// FIX 3 — Store pages changeFrequency changed from 'hourly' → 'daily'.
-//   'hourly' was misleading — store-level content (description, logo) rarely
-//   changes that often. Vouchers have their own pages. Using 'hourly' across
-//   all store pages signals low-quality metadata to crawlers.
-//
-// FIX 4 — Category and store alternates already only include locales where
-//   a real translation exists (existing logic was correct). Added x-default
-//   pointing to the ar-SA variant in every case.
+// KEY CHANGE: Category pages are now at /categories/[slug], not /stores/[slug].
+// The old /stores/[slug] URLs for categories 301-redirect to /categories/[slug]
+// via permanentRedirect() in the stores/[slug]/page.jsx.
+// The sitemap reflects the new canonical URL so Googlebot discovers the right
+// destination directly rather than following a redirect chain.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { prisma }        from '@/lib/prisma';
@@ -40,9 +24,7 @@ import { allLocaleCodes } from '@/i18n/locales';
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://cobonat.me';
 const LOCALES  = allLocaleCodes;
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Helpers
-// ─────────────────────────────────────────────────────────────────────────────
+// ── Helpers ───────────────────────────────────────────────────────────────────
 
 function getMostRecentDate(...dates) {
   const valid = dates.filter(d => d instanceof Date && !isNaN(d));
@@ -50,9 +32,8 @@ function getMostRecentDate(...dates) {
 }
 
 /**
- * Build the full alternates map for a path that exists identically in every
- * locale (e.g. /coupons, /stores, /blog).
- * FIX 2: includes x-default pointing to the ar-SA variant.
+ * Alternates for paths that are identical across every locale.
+ * Always includes x-default → ar-SA (primary market).
  */
 function allAlternates(path = '') {
   const languages = Object.fromEntries(
@@ -62,9 +43,7 @@ function allAlternates(path = '') {
   return languages;
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Sitemap
-// ─────────────────────────────────────────────────────────────────────────────
+// ── Sitemap ───────────────────────────────────────────────────────────────────
 
 export default async function sitemap() {
   const urls = [];
@@ -83,7 +62,7 @@ export default async function sitemap() {
       urls.push({
         url:             `${BASE_URL}/${locale}`,
         lastModified:    latestVoucherUpdate?.updatedAt || new Date(),
-        changeFrequency: 'hourly',
+        changeFrequency: 'daily',   // was 'hourly' — misleading and harms trust
         priority:        1.0,
         alternates: { languages: allAlternates() },
       });
@@ -109,9 +88,20 @@ export default async function sitemap() {
     });
 
     // =========================================================================
-    // 3. COUPONS PAGE  (page 1 only)
-    // Paginated pages (/coupons?page=N) are not included here — Google
-    // discovers them through the rel="next"/"prev" links in the HTML.
+    // 3. CATEGORIES LISTING PAGE  ← NEW
+    // =========================================================================
+    LOCALES.forEach(locale => {
+      urls.push({
+        url:             `${BASE_URL}/${locale}/categories`,
+        lastModified:    latestStoreUpdate?.updatedAt || new Date(),
+        changeFrequency: 'weekly',
+        priority:        0.9,
+        alternates: { languages: allAlternates('/categories') },
+      });
+    });
+
+    // =========================================================================
+    // 4. COUPONS PAGE  (page 1 only — paginated pages use rel=next/prev)
     // =========================================================================
     LOCALES.forEach(locale => {
       urls.push({
@@ -124,7 +114,7 @@ export default async function sitemap() {
     });
 
     // =========================================================================
-    // 4. STATIC PAGES
+    // 5. STATIC PAGES
     // =========================================================================
     const staticPages = [
       { slug: 'about',   priority: 0.6, changeFreq: 'monthly' },
@@ -148,12 +138,11 @@ export default async function sitemap() {
     });
 
     // =========================================================================
-    // 5. STORE CATEGORY PAGES  (path: /locale/stores/[category-slug])
+    // 6. INDIVIDUAL CATEGORY PAGES  (now at /categories/[slug])
     //
-    // Each category may have a different slug per locale (e.g. "إلكترونيات"
-    // in Arabic vs "electronics" in English). We build a validUrls map keyed
-    // by locale so hreflang alternates only reference URLs that actually exist.
-    // FIX 2: x-default added pointing to the ar-SA variant.
+    // Each category has different slugs per locale (e.g. "إلكترونيات" vs
+    // "electronics"). We only include locales where a real translation exists.
+    // x-default points to the ar-SA slug.
     // =========================================================================
     const categories = await prisma.category.findMany({
       include: {
@@ -163,6 +152,7 @@ export default async function sitemap() {
           include: { store: { select: { updatedAt: true } } },
         },
       },
+      orderBy: [{ order: 'asc' }, { id: 'asc' }],
     });
 
     for (const category of categories) {
@@ -171,19 +161,19 @@ export default async function sitemap() {
       const storeUpdates = category.stores.map(s => s.store.updatedAt);
       const lastModified = getMostRecentDate(category.updatedAt, ...storeUpdates);
 
-      // Build a URL only for locales where this category has a translation slug
+      // Build URL only for locales where a real slug exists
       const validUrls = new Map();
       for (const locale of LOCALES) {
         const [language] = locale.split('-');
         const translation = category.translations.find(t => t.locale === language);
         if (translation?.slug) {
-          validUrls.set(locale, `${BASE_URL}/${locale}/stores/${translation.slug}`);
+          // NOTE: path is now /categories/[slug] not /stores/[slug]
+          validUrls.set(locale, `${BASE_URL}/${locale}/categories/${translation.slug}`);
         }
       }
 
       if (validUrls.size === 0) continue;
 
-      // FIX 2: x-default → ar-SA variant (or first available if ar-SA missing)
       const arSAUrl = validUrls.get('ar-SA') || validUrls.values().next().value;
       const languages = {
         ...Object.fromEntries(validUrls.entries()),
@@ -202,12 +192,10 @@ export default async function sitemap() {
     }
 
     // =========================================================================
-    // 6. INDIVIDUAL STORE PAGES
+    // 7. INDIVIDUAL STORE PAGES
     //
-    // Each store may have different slugs per locale. Only locales where both
-    // a translation AND a matching country-region exist are included.
-    // FIX 2: x-default added.
-    // FIX 3: changeFrequency changed from 'hourly' to 'daily'.
+    // Only locales where both a translation AND a country-region match exist.
+    // x-default → ar-SA. changeFrequency 'daily' (not 'hourly').
     // =========================================================================
     const stores = await prisma.store.findMany({
       where:   { isActive: true },
@@ -240,7 +228,6 @@ export default async function sitemap() {
 
       if (validUrls.size === 0) continue;
 
-      // FIX 2: x-default → ar-SA variant (or first available)
       const arSAUrl = validUrls.get('ar-SA') || validUrls.values().next().value;
       const languages = {
         ...Object.fromEntries(validUrls.entries()),
@@ -251,7 +238,7 @@ export default async function sitemap() {
         urls.push({
           url,
           lastModified,
-          changeFrequency: 'daily',   // FIX 3: was 'hourly'
+          changeFrequency: 'daily',
           priority:        store.isFeatured ? 0.85 : 0.75,
           alternates: { languages },
         });
@@ -259,7 +246,7 @@ export default async function sitemap() {
     }
 
     // =========================================================================
-    // 7. BLOG INDEX PAGE
+    // 8. BLOG INDEX PAGE
     // =========================================================================
     const latestPostUpdate = await prisma.blogPost.findFirst({
       where:   { status: 'PUBLISHED' },
@@ -280,18 +267,15 @@ export default async function sitemap() {
     // =========================================================================
     // NOTE — Blog category filter pages (?category=slug) intentionally omitted.
     //
-    // FIX 1: The blog page already sets `robots: 'noindex, follow'` on those
-    // filtered views. Including noindex pages in the sitemap creates
-    // "Submitted URL marked noindex" errors in Google Search Console,
-    // wastes crawl budget, and can suppress coverage of nearby indexable pages.
-    // Google discovers the filtered pages through internal links and the
-    // category pill navigation on the blog index — no sitemap entry needed.
+    // The blog page sets `robots: 'noindex, follow'` on filtered views.
+    // Including noindex pages in a sitemap creates "Submitted URL marked noindex"
+    // errors in Search Console and wastes crawl budget.
     // =========================================================================
 
     // =========================================================================
-    // 8. INDIVIDUAL BLOG POST PAGES
+    // 9. INDIVIDUAL BLOG POST PAGES
     // Both locale variants share the same slug.
-    // FIX 2: x-default added pointing to the ar-SA variant.
+    // x-default → ar-SA.
     // =========================================================================
     const blogPosts = await prisma.blogPost.findMany({
       where:   { status: 'PUBLISHED' },
@@ -309,7 +293,7 @@ export default async function sitemap() {
 
       const postAlternates = {
         ...Object.fromEntries(LOCALES.map(loc => [loc, `${BASE_URL}/${loc}/blog/${post.slug}`])),
-        'x-default': `${BASE_URL}/ar-SA/blog/${post.slug}`, // FIX 2
+        'x-default': `${BASE_URL}/ar-SA/blog/${post.slug}`,
       };
 
       LOCALES.forEach(locale => {
@@ -323,9 +307,7 @@ export default async function sitemap() {
       });
     }
 
-    // =========================================================================
-    // Summary log
-    // =========================================================================
+    // ── Summary ──────────────────────────────────────────────────────────────
     const uniqueUrls = new Set(urls.map(u => u.url)).size;
     console.log(`✅ Sitemap: ${urls.length} entries (${uniqueUrls} unique URLs)`);
     if (urls.length > 45000) {
@@ -336,8 +318,6 @@ export default async function sitemap() {
 
   } catch (error) {
     console.error('❌ Sitemap generation error:', error);
-
-    // Minimal fallback — site is never crawled without a sitemap
     return LOCALES.map(locale => ({
       url:             `${BASE_URL}/${locale}`,
       lastModified:    new Date(),
