@@ -3,12 +3,6 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import localSearchEngine from '@/lib/search/localSearchEngine';
 
-
-
-// Cache with country-specific data
-const searchCache = new Map();
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
-
 async function loadSearchData(countryCode, locale) {
   try {
     const now = Date.now();
