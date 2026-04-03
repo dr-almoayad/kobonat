@@ -3,28 +3,29 @@ import { defineRouting } from 'next-intl/routing';
 import { allLocaleCodes } from './locales';
 
 export const routing = defineRouting({
-  // All locales supported by the application
   locales: allLocaleCodes,
-  
-  // Used when no locale matches
   defaultLocale: 'ar-SA',
-  
-  // Always show the locale prefix in the URL
   localePrefix: 'always',
-  
-  // Pathnames are shared across all locales
+  localeDetection: false,
+
   pathnames: {
     '/': '/',
     '/coupons': '/coupons',
     '/stores': '/stores',
+    '/stores/[slug]': '/stores/[slug]',
+
+    // ← NEW: dedicated category routes
+    '/categories': '/categories',
+    '/categories/[slug]': '/categories/[slug]',
+
     '/search': '/search',
+    '/blog': '/blog',
+    '/blog/[slug]': '/blog/[slug]',
     '/about': '/about',
     '/contact': '/contact',
     '/privacy': '/privacy',
     '/cookies': '/cookies',
     '/terms': '/terms',
     '/help': '/help',
-    // Add dynamic routes
-    '/stores/[slug]': '/stores/[slug]',
-  }
+  },
 });
