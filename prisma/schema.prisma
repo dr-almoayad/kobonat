@@ -196,6 +196,7 @@ model Country {
   otherPromos         OtherPromo[]
   curatedOffers       CuratedOfferCountry[]
   storeProducts       StoreProductCountry[]
+  seasonalPages       SeasonalPageCountry[] // ADDED
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -274,6 +275,8 @@ model Store {
   // Section block embeds
   embeddedInSectionBlocks SectionBlock[] @relation("SectionEmbeddedStores")
 
+  seasonalPages       SeasonalPageStore[] // ADDED
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -312,7 +315,7 @@ model Category {
   icon  String?
   image String?
   color String?
-  order Int     @default(0)   // ← ADD THIS
+  order Int     @default(0)
 
   bankScoringWeights Json?
 
@@ -391,6 +394,8 @@ model Voucher {
 
   // NEW back‑relation for comparison tables
   comparisonColumns ComparisonTableColumn[]
+
+  seasonalPages SeasonalPageVoucher[] // ADDED
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -522,7 +527,7 @@ model OtherPromo {
 
   bankId            Int?
   cardId            Int?
-  paymentMethodId   Int?          // ← NEW: Visa, Mastercard, Tabby, Tamara, etc.
+  paymentMethodId   Int?
   cardNetwork       CardNetwork?
   installmentMonths Int?
   voucherCode       String?
@@ -532,7 +537,7 @@ model OtherPromo {
   country      Country        @relation(fields: [countryId],       references: [id], onDelete: Cascade)
   bank         Bank?          @relation(fields: [bankId],          references: [id], onDelete: SetNull)
   card         BankCard?      @relation(fields: [cardId],          references: [id], onDelete: SetNull)
-  paymentMethod PaymentMethod? @relation(fields: [paymentMethodId], references: [id], onDelete: SetNull)  // ← NEW
+  paymentMethod PaymentMethod? @relation(fields: [paymentMethodId], references: [id], onDelete: SetNull)
   offerStacks  OfferStack[]   @relation("StackPromo")
 
   comparisonColumns ComparisonTableColumn[]
@@ -547,9 +552,8 @@ model OtherPromo {
   @@index([type])
   @@index([bankId])
   @@index([cardId])
-  @@index([paymentMethodId])  // ← NEW
+  @@index([paymentMethodId])
 }
-
 
 model OtherPromoTranslation {
   id      Int    @id @default(autoincrement())
@@ -621,6 +625,8 @@ model CuratedOffer {
   store        Store               @relation(fields: [storeId], references: [id], onDelete: Cascade)
   countries    CuratedOfferCountry[]
 
+  seasonalPages SeasonalPageCuratedOffer[] // ADDED
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -660,7 +666,7 @@ model PaymentMethod {
 
   translations PaymentMethodTranslation[]
   storeLinks   StorePaymentMethod[]
-  otherPromos  OtherPromo[]               // ← NEW back-relation
+  otherPromos  OtherPromo[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -946,7 +952,7 @@ model BlogPost {
   searchIntent  SearchIntent    @default(INFORMATIONAL)
   readingTime   Int?
   faqJson       String?         @db.Text
-  blockLayout   String?         @db.Text  // JSON: ordered list of {type, id} for top-level blocks
+  blockLayout   String?         @db.Text
 
   primaryStoreId Int?
   primaryStore   Store? @relation("PrimaryStore", fields: [primaryStoreId], references: [id], onDelete: SetNull)
@@ -969,6 +975,8 @@ model BlogPost {
 
   // Section block embeds
   embeddedInSectionBlocks SectionBlock[] @relation("SectionEmbeddedPosts")
+
+  seasonalPages SeasonalPageBlogPost[] // ADDED
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1528,4 +1536,126 @@ model SectionBlock {
 
   @@index([sectionId, order])
   @@index([type])
+}
+
+// ============================================================================
+// SEASONAL PAGES (NEW)
+// ============================================================================
+
+model SeasonalPage {
+  id        Int    @id @default(autoincrement())
+  slug      String @unique // e.g. "white_friday", "ramadan" — matches StorePeakSeason.seasonKey
+  seasonKey String         // soft-link to StorePeakSeason.seasonKey (no FK — different scope)
+
+  heroImage String?
+
+  // Annual recurrence window (month 1–12, day 1–31, no year — repeats every year)
+  // Null = no date restriction (always "live")
+  startMonth Int?
+  startDay   Int?
+  endMonth   Int?
+  endDay     Int?
+
+  // When true, stores that have this seasonKey in StorePeakSeason are
+  // automatically included alongside any manually pinned stores
+  useStorePeakSeasonData Boolean @default(true)
+
+  showInFooter Boolean @default(false)
+  showInNav    Boolean @default(false)
+  isActive     Boolean @default(true)
+
+  translations  SeasonalPageTranslation[]
+  countries     SeasonalPageCountry[]
+  pinnedStores  SeasonalPageStore[]
+  heroVouchers  SeasonalPageVoucher[]
+  curatedOffers SeasonalPageCuratedOffer[]
+  blogPosts     SeasonalPageBlogPost[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([slug])
+  @@index([isActive])
+  @@index([seasonKey])
+}
+
+model SeasonalPageTranslation {
+  id             Int    @id @default(autoincrement())
+  seasonalPageId Int
+  locale         Locale
+
+  // Copy shown when the season is LIVE (within start/end window)
+  title          String
+  description    String? @db.Text
+  seoTitle       String?
+  seoDescription String? @db.Text
+
+  // Copy shown OUTSIDE the season window (year-round preview mode)
+  offSeasonTitle          String?
+  offSeasonDescription    String? @db.Text
+  offSeasonSeoTitle       String?
+  offSeasonSeoDescription String? @db.Text
+
+  seasonalPage SeasonalPage @relation(fields: [seasonalPageId], references: [id], onDelete: Cascade)
+
+  @@unique([seasonalPageId, locale])
+  @@index([locale])
+}
+
+model SeasonalPageCountry {
+  seasonalPageId Int
+  countryId      Int
+
+  seasonalPage SeasonalPage @relation(fields: [seasonalPageId], references: [id], onDelete: Cascade)
+  country      Country      @relation(fields: [countryId], references: [id], onDelete: Cascade)
+
+  @@id([seasonalPageId, countryId])
+}
+
+model SeasonalPageStore {
+  seasonalPageId Int
+  storeId        Int
+  order          Int @default(0)
+
+  seasonalPage SeasonalPage @relation(fields: [seasonalPageId], references: [id], onDelete: Cascade)
+  store        Store        @relation(fields: [storeId], references: [id], onDelete: Cascade)
+
+  @@id([seasonalPageId, storeId])
+  @@index([seasonalPageId, order])
+}
+
+model SeasonalPageVoucher {
+  seasonalPageId Int
+  voucherId      Int
+  order          Int @default(0)
+
+  seasonalPage SeasonalPage @relation(fields: [seasonalPageId], references: [id], onDelete: Cascade)
+  voucher      Voucher      @relation(fields: [voucherId], references: [id], onDelete: Cascade)
+
+  @@id([seasonalPageId, voucherId])
+  @@index([seasonalPageId, order])
+}
+
+model SeasonalPageCuratedOffer {
+  seasonalPageId Int
+  offerId        Int
+  order          Int @default(0)
+
+  seasonalPage SeasonalPage @relation(fields: [seasonalPageId], references: [id], onDelete: Cascade)
+  offer        CuratedOffer @relation(fields: [offerId], references: [id], onDelete: Cascade)
+
+  @@id([seasonalPageId, offerId])
+  @@index([seasonalPageId, order])
+}
+
+model SeasonalPageBlogPost {
+  seasonalPageId Int
+  postId         Int
+  order          Int @default(0)
+
+  seasonalPage SeasonalPage @relation(fields: [seasonalPageId], references: [id], onDelete: Cascade)
+  post         BlogPost     @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@id([seasonalPageId, postId])
+  @@index([seasonalPageId, order])
 }
