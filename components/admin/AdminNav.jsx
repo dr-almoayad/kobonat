@@ -22,6 +22,9 @@ const NAV = [
   { label: 'Payment Methods', icon: 'payments',        href: '/admin/payment-methods' },
 
   { label: '─', separator: true },
+  { label: 'Seasonal Pages',           icon: 'percent_discount', href: '/admin/seasonal-pages' },  // ← new
+
+  { label: '─', separator: true },
   { label: 'Banks',           icon: 'account_balance', href: '/admin/banks' },  // ← new
 
   { label: '─', separator: true },
