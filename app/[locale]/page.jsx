@@ -270,6 +270,12 @@ const exclusiveVouchers = await prisma.voucher.findMany({
         />
       )}
 
+      {/* Featured Products */}
+      <HomeFeaturedProductsSection locale={locale} countryCode={country} />
+
+      {/* Featured Vouchers */}
+      <FeaturedVouchersSection locale={locale} countryCode={country} />
+
       {/*<HeroBestOffersCarousel vouchers={exclusiveVouchers} locale={locale} />*/}
 
       {/* Stackable Offers */}
@@ -278,11 +284,7 @@ const exclusiveVouchers = await prisma.voucher.findMany({
       {/* Blog */}
       <HomepageBlogSection locale={locale} count={3} />
 
-      {/* Featured Products */}
-      <HomeFeaturedProductsSection locale={locale} countryCode={country} />
-
-      {/* Featured Vouchers */}
-      <FeaturedVouchersSection locale={locale} countryCode={country} />
+      
 
       {/* Featured Stores */}
       <FeaturedStoresSection locale={locale} />
