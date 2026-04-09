@@ -15,7 +15,7 @@ import FeaturedVouchersSection from '@/components/FeaturedVouchersSection/Featur
 import FeaturedStoresSection from '@/components/FeaturedStoresSection/FeaturedStoresSection';
 import FeaturedStoresCarousel from '@/components/FeaturedStoresCarousel/FeaturedStoresCarousel';
 import { getCurrentWeekIdentifier } from '@/lib/leaderboard/calculateStoreSavings';
-import HeroCuratedSection from '@/components/HeroCuratedCarousel/HeroCuratedSe/ction';
+import HeroCuratedSection from '@/components/HeroCuratedCarousel/HeroCuratedSection';
 import HeroBestOffersCarousel from '@/components/HeroBestOffersCarousel/HeroBestOffersCarousel';
 import PromoCodesFAQ from '@/components/PromoCodesFAQ/PromoCodesFAQ';
 
