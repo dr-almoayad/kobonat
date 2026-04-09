@@ -11,10 +11,12 @@
 .savings-banner-section {
   background: #ffffff;
   padding: 60px 24px;
+  width: 100%;
 }
 
 .savings-banner-inner {
-  max-width: 900px;
+  width: 100%;
+  max-width: 1312px;
   margin: 0 auto;
   text-align: center;
 }
@@ -22,6 +24,7 @@
 /* Main title - static, no animations */
 .savings-banner-title {
   margin: 0;
+  width: 100%;
   font-size: clamp(36px, 7vw, 72px);
   line-height: 1.2;
   display: flex;
@@ -29,8 +32,9 @@
   justify-content: center;
   align-items: baseline;
   gap: 0 12px;
-  font-family: "Oi", serif;
-  font-weight: 400;
+  font-family: "Playpen Sans Arabic", cursive;
+  font-optical-sizing: auto;
+  font-weight: 600;
   font-style: normal;
 }
 
@@ -67,12 +71,11 @@
 /* Responsive: stack on mobile */
 @media (max-width: 640px) {
   .savings-banner-section {
-    padding: 48px 20px;
+    padding: 32px 16px;
   }
   
   .savings-banner-title {
-    flex-direction: column;
-    gap: 8px 0;
+    gap: 4px 0;
   }
   
   .savings-text-spacer {
