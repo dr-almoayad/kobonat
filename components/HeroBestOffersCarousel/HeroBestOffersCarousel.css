@@ -1,0 +1,259 @@
+/* components/HeroBestOffersCarousel/HeroBestOffersCarousel.css */
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap');
+
+.hero-offers-root {
+  --hero-offers-bg: #f8f7f4;
+  --hero-offers-card: #ffffff;
+  --hero-offers-ink: #111111;
+  --hero-offers-muted: #888888;
+  --hero-offers-border: #e2e0db;
+  --hero-offers-cta: #111111;
+  --hero-offers-cta-txt: #ffffff;
+  --hero-offers-radius: 20px;
+  --hero-offers-shadow: 0 8px 28px rgba(0, 0, 0, 0.08);
+  font-family: 'DM Sans', sans-serif;
+}
+
+.hero-offers-section {
+  background: var(--hero-offers-bg);
+  padding: 48px 0 64px;
+  overflow: hidden;
+}
+
+.hero-offers-inner {
+  max-width: 1160px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* Header – no arrows */
+.hero-offers-header {
+  margin-bottom: 32px;
+}
+
+.hero-offers-title {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(24px, 5vw, 38px);
+  font-weight: 700;
+  color: var(--hero-offers-ink);
+  line-height: 1.2;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+/* Scroll container – horizontal snap, no scrollbar */
+.hero-offers-scroll-container {
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+}
+
+.hero-offers-scroll-container::-webkit-scrollbar {
+  display: none; /* Chrome/Safari */
+}
+
+.hero-offers-track {
+  display: flex;
+  flex-direction: row;
+  gap: 0;
+}
+
+/* Each slide takes full width */
+.hero-offers-slide {
+  flex: 0 0 100%;
+  scroll-snap-align: start;
+  padding: 6px 0;
+}
+
+/* Card styling */
+.hero-offers-card {
+  background: var(--hero-offers-card);
+  border-radius: var(--hero-offers-radius);
+  box-shadow: var(--hero-offers-shadow);
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.hero-offers-card-content {
+  padding: 32px 28px 36px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Logo + exclusive badge row */
+.hero-offers-brand-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.hero-offers-store-logo {
+  max-height: 44px;
+  max-width: 160px;
+  object-fit: contain;
+  object-position: left;
+}
+
+.hero-offers-exclusive-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--hero-offers-muted);
+  background: #f0efea;
+  padding: 5px 12px;
+  border-radius: 40px;
+}
+
+.hero-offers-exclusive-tag svg {
+  width: 12px;
+  height: 12px;
+}
+
+/* Offer title */
+.hero-offers-voucher-title {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(20px, 4vw, 28px);
+  font-weight: 700;
+  color: var(--hero-offers-ink);
+  line-height: 1.25;
+  margin: 0 0 14px 0;
+}
+
+/* Description */
+.hero-offers-voucher-desc {
+  font-size: 14px;
+  color: #5a5a5a;
+  line-height: 1.55;
+  margin: 0 0 28px 0;
+  flex: 1;
+}
+
+/* Action buttons row */
+.hero-offers-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+  margin-top: 8px;
+}
+
+/* REVEAL CODE button – solid dark */
+.hero-offers-reveal-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--hero-offers-cta);
+  color: var(--hero-offers-cta-txt);
+  padding: 12px 26px;
+  border-radius: 40px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.2s ease, transform 0.1s ease;
+  white-space: nowrap;
+}
+
+.hero-offers-reveal-btn:hover {
+  opacity: 0.85;
+  transform: translateY(-1px);
+}
+
+.hero-offers-reveal-btn:active {
+  transform: translateY(1px);
+}
+
+/* SHARE button – outlined */
+.hero-offers-share-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: transparent;
+  color: var(--hero-offers-ink);
+  padding: 11px 22px;
+  border-radius: 40px;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border: 1.5px solid var(--hero-offers-border);
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+  white-space: nowrap;
+}
+
+.hero-offers-share-btn:hover {
+  background: rgba(0, 0, 0, 0.03);
+  border-color: #c0bcb2;
+}
+
+/* Toast notification */
+.hero-offers-toast {
+  position: fixed;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%) translateY(14px);
+  background: #111;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 10px 24px;
+  border-radius: 40px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.22s, transform 0.22s;
+  z-index: 9999;
+  white-space: nowrap;
+  font-family: 'DM Sans', sans-serif;
+}
+
+.hero-offers-toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* Desktop refinement */
+@media (min-width: 768px) {
+  .hero-offers-section {
+    padding: 64px 0 80px;
+  }
+  .hero-offers-card-content {
+    padding: 40px 36px 44px;
+  }
+  .hero-offers-actions {
+    gap: 18px;
+  }
+  .hero-offers-reveal-btn,
+  .hero-offers-share-btn {
+    padding: 14px 32px;
+    font-size: 14px;
+  }
+}
+
+/* RTL adjustments */
+.hero-offers-root[dir="rtl"] .hero-offers-actions {
+  flex-direction: row-reverse;
+}
+
+.hero-offers-root[dir="rtl"] .hero-offers-exclusive-tag svg {
+  transform: scaleX(-1);
+}
