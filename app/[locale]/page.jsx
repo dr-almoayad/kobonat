@@ -16,7 +16,7 @@ import FeaturedStoresSection from '@/components/FeaturedStoresSection/FeaturedSt
 import FeaturedStoresCarousel from '@/components/FeaturedStoresCarousel/FeaturedStoresCarousel';
 import { getCurrentWeekIdentifier } from '@/lib/leaderboard/calculateStoreSavings';
 import HeroCuratedSection from '@/components/HeroCuratedCarousel/HeroCuratedSection';
-import HeroBestOfferCarousel from '@/components/HeroBestOfferCarousel/HeroBestOfferCarousel';
+import HeroBestOffersCarousel from '@/components/HeroBestOffersCarousel/HeroBestOffersCarousel';
 
 export const revalidate = 60;
 
