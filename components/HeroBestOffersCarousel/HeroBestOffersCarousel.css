@@ -1,209 +1,258 @@
 /* components/HeroBestOffersCarousel/HeroBestOffersCarousel.css */
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&family=Space+Grotesk:wght@400;500;600;700&display=swap');
 
 .hero-offers-root {
-  --hero-offers-bg: #f8f7f4;
-  --hero-offers-card: #ffffff;
-  --hero-offers-ink: #111111;
-  --hero-offers-muted: #888888;
-  --hero-offers-border: #e2e0db;
-  --hero-offers-cta: #111111;
-  --hero-offers-cta-txt: #ffffff;
-  --hero-offers-radius: 20px;
-  --hero-offers-shadow: 0 8px 28px rgba(0, 0, 0, 0.08);
-  font-family: 'DM Sans', sans-serif;
+  --hero-offers-bg: #0a0a0a;
+  --hero-offers-card-bg: #111111;
+  --hero-offers-card-border: rgba(255, 255, 255, 0.08);
+  --hero-offers-ink: #ffffff;
+  --hero-offers-ink-secondary: #a0a0a0;
+  --hero-offers-accent: #ffd700;
+  --hero-offers-accent-glow: rgba(255, 215, 0, 0.15);
+  --hero-offers-cta: #ffffff;
+  --hero-offers-cta-txt: #0a0a0a;
+  --hero-offers-radius: 24px;
+  --hero-offers-radius-sm: 16px;
+  --hero-offers-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.05);
+  --hero-offers-glow: 0 0 30px var(--hero-offers-accent-glow);
+  font-family: 'Inter', sans-serif;
 }
 
 .hero-offers-section {
   background: var(--hero-offers-bg);
-  padding: 48px 0 64px;
+  padding: 64px 0 80px;
   overflow: hidden;
+  position: relative;
+}
+
+/* Subtle background pattern */
+.hero-offers-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: radial-gradient(circle at 20% 80%, rgba(255, 215, 0, 0.03) 0%, transparent 50%);
+  pointer-events: none;
 }
 
 .hero-offers-inner {
-  max-width: 1160px;
+  max-width: 1200px;
   margin: 0 auto;
-  padding: 0 20px;
+  padding: 0 24px;
+  position: relative;
+  z-index: 1;
 }
 
-/* Header – no arrows */
+/* Modern sales title effect */
 .hero-offers-header {
-  margin-bottom: 32px;
+  margin-bottom: 48px;
+  text-align: center;
+}
+
+.hero-offers-title-wrapper {
+  display: inline-block;
+  position: relative;
 }
 
 .hero-offers-title {
-  font-family: 'Playfair Display', serif;
-  font-size: clamp(24px, 5vw, 38px);
+  font-family: 'Space Grotesk', 'Inter', sans-serif;
+  font-size: clamp(28px, 6vw, 48px);
   font-weight: 700;
-  color: var(--hero-offers-ink);
-  line-height: 1.2;
+  letter-spacing: -0.02em;
+  background: linear-gradient(135deg, #ffffff 0%, #ffd700 40%, #ffffff 60%, #ffd700 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: hero-offers-shine 8s linear infinite;
   margin: 0;
-  letter-spacing: -0.01em;
+  line-height: 1.2;
+  text-shadow: 0 2px 10px rgba(255, 215, 0, 0.2);
 }
 
-/* Scroll container – horizontal snap, no scrollbar */
+@keyframes hero-offers-shine {
+  0% {
+    background-position: 0% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+
+/* Decorative underline effect */
+.hero-offers-title::after {
+  content: '';
+  position: absolute;
+  bottom: -12px;
+  left: 10%;
+  width: 80%;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, var(--hero-offers-accent), var(--hero-offers-accent), transparent);
+  border-radius: 3px;
+}
+
+/* Scroll container – horizontal snap */
 .hero-offers-scroll-container {
   overflow-x: auto;
   scroll-snap-type: x mandatory;
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* IE/Edge */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  margin: 0 -24px;
+  padding: 0 24px;
 }
 
 .hero-offers-scroll-container::-webkit-scrollbar {
-  display: none; /* Chrome/Safari */
+  display: none;
 }
 
 .hero-offers-track {
   display: flex;
   flex-direction: row;
-  gap: 0;
+  gap: 20px;
 }
 
-/* Each slide takes full width */
+/* Slide styling */
 .hero-offers-slide {
   flex: 0 0 100%;
   scroll-snap-align: start;
-  padding: 6px 0;
+  padding: 8px 0 16px;
 }
 
-/* Card styling */
+@media (min-width: 640px) {
+  .hero-offers-slide {
+    flex: 0 0 calc(50% - 10px);
+  }
+}
+
+@media (min-width: 1024px) {
+  .hero-offers-slide {
+    flex: 0 0 calc(33.333% - 14px);
+  }
+}
+
+/* Card styling – glassmorphic + modern */
 .hero-offers-card {
-  background: var(--hero-offers-card);
+  background: var(--hero-offers-card-bg);
   border-radius: var(--hero-offers-radius);
-  box-shadow: var(--hero-offers-shadow);
+  border: 1px solid var(--hero-offers-card-border);
+  backdrop-filter: blur(0px);
   overflow: hidden;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.2, 0, 0, 1);
   height: 100%;
   display: flex;
   flex-direction: column;
+  cursor: pointer;
+}
+
+.hero-offers-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(255, 215, 0, 0.3);
+  box-shadow: var(--hero-offers-shadow), var(--hero-offers-glow);
 }
 
 .hero-offers-card-content {
-  padding: 32px 28px 36px;
+  padding: 32px 28px;
   flex: 1;
   display: flex;
   flex-direction: column;
+  gap: 20px;
 }
 
-/* Logo + exclusive badge row */
+/* Brand row */
 .hero-offers-brand-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: 12px;
-  margin-bottom: 20px;
+  gap: 16px;
 }
 
 .hero-offers-store-logo {
-  max-height: 44px;
-  max-width: 160px;
+  max-height: 48px;
+  max-width: 140px;
   object-fit: contain;
   object-position: left;
+  filter: brightness(0) invert(1);
+  opacity: 0.9;
+  transition: opacity 0.2s;
 }
 
+.hero-offers-card:hover .hero-offers-store-logo {
+  opacity: 1;
+}
+
+/* Exclusive badge – modern pill */
 .hero-offers-exclusive-tag {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.07em;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: var(--hero-offers-muted);
-  background: #f0efea;
-  padding: 5px 12px;
+  color: var(--hero-offers-accent);
+  background: rgba(255, 215, 0, 0.12);
+  padding: 6px 14px;
   border-radius: 40px;
+  border: 0.5px solid rgba(255, 215, 0, 0.2);
+  backdrop-filter: blur(4px);
 }
 
 .hero-offers-exclusive-tag svg {
   width: 12px;
   height: 12px;
+  fill: var(--hero-offers-accent);
 }
 
-/* Offer title */
+/* Offer title – modern, bold, clean */
 .hero-offers-voucher-title {
-  font-family: 'Playfair Display', serif;
-  font-size: clamp(20px, 4vw, 28px);
+  font-family: 'Space Grotesk', 'Inter', sans-serif;
+  font-size: clamp(20px, 4vw, 26px);
   font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
   color: var(--hero-offers-ink);
-  line-height: 1.25;
-  margin: 0 0 14px 0;
+  margin: 0;
 }
 
-/* Description */
-.hero-offers-voucher-desc {
-  font-size: 14px;
-  color: #5a5a5a;
-  line-height: 1.55;
-  margin: 0 0 28px 0;
-  flex: 1;
-}
-
-/* Action buttons row */
-.hero-offers-actions {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 14px;
-  margin-top: 8px;
-}
-
-/* REVEAL CODE button – solid dark */
+/* CTA Button – sleek */
 .hero-offers-reveal-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 10px;
   background: var(--hero-offers-cta);
   color: var(--hero-offers-cta-txt);
-  padding: 12px 26px;
-  border-radius: 40px;
+  padding: 14px 28px;
+  border-radius: 50px;
   font-size: 13px;
   font-weight: 700;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.03em;
   text-transform: uppercase;
   text-decoration: none;
   border: none;
   cursor: pointer;
-  transition: opacity 0.2s ease, transform 0.1s ease;
-  white-space: nowrap;
+  transition: all 0.2s ease;
+  width: 100%;
+  font-family: 'Inter', sans-serif;
 }
 
 .hero-offers-reveal-btn:hover {
-  opacity: 0.85;
-  transform: translateY(-1px);
+  transform: scale(0.98);
+  background: #f0f0f0;
+  gap: 14px;
 }
 
-.hero-offers-reveal-btn:active {
-  transform: translateY(1px);
+.hero-offers-reveal-btn svg {
+  transition: transform 0.2s;
 }
 
-/* SHARE button – outlined */
-.hero-offers-share-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  background: transparent;
-  color: var(--hero-offers-ink);
-  padding: 11px 22px;
-  border-radius: 40px;
-  font-size: 13px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  border: 1.5px solid var(--hero-offers-border);
-  cursor: pointer;
-  transition: background 0.2s, border-color 0.2s;
-  white-space: nowrap;
-}
-
-.hero-offers-share-btn:hover {
-  background: rgba(0, 0, 0, 0.03);
-  border-color: #c0bcb2;
+.hero-offers-reveal-btn:hover svg {
+  transform: translateX(4px);
 }
 
 /* Toast notification */
@@ -212,18 +261,22 @@
   bottom: 28px;
   left: 50%;
   transform: translateX(-50%) translateY(14px);
-  background: #111;
-  color: #fff;
-  font-size: 13px;
+  background: #1a1a1a;
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 215, 0, 0.3);
+  color: var(--hero-offers-accent);
+  font-size: 14px;
   font-weight: 500;
-  padding: 10px 24px;
-  border-radius: 40px;
+  padding: 12px 28px;
+  border-radius: 60px;
   pointer-events: none;
   opacity: 0;
   transition: opacity 0.22s, transform 0.22s;
   z-index: 9999;
   white-space: nowrap;
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Inter', sans-serif;
+  letter-spacing: -0.01em;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
 
 .hero-offers-toast.show {
@@ -231,29 +284,68 @@
   transform: translateX(-50%) translateY(0);
 }
 
-/* Desktop refinement */
-@media (min-width: 768px) {
-  .hero-offers-section {
-    padding: 64px 0 80px;
-  }
-  .hero-offers-card-content {
-    padding: 40px 36px 44px;
-  }
-  .hero-offers-actions {
-    gap: 18px;
-  }
-  .hero-offers-reveal-btn,
-  .hero-offers-share-btn {
-    padding: 14px 32px;
-    font-size: 14px;
-  }
+/* RTL specific spacing and adjustments */
+.hero-offers-root[dir="rtl"] .hero-offers-brand-row {
+  flex-direction: row-reverse;
 }
 
-/* RTL adjustments */
-.hero-offers-root[dir="rtl"] .hero-offers-actions {
-  flex-direction: row-reverse;
+.hero-offers-root[dir="rtl"] .hero-offers-store-logo {
+  object-position: right;
 }
 
 .hero-offers-root[dir="rtl"] .hero-offers-exclusive-tag svg {
   transform: scaleX(-1);
 }
+
+.hero-offers-root[dir="rtl"] .hero-offers-reveal-btn svg {
+  transform: rotate(180deg);
+}
+
+.hero-offers-root[dir="rtl"] .hero-offers-reveal-btn:hover svg {
+  transform: rotate(180deg) translateX(4px);
+}
+
+/* Desktop refinements */
+@media (min-width: 768px) {
+  .hero-offers-section {
+    padding: 80px 0 100px;
+  }
+  
+  .hero-offers-header {
+    margin-bottom: 64px;
+  }
+  
+  .hero-offers-card-content {
+    padding: 36px 32px;
+  }
+  
+  .hero-offers-reveal-btn {
+    padding: 16px 32px;
+    font-size: 14px;
+  }
+}
+
+/* For very small screens, ensure proper spacing */
+@media (max-width: 480px) {
+  .hero-offers-inner {
+    padding: 0 16px;
+  }
+  
+  .hero-offers-scroll-container {
+    margin: 0 -16px;
+    padding: 0 16px;
+  }
+  
+  .hero-offers-card-content {
+    padding: 24px 20px;
+  }
+  
+  .hero-offers-brand-row {
+    gap: 12px;
+  }
+  
+  .hero-offers-store-logo {
+    max-height: 36px;
+    max-width: 110px;
+  }
+    }
