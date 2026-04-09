@@ -1,0 +1,217 @@
+/* components/SavingsBanner/SavingsBanner.css */
+@import url('https://fonts.googleapis.com/css2?family=Alexandria:wght@400;500;600;700;800;900&family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800;14..32,900&display=swap');
+
+.savings-banner-root {
+  --savings-bg: linear-gradient(135deg, #fef9f1 0%, #fff5e6 50%, #fef9f1 100%);
+  --savings-accent: #e67e22;
+  --savings-accent-dark: #d35400;
+  --savings-accent-light: #f39c12;
+  --savings-text-dark: #2c3e50;
+  --savings-text-light: #7f8c8d;
+}
+
+.savings-banner-section {
+  background: var(--savings-bg);
+  padding: 80px 24px;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Subtle animated background pattern */
+.savings-banner-section::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(230, 126, 34, 0.03) 0%, transparent 70%);
+  animation: savings-banner-pulse 15s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes savings-banner-pulse {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0.5;
+  }
+  50% {
+    transform: translate(5%, 5%) scale(1.1);
+    opacity: 0.8;
+  }
+}
+
+.savings-banner-inner {
+  max-width: 900px;
+  margin: 0 auto;
+  text-align: center;
+  position: relative;
+  z-index: 1;
+}
+
+/* Main title styling */
+.savings-banner-title {
+  margin: 0;
+  font-size: clamp(40px, 8vw, 80px);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 0 12px;
+}
+
+/* Arabic font */
+.savings-banner-root[dir="rtl"] .savings-banner-title {
+  font-family: 'Alexandria', sans-serif;
+  letter-spacing: 0;
+}
+
+/* English font */
+.savings-banner-root[dir="ltr"] .savings-banner-title {
+  font-family: 'Inter', 'Alexandria', sans-serif;
+}
+
+/* Individual word styling with creative effects */
+.savings-text-main {
+  color: var(--savings-text-dark);
+  position: relative;
+  display: inline-block;
+  animation: savings-text-float 3s ease-in-out infinite;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.savings-text-accent {
+  background: linear-gradient(135deg, var(--savings-accent) 0%, var(--savings-accent-light) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  position: relative;
+  display: inline-block;
+  animation: savings-text-float 3s ease-in-out infinite 0.3s;
+  text-shadow: none;
+}
+
+.savings-text-highlight {
+  background: linear-gradient(135deg, var(--savings-accent-dark) 0%, var(--savings-accent) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  position: relative;
+  display: inline-block;
+  animation: savings-text-float 3s ease-in-out infinite 0.6s;
+  text-shadow: none;
+}
+
+/* Floating animation for each word */
+@keyframes savings-text-float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+/* Decorative underline with creative effect */
+.savings-banner-underline {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin-top: 32px;
+}
+
+.savings-banner-underline span {
+  height: 3px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, var(--savings-accent), var(--savings-accent-light));
+}
+
+.savings-banner-underline span:nth-child(1) {
+  width: 40px;
+  animation: savings-underline-pulse 2s ease-in-out infinite;
+}
+
+.savings-banner-underline span:nth-child(2) {
+  width: 80px;
+  animation: savings-underline-pulse 2s ease-in-out infinite 0.3s;
+}
+
+.savings-banner-underline span:nth-child(3) {
+  width: 40px;
+  animation: savings-underline-pulse 2s ease-in-out infinite 0.6s;
+}
+
+@keyframes savings-underline-pulse {
+  0%, 100% {
+    opacity: 0.4;
+    transform: scaleX(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scaleX(1.1);
+  }
+}
+
+/* Spacer handling */
+.savings-text-spacer {
+  display: inline-block;
+  width: 0.25em;
+}
+
+/* RTL specific adjustments */
+.savings-banner-root[dir="rtl"] .savings-text-main,
+.savings-banner-root[dir="rtl"] .savings-text-accent,
+.savings-banner-root[dir="rtl"] .savings-text-highlight {
+  display: inline-block;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .savings-banner-section {
+    padding: 60px 20px;
+  }
+  
+  .savings-banner-title {
+    gap: 0 8px;
+  }
+  
+  .savings-banner-underline {
+    margin-top: 24px;
+  }
+}
+
+@media (max-width: 640px) {
+  .savings-banner-title {
+    flex-direction: column;
+    gap: 8px 0;
+  }
+  
+  .savings-text-spacer {
+    display: none;
+  }
+  
+  .savings-banner-underline span:nth-child(1),
+  .savings-banner-underline span:nth-child(3) {
+    width: 30px;
+  }
+  
+  .savings-banner-underline span:nth-child(2) {
+    width: 60px;
+  }
+}
+
+/* For tablets - keep horizontal layout */
+@media (min-width: 641px) and (max-width: 768px) {
+  .savings-banner-title {
+    flex-direction: row;
+    gap: 0 12px;
+  }
+  
+  .savings-text-spacer {
+    display: inline-block;
+  }
+}
