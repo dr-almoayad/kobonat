@@ -7,6 +7,8 @@ import { getCountryCategories } from "@/lib/storeCategories";
 import { getStoresData } from "@/lib/stores";
 import { isValidLocale } from "@/i18n/locales"; // Import your validator
 import { notFound } from "next/navigation";
+
+import PromoCodesFAQ from '@/components/PromoCodesFAQ/PromoCodesFAQ';
 import HelpBox from "@/components/help/HelpBox";
 // ✅ FIX: Removed WebSiteStructuredData import — it is already rendered
 // by app/[locale]/layout.jsx on every page. Rendering it here too would
@@ -212,6 +214,7 @@ export default async function AllStoresPage({ params }) {
           locale={locale} 
         />
       </section>
+      <PromoCodesFAQ/>
       <HelpBox locale={locale}/>
     </div>
   );
