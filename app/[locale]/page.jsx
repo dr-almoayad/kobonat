@@ -16,6 +16,7 @@ import FeaturedStoresSection from '@/components/FeaturedStoresSection/FeaturedSt
 import FeaturedStoresCarousel from '@/components/FeaturedStoresCarousel/FeaturedStoresCarousel';
 import { getCurrentWeekIdentifier } from '@/lib/leaderboard/calculateStoreSavings';
 import HeroCuratedSection from '@/components/HeroCuratedCarousel/HeroCuratedSection';
+import HeroBestOfferCarousel from '@/components/HeroBestOfferCarousel/HeroBestOfferCarousel';
 
 export const revalidate = 60;
 
@@ -216,6 +217,22 @@ export default async function Home({ params }) {
     };
   });
 
+const exclusiveVouchers = await prisma.voucher.findMany({
+  where: {
+    isExclusive: true,
+    OR: [{ expiryDate: null }, { expiryDate: { gte: new Date() } }],
+    countries: { some: { country: { code: country } } },
+  },
+  include: {
+    translations: { where: { locale: lang } },
+    store: { select: { logo: true, bigLogo: true, coverImage: true,
+                       translations: { where: { locale: lang } } } },
+  },
+  orderBy: { popularityScore: 'desc' },
+  take: 4,
+});
+
+
   const carouselTitle = isArabic ? 'متاجر مميزة' : 'Featured Stores with Discounts';
 
   // ── Render ─────────────────────────────────────────────────────────────────
@@ -249,6 +266,8 @@ export default async function Home({ params }) {
           stores={topStores}
         />
       )}
+
+      <HeroBestOfferCarousel vouchers={exclusiveVouchers} locale={locale} />
 
       {/* Stackable Offers */}
       <OfferStacksSection locale={locale} countryCode={country} />
