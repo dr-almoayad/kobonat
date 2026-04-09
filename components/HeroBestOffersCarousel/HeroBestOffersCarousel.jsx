@@ -2,7 +2,7 @@
 // components/HeroBestOffersCarousel/HeroBestOffersCarousel.jsx
 //
 // Modern, mobile-first carousel for exclusive offers.
-// Features: horizontal snap scrolling, glassmorphic cards, gradient animated title.
+// Features: horizontal snap scrolling, light cards, gradient animated title.
 // No share button, no description – clean and focused.
 
 import './HeroBestOffersCarousel.css';
@@ -11,7 +11,7 @@ import { useState, useRef, useEffect } from 'react';
 export default function HeroBestOffersCarousel({ vouchers = [], locale = 'ar-SA', heading }) {
   const lang = locale.split('-')[0];
   const isRtl = lang === 'ar';
-  const slides = vouchers.slice(0, 6); // Show up to 6 offers
+  const slides = vouchers.slice(0, 6);
   const total = slides.length;
 
   const [copiedCode, setCopiedCode] = useState('');
@@ -48,7 +48,6 @@ export default function HeroBestOffersCarousel({ vouchers = [], locale = 'ar-SA'
     ? 'عروض حصرية لا تفوتك'
     : 'Exclusive Offers Just For You';
 
-  // Handle card click to reveal code (entire card is clickable)
   const handleCardClick = (voucher) => {
     handleReveal(voucher);
   };
@@ -101,7 +100,6 @@ export default function HeroBestOffersCarousel({ vouchers = [], locale = 'ar-SA'
                       }}
                     >
                       <div className="hero-offers-card-content">
-                        {/* Brand row: logo + exclusive badge */}
                         <div className="hero-offers-brand-row">
                           {storeLogo ? (
                             <img
@@ -111,7 +109,7 @@ export default function HeroBestOffersCarousel({ vouchers = [], locale = 'ar-SA'
                               loading={idx === 0 ? 'eager' : 'lazy'}
                             />
                           ) : (
-                            <span style={{ fontWeight: 600, fontSize: '1rem', color: '#fff' }}>
+                            <span style={{ fontWeight: 600, fontSize: '1rem', color: '#212529' }}>
                               {storeName}
                             </span>
                           )}
@@ -123,10 +121,8 @@ export default function HeroBestOffersCarousel({ vouchers = [], locale = 'ar-SA'
                           </span>
                         </div>
 
-                        {/* Offer title only – clean and focused */}
                         <h3 className="hero-offers-voucher-title">{displayTitle}</h3>
 
-                        {/* CTA Button */}
                         <button 
                           className="hero-offers-reveal-btn"
                           onClick={(e) => {
@@ -150,7 +146,6 @@ export default function HeroBestOffersCarousel({ vouchers = [], locale = 'ar-SA'
         </div>
       </section>
 
-      {/* Toast notification */}
       <div className={`hero-offers-toast ${toastVisible ? 'show' : ''}`}>
         {toastVisible && (
           <>
