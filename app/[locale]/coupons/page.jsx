@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getTranslations } from 'next-intl/server';
 import Link from "next/link";
 import VouchersGrid from "@/components/VouchersGrid/VouchersGrid";
+import PromoCodesFAQ from "@/components/PromoCodesFAQ/PromoCodesFAQ";
 import HelpBox from "@/components/help/HelpBox";
 import CouponsStructuredData from "@/components/StructuredData/CouponsStructuredData";
 import "./coupons-page.css";
@@ -323,7 +324,7 @@ const CouponsPage = async ({ params, searchParams: rawSearchParams }) => {
             )}
           </div>
         )}
-
+        <PromoCodesFAQ/>
         <HelpBox locale={locale} />
       </main>
     </>
