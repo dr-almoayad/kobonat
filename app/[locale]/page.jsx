@@ -287,7 +287,7 @@ const exclusiveVouchers = await prisma.voucher.findMany({
       
 
       {/* Featured Stores */}
-      <FeaturedStoresSection locale={locale} />
+      {/*<FeaturedStoresSection locale={locale} />*/}
 
       <PromoCodesFAQ/>
 
