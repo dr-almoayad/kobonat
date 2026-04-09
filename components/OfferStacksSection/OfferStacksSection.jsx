@@ -1,7 +1,4 @@
 // components/OfferStacksSection/OfferStacksSection.jsx
-// React Server Component — fetches top offer stacks across all stores
-// and renders them in an Embla carousel on the homepage.
-
 import { buildOfferStacks } from '@/lib/offerStacks';
 import OfferStackBox from '@/components/OfferStackBox/OfferStackBox';
 import EmblaCarousel from '@/components/EmblaCarousel/EmblaCarousel';
@@ -17,7 +14,8 @@ export default async function OfferStacksSection({ locale, countryCode = 'SA' })
       countryCode,
       language: lang,
       limit:    10,
-      homepageOnly: true,
+      // homepageOnly removed — it filtered to only vouchers with isFeaturedStack=true,
+      // causing all other active stacks to be hidden on the homepage.
     });
   } catch (err) {
     console.error('[OfferStacksSection] build error:', err?.message);
@@ -45,7 +43,7 @@ export default async function OfferStacksSection({ locale, countryCode = 'SA' })
           </div>
         </div>
 
-        {/* ── Carousel (replaces offer-stacks-scroll) ── */}
+        {/* ── Carousel ── */}
         <EmblaCarousel locale={locale} slideWidth="280px" className="ec-full-bleed">
           {stacks.map((stack) => (
             <OfferStackBox key={stack.storeId} stack={stack} locale={locale} />
