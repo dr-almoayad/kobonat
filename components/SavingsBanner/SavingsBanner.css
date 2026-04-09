@@ -1,5 +1,5 @@
 /* components/SavingsBanner/SavingsBanner.css */
-@import url('https://fonts.googleapis.com/css2?family=Playpen+Arabic:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Oi&family=Playpen+Sans+Arabic:wght@100..800&display=swap');
 
 .savings-banner-root {
   --savings-accent: #e67e22;
@@ -29,8 +29,9 @@
   justify-content: center;
   align-items: baseline;
   gap: 0 12px;
-  font-family: 'Playpen Arabic', cursive;
-  font-weight: 700;
+  font-family: "Oi", serif;
+  font-weight: 400;
+  font-style: normal;
 }
 
 /* Individual word styles - static text effects */
