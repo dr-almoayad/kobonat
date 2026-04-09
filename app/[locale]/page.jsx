@@ -224,9 +224,9 @@ const exclusiveVouchers = await prisma.voucher.findMany({
     countries: { some: { country: { code: country } } },
   },
   include: {
-    translations: { where: { locale: lang } },
+    translations: { where: { locale: language } },
     store: { select: { logo: true, bigLogo: true, coverImage: true,
-                       translations: { where: { locale: lang } } } },
+                       translations: { where: { locale: language } } } },
   },
   orderBy: { popularityScore: 'desc' },
   take: 4,
