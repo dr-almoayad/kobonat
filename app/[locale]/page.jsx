@@ -15,8 +15,9 @@ import FeaturedVouchersSection from '@/components/FeaturedVouchersSection/Featur
 import FeaturedStoresSection from '@/components/FeaturedStoresSection/FeaturedStoresSection';
 import FeaturedStoresCarousel from '@/components/FeaturedStoresCarousel/FeaturedStoresCarousel';
 import { getCurrentWeekIdentifier } from '@/lib/leaderboard/calculateStoreSavings';
-import HeroCuratedSection from '@/components/HeroCuratedCarousel/HeroCuratedSection';
+import HeroCuratedSection from '@/components/HeroCuratedCarousel/HeroCuratedSe/ction';
 import HeroBestOffersCarousel from '@/components/HeroBestOffersCarousel/HeroBestOffersCarousel';
+import PromoCodesFAQ from '@/components/PromoCodesFAQ/PromoCodesFAQ';
 
 export const revalidate = 60;
 
@@ -283,6 +284,8 @@ const exclusiveVouchers = await prisma.voucher.findMany({
 
       {/* Featured Stores */}
       <FeaturedStoresSection locale={locale} />
+
+      <PromoCodesFAQ/>
 
       <HelpBox locale={locale} />
     </main>
