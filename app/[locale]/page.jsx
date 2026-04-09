@@ -18,6 +18,7 @@ import { getCurrentWeekIdentifier } from '@/lib/leaderboard/calculateStoreSaving
 import HeroCuratedSection from '@/components/HeroCuratedCarousel/HeroCuratedSection';
 import HeroBestOffersCarousel from '@/components/HeroBestOffersCarousel/HeroBestOffersCarousel';
 import PromoCodesFAQ from '@/components/PromoCodesFAQ/PromoCodesFAQ';
+import SavingsBanner from '@/components/SavingsBanner/SavingsBanner';
 
 export const revalidate = 60;
 
@@ -241,6 +242,7 @@ const exclusiveVouchers = await prisma.voucher.findMany({
     <main className="homepage-wrapper">
 
       {/* Hero */}
+      <SavingsBanner locale={locale} />
       <HeroCuratedSection locale={locale} countryCode={country} />
 
       {/*{transformedCarouselStores.length > 0 && (
