@@ -262,7 +262,7 @@ const css = `
   }
 `;
 
-export default function HeroBestOfferCarousel({ vouchers = [], locale = 'ar-SA', heading }) {
+export default function HeroBestOffersCarousel({ vouchers = [], locale = 'ar-SA', heading }) {
   const lang  = locale.split('-')[0];
   const isRtl = lang === 'ar';
   const slides = vouchers.slice(0, 4);
