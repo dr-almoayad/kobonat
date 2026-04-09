@@ -24,6 +24,8 @@ import { getStoreData } from '@/lib/stores';
 import { getStoreRelatedPosts } from '@/app/admin/_lib/queries';
 import { generateEnhancedStoreMetadata } from '@/lib/seo/generateStoreMetadata';
 import { getCurrentWeekIdentifier } from '@/lib/leaderboard/calculateStoreSavings';
+
+import PromoCodesFAQ from '@/components/PromoCodesFAQ/PromoCodesFAQ';
 import HelpBox from '@/components/help/HelpBox';
 import './store-page.css';
 
@@ -508,7 +510,7 @@ export default async function StorePage({ params }) {
 
             </div>
           </div>
-
+<PromoCodesFAQ/>
           <HelpBox locale={locale} />
         </div>
       </>
