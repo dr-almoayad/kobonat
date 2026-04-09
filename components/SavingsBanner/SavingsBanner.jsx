@@ -1,8 +1,9 @@
 'use client';
 // components/SavingsBanner/SavingsBanner.jsx
 //
-// Static banner with creative text effects.
-// No images, light mode only, bilingual (Arabic/English).
+// Static banner matching the website's clean white background.
+// Text effects only (gradients, weights) – no movement.
+// Fonts: Playpen Arabic (Arabic), Oi (English).
 
 import './SavingsBanner.css';
 
@@ -10,7 +11,6 @@ export default function SavingsBanner({ locale = 'ar-SA' }) {
   const lang = locale.split('-')[0];
   const isRtl = lang === 'ar';
 
-  // Translations
   const translations = {
     ar: {
       word1: 'وفر',
@@ -37,13 +37,6 @@ export default function SavingsBanner({ locale = 'ar-SA' }) {
             <span className="savings-text-spacer"> </span>
             <span className="savings-text-highlight">{t.word3}</span>
           </h1>
-          
-          {/* Decorative animated underline */}
-          <div className="savings-banner-underline">
-            <span></span>
-            <span></span>
-            <span></span>
-          </div>
         </div>
       </section>
     </div>
