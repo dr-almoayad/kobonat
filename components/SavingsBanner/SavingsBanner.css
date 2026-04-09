@@ -1,5 +1,5 @@
 /* components/SavingsBanner/SavingsBanner.css */
-@import url('https://fonts.googleapis.com/css2?family=Oi&family=Playpen+Arabic:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playpen+Arabic:wght@300;400;500;600;700;800&display=swap');
 
 .savings-banner-root {
   --savings-accent: #e67e22;
@@ -29,20 +29,8 @@
   justify-content: center;
   align-items: baseline;
   gap: 0 12px;
-}
-
-/* Arabic: Playpen Arabic (bold, playful but clean) */
-.savings-banner-root[dir="rtl"] .savings-banner-title {
   font-family: 'Playpen Arabic', cursive;
   font-weight: 700;
-  letter-spacing: -0.01em;
-}
-
-/* English: Oi (all caps, bold, distinctive) */
-.savings-banner-root[dir="ltr"] .savings-banner-title {
-  font-family: 'Oi', cursive;
-  font-weight: 400;
-  text-transform: uppercase;
 }
 
 /* Individual word styles - static text effects */
@@ -68,6 +56,11 @@
 .savings-text-spacer {
   display: inline-block;
   width: 0.2em;
+}
+
+/* RTL adjustments */
+.savings-banner-root[dir="rtl"] .savings-banner-title {
+  letter-spacing: 0;
 }
 
 /* Responsive: stack on mobile */
