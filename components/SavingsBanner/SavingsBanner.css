@@ -1,91 +1,100 @@
 /* components/SavingsBanner/SavingsBanner.css */
-@import url('https://fonts.googleapis.com/css2?family=Oi&family=Playpen+Sans+Arabic:wght@100..800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playpen+Arabic:wght@400;500;600;700;800&display=swap');
 
 .savings-banner-root {
-  --savings-accent: #e67e22;
-  --savings-accent-dark: #d35400;
-  --savings-accent-light: #f39c12;
-  --savings-text-dark: #2c3e50;
+  /* Colors extracted from the uploaded screenshot */
+  --savings-bg-dark: #0a0c10;
+  --savings-bg-gradient: linear-gradient(135deg, #0a0c10 0%, #1a1f2a 100%);
+  --savings-accent-primary: #f39c12;
+  --savings-accent-glow: rgba(243, 156, 18, 0.3);
+  --savings-text-light: #ffffff;
+  --savings-text-shadow: 0 2px 15px rgba(243, 156, 18, 0.2);
 }
 
 .savings-banner-section {
-  background: #ffffff;
-  padding: 60px 24px;
-  width: 100%;
+  background: var(--savings-bg-gradient);
+  padding: 70px 24px;
+  position: relative;
+  overflow: hidden;
+  border-radius: 0;
+}
+
+/* Subtle animated background pattern (very slow, not distracting) */
+.savings-banner-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: radial-gradient(circle at 20% 40%, var(--savings-accent-glow) 1px, transparent 1px);
+  background-size: 40px 40px;
+  opacity: 0.15;
+  pointer-events: none;
+}
+
+/* Another gradient overlay for depth */
+.savings-banner-section::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(243, 156, 18, 0.05) 0%, transparent 70%);
+  pointer-events: none;
 }
 
 .savings-banner-inner {
-  width: 100%;
-  max-width: 1312px;
+  max-width: 1000px;
   margin: 0 auto;
   text-align: center;
+  position: relative;
+  z-index: 2;
 }
 
-/* Main title - static, no animations */
+/* Main title - static, bold, with glow effect */
 .savings-banner-title {
   margin: 0;
-  width: 100%;
-  font-size: clamp(36px, 7vw, 72px);
-  line-height: 1.2;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  align-items: baseline;
-  gap: 0 12px;
-  font-family: "Playpen Sans Arabic", cursive;
-  font-optical-sizing: auto;
-  font-weight: 600;
-  font-style: normal;
-}
-
-/* Individual word styles - static text effects */
-.savings-text-main {
-  color: var(--savings-text-dark);
-}
-
-.savings-text-accent {
-  background: linear-gradient(135deg, var(--savings-accent) 0%, var(--savings-accent-light) 100%);
+  font-family: 'Playpen Arabic', cursive;
+  font-weight: 800;
+  font-size: clamp(28px, 6vw, 56px);
+  line-height: 1.3;
+  color: var(--savings-text-light);
+  text-shadow: var(--savings-text-shadow);
+  background: linear-gradient(135deg, #ffffff 0%, var(--savings-accent-primary) 80%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
+  letter-spacing: -0.01em;
 }
 
-.savings-text-highlight {
-  background: linear-gradient(135deg, var(--savings-accent-dark) 0%, var(--savings-accent) 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
-
-/* Spacer handling */
-.savings-text-spacer {
-  display: inline-block;
-  width: 0.2em;
-}
-
-/* RTL adjustments */
+/* RTL adjustment */
 .savings-banner-root[dir="rtl"] .savings-banner-title {
   letter-spacing: 0;
+  background: linear-gradient(135deg, #ffffff 0%, var(--savings-accent-primary) 80%);
+  -webkit-background-clip: text;
+  background-clip: text;
 }
 
-/* Responsive: stack on mobile */
+/* Optional: add a soft border bottom accent */
+.savings-banner-title::after {
+  content: '';
+  display: block;
+  width: 80px;
+  height: 3px;
+  background: linear-gradient(90deg, var(--savings-accent-primary), transparent);
+  margin: 20px auto 0;
+  border-radius: 3px;
+}
+
+/* Responsive */
 @media (max-width: 640px) {
   .savings-banner-section {
-    padding: 32px 16px;
+    padding: 50px 20px;
   }
-  
-  .savings-banner-title {
-    gap: 4px 0;
-  }
-  
-  .savings-text-spacer {
-    display: none;
-  }
-}
-
-/* Tablet and up keep horizontal */
-@media (min-width: 641px) {
-  .savings-banner-title {
-    flex-direction: row;
+  .savings-banner-title::after {
+    width: 60px;
+    margin-top: 16px;
   }
 }
