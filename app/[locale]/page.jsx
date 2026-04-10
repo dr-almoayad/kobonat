@@ -242,16 +242,18 @@ const exclusiveVouchers = await prisma.voucher.findMany({
     <main className="homepage-wrapper">
 
       {/* Hero */}
-      <SavingsBanner locale={locale} />
+      
       <HeroCuratedSection locale={locale} countryCode={country} />
 
-      {/*{transformedCarouselStores.length > 0 && (
+      <SavingsBanner locale={locale} />
+
+      {transformedCarouselStores.length > 0 && (
         <HomepageHeroSection
           stores={transformedCarouselStores}
           leaderboard={leaderboardSnapshots}
           locale={locale}
         />
-      )}*/}
+      )}
 
       {/* Brands Ticker */}
       {/*{transformedBrands.length > 0 && (
