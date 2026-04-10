@@ -5,14 +5,14 @@ import './SavingsBanner.css';
 
 const STATS = {
   ar: [
-    { icon: 'confirmation_number', value: '500+', label: 'كود خصم فعال' },
-    { icon: 'storefront',          value: '200+', label: 'متجر موثوق'   },
-    { icon: 'savings',             value: '70%',  label: 'أعلى توفير'   },
+    { symbol: '%70',  label: 'أعلى توفير'    },
+    { symbol: '+500', label: 'كود خصم فعال'  },
+    { symbol: '+200', label: 'متجر موثوق'    },
   ],
   en: [
-    { icon: 'confirmation_number', value: '500+', label: 'Active Codes'    },
-    { icon: 'storefront',          value: '200+', label: 'Verified Stores' },
-    { icon: 'savings',             value: '70%',  label: 'Max Savings'     },
+    { symbol: '70%',  label: 'Max Savings'     },
+    { symbol: '500+', label: 'Active Codes'    },
+    { symbol: '200+', label: 'Verified Stores' },
   ],
 };
 
@@ -23,15 +23,11 @@ export default function SavingsBanner({ locale = 'ar-SA' }) {
 
   return (
     <div className="sb-root" dir={isAr ? 'rtl' : 'ltr'}>
-
-      {/* tri-color strip — identical to OfferStack top strip */}
-      <div className="sb-strip" aria-hidden="true" />
-
       <div className="sb-body">
 
-        {/* eyebrow */}
+        {/* eyebrow badge */}
         <p className="sb-eyebrow">
-          <span className="material-symbols-sharp">bolt</span>
+          <span className="sb-eyebrow-pct">%</span>
           {isAr ? 'كوبونات السعودية' : 'Saudi Coupons'}
         </p>
 
@@ -42,15 +38,11 @@ export default function SavingsBanner({ locale = 'ar-SA' }) {
             : <>Latest <span className="sb-accent">Coupons</span> &amp; Discount Codes in Saudi Arabia</>}
         </h1>
 
-        {/* divider */}
-        <div className="sb-divider" aria-hidden="true" />
-
-        {/* stats row */}
+        {/* stat pills */}
         <ul className="sb-stats" role="list">
           {stats.map((s) => (
-            <li key={s.icon} className="sb-stat">
-              <span className="sb-stat__icon material-symbols-sharp">{s.icon}</span>
-              <span className="sb-stat__value">{s.value}</span>
+            <li key={s.symbol} className="sb-stat">
+              <span className="sb-stat__value">{s.symbol}</span>
               <span className="sb-stat__label">{s.label}</span>
             </li>
           ))}
