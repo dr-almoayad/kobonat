@@ -1,100 +1,188 @@
-/* components/SavingsBanner/SavingsBanner.css */
-@import url('https://fonts.googleapis.com/css2?family=Playpen+Arabic:wght@400;500;600;700;800&display=swap');
+/* components/SavingsBanner/SavingsBanner.css
+   Tokens, font, shadows and strip all mirror OfferStack.css exactly.
+*/
 
-.savings-banner-root {
-  /* Colors extracted from the uploaded screenshot */
-  --savings-bg-dark: #0a0c10;
-  --savings-bg-gradient: linear-gradient(135deg, #0a0c10 0%, #1a1f2a 100%);
-  --savings-accent-primary: #f39c12;
-  --savings-accent-glow: rgba(243, 156, 18, 0.3);
-  --savings-text-light: #ffffff;
-  --savings-text-shadow: 0 2px 15px rgba(243, 156, 18, 0.2);
+/* ── Design tokens (copied verbatim from OfferStack.css) ──── */
+.sb-root {
+  --os-bg:          #ffffff;
+  --os-surface:     #f7f8fa;
+  --os-surface-2:   #eff1f5;
+  --os-border:      #e4e7ed;
+  --os-border-hard: #c8cdd8;
+  --os-gold:        #b87d00;
+  --os-gold-dim:    rgba(184, 125, 0, 0.07);
+  --os-violet:      #5a24d8;
+  --os-cyan:        #00a882;
+  --os-cyan-dim:    rgba(0, 168, 130, 0.09);
+  --os-text:        #0d1117;
+  --os-body:        #2a2d35;
+  --os-muted:       #6b7280;
+  --os-muted-2:     #9ca3af;
+  --os-radius:      14px;
+  --os-font:        'Alexandria', 'Segoe UI', system-ui, sans-serif;
+
+  font-family: var(--os-font);
+  -webkit-font-smoothing: antialiased;
 }
 
-.savings-banner-section {
-  background: var(--savings-bg-gradient);
-  padding: 70px 24px;
-  position: relative;
+/* ── Shell ───────────────────────────────────────────────────── */
+.sb-root {
+  background: var(--os-bg);
+  border-radius: var(--os-radius);
+  border: 1px solid var(--os-border);
+  box-shadow:
+    0 1px 3px  rgba(0, 0, 0, 0.05),
+    0 8px 24px rgba(0, 0, 0, 0.07),
+    0 24px 56px rgba(0, 0, 0, 0.04);
   overflow: hidden;
-  border-radius: 0;
+  width: 100%;
 }
 
-/* Subtle animated background pattern (very slow, not distracting) */
-.savings-banner-section::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-image: radial-gradient(circle at 20% 40%, var(--savings-accent-glow) 1px, transparent 1px);
-  background-size: 40px 40px;
-  opacity: 0.15;
-  pointer-events: none;
-}
-
-/* Another gradient overlay for depth */
-.savings-banner-section::after {
-  content: '';
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(circle, rgba(243, 156, 18, 0.05) 0%, transparent 70%);
-  pointer-events: none;
-}
-
-.savings-banner-inner {
-  max-width: 1000px;
-  margin: 0 auto;
-  text-align: center;
-  position: relative;
-  z-index: 2;
-}
-
-/* Main title - static, bold, with glow effect */
-.savings-banner-title {
-  margin: 0;
-  font-family: 'Playpen Arabic', cursive;
-  font-weight: 800;
-  font-size: clamp(28px, 6vw, 56px);
-  line-height: 1.3;
-  color: var(--savings-text-light);
-  text-shadow: var(--savings-text-shadow);
-  background: linear-gradient(135deg, #ffffff 0%, var(--savings-accent-primary) 80%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  letter-spacing: -0.01em;
-}
-
-/* RTL adjustment */
-.savings-banner-root[dir="rtl"] .savings-banner-title {
-  letter-spacing: 0;
-  background: linear-gradient(135deg, #ffffff 0%, var(--savings-accent-primary) 80%);
-  -webkit-background-clip: text;
-  background-clip: text;
-}
-
-/* Optional: add a soft border bottom accent */
-.savings-banner-title::after {
-  content: '';
-  display: block;
-  width: 80px;
+/* ── Tri-color accent strip (identical to .os-top-strip) ─────── */
+.sb-strip {
   height: 3px;
-  background: linear-gradient(90deg, var(--savings-accent-primary), transparent);
-  margin: 20px auto 0;
-  border-radius: 3px;
+  background: linear-gradient(90deg, #5a24d8 0%, #b87d00 50%, #00a882 100%);
+  flex-shrink: 0;
 }
 
-/* Responsive */
-@media (max-width: 640px) {
-  .savings-banner-section {
-    padding: 50px 20px;
+/* ── Body ────────────────────────────────────────────────────── */
+.sb-body {
+  padding: 1.75rem 1.5rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0;
+}
+
+/* ── Eyebrow ─────────────────────────────────────────────────── */
+.sb-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.6rem;
+  font-weight: 900;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--os-cyan);
+  background: var(--os-cyan-dim);
+  border: 1px solid rgba(0, 168, 130, 0.20);
+  border-radius: 5px;
+  padding: 0.25rem 0.7rem;
+  margin-bottom: 1rem;
+}
+
+.sb-eyebrow .material-symbols-sharp {
+  font-size: 0.75rem;
+  font-variation-settings: 'FILL' 1;
+}
+
+/* ── Headline ────────────────────────────────────────────────── */
+.sb-headline {
+  margin: 0 0 0.25rem;
+  font-size: clamp(1.25rem, 4vw, 2.25rem);
+  font-weight: 900;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+  color: var(--os-text);
+}
+
+/* RTL: disable letter-spacing for Arabic */
+[dir='rtl'] .sb-headline {
+  letter-spacing: 0;
+  line-height: 1.45;
+}
+
+/* Accent word — uses the gold/violet tri-color, matches os-top-strip */
+.sb-accent {
+  background: linear-gradient(90deg, #5a24d8 0%, #b87d00 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* ── Divider ─────────────────────────────────────────────────── */
+.sb-divider {
+  width: 100%;
+  height: 1px;
+  background: var(--os-border);
+  margin: 1.375rem 0;
+}
+
+/* ── Stats row ───────────────────────────────────────────────── */
+.sb-stats {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  width: 100%;
+}
+
+/* Vertical separators between stats */
+.sb-stat:not(:last-child) {
+  border-inline-end: 1px solid var(--os-border);
+}
+
+.sb-stat {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0 1rem;
+}
+
+.sb-stat__icon {
+  font-size: 1.1rem;
+  color: var(--os-muted-2);
+  font-variation-settings: 'FILL' 1;
+}
+
+/* Each stat gets its own accent colour matching the strip */
+.sb-stat:nth-child(1) .sb-stat__icon { color: #5a24d8; }
+.sb-stat:nth-child(2) .sb-stat__icon { color: #b87d00; }
+.sb-stat:nth-child(3) .sb-stat__icon { color: #00a882; }
+
+.sb-stat__value {
+  font-size: 1.375rem;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: var(--os-text);
+}
+
+[dir='rtl'] .sb-stat__value { letter-spacing: 0; }
+
+.sb-stat__label {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--os-muted);
+  text-align: center;
+  line-height: 1.3;
+}
+
+/* ── Responsive ──────────────────────────────────────────────── */
+@media (max-width: 480px) {
+  .sb-body {
+    padding: 1.375rem 1rem 1.25rem;
   }
-  .savings-banner-title::after {
-    width: 60px;
-    margin-top: 16px;
+
+  .sb-stat {
+    padding: 0 0.5rem;
   }
+
+  .sb-stat__value {
+    font-size: 1.1rem;
+  }
+
+  .sb-stat__label {
+    font-size: 0.6rem;
+  }
+}
+
+/* ── Reduced motion ──────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .sb-root { transition: none; }
 }
