@@ -6,13 +6,13 @@ import './SavingsBanner.css';
 const STATS = {
   ar: [
     { symbol: '%70',  label: 'أعلى توفير'    },
-    { symbol: '+500', label: 'كود خصم فعال'  },
-    { symbol: '+200', label: 'متجر موثوق'    },
+    { symbol: '+100', label: 'كود خصم فعال'  },
+    { symbol: '+50', label: 'متجر موثوق'    },
   ],
   en: [
     { symbol: '70%',  label: 'Max Savings'     },
-    { symbol: '500+', label: 'Active Codes'    },
-    { symbol: '200+', label: 'Verified Stores' },
+    { symbol: '100+', label: 'Active Codes'    },
+    { symbol: '50+', label: 'Verified Stores' },
   ],
 };
 
