@@ -1,53 +1,49 @@
 /* components/SavingsBanner/SavingsBanner.css
-   Tokens, font, shadows and strip all mirror OfferStack.css exactly.
+   Colors taken from the uploaded screenshot:
+     - Background  : vivid purple  #7B2DE8  →  #5A0FC8
+     - Pink accent : hot pink/magenta  #FF1F6E
+     - Cards/text  : white
+   Font matches the rest of the project (Alexandria).
 */
 
-/* ── Design tokens (copied verbatim from OfferStack.css) ──── */
 .sb-root {
-  --os-bg:          #ffffff;
-  --os-surface:     #f7f8fa;
-  --os-surface-2:   #eff1f5;
-  --os-border:      #e4e7ed;
-  --os-border-hard: #c8cdd8;
-  --os-gold:        #b87d00;
-  --os-gold-dim:    rgba(184, 125, 0, 0.07);
-  --os-violet:      #5a24d8;
-  --os-cyan:        #00a882;
-  --os-cyan-dim:    rgba(0, 168, 130, 0.09);
-  --os-text:        #0d1117;
-  --os-body:        #2a2d35;
-  --os-muted:       #6b7280;
-  --os-muted-2:     #9ca3af;
-  --os-radius:      14px;
-  --os-font:        'Alexandria', 'Segoe UI', system-ui, sans-serif;
+  --sb-purple-start:  #8B35F0;
+  --sb-purple-end:    #5A0FC8;
+  --sb-pink:          #FF1F6E;
+  --sb-pink-dim:      rgba(255, 31, 110, 0.18);
+  --sb-white:         #ffffff;
+  --sb-white-60:      rgba(255, 255, 255, 0.60);
+  --sb-white-20:      rgba(255, 255, 255, 0.18);
+  --sb-white-10:      rgba(255, 255, 255, 0.10);
+  --sb-font:          'Alexandria', 'Segoe UI', system-ui, sans-serif;
 
-  font-family: var(--os-font);
+  font-family: var(--sb-font);
   -webkit-font-smoothing: antialiased;
-}
 
-/* ── Shell ───────────────────────────────────────────────────── */
-.sb-root {
-  background: var(--os-bg);
-  border-radius: var(--os-radius);
-  border: 1px solid var(--os-border);
-  box-shadow:
-    0 1px 3px  rgba(0, 0, 0, 0.05),
-    0 8px 24px rgba(0, 0, 0, 0.07),
-    0 24px 56px rgba(0, 0, 0, 0.04);
+  background: linear-gradient(135deg, var(--sb-purple-start) 0%, var(--sb-purple-end) 100%);
+  border-radius: 14px;
   overflow: hidden;
   width: 100%;
+
+  /* same subtle dot-grid used in the section around the cards */
+  position: relative;
 }
 
-/* ── Tri-color accent strip (identical to .os-top-strip) ─────── */
-.sb-strip {
-  height: 3px;
-  background: linear-gradient(90deg, #5a24d8 0%, #b87d00 50%, #00a882 100%);
-  flex-shrink: 0;
+/* faint dot grid overlay, matches screenshot texture */
+.sb-root::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle, rgba(255,255,255,0.08) 1px, transparent 1px);
+  background-size: 28px 28px;
+  pointer-events: none;
 }
 
 /* ── Body ────────────────────────────────────────────────────── */
 .sb-body {
-  padding: 1.75rem 1.5rem 1.5rem;
+  position: relative;
+  z-index: 1;
+  padding: 2.25rem 1.75rem 2rem;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -55,58 +51,51 @@
   gap: 0;
 }
 
-/* ── Eyebrow ─────────────────────────────────────────────────── */
+/* ── Eyebrow badge ───────────────────────────────────────────── */
 .sb-eyebrow {
   display: inline-flex;
   align-items: center;
-  gap: 0.3rem;
+  gap: 0.35rem;
   font-size: 0.6rem;
   font-weight: 900;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--os-cyan);
-  background: var(--os-cyan-dim);
-  border: 1px solid rgba(0, 168, 130, 0.20);
+  color: var(--sb-white);
+  background: var(--sb-white-10);
+  border: 1px solid var(--sb-white-20);
   border-radius: 5px;
-  padding: 0.25rem 0.7rem;
-  margin-bottom: 1rem;
+  padding: 0.28rem 0.75rem;
+  margin-bottom: 1.125rem;
 }
 
-.sb-eyebrow .material-symbols-sharp {
+/* % sign — bold, hot pink, same weight as the big numbers in screenshot */
+.sb-eyebrow-pct {
   font-size: 0.75rem;
-  font-variation-settings: 'FILL' 1;
+  font-weight: 900;
+  color: var(--sb-pink);
+  line-height: 1;
 }
 
 /* ── Headline ────────────────────────────────────────────────── */
 .sb-headline {
-  margin: 0 0 0.25rem;
-  font-size: clamp(1.25rem, 4vw, 2.25rem);
+  margin: 0 0 1.5rem;
+  font-size: clamp(1.25rem, 4vw, 2.125rem);
   font-weight: 900;
-  line-height: 1.25;
+  line-height: 1.3;
   letter-spacing: -0.02em;
-  color: var(--os-text);
+  color: var(--sb-white);
 }
 
-/* RTL: disable letter-spacing for Arabic */
 [dir='rtl'] .sb-headline {
   letter-spacing: 0;
-  line-height: 1.45;
+  line-height: 1.5;
 }
 
-/* Accent word — uses the gold/violet tri-color, matches os-top-strip */
+/* accent word — hot pink, same color as the big % numbers in screenshot */
 .sb-accent {
-  background: linear-gradient(90deg, #5a24d8 0%, #b87d00 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-/* ── Divider ─────────────────────────────────────────────────── */
-.sb-divider {
-  width: 100%;
-  height: 1px;
-  background: var(--os-border);
-  margin: 1.375rem 0;
+  color: var(--sb-pink);
+  /* subtle text-shadow lift, matches the glow on the numbers */
+  text-shadow: 0 0 24px rgba(255, 31, 110, 0.45);
 }
 
 /* ── Stats row ───────────────────────────────────────────────── */
@@ -118,11 +107,11 @@
   align-items: stretch;
   gap: 0;
   width: 100%;
-}
-
-/* Vertical separators between stats */
-.sb-stat:not(:last-child) {
-  border-inline-end: 1px solid var(--os-border);
+  max-width: 480px;
+  background: var(--sb-white-10);
+  border: 1px solid var(--sb-white-20);
+  border-radius: 10px;
+  overflow: hidden;
 }
 
 .sb-stat {
@@ -130,59 +119,50 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.3rem;
-  padding: 0 1rem;
+  gap: 0.2rem;
+  padding: 0.875rem 0.5rem;
 }
 
-.sb-stat__icon {
-  font-size: 1.1rem;
-  color: var(--os-muted-2);
-  font-variation-settings: 'FILL' 1;
+/* vertical separators */
+.sb-stat:not(:last-child) {
+  border-inline-end: 1px solid var(--sb-white-20);
 }
 
-/* Each stat gets its own accent colour matching the strip */
-.sb-stat:nth-child(1) .sb-stat__icon { color: #5a24d8; }
-.sb-stat:nth-child(2) .sb-stat__icon { color: #b87d00; }
-.sb-stat:nth-child(3) .sb-stat__icon { color: #00a882; }
-
+/* the big number — hot pink like the % values in the screenshot */
 .sb-stat__value {
-  font-size: 1.375rem;
+  font-size: 1.5rem;
   font-weight: 900;
   line-height: 1;
   letter-spacing: -0.03em;
-  color: var(--os-text);
+  color: var(--sb-pink);
+  text-shadow: 0 0 18px rgba(255, 31, 110, 0.40);
 }
 
 [dir='rtl'] .sb-stat__value { letter-spacing: 0; }
 
 .sb-stat__label {
-  font-size: 0.68rem;
+  font-size: 0.65rem;
   font-weight: 600;
-  color: var(--os-muted);
+  color: var(--sb-white-60);
   text-align: center;
-  line-height: 1.3;
+  line-height: 1.35;
 }
 
 /* ── Responsive ──────────────────────────────────────────────── */
 @media (max-width: 480px) {
   .sb-body {
-    padding: 1.375rem 1rem 1.25rem;
-  }
-
-  .sb-stat {
-    padding: 0 0.5rem;
+    padding: 1.625rem 1rem 1.5rem;
   }
 
   .sb-stat__value {
-    font-size: 1.1rem;
+    font-size: 1.2rem;
   }
 
   .sb-stat__label {
-    font-size: 0.6rem;
+    font-size: 0.58rem;
   }
 }
 
-/* ── Reduced motion ──────────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
   .sb-root { transition: none; }
 }
