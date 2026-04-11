@@ -78,7 +78,7 @@ const Header = () => {
 
   // Static nav links — seasonal pages appended dynamically below
   const staticNavLinks = useMemo(() => [
-    { href: '/coupons', label: t('deals')  || 'Deals'  },
+    { href: '/coupons', label: t('deals')  || 'Deals', icon: 'mode_heat'  },
     { href: '/stacks',  label: isArabic ? 'اجمع ووفر' : 'Stack & Save', icon: 'bolt' },
     { href: '/stores',  label: t('stores') || 'Stores' },
     { href: '/blog',    label: t('blog')   || 'Blog'   },
@@ -155,7 +155,7 @@ const Header = () => {
               <Link
                 key={link.href}
                 href={`/${currentLocale}${link.href}`}
-                className={`nav-link${link.isSeasonal ? ' nav-link--seasonal' : ''}${link.href === '/stacks' ? ' nav-link--stacks' : ''}`}
+                className={`nav-link${link.isSeasonal ? ' nav-link--seasonal' : ''}${link.href === '/stacks' ? ' nav-link--stacks' : ''}${link.href === '/coupons' ? ' nav-link--coupons' : ''}`}
               >
                 {link.icon && (
                   <span className="material-symbols-sharp nav-link__icon">{link.icon}</span>
