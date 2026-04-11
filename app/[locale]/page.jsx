@@ -242,26 +242,22 @@ const exclusiveVouchers = await prisma.voucher.findMany({
     <main className="homepage-wrapper">
 
       {/* Hero */}
-      
+      <SavingsBanner locale={locale} />
       <HeroCuratedSection locale={locale} countryCode={country} />
 
-      <SavingsBanner locale={locale} />
-
-      {transformedCarouselStores.length > 0 && (
+      {/*{transformedCarouselStores.length > 0 && (
         <HomepageHeroSection
           stores={transformedCarouselStores}
           leaderboard={leaderboardSnapshots}
           locale={locale}
         />
-      )}
-
-      {/* Brands Ticker */}
-      {/*{transformedBrands.length > 0 && (
-        <BrandsCarousel brands={transformedBrands} />
       )}*/}
 
-      {/* Curated Offers */}
-      {/* <CuratedOffersSection locale={locale} countryCode={country} /> */}
+      {/* Featured Vouchers */}
+      <FeaturedVouchersSection locale={locale} countryCode={country} />
+
+      {/* Featured Stores */}
+      <FeaturedStoresSection locale={locale} />
 
       {/* Featured Stores Carousel */}
       {topStores.length > 0 && (
@@ -272,24 +268,27 @@ const exclusiveVouchers = await prisma.voucher.findMany({
         />
       )}
 
+      {/* Stackable Offers */}
+      <OfferStacksSection locale={locale} countryCode={country} />
+
+      {/* Brands Ticker */}
+      {/*{transformedBrands.length > 0 && (
+        <BrandsCarousel brands={transformedBrands} />
+      )}*/}
+
+      {/* Curated Offers */}
+      {/* <CuratedOffersSection locale={locale} countryCode={country} /> */}
+
       {/* Featured Products */}
       <HomeFeaturedProductsSection locale={locale} countryCode={country} />
 
-      {/* Featured Vouchers */}
-      <FeaturedVouchersSection locale={locale} countryCode={country} />
+      
 
       {/*<HeroBestOffersCarousel vouchers={exclusiveVouchers} locale={locale} />*/}
-
-      {/* Stackable Offers */}
-      <OfferStacksSection locale={locale} countryCode={country} />
 
       {/* Blog */}
       <HomepageBlogSection locale={locale} count={3} />
 
-      
-
-      {/* Featured Stores */}
-      {/*<FeaturedStoresSection locale={locale} />*/}
 
       <PromoCodesFAQ/>
 
