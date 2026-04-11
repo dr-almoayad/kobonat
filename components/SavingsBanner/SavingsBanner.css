@@ -1,6 +1,8 @@
 /* components/SavingsBanner/SavingsBanner.css
    Premium, sales-focused design with refined gradients, smooth animations,
    and a professional yet inviting presence.
+   Primary accent: #FF2B7A (pink)
+   Secondary accent: #16d77d (vibrant green)
 */
 
 /* --- CSS Variables (consistent & scalable) --- */
@@ -8,6 +10,8 @@
   --sb-purple-deep:   #4C0B9E;
   --sb-purple-bright: #8B3AFF;
   --sb-pink-primary:  #FF2B7A;
+  --sb-green-secondary: #16d77d;
+  --sb-green-glow:     rgba(22, 215, 125, 0.25);
   --sb-pink-glow:     rgba(255, 43, 122, 0.25);
   --sb-white:         #FFFFFF;
   --sb-white-muted:   rgba(255, 255, 255, 0.7);
@@ -49,12 +53,12 @@
   z-index: 0;
 }
 
-/* --- Subtle animated gradient shift on hover (professional, not flashy) --- */
+/* --- Subtle animated gradient shift on hover (using secondary green) --- */
 .sb-root::after {
   content: '';
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at 30% 50%, rgba(255, 43, 122, 0.08), transparent 70%);
+  background: radial-gradient(circle at 30% 50%, rgba(22, 215, 125, 0.08), transparent 70%);
   opacity: 0;
   transition: opacity 0.5s ease;
   pointer-events: none;
@@ -176,7 +180,7 @@
   border-inline-end: 1px solid var(--sb-white-lighter);
 }
 
-/* --- Stat icon (material symbols polished) --- */
+/* --- Stat icon (secondary green accent on hover) --- */
 .sb-stat__icon {
   font-size: 2rem !important;
   font-weight: 400;
@@ -188,10 +192,10 @@
 .sb-stat:hover .sb-stat__icon {
   opacity: 1;
   transform: scale(1.03);
-  color: var(--sb-pink-primary);
+  color: var(--sb-green-secondary);
 }
 
-/* --- Stat value (bold, pink, high impact) --- */
+/* --- Stat value: primary pink by default, green on hover (optional accent) --- */
 .sb-stat__value {
   font-size: 1.9rem;
   font-weight: 800;
@@ -203,7 +207,9 @@
 }
 
 .sb-stat:hover .sb-stat__value {
+  color: var(--sb-green-secondary);
   transform: scale(1.02);
+  text-shadow: 0 0 8px var(--sb-green-glow);
 }
 
 /* --- Stat label (clean, readable) --- */
@@ -215,7 +221,7 @@
   letter-spacing: 0.03em;
 }
 
-/* --- Action CTA (salesly, subtle but effective) --- */
+/* --- Action CTA (salesly, subtle but effective - green accent on hover) --- */
 .sb-action {
   margin-top: 1.25rem;
   display: flex;
@@ -240,10 +246,10 @@
 }
 
 .sb-action__link:hover {
-  background: var(--sb-pink-primary);
+  background: var(--sb-green-secondary);
   border-color: transparent;
   transform: translateY(-2px);
-  box-shadow: 0 8px 18px rgba(255, 43, 122, 0.3);
+  box-shadow: 0 8px 18px rgba(22, 215, 125, 0.35);
   gap: 0.7rem;
 }
 
@@ -258,6 +264,13 @@
 
 [dir='rtl'] .sb-action__link:hover .sb-action__arrow {
   transform: translateX(-3px);
+}
+
+/* --- Additional subtle green accents (e.g., focus ring) --- */
+.sb-action__link:focus-visible {
+  outline: 2px solid var(--sb-green-secondary);
+  outline-offset: 2px;
+  border-radius: 40px;
 }
 
 /* --- Responsive refinements --- */
