@@ -5,9 +5,9 @@ import './SavingsBanner.css';
 
 const STATS = {
   ar: [
-    { symbol: '%70',  label: 'أعلى توفير'    },
-    { symbol: '+100', label: 'كود خصم فعال'  },
-    { symbol: '+50', label: 'متجر موثوق'    },
+    { symbol: '%70',  label: 'أعلى توفير', icon: 'percent_discount'},
+    { symbol: '+100', label: 'كود خصم فعال', icon: 'local_activity'},
+    { symbol: '+50', label: 'متجر موثوق', icon: 'storefront'},
   ],
   en: [
     { symbol: '70%',  label: 'Max Savings'     },
@@ -27,7 +27,6 @@ export default function SavingsBanner({ locale = 'ar-SA' }) {
 
         {/* eyebrow badge */}
         <p className="sb-eyebrow">
-          <span className="sb-eyebrow-pct">%</span>
           {isAr ? 'كوبونات السعودية' : 'Saudi Coupons'}
         </p>
 
@@ -42,6 +41,7 @@ export default function SavingsBanner({ locale = 'ar-SA' }) {
         <ul className="sb-stats" role="list">
           {stats.map((s) => (
             <li key={s.symbol} className="sb-stat">
+              <span class="material-symbols-sharp">{s.icon}</span>
               <span className="sb-stat__value">{s.symbol}</span>
               <span className="sb-stat__label">{s.label}</span>
             </li>
