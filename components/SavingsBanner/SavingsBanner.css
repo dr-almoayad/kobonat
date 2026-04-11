@@ -1,326 +1,184 @@
-/* components/SavingsBanner/SavingsBanner.css
-   Premium, sales-focused design with refined gradients, smooth animations,
-   and a professional yet inviting presence.
-*/
+/* components/SavingsBanner/SavingsBanner.css */
 
-/* --- CSS Variables (consistent & scalable) --- */
 .sb-root {
-  --sb-purple-deep:   #4C0B9E;
-  --sb-purple-bright: #8B3AFF;
-  --sb-pink-primary:  #FF2B7A;
-  --sb-pink-glow:     rgba(255, 43, 122, 0.25);
-  --sb-white:         #FFFFFF;
-  --sb-white-muted:   rgba(255, 255, 255, 0.7);
-  --sb-white-light:   rgba(255, 255, 255, 0.12);
-  --sb-white-lighter: rgba(255, 255, 255, 0.06);
-  --sb-shadow-sm:     0 8px 20px rgba(0, 0, 0, 0.2);
-  --sb-shadow-md:     0 12px 28px rgba(0, 0, 0, 0.25);
-  --sb-transition:    all 0.25s cubic-bezier(0.2, 0.9, 0.4, 1.1);
-  --sb-font:          'Alexandria', 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  /* Premium Deep Color Palette */
+  --sb-purple-dark:   #3A0B85;
+  --sb-purple-light:  #6B21DB;
+  --sb-pink-start:    #FF1F6E;
+  --sb-pink-end:      #FF5C93;
+  --sb-white:         #ffffff;
+  --sb-white-80:      rgba(255, 255, 255, 0.80);
+  --sb-white-20:      rgba(255, 255, 255, 0.20);
+  --sb-white-10:      rgba(255, 255, 255, 0.10);
+  --sb-font:          'Alexandria', 'Segoe UI', system-ui, sans-serif;
 
   font-family: var(--sb-font);
   -webkit-font-smoothing: antialiased;
+
+  /* Rich gradient background */
+  background: linear-gradient(135deg, var(--sb-purple-light) 0%, var(--sb-purple-dark) 100%);
+  border-radius: 28px; /* Smooth squircle shape */
+  box-shadow: 0 12px 32px -8px rgba(58, 11, 133, 0.4); /* Soft, ambient shadow */
+  overflow: hidden;
   width: 100%;
   position: relative;
-  isolation: isolate;
 }
 
-/* --- Main Container: premium gradient + soft glow --- */
-.sb-root {
-  background: radial-gradient(ellipse at 70% 30%, #7A2AFF, #3A0A8A);
-  border-radius: 32px;
-  box-shadow: var(--sb-shadow-md), inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  transition: transform 0.2s ease, box-shadow 0.3s ease;
-}
-
-.sb-root:hover {
-  box-shadow: 0 24px 40px -12px rgba(0, 0, 0, 0.35);
-}
-
-/* --- Elegant dot pattern (refined) --- */
+/* Subtle dot grid overlay */
 .sb-root::before {
   content: '';
   position: absolute;
   inset: 0;
-  background-image: radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.12) 1.2px, transparent 1.2px);
-  background-size: 28px 28px;
+  background-image: radial-gradient(circle, var(--sb-white-10) 1px, transparent 1px);
+  background-size: 24px 24px;
+  opacity: 0.6;
   pointer-events: none;
-  border-radius: 32px;
-  z-index: 0;
 }
 
-/* --- Subtle animated gradient shift on hover (professional, not flashy) --- */
-.sb-root::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(circle at 30% 50%, rgba(255, 43, 122, 0.08), transparent 70%);
-  opacity: 0;
-  transition: opacity 0.5s ease;
-  pointer-events: none;
-  border-radius: 32px;
-  z-index: 0;
-}
-
-.sb-root:hover::after {
-  opacity: 1;
-}
-
-/* --- Body layout (z-index above overlays) --- */
+/* ── Body ────────────────────────────────────────────────────── */
 .sb-body {
   position: relative;
-  z-index: 2;
-  padding: 2.5rem 2rem 2rem;
+  z-index: 1;
+  padding: 3rem 2rem;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
+  gap: 0;
 }
 
-/* --- Eyebrow badge (modern, with icon) --- */
+/* ── Eyebrow badge ───────────────────────────────────────────── */
 .sb-eyebrow {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  background: var(--sb-white-light);
-  backdrop-filter: blur(2px);
-  border: 0.5px solid var(--sb-white-lighter);
-  border-radius: 60px;
-  padding: 0.4rem 1rem;
   font-size: 0.7rem;
   font-weight: 700;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--sb-white);
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--sb-white-20);
+  border-radius: 24px; /* Pill shape */
+  padding: 0.4rem 1rem;
   margin-bottom: 1.25rem;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(8px);
 }
 
 .sb-eyebrow-icon {
-  font-size: 1rem !important;
-  color: var(--sb-pink-primary);
+  font-size: 1rem;
+  color: var(--sb-pink-start);
 }
 
-/* --- Headline (bold, confident, sales-driven) --- */
+/* ── Headline ────────────────────────────────────────────────── */
 .sb-headline {
-  margin: 0 0 1.75rem;
-  font-size: clamp(1.5rem, 5vw, 2.4rem);
+  margin: 0 0 2rem;
+  font-size: clamp(1.5rem, 4vw, 2.25rem);
   font-weight: 800;
   line-height: 1.3;
-  letter-spacing: -0.01em;
   color: var(--sb-white);
-  text-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-  max-width: 720px;
+  max-width: 600px;
 }
 
-/* Accent word: vibrant pink, no heavy shadow, clean & premium */
+[dir='rtl'] .sb-headline {
+  line-height: 1.5;
+}
+
+/* Clean, premium text gradient for the accent word */
 .sb-accent {
-  color: var(--sb-pink-primary);
-  text-shadow: 0 0 8px var(--sb-pink-glow);
-  background: none;
-  -webkit-text-fill-color: var(--sb-pink-primary);
-  font-weight: 800;
-  position: relative;
+  background: linear-gradient(to right, var(--sb-pink-start), var(--sb-pink-end));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
   display: inline-block;
 }
 
-/* --- Stats row (glassmorphism + subtle hover interaction) --- */
+/* ── Stats row (Glassmorphism) ───────────────────────────────── */
 .sb-stats {
   list-style: none;
-  margin: 0 0 1.25rem;
+  margin: 0;
   padding: 0;
   display: flex;
-  flex-wrap: wrap;
+  align-items: center;
   justify-content: center;
-  gap: 0;
+  gap: 1rem;
   width: 100%;
-  max-width: 560px;
-  background: var(--sb-white-light);
-  backdrop-filter: blur(4px);
-  border: 0.5px solid var(--sb-white-lighter);
-  border-radius: 28px;
-  overflow: hidden;
-  box-shadow: var(--sb-shadow-sm);
-  transition: var(--sb-transition);
+  max-width: 640px;
 }
 
 .sb-stat {
   flex: 1;
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 0.35rem;
-  padding: 1rem 0.5rem;
-  transition: var(--sb-transition);
-  cursor: default;
-  background: transparent;
-  animation: fadeSlideUp 0.5s ease forwards;
-  opacity: 0;
-  transform: translateY(12px);
-}
-
-@keyframes fadeSlideUp {
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 1.25rem 1rem;
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 20px;
+  box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease, background 0.2s ease;
 }
 
 .sb-stat:hover {
   background: rgba(255, 255, 255, 0.1);
-  transform: translateY(-3px);
-}
-
-/* Vertical separators (clean & modern) */
-.sb-stat:not(:last-child) {
-  border-inline-end: 1px solid var(--sb-white-lighter);
-}
-
-/* --- Stat icon (material symbols polished) --- */
-.sb-stat__icon {
-  font-size: 2rem !important;
-  font-weight: 400;
-  color: var(--sb-white);
-  opacity: 0.9;
-  transition: var(--sb-transition);
-}
-
-.sb-stat:hover .sb-stat__icon {
-  opacity: 1;
-  transform: scale(1.03);
-  color: var(--sb-pink-primary);
-}
-
-/* --- Stat value (bold, pink, high impact) --- */
-.sb-stat__value {
-  font-size: 1.9rem;
-  font-weight: 800;
-  line-height: 1.1;
-  letter-spacing: -0.02em;
-  color: var(--sb-pink-primary);
-  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-  transition: var(--sb-transition);
-}
-
-.sb-stat:hover .sb-stat__value {
-  transform: scale(1.02);
-}
-
-/* --- Stat label (clean, readable) --- */
-.sb-stat__label {
-  font-size: 0.7rem;
-  font-weight: 600;
-  color: var(--sb-white-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-}
-
-/* --- Action CTA (salesly, subtle but effective) --- */
-.sb-action {
-  margin-top: 1.25rem;
-  display: flex;
-  justify-content: center;
-}
-
-.sb-action__link {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(4px);
-  padding: 0.5rem 1.2rem;
-  border-radius: 40px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--sb-white);
-  text-decoration: none;
-  border: 0.5px solid var(--sb-white-lighter);
-  transition: var(--sb-transition);
-  letter-spacing: 0.01em;
-}
-
-.sb-action__link:hover {
-  background: var(--sb-pink-primary);
-  border-color: transparent;
   transform: translateY(-2px);
-  box-shadow: 0 8px 18px rgba(255, 43, 122, 0.3);
-  gap: 0.7rem;
 }
 
-.sb-action__arrow {
-  font-size: 1.1rem;
-  transition: transform 0.2s ease;
+.sb-stat__icon-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 31, 110, 0.15);
+  color: var(--sb-pink-end);
+  border-radius: 12px;
 }
 
-.sb-action__link:hover .sb-action__arrow {
-  transform: translateX(3px);
+.sb-stat__icon-wrapper .material-symbols-sharp {
+  font-size: 1.25rem;
 }
 
-[dir='rtl'] .sb-action__link:hover .sb-action__arrow {
-  transform: translateX(-3px);
+.sb-stat__content {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: start;
 }
 
-/* --- Responsive refinements --- */
-@media (max-width: 560px) {
+.sb-stat__value {
+  font-size: 1.5rem;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--sb-white);
+}
+
+.sb-stat__label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--sb-white-80);
+  margin-top: 0.25rem;
+}
+
+/* ── Responsive ──────────────────────────────────────────────── */
+@media (max-width: 640px) {
   .sb-body {
-    padding: 1.75rem 1.25rem 1.5rem;
-  }
-
-  .sb-stat__value {
-    font-size: 1.4rem;
-  }
-
-  .sb-stat__icon {
-    font-size: 1.6rem !important;
-  }
-
-  .sb-stat__label {
-    font-size: 0.6rem;
+    padding: 2.5rem 1.25rem;
   }
 
   .sb-stats {
-    border-radius: 24px;
+    flex-direction: column;
+    gap: 0.75rem;
   }
 
   .sb-stat {
-    padding: 0.75rem 0.25rem;
-  }
-
-  .sb-headline {
-    margin-bottom: 1.25rem;
-  }
-
-  .sb-action__link {
-    font-size: 0.75rem;
-    padding: 0.4rem 1rem;
+    width: 100%;
+    justify-content: flex-start;
+    padding: 1rem 1.25rem;
   }
 }
 
-@media (max-width: 420px) {
-  .sb-stat__value {
-    font-size: 1.2rem;
-  }
-  .sb-stat__icon {
-    font-size: 1.4rem !important;
-  }
-  .sb-stat__label {
-    font-size: 0.55rem;
-  }
-}
-
-/* --- Reduced motion preference --- */
 @media (prefers-reduced-motion: reduce) {
-  .sb-stat,
-  .sb-stat__icon,
-  .sb-stat__value,
-  .sb-action__link,
-  .sb-root {
-    transition: none;
-    animation: none;
-    transform: none;
-    opacity: 1;
-  }
-  .sb-root:hover {
-    transform: none;
-  }
+  .sb-root, .sb-stat { transition: none; }
 }
