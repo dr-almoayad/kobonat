@@ -20,7 +20,8 @@
   font-family: var(--sb-font);
   -webkit-font-smoothing: antialiased;
 
-  background:  #fff;
+  background: radial-gradient(circle,rgba(70, 11, 226, 1) 0%, rgba(165, 54, 255, 1) 100%);
+  border-radius: 32px 0 32px 0;
   overflow: hidden;
   width: 100%;
 
