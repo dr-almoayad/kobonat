@@ -1,12 +1,10 @@
 'use client';
 // components/footers/MobileFooter.jsx
-// Changes vs previous version:
-//  - CRITICAL FIX: Category links now go to /categories/[slug], not ?category=slug
-//  - CRITICAL FIX: Removed broken /api/coupons call — Coupons tab now just navigates
-//  - Coupons tab is a direct Link (no menu) — cleaner UX
-//  - Stores tab kept with working /api/stores fetch
-//  - Categories grid kept with corrected links
-//  - Removed coupon-specific state/refs/handlers
+// Updates:
+//  - Adds "Stacks" as 5th nav tab (scrollable row)
+//  - Seasonal pages (showInNav) appear as a row inside the categories menu
+//  - Category links → /categories/[slug]
+//  - Mobile-first: 5-tab bar with overflow-x scroll on very small screens
 
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
@@ -26,33 +24,37 @@ const MobileFooter = () => {
 
   const [categories,        setCategories]        = useState([]);
   const [stores,            setStores]            = useState([]);
+  const [seasonalPages,     setSeasonalPages]     = useState([]);
   const [categoriesLoading, setCategoriesLoading] = useState(true);
   const [storesLoading,     setStoresLoading]     = useState(false);
 
   const categoriesMenuRef = useRef(null);
   const storesMenuRef     = useRef(null);
 
-  // Fetch categories on mount
+  // Fetch categories + seasonal nav pages on mount
   useEffect(() => {
     let mounted = true;
-    fetch(`/api/categories?locale=${language}&country=${region}`, { cache: 'no-store' })
-      .then(r => r.ok ? r.json() : [])
-      .then(data => {
-        if (!mounted) return;
-        const all = Array.isArray(data) ? data : [];
-        setCategories(
-          all
-            .filter(c => (c._count?.stores || 0) > 0)
-            .sort((a, b) => (b._count?.stores || 0) - (a._count?.stores || 0))
-            .slice(0, 16)
-        );
-        setCategoriesLoading(false);
-      })
-      .catch(() => mounted && setCategoriesLoading(false));
+    Promise.all([
+      fetch(`/api/categories?locale=${language}&country=${region}`, { cache: 'no-store' })
+        .then(r => r.ok ? r.json() : []),
+      fetch(`/api/seasonal?locale=${language}&nav=1`, { cache: 'no-store' })
+        .then(r => r.ok ? r.json() : []),
+    ]).then(([catData, seasonalData]) => {
+      if (!mounted) return;
+      const all = Array.isArray(catData) ? catData : [];
+      setCategories(
+        all
+          .filter(c => (c._count?.stores || 0) > 0)
+          .sort((a, b) => (b._count?.stores || 0) - (a._count?.stores || 0))
+          .slice(0, 16)
+      );
+      setSeasonalPages(Array.isArray(seasonalData) ? seasonalData : []);
+      setCategoriesLoading(false);
+    }).catch(() => mounted && setCategoriesLoading(false));
     return () => { mounted = false; };
   }, [language, region]);
 
-  // Fetch stores only when menu is first opened
+  // Fetch stores only when menu opens
   const fetchStores = () => {
     if (stores.length > 0) return;
     setStoresLoading(true);
@@ -79,7 +81,6 @@ const MobileFooter = () => {
   }, [showCategoriesMenu, showStoresMenu]);
 
   const isActive = (path) => pathname?.includes(path);
-
   const closeAll = () => {
     setShowCategoriesMenu(false);
     setShowStoresMenu(false);
@@ -100,6 +101,45 @@ const MobileFooter = () => {
             <h3>{t('categories') || 'Categories'}</h3>
           </div>
 
+          {/* Seasonal pages row — shown above the grid when available */}
+          {!categoriesLoading && seasonalPages.length > 0 && (
+            <div className="seasonal-row">
+              <div className="seasonal-row__label">
+                <span className="material-symbols-sharp">celebration</span>
+                {language === 'ar' ? 'مواسم' : 'Seasonal'}
+              </div>
+              <div className="seasonal-row__items">
+                {seasonalPages.map(sp => (
+                  <Link
+                    key={sp.id}
+                    href={`/${locale}/seasonal/${sp.slug}`}
+                    className={`seasonal-pill${sp.isLive ? ' seasonal-pill--live' : ''}`}
+                    onClick={closeAll}
+                  >
+                    {sp.isLive && <span className="seasonal-pill__dot" aria-hidden="true" />}
+                    {sp.title}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Stacks shortcut */}
+          <div className="stacks-shortcut">
+            <Link
+              href={`/${locale}/stacks`}
+              className="stacks-shortcut__link"
+              onClick={closeAll}
+            >
+              <span className="material-symbols-sharp">bolt</span>
+              {language === 'ar' ? 'اجمع ووفر' : 'Stack & Save'}
+              <span className="material-symbols-sharp stacks-shortcut__arrow">
+                {language === 'ar' ? 'chevron_left' : 'chevron_right'}
+              </span>
+            </Link>
+          </div>
+
+          {/* Categories grid */}
           <div className="categories-grid-container">
             {categoriesLoading ? (
               <div className="menu-loading" style={{ gridColumn: '1 / -1', textAlign: 'center' }}>
@@ -111,7 +151,6 @@ const MobileFooter = () => {
                 <p>{language === 'ar' ? 'لا توجد فئات' : 'No categories available'}</p>
               </div>
             ) : categories.map(cat => (
-              /* FIX: /categories/[slug] not ?category=slug */
               <Link
                 key={cat.id}
                 href={`/${locale}/categories/${cat.slug}`}
@@ -201,7 +240,7 @@ const MobileFooter = () => {
         </div>
       )}
 
-      {/* ── Sticky bottom nav ── */}
+      {/* ── Sticky bottom nav — 5 tabs ── */}
       <nav className="mobile-footer" aria-label="Mobile navigation">
         <div className="mobile-footer-container">
 
@@ -212,6 +251,16 @@ const MobileFooter = () => {
           >
             <span className="material-symbols-sharp">home</span>
             <span className="footer-label">{t('home') || 'Home'}</span>
+          </Link>
+
+          {/* Stacks — prominent accent tab */}
+          <Link
+            href={`/${locale}/stacks`}
+            className={`footer-item footer-item--stacks ${isActive('/stacks') ? 'active' : ''}`}
+            onClick={closeAll}
+          >
+            <span className="material-symbols-sharp">bolt</span>
+            <span className="footer-label">{language === 'ar' ? 'ادمج' : 'Stacks'}</span>
           </Link>
 
           {/* Stores */}
@@ -240,7 +289,7 @@ const MobileFooter = () => {
             <span className="footer-label">{t('categories') || 'Categories'}</span>
           </button>
 
-          {/* Coupons — simple navigation, no broken API menu */}
+          {/* Coupons */}
           <Link
             href={`/${locale}/coupons`}
             className={`footer-item ${isActive('/coupons') ? 'active' : ''}`}
