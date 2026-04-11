@@ -1,10 +1,9 @@
 'use client';
 // components/footers/footer.jsx
-// Changes vs previous version:
-//  - Category links: /stores/[slug] → /categories/[slug]  (CRITICAL FIX)
-//  - Social links: real Cobonat URLs from contact page
-//  - Popular stores: fetch isFeatured=true directly from API, no client-side filter
-//  - Cleaner responsive grid
+// Updates:
+//  - Fetches seasonal pages with showInFooter=true and renders in dedicated section
+//  - Adds Stacks link to Quick Links
+//  - Mobile-first grid layout
 
 import React, { useState, useEffect } from 'react';
 import './footer.css';
@@ -18,29 +17,24 @@ const Footer = () => {
   const locale = useLocale();
   const [language, region] = locale.split('-');
 
-  const [popularStores, setPopularStores] = useState([]);
-  const [topCategories, setTopCategories] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [popularStores,  setPopularStores]  = useState([]);
+  const [topCategories,  setTopCategories]  = useState([]);
+  const [seasonalPages,  setSeasonalPages]  = useState([]);
+  const [loading,        setLoading]        = useState(true);
 
   useEffect(() => {
     const controller = new AbortController();
+    const sig = controller.signal;
 
     Promise.all([
-      // Fetch featured stores directly — not client-filtered
-      fetch(`/api/stores?limit=12&country=${region}&locale=${language}`, {
-        cache: 'no-store',
-        signal: controller.signal,
-      }),
-      fetch(`/api/categories?locale=${language}&country=${region}`, {
-        cache: 'no-store',
-        signal: controller.signal,
-      }),
+      fetch(`/api/stores?limit=12&country=${region}&locale=${language}`,    { cache: 'no-store', signal: sig }),
+      fetch(`/api/categories?locale=${language}&country=${region}`,         { cache: 'no-store', signal: sig }),
+      fetch(`/api/seasonal?locale=${language}&footer=1`,                    { cache: 'no-store', signal: sig }),
     ])
-      .then(async ([storesRes, catsRes]) => {
+      .then(async ([storesRes, catsRes, seasonalRes]) => {
         if (storesRes.ok) {
           const data = await storesRes.json();
-          const all = data.stores || [];
-          // Prefer featured, fall back to first 6
+          const all  = data.stores || [];
           const featured = all.filter(s => s.isFeatured).slice(0, 6);
           setPopularStores(featured.length >= 3 ? featured : all.slice(0, 6));
         }
@@ -48,12 +42,18 @@ const Footer = () => {
           const data = await catsRes.json();
           setTopCategories((Array.isArray(data) ? data : []).slice(0, 6));
         }
+        if (seasonalRes.ok) {
+          const data = await seasonalRes.json();
+          setSeasonalPages(Array.isArray(data) ? data : []);
+        }
       })
-      .catch(() => {}) // network error — fail silently, footer still renders
+      .catch(() => {})
       .finally(() => setLoading(false));
 
     return () => controller.abort();
   }, [language, region]);
+
+  const isAr = language === 'ar';
 
   return (
     <footer className="footer">
@@ -66,15 +66,15 @@ const Footer = () => {
               <Image className="footer_logo" src={coubonatLogo} width={160} height={38} alt="Cobonat" />
             </Link>
             <p className="footer_tagline">
-              {language === 'ar'
+              {isAr
                 ? 'منصتك الأولى لأكواد الخصم والعروض في المنطقة.'
                 : 'Your #1 source for verified coupons & deals in the region.'}
             </p>
             <div className="footer_social_links">
-              <a href="https://t.me/cobonatme"                            className="footer_social_link_btn" aria-label="Telegram"  target="_blank" rel="noopener noreferrer"><i className="bi bi-telegram" /></a>
-              <a href="https://www.facebook.com/cobonatme"                className="footer_social_link_btn" aria-label="Facebook"  target="_blank" rel="noopener noreferrer"><i className="bi bi-facebook" /></a>
-              <a href="https://www.tiktok.com/@cobonatme"                 className="footer_social_link_btn" aria-label="TikTok"    target="_blank" rel="noopener noreferrer"><i className="bi bi-tiktok"   /></a>
-              <a href="https://whatsapp.com/channel/0029Vb6u01OCMY0D92yvm72i" className="footer_social_link_btn" aria-label="WhatsApp" target="_blank" rel="noopener noreferrer"><i className="bi bi-whatsapp" /></a>
+              <a href="https://t.me/cobonatme"                                className="footer_social_link_btn" aria-label="Telegram"  target="_blank" rel="noopener noreferrer"><i className="bi bi-telegram"  /></a>
+              <a href="https://www.facebook.com/cobonatme"                    className="footer_social_link_btn" aria-label="Facebook"  target="_blank" rel="noopener noreferrer"><i className="bi bi-facebook"  /></a>
+              <a href="https://www.tiktok.com/@cobonatme"                     className="footer_social_link_btn" aria-label="TikTok"    target="_blank" rel="noopener noreferrer"><i className="bi bi-tiktok"    /></a>
+              <a href="https://whatsapp.com/channel/0029Vb6u01OCMY0D92yvm72i" className="footer_social_link_btn" aria-label="WhatsApp"  target="_blank" rel="noopener noreferrer"><i className="bi bi-whatsapp" /></a>
             </div>
           </div>
 
@@ -98,7 +98,7 @@ const Footer = () => {
                     ))}
                     <li>
                       <Link href={`/${locale}/stores`} className="footer_link_all">
-                        {t('viewAllStores') || 'View all stores'} →
+                        {isAr ? 'جميع المتاجر ←' : 'View all stores →'}
                       </Link>
                     </li>
                   </>
@@ -107,7 +107,7 @@ const Footer = () => {
             </ul>
           </div>
 
-          {/* ── Categories — FIX: /categories/ not /stores/ ── */}
+          {/* ── Categories ── */}
           <div className="footer_section">
             <h3 className="footer_section_title">
               <span className="material-symbols-sharp">category</span>
@@ -129,32 +129,58 @@ const Footer = () => {
             </ul>
           </div>
 
-          {/* ── Quick Links ── */}
+          {/* ── Quick Links (includes Stacks) ── */}
           <div className="footer_section">
             <h3 className="footer_section_title">
               <span className="material-symbols-sharp">link</span>
               {t('quickLinks') || 'Quick Links'}
             </h3>
             <ul className="footer_links">
+              <li>
+                <Link href={`/${locale}/stacks`} className="footer_link footer_link--stacks">
+                  <span className="material-symbols-sharp">bolt</span>
+                  {isAr ? 'اجمع ووفر' : 'Stack & Save'}
+                </Link>
+              </li>
               <li><Link href={`/${locale}/coupons`} className="footer_link"><span className="material-symbols-sharp">local_offer</span>{t('allCoupons')   || 'All Coupons'  }</Link></li>
-              <li><Link href={`/${locale}/stores`}  className="footer_link"><span className="material-symbols-sharp">storefront</span>   {t('browseStores') || 'Browse Stores'}</Link></li>
-              <li><Link href={`/${locale}/blog`}    className="footer_link"><span className="material-symbols-sharp">article</span>      {t('blog')         || 'Blog'         }</Link></li>
-              <li><Link href={`/${locale}/help`}    className="footer_link"><span className="material-symbols-sharp">help</span>         {t('help')         || 'Help Center'  }</Link></li>
-              <li><Link href={`/${locale}/about`}   className="footer_link"><span className="material-symbols-sharp">info</span>         {t('aboutUs')       || 'About Us'     }</Link></li>
-              <li><Link href={`/${locale}/contact`} className="footer_link"><span className="material-symbols-sharp">mail</span>         {t('contact')       || 'Contact'      }</Link></li>
+              <li><Link href={`/${locale}/stores`}  className="footer_link"><span className="material-symbols-sharp">storefront</span>  {t('browseStores') || 'Browse Stores'}</Link></li>
+              <li><Link href={`/${locale}/blog`}    className="footer_link"><span className="material-symbols-sharp">article</span>     {t('blog')         || 'Blog'         }</Link></li>
+              <li><Link href={`/${locale}/help`}    className="footer_link"><span className="material-symbols-sharp">help</span>        {t('help')         || 'Help Center'  }</Link></li>
+              <li><Link href={`/${locale}/about`}   className="footer_link"><span className="material-symbols-sharp">info</span>        {t('aboutUs')      || 'About Us'     }</Link></li>
+              <li><Link href={`/${locale}/contact`} className="footer_link"><span className="material-symbols-sharp">mail</span>        {t('contact')      || 'Contact'      }</Link></li>
             </ul>
           </div>
 
+          {/* ── Seasonal Pages (only when data exists) ── */}
+          {!loading && seasonalPages.length > 0 && (
+            <div className="footer_section">
+              <h3 className="footer_section_title">
+                <span className="material-symbols-sharp">celebration</span>
+                {isAr ? 'مواسم وعروض' : 'Seasonal Deals'}
+              </h3>
+              <ul className="footer_links">
+                {seasonalPages.map(sp => (
+                  <li key={sp.id}>
+                    <Link href={`/${locale}/seasonal/${sp.slug}`} className="footer_link footer_link--seasonal">
+                      {sp.isLive && <span className="footer-live-dot" aria-hidden="true" />}
+                      {sp.title}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
           {/* ── Legal ── */}
-          <div className="footer_section">
+          <div className="footer_section footer_section--legal">
             <h3 className="footer_section_title">
               <span className="material-symbols-sharp">gavel</span>
               {t('legal') || 'Legal'}
             </h3>
             <ul className="footer_links">
-              <li><Link href={`/${locale}/privacy`} className="footer_link">{t('privacy')  || 'Privacy Policy'  }</Link></li>
-              <li><Link href={`/${locale}/terms`}   className="footer_link">{t('terms')    || 'Terms of Service'}</Link></li>
-              <li><Link href={`/${locale}/cookies`} className="footer_link">{t('cookies')  || 'Cookie Policy'   }</Link></li>
+              <li><Link href={`/${locale}/privacy`} className="footer_link">{t('privacy') || 'Privacy Policy'  }</Link></li>
+              <li><Link href={`/${locale}/terms`}   className="footer_link">{t('terms')   || 'Terms of Service'}</Link></li>
+              <li><Link href={`/${locale}/cookies`} className="footer_link">{t('cookies') || 'Cookie Policy'   }</Link></li>
             </ul>
           </div>
 
