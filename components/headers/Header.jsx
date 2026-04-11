@@ -1,14 +1,12 @@
 'use client';
 // components/headers/Header.jsx
-// Changes vs previous version:
-//  - Logo switching is CSS-only (no JS resize listener)
-//  - Tablet (768-1024px) gets a compact horizontal nav strip instead of nothing
-//  - Locale dropdown uses max-width + transform so it never clips off screen
-//  - Removed the redundant bubs_container.desktop class
-//  - Locale toggle shows flag + region code on all screen sizes
+// Updates:
+//  - Fetches seasonal pages with showInNav=true and renders them in nav
+//  - Adds a Stacks page link
+//  - Mobile-first: stacks appears in tablet strip + compact mobile menu
+//  - Live seasonal pages get a subtle pulse indicator
 
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { useSession } from 'next-auth/react';
 import { useTranslations, useLocale } from 'next-intl';
 import { useRouter, usePathname } from 'next/navigation';
 import Image from 'next/image';
@@ -21,36 +19,42 @@ import './header.css';
 const Header = () => {
   const t = useTranslations('Header');
   const currentLocale = useLocale();
-  const router = useRouter();
+  const router  = useRouter();
   const pathname = usePathname();
 
   const [currentLanguage, currentRegion] = currentLocale.split('-');
-  const isArabic = currentLanguage === 'ar';
+  const isArabic     = currentLanguage === 'ar';
   const languageCode = currentLanguage === 'ar' ? 'AR' : 'EN';
 
   const [showLocaleMenu, setShowLocaleMenu] = useState(false);
-  const [countries, setCountries] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [translating, setTranslating] = useState(false);
+  const [countries,      setCountries]      = useState([]);
+  const [seasonalPages,  setSeasonalPages]  = useState([]);
+  const [loading,        setLoading]        = useState(true);
+  const [translating,    setTranslating]    = useState(false);
   const localeMenuRef = useRef(null);
 
-  // Fetch active countries
+  // Fetch countries + seasonal nav pages in parallel
   useEffect(() => {
-    fetch(`/api/countries?locale=${currentLanguage}`)
-      .then(r => r.ok ? r.json() : { countries: [] })
-      .then(data => {
-        setCountries(Array.isArray(data.countries) ? data.countries : []);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
+    let mounted = true;
+    Promise.all([
+      fetch(`/api/countries?locale=${currentLanguage}`)
+        .then(r => r.ok ? r.json() : { countries: [] }),
+      fetch(`/api/seasonal?locale=${currentLanguage}&nav=1`)
+        .then(r => r.ok ? r.json() : []),
+    ]).then(([countryData, seasonalData]) => {
+      if (!mounted) return;
+      setCountries(Array.isArray(countryData.countries) ? countryData.countries : []);
+      setSeasonalPages(Array.isArray(seasonalData) ? seasonalData : []);
+      setLoading(false);
+    }).catch(() => mounted && setLoading(false));
+    return () => { mounted = false; };
   }, [currentLanguage]);
 
   // Close locale menu on outside click
   useEffect(() => {
     const handler = (e) => {
-      if (localeMenuRef.current && !localeMenuRef.current.contains(e.target)) {
+      if (localeMenuRef.current && !localeMenuRef.current.contains(e.target))
         setShowLocaleMenu(false);
-      }
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
@@ -72,24 +76,35 @@ const Header = () => {
     { code: 'en', name: 'English' },
   ];
 
-  // Navigation links — used both in desktop strip and tablet strip
-  const navLinks = useMemo(() => [
+  // Static nav links — seasonal pages appended dynamically below
+  const staticNavLinks = useMemo(() => [
     { href: '/coupons', label: t('deals')  || 'Deals'  },
+    { href: '/stacks',  label: isArabic ? 'اجمع ووفر' : 'Stack & Save', icon: 'bolt' },
     { href: '/stores',  label: t('stores') || 'Stores' },
     { href: '/blog',    label: t('blog')   || 'Blog'   },
     { href: '/help',    label: t('help')   || 'Help'   },
-    { href: '/about',   label: t('about')  || 'About'  },
-  ], [t]);
+  ], [t, isArabic]);
 
-  // Handle locale switch with slug translation for dynamic routes
+  // Full nav: static + seasonal (nav-enabled)
+  const allNavLinks = useMemo(() => [
+    ...staticNavLinks,
+    ...seasonalPages.map(sp => ({
+      href:    `/seasonal/${sp.slug}`,
+      label:   sp.title,
+      isLive:  sp.isLive,
+      isSeasonal: true,
+    })),
+  ], [staticNavLinks, seasonalPages]);
+
+  // Handle locale switch
   const handleLocaleChange = useCallback(async (newLocale) => {
     if (currentLocale === newLocale) { setShowLocaleMenu(false); return; }
     setTranslating(true);
 
     const pathWithoutLocale = pathname.replace(`/${currentLocale}`, '') || '/';
-    const [newLanguage] = newLocale.split('-');
-    const storeMatch    = pathWithoutLocale.match(/^\/stores\/([^/]+)/);
-    const categoryMatch = pathWithoutLocale.match(/^\/categories\/([^/]+)/);
+    const [newLanguage]     = newLocale.split('-');
+    const storeMatch        = pathWithoutLocale.match(/^\/stores\/([^/]+)/);
+    const categoryMatch     = pathWithoutLocale.match(/^\/categories\/([^/]+)/);
 
     if (storeMatch || categoryMatch) {
       const type        = storeMatch ? 'store' : 'category';
@@ -126,7 +141,7 @@ const Header = () => {
       <div className="main_header">
         <div className="header_container">
 
-          {/* Logo — CSS controls which image shows per breakpoint */}
+          {/* Logo */}
           <div className="logo_container">
             <Link href={`/${currentLocale}`} aria-label="Cobonat home">
               <Image className="logo logo--full"    src={coubonatLogo}        width={130} height={30} alt="Cobonat" priority />
@@ -136,9 +151,17 @@ const Header = () => {
 
           {/* Desktop nav (≥1025px) */}
           <nav className="header_nav header_nav--desktop" aria-label="Primary navigation">
-            {navLinks.map(link => (
-              <Link key={link.href} href={`/${currentLocale}${link.href}`} className="nav-link">
+            {allNavLinks.map(link => (
+              <Link
+                key={link.href}
+                href={`/${currentLocale}${link.href}`}
+                className={`nav-link${link.isSeasonal ? ' nav-link--seasonal' : ''}${link.href === '/stacks' ? ' nav-link--stacks' : ''}`}
+              >
+                {link.icon && (
+                  <span className="material-symbols-sharp nav-link__icon">{link.icon}</span>
+                )}
                 {link.label}
+                {link.isLive && <span className="nav-live-dot" aria-hidden="true" />}
               </Link>
             ))}
           </nav>
@@ -235,9 +258,17 @@ const Header = () => {
       {/* ── Tablet nav strip (768–1024px) ── */}
       <nav className="tablet-nav" aria-label="Tablet navigation">
         <div className="tablet-nav__inner">
-          {navLinks.map(link => (
-            <Link key={link.href} href={`/${currentLocale}${link.href}`} className="tablet-nav__link">
+          {allNavLinks.map(link => (
+            <Link
+              key={link.href}
+              href={`/${currentLocale}${link.href}`}
+              className={`tablet-nav__link${link.isLive ? ' tablet-nav__link--live' : ''}${link.href === '/stacks' ? ' tablet-nav__link--stacks' : ''}`}
+            >
+              {link.icon && (
+                <span className="material-symbols-sharp tablet-nav__icon">{link.icon}</span>
+              )}
               {link.label}
+              {link.isLive && <span className="nav-live-dot" aria-hidden="true" />}
             </Link>
           ))}
         </div>
