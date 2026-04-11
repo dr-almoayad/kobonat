@@ -96,12 +96,19 @@ header {
 
 /* Stacks link — subtle accent treatment */
 .nav-link--stacks {
-  color: var(--accent-color);
   font-weight: 700;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 0 #ff1f8f, 0.06rem 0.07rem #000;
 }
 
 .nav-link--stacks::before {
   background: rgba(71, 10, 226, 0.06);
+}
+
+.nav-link--coupons {
+  font-weight: 700;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 0 #d82f2a, 0.06rem 0.07rem #ff403e;
 }
 
 .nav-link__icon {
