@@ -23,44 +23,43 @@ export default function SavingsBanner({ locale = 'ar-SA' }) {
 
   return (
     <div className="sb-root" dir={isAr ? 'rtl' : 'ltr'}>
-      <div className="sb-body">
+      {/* decorative shape – subtle background accent */}
+      <div className="sb-bg-shape"></div>
 
-        {/* eyebrow badge */}
-        <div className="sb-eyebrow">
-          <span className="material-symbols-sharp sb-eyebrow-icon">
-            {isAr ? 'stars' : 'sell'}
-          </span>
-          <span>{isAr ? 'كوبونات السعودية' : 'Saudi Coupons'}</span>
+      <div className="sb-container">
+        {/* left side: headline + CTA */}
+        <div className="sb-content">
+          <div className="sb-eyebrow">
+            <span className="material-symbols-sharp sb-eyebrow-icon">local_offer</span>
+            <span>{isAr ? 'كوبونات السعودية' : 'Saudi Coupons'}</span>
+          </div>
+          <h1 className="sb-headline">
+            {isAr
+              ? <>أحدث <span className="sb-accent">كوبونات</span> وأكواد الخصم في السعودية</>
+              : <>Latest <span className="sb-accent">Coupons</span> &amp; Discount Codes in Saudi Arabia</>}
+          </h1>
+          <div className="sb-action">
+            <a href="#" className="sb-action__link">
+              {isAr ? 'استكشف جميع العروض' : 'Explore all deals'}
+              <span className="sb-action__arrow" aria-hidden="true">
+                {isAr ? '←' : '→'}
+              </span>
+            </a>
+          </div>
         </div>
 
-        {/* headline */}
-        <h1 className="sb-headline">
-          {isAr
-            ? <>أحدث <span className="sb-accent">كوبونات</span> وأكواد الخصم في السعودية</>
-            : <>Latest <span className="sb-accent">Coupons</span> &amp; Discount Codes in Saudi Arabia</>}
-        </h1>
-
-        {/* stat pills */}
+        {/* right side: stats cards (horizontal on desktop, vertical on mobile) */}
         <ul className="sb-stats" role="list">
           {stats.map((s, idx) => (
-            <li key={s.symbol} className="sb-stat" style={{ animationDelay: `${idx * 0.1}s` }}>
-              <span className="material-symbols-sharp sb-stat__icon">{s.icon}</span>
-              <span className="sb-stat__value">{s.symbol}</span>
-              <span className="sb-stat__label">{s.label}</span>
+            <li key={s.symbol} className="sb-stat" style={{ animationDelay: `${idx * 0.08}s` }}>
+              <div className="sb-stat__icon-wrapper">
+                <span className="material-symbols-sharp sb-stat__icon">{s.icon}</span>
+              </div>
+              <div className="sb-stat__value">{s.symbol}</div>
+              <div className="sb-stat__label">{s.label}</div>
             </li>
           ))}
         </ul>
-
-        {/* subtle CTA for sales direction */}
-        <div className="sb-action">
-          <a href="#" className="sb-action__link">
-            {isAr ? 'استكشف جميع العروض' : 'Explore all deals'}
-            <span className="sb-action__arrow" aria-hidden="true">
-              {isAr ? '←' : '→'}
-            </span>
-          </a>
-        </div>
-
       </div>
     </div>
   );
