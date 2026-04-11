@@ -20,8 +20,7 @@
   font-family: var(--sb-font);
   -webkit-font-smoothing: antialiased;
 
-  background: linear-gradient(135deg, var(--sb-purple-start) 0%, var(--sb-purple-end) 100%);
-  border-radius: 14px;
+  background:  #fff;
   overflow: hidden;
   width: 100%;
 
@@ -93,9 +92,8 @@
 
 /* accent word — hot pink, same color as the big % numbers in screenshot */
 .sb-accent {
-  color: var(--sb-pink);
-  /* subtle text-shadow lift, matches the glow on the numbers */
-  text-shadow: 0 0 24px rgba(255, 31, 110, 0.45);
+   -webkit-text-fill-color: transparent;
+   text-shadow: 0px 0px #ff1f8f, 2px 2px #000000;
 }
 
 /* ── Stats row ───────────────────────────────────────────────── */
@@ -134,8 +132,8 @@
   font-weight: 900;
   line-height: 1;
   letter-spacing: -0.03em;
-  color: var(--sb-pink);
-  text-shadow: 0 0 18px rgba(255, 31, 110, 0.40);
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0px 0px #ff1f8f, 2px 2px #000000;
 }
 
 [dir='rtl'] .sb-stat__value { letter-spacing: 0; }
