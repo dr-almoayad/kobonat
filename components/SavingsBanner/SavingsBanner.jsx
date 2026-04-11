@@ -5,14 +5,14 @@ import './SavingsBanner.css';
 
 const STATS = {
   ar: [
-    { symbol: '%70',  label: 'أعلى توفير', icon: 'percent_discount'},
-    { symbol: '+100', label: 'كود خصم فعال', icon: 'local_activity'},
-    { symbol: '+50', label: 'متجر موثوق', icon: 'storefront'},
+    { symbol: '%70',  label: 'أعلى توفير', icon: 'percent' },
+    { symbol: '+100', label: 'كود خصم فعال', icon: 'confirmation_number' },
+    { symbol: '+50', label: 'متجر موثوق', icon: 'verified' },
   ],
   en: [
-    { symbol: '70%',  label: 'Max Savings'     },
-    { symbol: '100+', label: 'Active Codes'    },
-    { symbol: '50+', label: 'Verified Stores' },
+    { symbol: '70%',  label: 'Max Savings', icon: 'percent' },
+    { symbol: '100+', label: 'Active Codes', icon: 'confirmation_number' },
+    { symbol: '50+', label: 'Verified Stores', icon: 'verified' },
   ],
 };
 
@@ -26,9 +26,12 @@ export default function SavingsBanner({ locale = 'ar-SA' }) {
       <div className="sb-body">
 
         {/* eyebrow badge */}
-        <p className="sb-eyebrow">
-          {isAr ? 'كوبونات السعودية' : 'Saudi Coupons'}
-        </p>
+        <div className="sb-eyebrow">
+          <span className="material-symbols-sharp sb-eyebrow-icon">
+            {isAr ? 'stars' : 'sell'}
+          </span>
+          <span>{isAr ? 'كوبونات السعودية' : 'Saudi Coupons'}</span>
+        </div>
 
         {/* headline */}
         <h1 className="sb-headline">
@@ -39,14 +42,24 @@ export default function SavingsBanner({ locale = 'ar-SA' }) {
 
         {/* stat pills */}
         <ul className="sb-stats" role="list">
-          {stats.map((s) => (
-            <li key={s.symbol} className="sb-stat">
-              <span class="material-symbols-sharp">{s.icon}</span>
+          {stats.map((s, idx) => (
+            <li key={s.symbol} className="sb-stat" style={{ animationDelay: `${idx * 0.1}s` }}>
+              <span className="material-symbols-sharp sb-stat__icon">{s.icon}</span>
               <span className="sb-stat__value">{s.symbol}</span>
               <span className="sb-stat__label">{s.label}</span>
             </li>
           ))}
         </ul>
+
+        {/* subtle CTA for sales direction */}
+        <div className="sb-action">
+          <a href="#" className="sb-action__link">
+            {isAr ? 'استكشف جميع العروض' : 'Explore all deals'}
+            <span className="sb-action__arrow" aria-hidden="true">
+              {isAr ? '←' : '→'}
+            </span>
+          </a>
+        </div>
 
       </div>
     </div>
