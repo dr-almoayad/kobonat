@@ -1,151 +1,119 @@
 /* components/SavingsBanner/SavingsBanner.css
-   Premium, sales-focused design with refined gradients, smooth animations,
-   and a professional yet inviting presence.
-   Primary accent: #FF2B7A (pink)
-   Secondary accent: #16d77d (vibrant green)
+   White-background, Rakuten/RetailMeNot-inspired design.
+   Clean, trustworthy, and conversion-focused.
+   Primary accent: #16d77d (fresh green)
+   Secondary accent: #1A1F36 (deep navy for contrast)
 */
 
-/* --- CSS Variables (consistent & scalable) --- */
 .sb-root {
-  --sb-purple-deep:   #4C0B9E;
-  --sb-purple-bright: #8B3AFF;
-  --sb-pink-primary:  #FF2B7A;
-  --sb-green-secondary: #16d77d;
-  --sb-green-glow:     rgba(22, 215, 125, 0.25);
-  --sb-pink-glow:     rgba(255, 43, 122, 0.25);
-  --sb-white:         #FFFFFF;
-  --sb-white-muted:   rgba(255, 255, 255, 0.7);
-  --sb-white-light:   rgba(255, 255, 255, 0.12);
-  --sb-white-lighter: rgba(255, 255, 255, 0.06);
-  --sb-shadow-sm:     0 8px 20px rgba(0, 0, 0, 0.2);
-  --sb-shadow-md:     0 12px 28px rgba(0, 0, 0, 0.25);
-  --sb-transition:    all 0.25s cubic-bezier(0.2, 0.9, 0.4, 1.1);
-  --sb-font:          'Alexandria', 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --sb-green: #16d77d;
+  --sb-green-light: rgba(22, 215, 125, 0.12);
+  --sb-green-dark: #0eaa62;
+  --sb-navy: #1A1F36;
+  --sb-gray-900: #1E1F2A;
+  --sb-gray-700: #4A4B5E;
+  --sb-gray-400: #9A9BB0;
+  --sb-gray-200: #EFF0F4;
+  --sb-gray-100: #F8F9FC;
+  --sb-white: #FFFFFF;
+  --sb-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.03), 0 1px 2px rgba(0, 0, 0, 0.05);
+  --sb-shadow-md: 0 8px 20px rgba(0, 0, 0, 0.05), 0 2px 4px rgba(0, 0, 0, 0.02);
+  --sb-shadow-hover: 0 20px 30px -12px rgba(0, 0, 0, 0.08);
+  --sb-border-radius-card: 20px;
+  --sb-border-radius-pill: 100px;
+  --sb-font: 'Alexandria', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 
   font-family: var(--sb-font);
-  -webkit-font-smoothing: antialiased;
+  background: var(--sb-white);
+  border-radius: var(--sb-border-radius-card);
+  box-shadow: var(--sb-shadow-md);
+  transition: box-shadow 0.25s ease;
   width: 100%;
   position: relative;
-  isolation: isolate;
-}
-
-/* --- Main Container: premium gradient + soft glow --- */
-.sb-root {
-  background: radial-gradient(ellipse at 70% 30%, #7A2AFF, #3A0A8A);
-  border-radius: 32px;
-  box-shadow: var(--sb-shadow-md), inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  transition: transform 0.2s ease, box-shadow 0.3s ease;
 }
 
 .sb-root:hover {
-  box-shadow: 0 24px 40px -12px rgba(0, 0, 0, 0.35);
+  box-shadow: var(--sb-shadow-hover);
 }
 
-/* --- Elegant dot pattern (refined) --- */
-.sb-root::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background-image: radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.12) 1.2px, transparent 1.2px);
-  background-size: 28px 28px;
-  pointer-events: none;
-  border-radius: 32px;
-  z-index: 0;
+/* subtle border to define the card */
+.sb-root {
+  border: 1px solid var(--sb-gray-200);
 }
 
-/* --- Subtle animated gradient shift on hover (using secondary green) --- */
-.sb-root::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(circle at 30% 50%, rgba(22, 215, 125, 0.08), transparent 70%);
-  opacity: 0;
-  transition: opacity 0.5s ease;
-  pointer-events: none;
-  border-radius: 32px;
-  z-index: 0;
-}
-
-.sb-root:hover::after {
-  opacity: 1;
-}
-
-/* --- Body layout (z-index above overlays) --- */
+/* no dot pattern or heavy textures – keep it crisp */
 .sb-body {
-  position: relative;
-  z-index: 2;
-  padding: 2.5rem 2rem 2rem;
+  padding: 2rem 1.75rem 1.75rem;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
+  position: relative;
+  z-index: 1;
 }
 
-/* --- Eyebrow badge (modern, with icon) --- */
+/* --- Eyebrow badge (clean, uppercase, subtle green dot) --- */
 .sb-eyebrow {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  background: var(--sb-white-light);
-  backdrop-filter: blur(2px);
-  border: 0.5px solid var(--sb-white-lighter);
-  border-radius: 60px;
-  padding: 0.4rem 1rem;
+  background: var(--sb-gray-100);
+  border: 1px solid var(--sb-gray-200);
+  border-radius: var(--sb-border-radius-pill);
+  padding: 0.35rem 1rem;
   font-size: 0.7rem;
   font-weight: 700;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: var(--sb-white);
-  margin-bottom: 1.25rem;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  color: var(--sb-gray-700);
+  margin-bottom: 1.5rem;
+  transition: background 0.2s ease;
 }
 
 .sb-eyebrow-icon {
   font-size: 1rem !important;
-  color: var(--sb-pink-primary);
+  color: var(--sb-green);
 }
 
-/* --- Headline (bold, confident, sales-driven) --- */
+/* --- Headline (bold, dark navy, high contrast) --- */
 .sb-headline {
-  margin: 0 0 1.75rem;
-  font-size: clamp(1.5rem, 5vw, 2.4rem);
+  margin: 0 0 1.5rem;
+  font-size: clamp(1.6rem, 5vw, 2.4rem);
   font-weight: 800;
-  line-height: 1.3;
+  line-height: 1.25;
   letter-spacing: -0.01em;
-  color: var(--sb-white);
-  text-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-  max-width: 720px;
+  color: var(--sb-navy);
+  max-width: 700px;
 }
 
-/* Accent word: vibrant pink, no heavy shadow, clean & premium */
+/* accent word uses the green + subtle underline effect (Rakuten style) */
 .sb-accent {
-  color: var(--sb-pink-primary);
-  text-shadow: 0 0 8px var(--sb-pink-glow);
-  background: none;
-  -webkit-text-fill-color: var(--sb-pink-primary);
-  font-weight: 800;
-  position: relative;
+  color: var(--sb-green);
+  background: linear-gradient(120deg, var(--sb-green-light) 0%, var(--sb-green-light) 40%, transparent 60%);
+  background-repeat: no-repeat;
+  background-size: 100% 30%;
+  background-position: bottom;
   display: inline-block;
+  padding-bottom: 0.05em;
+  font-weight: 800;
 }
 
-/* --- Stats row (glassmorphism + subtle hover interaction) --- */
+/* --- Stats row (clean, borderless, separated with soft dividers) --- */
 .sb-stats {
   list-style: none;
-  margin: 0 0 1.25rem;
+  margin: 0 0 1.5rem;
   padding: 0;
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
   gap: 0;
   width: 100%;
-  max-width: 560px;
-  background: var(--sb-white-light);
-  backdrop-filter: blur(4px);
-  border: 0.5px solid var(--sb-white-lighter);
-  border-radius: 28px;
+  max-width: 540px;
+  background: var(--sb-gray-100);
+  border-radius: 24px;
+  border: 1px solid var(--sb-gray-200);
   overflow: hidden;
-  box-shadow: var(--sb-shadow-sm);
-  transition: var(--sb-transition);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .sb-stat {
@@ -153,77 +121,78 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.35rem;
+  gap: 0.3rem;
   padding: 1rem 0.5rem;
-  transition: var(--sb-transition);
+  transition: all 0.2s ease;
   cursor: default;
-  background: transparent;
-  animation: fadeSlideUp 0.5s ease forwards;
-  opacity: 0;
-  transform: translateY(12px);
+  background: var(--sb-white);
+  margin: 0;
 }
 
-@keyframes fadeSlideUp {
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.sb-stat:hover {
-  background: rgba(255, 255, 255, 0.1);
-  transform: translateY(-3px);
-}
-
-/* Vertical separators (clean & modern) */
+/* subtle separator using pseudo-element (cleaner) */
 .sb-stat:not(:last-child) {
-  border-inline-end: 1px solid var(--sb-white-lighter);
+  position: relative;
+}
+.sb-stat:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 20%;
+  height: 60%;
+  width: 1px;
+  background: var(--sb-gray-200);
 }
 
-/* --- Stat icon (secondary green accent on hover) --- */
+[dir='rtl'] .sb-stat:not(:last-child)::after {
+  right: auto;
+  left: 0;
+}
+
+/* hover effect: slight lift and green accent */
+.sb-stat:hover {
+  transform: translateY(-2px);
+  background: var(--sb-gray-100);
+}
+
+/* --- Stat icon (soft, gray-to-green on hover) --- */
 .sb-stat__icon {
-  font-size: 2rem !important;
+  font-size: 1.8rem !important;
   font-weight: 400;
-  color: var(--sb-white);
-  opacity: 0.9;
-  transition: var(--sb-transition);
+  color: var(--sb-gray-400);
+  transition: color 0.2s ease, transform 0.2s ease;
 }
 
 .sb-stat:hover .sb-stat__icon {
-  opacity: 1;
-  transform: scale(1.03);
-  color: var(--sb-green-secondary);
+  color: var(--sb-green);
+  transform: scale(1.02);
 }
 
-/* --- Stat value: primary pink by default, green on hover (optional accent) --- */
+/* --- Stat value (bold, navy, large but not overwhelming) --- */
 .sb-stat__value {
-  font-size: 1.9rem;
+  font-size: 1.8rem;
   font-weight: 800;
   line-height: 1.1;
   letter-spacing: -0.02em;
-  color: var(--sb-pink-primary);
-  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-  transition: var(--sb-transition);
+  color: var(--sb-navy);
+  transition: color 0.2s ease;
 }
 
 .sb-stat:hover .sb-stat__value {
-  color: var(--sb-green-secondary);
-  transform: scale(1.02);
-  text-shadow: 0 0 8px var(--sb-green-glow);
+  color: var(--sb-green-dark);
 }
 
-/* --- Stat label (clean, readable) --- */
+/* --- Stat label (clean, medium weight, gray) --- */
 .sb-stat__label {
   font-size: 0.7rem;
   font-weight: 600;
-  color: var(--sb-white-muted);
+  color: var(--sb-gray-700);
   text-transform: uppercase;
   letter-spacing: 0.03em;
 }
 
-/* --- Action CTA (salesly, subtle but effective - green accent on hover) --- */
+/* --- Action CTA (RetailMeNot style: outlined button with green hover) --- */
 .sb-action {
-  margin-top: 1.25rem;
+  margin-top: 0.5rem;
   display: flex;
   justify-content: center;
 }
@@ -232,29 +201,29 @@
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(4px);
-  padding: 0.5rem 1.2rem;
+  background: transparent;
+  padding: 0.65rem 1.5rem;
   border-radius: 40px;
   font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--sb-white);
+  font-weight: 700;
+  color: var(--sb-green);
   text-decoration: none;
-  border: 0.5px solid var(--sb-white-lighter);
-  transition: var(--sb-transition);
+  border: 1px solid var(--sb-gray-200);
+  transition: all 0.2s ease;
   letter-spacing: 0.01em;
 }
 
 .sb-action__link:hover {
-  background: var(--sb-green-secondary);
-  border-color: transparent;
+  background: var(--sb-green);
+  border-color: var(--sb-green);
+  color: white;
   transform: translateY(-2px);
-  box-shadow: 0 8px 18px rgba(22, 215, 125, 0.35);
+  box-shadow: 0 6px 12px rgba(22, 215, 125, 0.2);
   gap: 0.7rem;
 }
 
 .sb-action__arrow {
-  font-size: 1.1rem;
+  font-size: 1rem;
   transition: transform 0.2s ease;
 }
 
@@ -266,17 +235,10 @@
   transform: translateX(-3px);
 }
 
-/* --- Additional subtle green accents (e.g., focus ring) --- */
-.sb-action__link:focus-visible {
-  outline: 2px solid var(--sb-green-secondary);
-  outline-offset: 2px;
-  border-radius: 40px;
-}
-
-/* --- Responsive refinements --- */
+/* --- Responsive touches --- */
 @media (max-width: 560px) {
   .sb-body {
-    padding: 1.75rem 1.25rem 1.5rem;
+    padding: 1.5rem 1rem 1.25rem;
   }
 
   .sb-stat__value {
@@ -284,28 +246,24 @@
   }
 
   .sb-stat__icon {
-    font-size: 1.6rem !important;
+    font-size: 1.5rem !important;
   }
 
   .sb-stat__label {
     font-size: 0.6rem;
   }
 
-  .sb-stats {
-    border-radius: 24px;
-  }
-
   .sb-stat {
-    padding: 0.75rem 0.25rem;
+    padding: 0.7rem 0.25rem;
   }
 
   .sb-headline {
-    margin-bottom: 1.25rem;
+    margin-bottom: 1rem;
   }
 
   .sb-action__link {
-    font-size: 0.75rem;
-    padding: 0.4rem 1rem;
+    font-size: 0.8rem;
+    padding: 0.5rem 1.2rem;
   }
 }
 
@@ -314,10 +272,7 @@
     font-size: 1.2rem;
   }
   .sb-stat__icon {
-    font-size: 1.4rem !important;
-  }
-  .sb-stat__label {
-    font-size: 0.55rem;
+    font-size: 1.3rem !important;
   }
 }
 
@@ -329,9 +284,7 @@
   .sb-action__link,
   .sb-root {
     transition: none;
-    animation: none;
     transform: none;
-    opacity: 1;
   }
   .sb-root:hover {
     transform: none;
