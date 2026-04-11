@@ -1,116 +1,147 @@
 /* components/SavingsBanner/SavingsBanner.css
-   Colors taken from the uploaded screenshot:
-     - Background  : vivid purple  #7B2DE8  →  #5A0FC8
-     - Pink accent : hot pink/magenta  #FF1F6E
-     - Cards/text  : white
-   Font matches the rest of the project (Alexandria).
+   Premium, sales-focused design with refined gradients, smooth animations,
+   and a professional yet inviting presence.
 */
 
+/* --- CSS Variables (consistent & scalable) --- */
 .sb-root {
-  --sb-purple-start:  #8B35F0;
-  --sb-purple-end:    #5A0FC8;
-  --sb-pink:          #FF1F6E;
-  --sb-pink-dim:      rgba(255, 31, 110, 0.18);
-  --sb-white:         #ffffff;
-  --sb-white-60:      rgba(255, 255, 255, 0.60);
-  --sb-white-20:      rgba(255, 255, 255, 0.18);
-  --sb-white-10:      rgba(255, 255, 255, 0.10);
-  --sb-font:          'Alexandria', 'Segoe UI', system-ui, sans-serif;
+  --sb-purple-deep:   #4C0B9E;
+  --sb-purple-bright: #8B3AFF;
+  --sb-pink-primary:  #FF2B7A;
+  --sb-pink-glow:     rgba(255, 43, 122, 0.25);
+  --sb-white:         #FFFFFF;
+  --sb-white-muted:   rgba(255, 255, 255, 0.7);
+  --sb-white-light:   rgba(255, 255, 255, 0.12);
+  --sb-white-lighter: rgba(255, 255, 255, 0.06);
+  --sb-shadow-sm:     0 8px 20px rgba(0, 0, 0, 0.2);
+  --sb-shadow-md:     0 12px 28px rgba(0, 0, 0, 0.25);
+  --sb-transition:    all 0.25s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+  --sb-font:          'Alexandria', 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
 
   font-family: var(--sb-font);
   -webkit-font-smoothing: antialiased;
-
-  background: radial-gradient(circle,rgba(70, 11, 226, 1) 0%, rgba(165, 54, 255, 1) 100%);
-  border-radius: 32px 0 32px 0;
-  overflow: hidden;
   width: 100%;
-
-  /* same subtle dot-grid used in the section around the cards */
   position: relative;
+  isolation: isolate;
 }
 
-/* faint dot grid overlay, matches screenshot texture */
+/* --- Main Container: premium gradient + soft glow --- */
+.sb-root {
+  background: radial-gradient(ellipse at 70% 30%, #7A2AFF, #3A0A8A);
+  border-radius: 32px;
+  box-shadow: var(--sb-shadow-md), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  transition: transform 0.2s ease, box-shadow 0.3s ease;
+}
+
+.sb-root:hover {
+  box-shadow: 0 24px 40px -12px rgba(0, 0, 0, 0.35);
+}
+
+/* --- Elegant dot pattern (refined) --- */
 .sb-root::before {
   content: '';
   position: absolute;
   inset: 0;
-  background-image: radial-gradient(circle, rgba(255,255,255,0.08) 1px, transparent 1px);
+  background-image: radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.12) 1.2px, transparent 1.2px);
   background-size: 28px 28px;
   pointer-events: none;
+  border-radius: 32px;
+  z-index: 0;
 }
 
-/* ── Body ────────────────────────────────────────────────────── */
+/* --- Subtle animated gradient shift on hover (professional, not flashy) --- */
+.sb-root::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 30% 50%, rgba(255, 43, 122, 0.08), transparent 70%);
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  pointer-events: none;
+  border-radius: 32px;
+  z-index: 0;
+}
+
+.sb-root:hover::after {
+  opacity: 1;
+}
+
+/* --- Body layout (z-index above overlays) --- */
 .sb-body {
   position: relative;
-  z-index: 1;
-  padding: 2.25rem 1.75rem 2rem;
+  z-index: 2;
+  padding: 2.5rem 2rem 2rem;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  gap: 0;
 }
 
-/* ── Eyebrow badge ───────────────────────────────────────────── */
+/* --- Eyebrow badge (modern, with icon) --- */
 .sb-eyebrow {
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
-  font-size: 0.6rem;
-  font-weight: 900;
-  letter-spacing: 0.16em;
+  gap: 0.5rem;
+  background: var(--sb-white-light);
+  backdrop-filter: blur(2px);
+  border: 0.5px solid var(--sb-white-lighter);
+  border-radius: 60px;
+  padding: 0.4rem 1rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
   text-transform: uppercase;
   color: var(--sb-white);
-  background: var(--sb-white-10);
-  border: 1px solid var(--sb-white-20);
-  border-radius: 5px;
-  padding: 0.28rem 0.75rem;
-  margin-bottom: 1.125rem;
+  margin-bottom: 1.25rem;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
-/* % sign — bold, hot pink, same weight as the big numbers in screenshot */
-.sb-eyebrow-pct {
-  font-size: 0.75rem;
-  font-weight: 900;
-  color: var(--sb-pink);
-  line-height: 1;
+.sb-eyebrow-icon {
+  font-size: 1rem !important;
+  color: var(--sb-pink-primary);
 }
 
-/* ── Headline ────────────────────────────────────────────────── */
+/* --- Headline (bold, confident, sales-driven) --- */
 .sb-headline {
-  margin: 0 0 1.5rem;
-  font-size: clamp(1.25rem, 4vw, 2.125rem);
-  font-weight: 900;
+  margin: 0 0 1.75rem;
+  font-size: clamp(1.5rem, 5vw, 2.4rem);
+  font-weight: 800;
   line-height: 1.3;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.01em;
   color: var(--sb-white);
+  text-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  max-width: 720px;
 }
 
-[dir='rtl'] .sb-headline {
-  letter-spacing: 0;
-  line-height: 1.5;
-}
-
-/* accent word — hot pink, same color as the big % numbers in screenshot */
+/* Accent word: vibrant pink, no heavy shadow, clean & premium */
 .sb-accent {
-   -webkit-text-fill-color: transparent;
-   text-shadow: 0px 0px #ff1f8f, 2px 2px #000000;
+  color: var(--sb-pink-primary);
+  text-shadow: 0 0 8px var(--sb-pink-glow);
+  background: none;
+  -webkit-text-fill-color: var(--sb-pink-primary);
+  font-weight: 800;
+  position: relative;
+  display: inline-block;
 }
 
-/* ── Stats row ───────────────────────────────────────────────── */
+/* --- Stats row (glassmorphism + subtle hover interaction) --- */
 .sb-stats {
   list-style: none;
-  margin: 0;
+  margin: 0 0 1.25rem;
   padding: 0;
   display: flex;
-  align-items: stretch;
+  flex-wrap: wrap;
+  justify-content: center;
   gap: 0;
   width: 100%;
-  max-width: 480px;
-  background: var(--sb-white-10);
-  border: 1px solid var(--sb-white-20);
-  border-radius: 10px;
+  max-width: 560px;
+  background: var(--sb-white-light);
+  backdrop-filter: blur(4px);
+  border: 0.5px solid var(--sb-white-lighter);
+  border-radius: 28px;
   overflow: hidden;
+  box-shadow: var(--sb-shadow-sm);
+  transition: var(--sb-transition);
 }
 
 .sb-stat {
@@ -118,50 +149,178 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.2rem;
-  padding: 0.875rem 0.5rem;
+  gap: 0.35rem;
+  padding: 1rem 0.5rem;
+  transition: var(--sb-transition);
+  cursor: default;
+  background: transparent;
+  animation: fadeSlideUp 0.5s ease forwards;
+  opacity: 0;
+  transform: translateY(12px);
 }
 
-/* vertical separators */
+@keyframes fadeSlideUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.sb-stat:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateY(-3px);
+}
+
+/* Vertical separators (clean & modern) */
 .sb-stat:not(:last-child) {
-  border-inline-end: 1px solid var(--sb-white-20);
+  border-inline-end: 1px solid var(--sb-white-lighter);
 }
 
-/* the big number — hot pink like the % values in the screenshot */
+/* --- Stat icon (material symbols polished) --- */
+.sb-stat__icon {
+  font-size: 2rem !important;
+  font-weight: 400;
+  color: var(--sb-white);
+  opacity: 0.9;
+  transition: var(--sb-transition);
+}
+
+.sb-stat:hover .sb-stat__icon {
+  opacity: 1;
+  transform: scale(1.03);
+  color: var(--sb-pink-primary);
+}
+
+/* --- Stat value (bold, pink, high impact) --- */
 .sb-stat__value {
-  font-size: 1.5rem;
-  font-weight: 900;
-  line-height: 1;
-  letter-spacing: -0.03em;
-  -webkit-text-fill-color: transparent;
-  text-shadow: 0px 0px #ff1f8f, 2px 2px #000000;
+  font-size: 1.9rem;
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--sb-pink-primary);
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  transition: var(--sb-transition);
 }
 
-[dir='rtl'] .sb-stat__value { letter-spacing: 0; }
+.sb-stat:hover .sb-stat__value {
+  transform: scale(1.02);
+}
 
+/* --- Stat label (clean, readable) --- */
 .sb-stat__label {
-  font-size: 0.65rem;
+  font-size: 0.7rem;
   font-weight: 600;
-  color: var(--sb-white-60);
-  text-align: center;
-  line-height: 1.35;
+  color: var(--sb-white-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
 }
 
-/* ── Responsive ──────────────────────────────────────────────── */
-@media (max-width: 480px) {
+/* --- Action CTA (salesly, subtle but effective) --- */
+.sb-action {
+  margin-top: 1.25rem;
+  display: flex;
+  justify-content: center;
+}
+
+.sb-action__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(4px);
+  padding: 0.5rem 1.2rem;
+  border-radius: 40px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--sb-white);
+  text-decoration: none;
+  border: 0.5px solid var(--sb-white-lighter);
+  transition: var(--sb-transition);
+  letter-spacing: 0.01em;
+}
+
+.sb-action__link:hover {
+  background: var(--sb-pink-primary);
+  border-color: transparent;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 18px rgba(255, 43, 122, 0.3);
+  gap: 0.7rem;
+}
+
+.sb-action__arrow {
+  font-size: 1.1rem;
+  transition: transform 0.2s ease;
+}
+
+.sb-action__link:hover .sb-action__arrow {
+  transform: translateX(3px);
+}
+
+[dir='rtl'] .sb-action__link:hover .sb-action__arrow {
+  transform: translateX(-3px);
+}
+
+/* --- Responsive refinements --- */
+@media (max-width: 560px) {
   .sb-body {
-    padding: 1.625rem 1rem 1.5rem;
+    padding: 1.75rem 1.25rem 1.5rem;
   }
 
   .sb-stat__value {
-    font-size: 1.2rem;
+    font-size: 1.4rem;
+  }
+
+  .sb-stat__icon {
+    font-size: 1.6rem !important;
   }
 
   .sb-stat__label {
-    font-size: 0.58rem;
+    font-size: 0.6rem;
+  }
+
+  .sb-stats {
+    border-radius: 24px;
+  }
+
+  .sb-stat {
+    padding: 0.75rem 0.25rem;
+  }
+
+  .sb-headline {
+    margin-bottom: 1.25rem;
+  }
+
+  .sb-action__link {
+    font-size: 0.75rem;
+    padding: 0.4rem 1rem;
   }
 }
 
+@media (max-width: 420px) {
+  .sb-stat__value {
+    font-size: 1.2rem;
+  }
+  .sb-stat__icon {
+    font-size: 1.4rem !important;
+  }
+  .sb-stat__label {
+    font-size: 0.55rem;
+  }
+}
+
+/* --- Reduced motion preference --- */
 @media (prefers-reduced-motion: reduce) {
-  .sb-root { transition: none; }
+  .sb-stat,
+  .sb-stat__icon,
+  .sb-stat__value,
+  .sb-action__link,
+  .sb-root {
+    transition: none;
+    animation: none;
+    transform: none;
+    opacity: 1;
+  }
+  .sb-root:hover {
+    transform: none;
+  }
 }
