@@ -3,7 +3,7 @@
 :root {
   --header-bar-height:   68px;
   --tablet-nav-height:   40px;
-  --header-height:       68px; /* updated per breakpoint via JS-free approach */
+  --header-height:       68px;
   --accent-color:        #470ae2;
   --header-bg:           rgba(255, 255, 255, 0.96);
   --header-border:       rgba(0, 0, 0, 0.06);
@@ -42,9 +42,7 @@ header {
 }
 
 /* ── LOGO ────────────────────────────────────────────────────────────────────── */
-.logo_container {
-  flex-shrink: 0;
-}
+.logo_container { flex-shrink: 0; }
 
 .logo_container a {
   display: flex;
@@ -52,12 +50,11 @@ header {
   line-height: 1;
 }
 
-/* CSS-controlled logo switching — no JS resize listener */
 .logo { transition: transform 0.2s ease; }
 .logo:hover { transform: scale(1.02); }
 
-.logo--full    { display: block;  height: 30px; width: auto; }
-.logo--compact { display: none;   height: 36px; width: auto; }
+.logo--full    { display: block; height: 30px; width: auto; }
+.logo--compact { display: none;  height: 36px; width: auto; }
 
 /* ── DESKTOP NAV (≥1025px) ───────────────────────────────────────────────────── */
 .header_nav--desktop {
@@ -71,6 +68,7 @@ header {
   position: relative;
   display: inline-flex;
   align-items: center;
+  gap: 0.3rem;
   padding: 0.45rem 0.875rem;
   border-radius: 22px;
   font-size: 14px;
@@ -95,6 +93,43 @@ header {
 }
 
 .nav-link:hover::before { transform: scale(1); }
+
+/* Stacks link — subtle accent treatment */
+.nav-link--stacks {
+  color: var(--accent-color);
+  font-weight: 700;
+}
+
+.nav-link--stacks::before {
+  background: rgba(71, 10, 226, 0.06);
+}
+
+.nav-link__icon {
+  font-size: 0.95rem;
+  font-variation-settings: 'FILL' 1;
+}
+
+/* Seasonal link */
+.nav-link--seasonal {
+  font-weight: 600;
+}
+
+/* Live dot pulse */
+.nav-live-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #16a34a;
+  margin-inline-start: 2px;
+  flex-shrink: 0;
+  animation: livePulse 2s ease-in-out infinite;
+}
+
+@keyframes livePulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.5; transform: scale(0.8); }
+}
 
 /* ── SEARCH ──────────────────────────────────────────────────────────────────── */
 .searchbar_container {
@@ -150,7 +185,6 @@ header {
 .locale-dropdown {
   position: absolute;
   top: calc(100% + 8px);
-  /* Smart positioning — inset-inline-end works for RTL too */
   inset-inline-end: 0;
   width: 260px;
   max-width: calc(100vw - 1.5rem);
@@ -227,14 +261,14 @@ header {
 .region-item:hover, .lang-item:hover { background: #f8f9fa; }
 .region-item.active, .lang-item.active { background: rgba(71,10,226,0.06); }
 
-.region-flag  { width: 28px; height: 19px; border-radius: 2px; object-fit: cover; flex-shrink: 0; }
-.region-info  { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
-.region-name  { font-size: 0.82rem; font-weight: 500; color: #1f2937; }
+.region-flag     { width: 28px; height: 19px; border-radius: 2px; object-fit: cover; flex-shrink: 0; }
+.region-info     { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.region-name     { font-size: 0.82rem; font-weight: 500; color: #1f2937; }
 .region-currency { font-size: 0.7rem; color: #9ca3af; }
-.lang-name    { font-size: 0.82rem; font-weight: 500; color: #1f2937; flex: 1; }
-.check-icon   { font-size: 1rem !important; color: var(--accent-color); margin-inline-start: auto; }
+.lang-name       { font-size: 0.82rem; font-weight: 500; color: #1f2937; flex: 1; }
+.check-icon      { font-size: 1rem !important; color: var(--accent-color); margin-inline-start: auto; }
 
-/* ── TABLET NAV STRIP (768–1024px only) ──────────────────────────────────────── */
+/* ── TABLET NAV STRIP (768–1024px) ───────────────────────────────────────────── */
 .tablet-nav {
   display: none;
   background: rgba(255,255,255,0.98);
@@ -259,6 +293,7 @@ header {
 .tablet-nav__link {
   display: inline-flex;
   align-items: center;
+  gap: 0.25rem;
   padding: 0.25rem 0.875rem;
   font-size: 13px;
   font-weight: 500;
@@ -276,7 +311,46 @@ header {
   color: var(--accent-color);
 }
 
+.tablet-nav__link--stacks {
+  color: var(--accent-color);
+  font-weight: 700;
+}
+
+.tablet-nav__link--live { font-weight: 600; }
+
+.tablet-nav__icon {
+  font-size: 0.9rem;
+  font-variation-settings: 'FILL' 1;
+}
+
 /* ── RESPONSIVE ──────────────────────────────────────────────────────────────── */
+
+/* Mobile first — single column */
+@media (max-width: 767px) {
+  :root {
+    --header-bar-height: 56px;
+    --header-height: 56px;
+  }
+
+  .header_nav--desktop { display: none; }
+  .tablet-nav          { display: none; }
+
+  .header_container { padding: 0 0.75rem; gap: 0.5rem; }
+
+  .logo--full    { display: none; }
+  .logo--compact { display: block; }
+
+  .searchbar_container { margin: 0; }
+
+  .locale-toggle { height: 32px; padding: 0 0.5rem; gap: 0.25rem; }
+  .locale-code   { font-size: 10px; }
+}
+
+/* Small mobile */
+@media (max-width: 480px) {
+  .header_container { gap: 0.375rem; }
+  .locale-toggle { height: 30px; padding: 0 0.4rem; }
+}
 
 /* Tablet: 768–1024px */
 @media (min-width: 768px) and (max-width: 1024px) {
@@ -291,40 +365,12 @@ header {
   .logo--compact { display: none; }
 }
 
-/* Mobile: <768px */
-@media (max-width: 767px) {
-  :root {
-    --header-bar-height: 56px;
-    --header-height: 56px;
-  }
-
-  .header_nav--desktop { display: none; }
-  .tablet-nav          { display: none; }
-
-  .header_container { padding: 0 0.75rem; gap: 0.5rem; }
-
-  /* Show compact logo, hide full */
-  .logo--full    { display: none; }
-  .logo--compact { display: block; }
-
-  .searchbar_container { margin: 0; }
-
-  .locale-toggle { height: 32px; padding: 0 0.5rem; gap: 0.25rem; }
-  .locale-code   { font-size: 10px; }
-}
-
-/* Small mobile: <480px */
-@media (max-width: 480px) {
-  .header_container { gap: 0.375rem; }
-  .locale-toggle { height: 30px; padding: 0 0.4rem; }
-}
-
 /* Desktop: ≥1025px */
 @media (min-width: 1025px) {
   .header_nav--desktop { display: flex; }
   .tablet-nav          { display: none; }
 }
 
-/* RTL support */
+/* RTL */
 [dir='rtl'] .region-item,
 [dir='rtl'] .lang-item { text-align: right; }
