@@ -1,0 +1,381 @@
+/* ============================================================
+   STACKS PAGE — "The Deal Lab"
+   Dark command-centre aesthetic. Electric amber energy.
+   Font: Bebas Neue (display) + Alexandria (body/Arabic)
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Alexandria:wght@400;600;700;800&display=swap');
+
+/* ── CSS Variables ─────────────────────────────────────────── */
+.stacks-page {
+  --sp-bg:          #08090d;
+  --sp-surface:     #0f1117;
+  --sp-surface-2:   #161820;
+  --sp-border:      rgba(255,255,255,0.07);
+  --sp-accent:      #f5c700;     /* electric amber */
+  --sp-accent-dim:  rgba(245,199,0,0.12);
+  --sp-accent-glow: rgba(245,199,0,0.35);
+  --sp-green:       #00e090;
+  --sp-text:        #f0f1f5;
+  --sp-muted:       rgba(240,241,245,0.45);
+  --sp-radius:      14px;
+  --sp-font-display: 'Bebas Neue', 'Alexandria', sans-serif;
+  --sp-font-body:    'Alexandria', sans-serif;
+
+  background: var(--sp-bg);
+  min-height: 100vh;
+  font-family: var(--sp-font-body);
+  color: var(--sp-text);
+}
+
+/* ── BANNER ─────────────────────────────────────────────────── */
+.sp-banner {
+  position: relative;
+  overflow: hidden;
+  padding: clamp(3rem, 8vw, 6rem) 0 clamp(2.5rem, 6vw, 4.5rem);
+  background: var(--sp-surface);
+  border-bottom: 1px solid var(--sp-border);
+  isolation: isolate;
+}
+
+/* Noise texture overlay */
+.sp-banner::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  opacity: 0.5;
+  z-index: -1;
+}
+
+/* Radial glow behind headline */
+.sp-banner::after {
+  content: '';
+  position: absolute;
+  top: -20%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 70vw;
+  height: 60%;
+  background: radial-gradient(ellipse, rgba(245,199,0,0.08) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: -1;
+}
+
+.sp-banner-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 clamp(1rem, 4vw, 2rem);
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 2rem;
+  align-items: center;
+}
+
+@media (max-width: 768px) {
+  .sp-banner-inner {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── Floating badge orbs ── */
+.sp-orbs {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.sp-orb {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--sp-font-display);
+  font-size: clamp(0.85rem, 1.5vw, 1.1rem);
+  color: var(--sp-accent);
+  border: 1px solid rgba(245,199,0,0.2);
+  background: rgba(245,199,0,0.05);
+  border-radius: 50%;
+  letter-spacing: 0.04em;
+  animation: sp-float linear infinite;
+  backdrop-filter: blur(4px);
+}
+
+.sp-orb-1 { width: 62px; height: 62px; top: 15%; left:  6%; animation-duration: 14s; animation-delay: 0s;   }
+.sp-orb-2 { width: 48px; height: 48px; top: 65%; left: 12%; animation-duration: 18s; animation-delay: -5s;  }
+.sp-orb-3 { width: 76px; height: 76px; top: 20%; right: 8%; animation-duration: 16s; animation-delay: -8s;  }
+.sp-orb-4 { width: 54px; height: 54px; top: 70%; right:14%; animation-duration: 12s; animation-delay: -3s;  }
+.sp-orb-5 { width: 42px; height: 42px; top: 40%; left: 22%; animation-duration: 20s; animation-delay: -11s; }
+.sp-orb-6 { width: 58px; height: 58px; top: 50%; right:22%; animation-duration: 15s; animation-delay: -7s;  }
+
+@keyframes sp-float {
+  0%   { transform: translateY(0)    rotate(0deg);   opacity: 0.6; }
+  25%  { transform: translateY(-18px) rotate(5deg);  opacity: 0.9; }
+  50%  { transform: translateY(-8px)  rotate(-4deg); opacity: 0.7; }
+  75%  { transform: translateY(-22px) rotate(3deg);  opacity: 1;   }
+  100% { transform: translateY(0)    rotate(0deg);   opacity: 0.6; }
+}
+
+/* ── Banner copy ── */
+.sp-banner-copy {
+  position: relative;
+  z-index: 1;
+}
+
+.sp-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--sp-accent);
+  background: var(--sp-accent-dim);
+  border: 1px solid rgba(245,199,0,0.25);
+  border-radius: 100px;
+  padding: 0.3rem 0.85rem;
+  margin-bottom: 1.25rem;
+}
+
+.sp-eyebrow-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--sp-accent);
+  animation: sp-pulse 2s ease-in-out infinite;
+}
+
+@keyframes sp-pulse {
+  0%, 100% { opacity: 1;   transform: scale(1);   }
+  50%       { opacity: 0.5; transform: scale(0.7); }
+}
+
+.sp-headline {
+  font-family: var(--sp-font-display);
+  font-size: clamp(3rem, 8vw, 7rem);
+  line-height: 0.92;
+  letter-spacing: -0.02em;
+  color: var(--sp-text);
+  margin: 0 0 0.6rem;
+  font-weight: 400; /* Bebas Neue is always bold */
+}
+
+[dir="rtl"] .sp-headline {
+  font-family: var(--sp-font-body);
+  font-weight: 800;
+  font-size: clamp(2rem, 6vw, 5.5rem);
+  line-height: 1.1;
+  letter-spacing: 0;
+}
+
+.sp-headline-accent {
+  color: var(--sp-accent);
+  display: inline-block;
+  position: relative;
+}
+
+/* Underline swipe on accent word */
+.sp-headline-accent::after {
+  content: '';
+  position: absolute;
+  bottom: 4px;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--sp-accent);
+  transform: scaleX(0);
+  transform-origin: left;
+  animation: sp-swipe 0.8s 0.5s cubic-bezier(0.77,0,0.18,1) forwards;
+}
+
+@keyframes sp-swipe {
+  to { transform: scaleX(1); }
+}
+
+.sp-sub {
+  font-size: clamp(0.9rem, 1.5vw, 1.05rem);
+  color: var(--sp-muted);
+  max-width: 520px;
+  line-height: 1.65;
+  margin: 1rem 0 0;
+}
+
+/* ── Banner stats panel ── */
+.sp-stats-panel {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-width: 200px;
+}
+
+@media (max-width: 768px) {
+  .sp-stats-panel {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+}
+
+.sp-stat-card {
+  background: var(--sp-accent-dim);
+  border: 1px solid rgba(245,199,0,0.2);
+  border-radius: var(--sp-radius);
+  padding: 1rem 1.25rem;
+  text-align: center;
+  backdrop-filter: blur(8px);
+}
+
+.sp-stat-number {
+  display: block;
+  font-family: var(--sp-font-display);
+  font-size: clamp(2rem, 4vw, 2.8rem);
+  color: var(--sp-accent);
+  line-height: 1;
+  letter-spacing: 0.03em;
+}
+
+.sp-stat-label {
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--sp-muted);
+  margin-top: 0.3rem;
+}
+
+/* ── CONTENT AREA ───────────────────────────────────────────── */
+.sp-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: clamp(2rem, 5vw, 3.5rem) clamp(1rem, 4vw, 2rem);
+}
+
+/* ── Filter bar ── */
+.sp-filter-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 2.5rem;
+  flex-wrap: wrap;
+}
+
+.sp-results-count {
+  font-size: 0.8rem;
+  color: var(--sp-muted);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.sp-results-count strong {
+  color: var(--sp-text);
+}
+
+/* ── Grid ── */
+.sp-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+  gap: clamp(1rem, 2.5vw, 1.5rem);
+}
+
+/* Ensure OfferStackBox adapts to dark theme on this page */
+.sp-grid .os-card {
+  background: var(--sp-surface-2) !important;
+  border-color: var(--sp-border) !important;
+}
+
+/* ── Empty state ── */
+.sp-empty {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 5rem 2rem;
+  color: var(--sp-muted);
+}
+
+.sp-empty-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  opacity: 0.3;
+}
+
+/* ── PAGINATION ──────────────────────────────────────────────── */
+.sp-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: clamp(2.5rem, 5vw, 4rem);
+  flex-wrap: wrap;
+}
+
+.sp-page-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 42px;
+  height: 42px;
+  padding: 0 0.75rem;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: background 0.18s, color 0.18s, border-color 0.18s, transform 0.12s;
+  border: 1px solid var(--sp-border);
+  background: var(--sp-surface-2);
+  color: var(--sp-muted);
+  letter-spacing: 0.03em;
+  font-family: var(--sp-font-body);
+}
+
+.sp-page-btn:hover {
+  background: var(--sp-accent-dim);
+  border-color: rgba(245,199,0,0.3);
+  color: var(--sp-accent);
+  transform: translateY(-1px);
+}
+
+.sp-page-btn.active {
+  background: var(--sp-accent);
+  border-color: var(--sp-accent);
+  color: #08090d;
+  cursor: default;
+}
+
+.sp-page-btn.disabled {
+  opacity: 0.3;
+  pointer-events: none;
+  cursor: not-allowed;
+}
+
+.sp-page-btn.arrow {
+  font-size: 1.1rem;
+}
+
+.sp-page-ellipsis {
+  color: var(--sp-muted);
+  font-size: 0.85rem;
+  padding: 0 0.35rem;
+  user-select: none;
+}
+
+/* ── Structured data / SEO helpers (visually hidden) ── */
+.sp-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0,0,0,0);
+  white-space: nowrap;
+}
+
+/* ── Responsive adjustments ─────────────────────────────────── */
+@media (max-width: 480px) {
+  .sp-orb { display: none; }
+  .sp-grid { grid-template-columns: 1fr; }
+}
