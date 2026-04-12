@@ -1,15 +1,16 @@
 // components/FeaturedStoresSection/FeaturedStoresSection.jsx
-// RSC — fetches isFeatured stores and renders them in an Embla carousel.
+// Desktop  (≥768px): static 4×2 grid, max-width 1312px, no carousel.
+// Mobile  (<768px): 2-row horizontal CSS scroll-snap, no arrows.
+// Max 8 stores. No Embla dependency for this section.
 
 import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
 import StoreCard from '@/components/StoreCard/StoreCard';
-import EmblaCarousel from '@/components/EmblaCarousel/EmblaCarousel';
 import './FeaturedStoresSection.css';
 
 async function getFeaturedStores(language) {
   const stores = await prisma.store.findMany({
-    where:   { isActive: true, isFeatured: true },
+    where: { isActive: true, isFeatured: true },
     include: {
       translations: {
         where:  { locale: language },
@@ -26,9 +27,9 @@ async function getFeaturedStores(language) {
     const t = s.translations?.[0] || {};
     return {
       ...s,
-      name:      t.name      || '',
-      slug:      t.slug      || '',
-      showOffer: t.showOffer || '',
+      name:         t.name      || '',
+      slug:         t.slug      || '',
+      showOffer:    t.showOffer || '',
       translations: undefined,
     };
   });
@@ -49,26 +50,33 @@ export default async function FeaturedStoresSection({ locale }) {
   if (!stores.length) return null;
 
   return (
-    <section className="fss-section home-section alt-bg" dir={isAr ? 'rtl' : 'ltr'}>
-      <div className="section-header">
-        <div className="header-content">
-          <h2>
-            <span className="material-symbols-sharp">storefront</span>
+    <section className="fss-section" dir={isAr ? 'rtl' : 'ltr'}>
+      <div className="fss-inner">
+
+        {/* ── Header ── */}
+        <div className="fss-header">
+          <h2 className="fss-title">
+            <span className="material-symbols-sharp" aria-hidden="true">storefront</span>
             {isAr ? 'متاجر مميزة' : 'Featured Stores'}
           </h2>
+          <Link href={`/${locale}/stores`} className="fss-view-all">
+            {isAr ? 'عرض الكل' : 'View all'}
+            <span className="material-symbols-sharp" aria-hidden="true">
+              {isAr ? 'arrow_back' : 'arrow_forward'}
+            </span>
+          </Link>
         </div>
+
+        {/* ── Grid / Carousel ── */}
+        <div className="fss-grid" role="list">
+          {stores.map(s => (
+            <div key={s.id} className="fss-cell" role="listitem">
+              <StoreCard store={s} />
+            </div>
+          ))}
+        </div>
+
       </div>
-
-      <EmblaCarousel locale={locale} slideWidth="260px" slideGap="1.25rem">
-        {stores.map(s => <StoreCard key={s.id} store={s} />)}
-      </EmblaCarousel>
-
-      <Link href={`/${locale}/stores`} className="btn-view-all">
-        {isAr ? 'تصفح المتاجر' : 'Browse Stores'}
-        <span className="material-symbols-sharp">
-          {isAr ? 'arrow_back' : 'arrow_forward'}
-        </span>
-      </Link>
     </section>
   );
 }
