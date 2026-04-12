@@ -1,322 +1,219 @@
 /* components/SavingsBanner/SavingsBanner.css
-   Creative split layout: pink gradient + green accents.
-   Clean, salesly, professional, and memorable.
+   Design inspired by the uploaded image:
+   – Clean, coupon‑focused offer
+   – Prominent "100+ Active Codes" with pink accent
+   – Subtle stat badge (instead of a full stats row)
+   – Soft graphic shapes for depth
+   – Pink + green accents, white background
 */
 
 .sb-root {
-  --sb-pink-deep: #D61C4E;
-  --sb-pink-bright: #FF3B6F;
-  --sb-purple-soft: #6A1B9A;
   --sb-green: #16d77d;
-  --sb-green-light: rgba(22, 215, 125, 0.15);
+  --sb-pink: #FF2B7A;
+  --sb-navy: #1A1F36;
+  --sb-gray-600: #4B5563;
+  --sb-gray-400: #9CA3AF;
+  --sb-gray-100: #F9FAFB;
   --sb-white: #FFFFFF;
-  --sb-white-muted: rgba(255, 255, 255, 0.85);
-  --sb-white-light: rgba(255, 255, 255, 0.1);
-  --sb-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.25);
-  --sb-transition: all 0.25s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+  --sb-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.1);
+  --sb-radius: 32px;
   --sb-font: 'Alexandria', 'Inter', system-ui, sans-serif;
 
   font-family: var(--sb-font);
+  background: var(--sb-white);
+  border-radius: var(--sb-radius);
+  box-shadow: var(--sb-shadow);
   width: 100%;
   position: relative;
-  background: linear-gradient(135deg, var(--sb-pink-deep) 0%, var(--sb-purple-soft) 100%);
-  border-radius: 32px;
   overflow: hidden;
-  box-shadow: var(--sb-shadow);
+  isolation: isolate;
 }
 
-/* subtle background shape (organic, not distracting) */
-.sb-bg-shape {
+/* --- decorative shapes (graphic design, not flashy) --- */
+.sb-shape {
   position: absolute;
-  top: -30%;
-  right: -10%;
-  width: 400px;
-  height: 400px;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0) 70%);
-  border-radius: 50%;
-  pointer-events: none;
   z-index: 0;
+  pointer-events: none;
+  border-radius: 50%;
 }
 
-[dir='rtl'] .sb-bg-shape {
+.sb-shape-1 {
+  width: 300px;
+  height: 300px;
+  top: -100px;
+  right: -80px;
+  background: radial-gradient(circle, rgba(22, 215, 125, 0.06) 0%, rgba(22, 215, 125, 0) 70%);
+}
+
+.sb-shape-2 {
+  width: 200px;
+  height: 200px;
+  bottom: -60px;
+  left: -60px;
+  background: radial-gradient(circle, rgba(255, 43, 122, 0.06) 0%, rgba(255, 43, 122, 0) 70%);
+}
+
+.sb-shape-3 {
+  width: 120px;
+  height: 120px;
+  top: 40%;
+  left: 20%;
+  background: radial-gradient(circle, rgba(22, 215, 125, 0.04) 0%, rgba(22, 215, 125, 0) 70%);
+}
+
+[dir='rtl'] .sb-shape-1 {
   right: auto;
-  left: -10%;
+  left: -80px;
+}
+[dir='rtl'] .sb-shape-2 {
+  left: auto;
+  right: -60px;
+}
+[dir='rtl'] .sb-shape-3 {
+  left: auto;
+  right: 20%;
 }
 
-/* main container: split layout on desktop */
-.sb-container {
+/* --- content (z-index above shapes) --- */
+.sb-content {
   position: relative;
   z-index: 2;
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 2rem;
   padding: 2.5rem 2rem;
-}
-
-/* left side: content (headline, CTA) */
-.sb-content {
-  flex: 2;
-  min-width: 240px;
-}
-
-/* right side: stats cards */
-.sb-stats {
-  flex: 1.5;
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-  justify-content: flex-end;
-}
-
-/* each stat as a card (light glassmorphism) */
-.sb-stat {
-  flex: 1;
-  min-width: 100px;
-  background: var(--sb-white-light);
-  backdrop-filter: blur(8px);
-  border-radius: 24px;
-  padding: 1rem 0.75rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
   text-align: center;
-  gap: 0.5rem;
-  transition: var(--sb-transition);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  animation: fadeUp 0.4s ease forwards;
-  opacity: 0;
-  transform: translateY(15px);
+  max-width: 600px;
+  margin: 0 auto;
 }
 
-@keyframes fadeUp {
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.sb-stat:hover {
-  transform: translateY(-6px);
-  background: rgba(255, 255, 255, 0.2);
-  border-color: var(--sb-green);
-  box-shadow: 0 12px 20px -8px rgba(0, 0, 0, 0.2);
-}
-
-/* icon wrapper */
-.sb-stat__icon-wrapper {
-  background: rgba(255, 255, 255, 0.15);
-  width: 48px;
-  height: 48px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 60px;
-  transition: var(--sb-transition);
-}
-
-.sb-stat:hover .sb-stat__icon-wrapper {
-  background: var(--sb-green);
-  transform: scale(1.05);
-}
-
-.sb-stat__icon {
-  font-size: 1.8rem !important;
-  color: var(--sb-white);
-  transition: var(--sb-transition);
-}
-
-/* value: bold, white with green shadow */
-.sb-stat__value {
-  font-size: 1.8rem;
-  font-weight: 800;
-  line-height: 1.1;
-  color: var(--sb-white);
-  text-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-  transition: var(--sb-transition);
-}
-
-.sb-stat:hover .sb-stat__value {
-  color: var(--sb-green);
-  text-shadow: 0 0 8px rgba(22, 215, 125, 0.5);
-}
-
-/* label: clean, uppercase */
-.sb-stat__label {
-  font-size: 0.7rem;
-  font-weight: 600;
-  color: var(--sb-white-muted);
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
-}
-
-/* eyebrow */
+/* --- eyebrow (small, uppercase, green accent) --- */
 .sb-eyebrow {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  background: var(--sb-white-light);
-  backdrop-filter: blur(4px);
-  border-radius: 60px;
-  padding: 0.35rem 1rem;
-  width: fit-content;
-  margin-bottom: 1.25rem;
   font-size: 0.7rem;
   font-weight: 700;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--sb-white);
-  border: 0.5px solid rgba(255, 255, 255, 0.3);
-}
-
-.sb-eyebrow-icon {
-  font-size: 1rem !important;
   color: var(--sb-green);
+  margin-bottom: 1rem;
 }
 
-/* headline */
+/* --- headline – bold, with pink accent on numbers --- */
 .sb-headline {
-  margin: 0 0 1.5rem;
-  font-size: clamp(1.6rem, 4.5vw, 2.3rem);
+  margin: 0 0 0.75rem;
+  font-size: clamp(1.6rem, 5.5vw, 2.6rem);
   font-weight: 800;
-  line-height: 1.3;
-  color: var(--sb-white);
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  line-height: 1.2;
+  color: var(--sb-navy);
 }
 
 .sb-accent {
-  color: var(--sb-green);
-  background: linear-gradient(120deg, var(--sb-green-light) 0%, var(--sb-green-light) 40%, transparent 60%);
+  color: var(--sb-pink);
+  background: linear-gradient(120deg, rgba(255, 43, 122, 0.1) 0%, rgba(255, 43, 122, 0.1) 40%, transparent 60%);
   background-repeat: no-repeat;
-  background-size: 100% 30%;
+  background-size: 100% 35%;
   background-position: bottom;
   display: inline-block;
   padding-bottom: 0.05em;
 }
 
-/* CTA button */
-.sb-action__link {
+/* --- subtext (clean, gray) --- */
+.sb-subtext {
+  font-size: 0.9rem;
+  color: var(--sb-gray-600);
+  margin-bottom: 1.25rem;
+  line-height: 1.4;
+  max-width: 400px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* --- stat badge (subtle, replaces full stats row) --- */
+.sb-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--sb-gray-100);
+  padding: 0.4rem 1rem;
+  border-radius: 60px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--sb-navy);
+  margin-bottom: 1.75rem;
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(0, 0, 0, 0.03);
+}
+
+.sb-badge-icon {
+  font-size: 0.9rem;
+  color: var(--sb-green);
+  font-weight: 800;
+}
+
+/* --- CTA button (green, rounded, prominent) --- */
+.sb-button {
   display: inline-flex;
   align-items: center;
   gap: 0.6rem;
   background: var(--sb-green);
-  padding: 0.7rem 1.6rem;
-  border-radius: 50px;
-  font-size: 0.9rem;
+  padding: 0.85rem 2rem;
+  border-radius: 60px;
+  font-size: 1rem;
   font-weight: 700;
-  color: var(--sb-white);
+  color: white;
   text-decoration: none;
-  transition: var(--sb-transition);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+  transition: all 0.2s ease;
+  box-shadow: 0 8px 18px rgba(22, 215, 125, 0.25);
   border: none;
+  cursor: pointer;
 }
 
-.sb-action__link:hover {
+.sb-button:hover {
   background: #0fb86b;
   transform: translateY(-2px);
-  box-shadow: 0 8px 18px rgba(22, 215, 125, 0.35);
+  box-shadow: 0 12px 22px rgba(22, 215, 125, 0.35);
   gap: 0.8rem;
 }
 
-.sb-action__arrow {
-  font-size: 1rem;
+.sb-button-icon {
+  font-size: 1.1rem;
   transition: transform 0.2s ease;
 }
 
-.sb-action__link:hover .sb-action__arrow {
+.sb-button:hover .sb-button-icon {
   transform: translateX(4px);
 }
 
-[dir='rtl'] .sb-action__link:hover .sb-action__arrow {
+[dir='rtl'] .sb-button:hover .sb-button-icon {
   transform: translateX(-4px);
 }
 
-/* --- Responsive: stack on mobile --- */
-@media (max-width: 720px) {
-  .sb-container {
-    flex-direction: column;
-    padding: 2rem 1.5rem;
-    gap: 1.5rem;
-  }
-
+/* --- responsive --- */
+@media (max-width: 640px) {
   .sb-content {
-    text-align: center;
-    width: 100%;
+    padding: 1.8rem 1.2rem;
   }
-
-  .sb-eyebrow {
-    margin-left: auto;
-    margin-right: auto;
+  .sb-headline {
+    font-size: 1.5rem;
   }
-
-  .sb-stats {
-    justify-content: center;
-    width: 100%;
-    gap: 0.75rem;
-  }
-
-  .sb-stat {
-    min-width: 90px;
-    padding: 0.75rem 0.5rem;
-  }
-
-  .sb-stat__value {
-    font-size: 1.4rem;
-  }
-
-  .sb-stat__icon-wrapper {
-    width: 40px;
-    height: 40px;
-  }
-
-  .sb-stat__icon {
-    font-size: 1.4rem !important;
-  }
-
-  .sb-action {
-    display: flex;
-    justify-content: center;
-  }
-}
-
-@media (max-width: 480px) {
-  .sb-container {
-    padding: 1.5rem 1rem;
-  }
-
-  .sb-stat {
-    min-width: 80px;
-  }
-
-  .sb-stat__value {
-    font-size: 1.2rem;
-  }
-
-  .sb-stat__label {
-    font-size: 0.6rem;
-  }
-
-  .sb-action__link {
+  .sb-subtext {
     font-size: 0.8rem;
-    padding: 0.55rem 1.2rem;
   }
+  .sb-badge {
+    font-size: 0.7rem;
+    padding: 0.3rem 0.8rem;
+  }
+  .sb-button {
+    padding: 0.7rem 1.5rem;
+    font-size: 0.9rem;
+  }
+  .sb-shape-1 { width: 200px; height: 200px; }
+  .sb-shape-2 { width: 150px; height: 150px; }
 }
 
 /* reduced motion */
 @media (prefers-reduced-motion: reduce) {
-  .sb-stat,
-  .sb-stat__icon-wrapper,
-  .sb-action__link {
+  .sb-button,
+  .sb-button-icon {
     transition: none;
-    animation: none;
-    transform: none;
   }
-  .sb-stat:hover {
+  .sb-button:hover {
     transform: none;
   }
 }
