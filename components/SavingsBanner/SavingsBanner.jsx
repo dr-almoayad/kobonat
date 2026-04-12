@@ -3,63 +3,51 @@
 
 import './SavingsBanner.css';
 
-const STATS = {
-  ar: [
-    { symbol: '%70',  label: 'أعلى توفير', icon: 'percent' },
-    { symbol: '+100', label: 'كود خصم فعال', icon: 'confirmation_number' },
-    { symbol: '+50', label: 'متجر موثوق', icon: 'verified' },
-  ],
-  en: [
-    { symbol: '70%',  label: 'Max Savings', icon: 'percent' },
-    { symbol: '100+', label: 'Active Codes', icon: 'confirmation_number' },
-    { symbol: '50+', label: 'Verified Stores', icon: 'verified' },
-  ],
-};
-
 export default function SavingsBanner({ locale = 'ar-SA' }) {
-  const lang  = locale.split('-')[0];
-  const isAr  = lang === 'ar';
-  const stats = STATS[lang] ?? STATS.ar;
+  const isAr = locale?.startsWith('ar');
 
   return (
     <div className="sb-root" dir={isAr ? 'rtl' : 'ltr'}>
-      {/* decorative shape – subtle background accent */}
-      <div className="sb-bg-shape"></div>
+      {/* decorative abstract shapes */}
+      <div className="sb-shape sb-shape-1"></div>
+      <div className="sb-shape sb-shape-2"></div>
+      <div className="sb-shape sb-shape-3"></div>
 
-      <div className="sb-container">
-        {/* left side: headline + CTA */}
-        <div className="sb-content">
-          <div className="sb-eyebrow">
-            <span className="material-symbols-sharp sb-eyebrow-icon">local_offer</span>
-            <span>{isAr ? 'كوبونات السعودية' : 'Saudi Coupons'}</span>
-          </div>
-          <h1 className="sb-headline">
-            {isAr
-              ? <>أحدث <span className="sb-accent">كوبونات</span> وأكواد الخصم في السعودية</>
-              : <>Latest <span className="sb-accent">Coupons</span> &amp; Discount Codes in Saudi Arabia</>}
-          </h1>
-          <div className="sb-action">
-            <a href="#" className="sb-action__link">
-              {isAr ? 'استكشف جميع العروض' : 'Explore all deals'}
-              <span className="sb-action__arrow" aria-hidden="true">
-                {isAr ? '←' : '→'}
-              </span>
-            </a>
-          </div>
+      <div className="sb-content">
+        {/* Eyebrow / tagline */}
+        <p className="sb-eyebrow">
+          {isAr ? 'أحدث كوبونات السعودية' : 'Latest Saudi Coupons'}
+        </p>
+
+        {/* Main headline */}
+        <h1 className="sb-headline">
+          {isAr ? (
+            <>أكثر من <span className="sb-accent">100+ كود</span> فعال</>
+          ) : (
+            <>Over <span className="sb-accent">100+ Active</span> Coupon Codes</>
+          )}
+        </h1>
+
+        {/* Subtext – adds credibility */}
+        <p className="sb-subtext">
+          {isAr
+            ? 'وفر حتى 70% على أشهر المتاجر – محدث يومياً'
+            : 'Save up to 70% at top stores – updated daily'}
+        </p>
+
+        {/* Small stat badge (like +100 active coupons) – subtle, not a full stats row */}
+        <div className="sb-badge">
+          <span className="sb-badge-icon">✓</span>
+          <span>{isAr ? '+100 كود خصم فعال' : '+100 Verified Active Codes'}</span>
         </div>
 
-        {/* right side: stats cards (horizontal on desktop, vertical on mobile) */}
-        <ul className="sb-stats" role="list">
-          {stats.map((s, idx) => (
-            <li key={s.symbol} className="sb-stat" style={{ animationDelay: `${idx * 0.08}s` }}>
-              <div className="sb-stat__icon-wrapper">
-                <span className="material-symbols-sharp sb-stat__icon">{s.icon}</span>
-              </div>
-              <div className="sb-stat__value">{s.symbol}</div>
-              <div className="sb-stat__label">{s.label}</div>
-            </li>
-          ))}
-        </ul>
+        {/* CTA Button */}
+        <a href="#" className="sb-button">
+          {isAr ? '!احصل على كود خصم الآن' : 'Get Code Now!'}
+          <span className="sb-button-icon" aria-hidden="true">
+            {isAr ? '←' : '→'}
+          </span>
+        </a>
       </div>
     </div>
   );
