@@ -8,7 +8,7 @@ import './SavingsBanner.css';
 
 export default function SavingsBanner({
   locale    = 'ar-SA',
-  href      = '#',
+  href      = 'https://cobonat.me/ar-SA/coupons',
   savingsPct = 70,
 }) {
   const isAr = locale?.startsWith('ar');
@@ -51,22 +51,22 @@ export default function SavingsBanner({
             fontWeight="900"
             fill="white"
           >
-            {savingsPct}%
+            {isAr ? 'أكثر' : 'MORE'}
           </text>
         </svg>
       </div>
 
       {/* ── Headline ── */}
-      <p className="sb-headline">
+      <h1 className="sb-headline">
         {isAr
-          ? <>ادمج العروض ووفر حتى <strong>{savingsPct}%</strong> على مشترياتك</>
-          : <>Stack offers and save up to <strong>{savingsPct}%</strong> on every order</>
+              ? <>أحدث <span className="sb-accent">كوبونات</span> وأكواد الخصم في السعودية</>
+              : <>Latest <span className="sb-accent">Coupons</span> &amp; Discount Codes in Saudi Arabia</>
         }
-      </p>
+      </h1>
 
       {/* ── CTA pill ── */}
       <Link href={href} className="sb-cta">
-        {isAr ? 'احصل عليها' : 'Get Deals'}
+        {isAr ? 'احصل على كود خصم الآن!' : 'Get A Discount Code Now!'}
       </Link>
 
       {/* ── Right decorative graphic ── */}
