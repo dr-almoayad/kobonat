@@ -1,371 +1,255 @@
-/* components/HeroBestOffersCarousel/HeroBestOffersCarousel.css */
-@import url('https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&family=Space+Grotesk:wght@400;500;600;700&family=Alexandria:wght@300;400;500;600;700;800&display=swap');
+/* components/HeroBestOffersCarousel/HeroBestOffersCarousel.css
+   Mobile-first.
+   < 768px  → horizontal scroll-snap carousel, cards peek at ~85% width.
+   ≥ 768px  → static 3-column grid.
+   Max-width: 1312px.
+*/
 
-.hero-offers-root {
-  --hero-offers-bg: #f8f9fa;
-  --hero-offers-card-bg: #ffffff;
-  --hero-offers-card-border: #e9ecef;
-  --hero-offers-ink: #212529;
-  --hero-offers-ink-secondary: #6c757d;
-  --hero-offers-accent: #e67e22;
-  --hero-offers-accent-light: #fdf2e9;
-  --hero-offers-accent-glow: rgba(230, 126, 34, 0.08);
-  --hero-offers-cta: #e67e22;
-  --hero-offers-cta-txt: #ffffff;
-  --hero-offers-radius: 24px;
-  --hero-offers-radius-sm: 16px;
-  --hero-offers-shadow: 0 10px 30px rgba(0, 0, 0, 0.05), 0 0 0 1px rgba(0, 0, 0, 0.02);
-  --hero-offers-glow: 0 10px 30px var(--hero-offers-accent-glow);
-  font-family: 'Inter', sans-serif;
+/* ── Root & inner ─────────────────────────────────────────────────────────── */
+.hbo-root {
+  font-family: 'Alexandria', 'Open Sans', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  width: 100%;
 }
 
-/* Arabic font override */
-.hero-offers-root[dir="rtl"] {
-  font-family: 'Alexandria', 'Inter', sans-serif;
-}
-
-.hero-offers-section {
-  background: var(--hero-offers-bg);
-  padding: 64px 0 80px;
-  overflow: hidden;
-  position: relative;
-}
-
-/* Subtle background pattern */
-.hero-offers-section::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-image: radial-gradient(circle at 20% 80%, rgba(230, 126, 34, 0.03) 0%, transparent 50%);
-  pointer-events: none;
-}
-
-.hero-offers-inner {
-  max-width: 1200px;
+.hbo-inner {
+  max-width: 1312px;
   margin: 0 auto;
-  padding: 0 24px;
-  position: relative;
-  z-index: 1;
+  padding: 2rem 1rem 2.5rem;
 }
 
-/* Modern sales title effect */
-.hero-offers-header {
-  margin-bottom: 48px;
-  text-align: center;
-}
-
-.hero-offers-title-wrapper {
-  display: inline-block;
-  position: relative;
-}
-
-.hero-offers-title {
-  font-family: 'Space Grotesk', 'Inter', sans-serif;
-  font-size: clamp(28px, 6vw, 48px);
+/* ── Section heading ─────────────────────────────────────────────────────── */
+.hbo-heading {
+  font-size: 1.125rem;
   font-weight: 700;
-  letter-spacing: -0.02em;
-  background: linear-gradient(135deg, #212529 0%, #e67e22 30%, #212529 60%, #e67e22 100%);
-  background-size: 200% auto;
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  animation: hero-offers-shine 8s linear infinite;
-  margin: 0;
-  line-height: 1.2;
+  color: #111827;
+  margin: 0 0 1.125rem;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
 }
 
-/* RTL title font */
-.hero-offers-root[dir="rtl"] .hero-offers-title {
-  font-family: 'Alexandria', 'Space Grotesk', sans-serif;
-  letter-spacing: 0;
-}
-
-@keyframes hero-offers-shine {
-  0% {
-    background-position: 0% center;
-  }
-  100% {
-    background-position: 200% center;
-  }
-}
-
-/* Decorative underline effect */
-.hero-offers-title::after {
-  content: '';
-  position: absolute;
-  bottom: -12px;
-  left: 10%;
-  width: 80%;
-  height: 3px;
-  background: linear-gradient(90deg, transparent, var(--hero-offers-accent), var(--hero-offers-accent), transparent);
-  border-radius: 3px;
-}
-
-/* Scroll container – horizontal snap */
-.hero-offers-scroll-container {
+/* ─────────────────────────────────────────────────────────────────────────────
+   MOBILE — horizontal scroll-snap
+   Negative margin lets the track bleed to screen edges;
+   padding restores the visual offset so cards are never flush with the edge.
+────────────────────────────────────────────────────────────────────────────── */
+.hbo-scroll {
+  margin-inline: -1rem;
   overflow-x: auto;
+  overflow-y: visible;
   scroll-snap-type: x mandatory;
-  scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
-  -ms-overflow-style: none;
-  margin: 0 -24px;
-  padding: 0 24px;
 }
 
-.hero-offers-scroll-container::-webkit-scrollbar {
-  display: none;
+.hbo-scroll::-webkit-scrollbar { display: none; }
+
+.hbo-track {
+  display: flex;
+  gap: 0.875rem;
+  /* padding-inline-start offsets first card from screen edge;
+     padding-inline-end ensures the last card has trailing space */
+  padding: 0.375rem 1rem 1rem;
 }
 
-.hero-offers-track {
+/* Each slide shows ~85% width → last ~15% peek reveals next card */
+.hbo-slide {
+  flex: 0 0 calc(85% - 0.44rem);
+  scroll-snap-align: start;
+  min-width: 0;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   CARD
+   Horizontal split: content side (left/right in RTL) + image side.
+────────────────────────────────────────────────────────────────────────────── */
+.hbo-card {
   display: flex;
   flex-direction: row;
-  gap: 20px;
+  align-items: stretch;
+  height: 196px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  overflow: hidden;           /* clips image corners to match card radius */
+  text-decoration: none;
+  color: inherit;
+  transition: box-shadow 0.18s, transform 0.18s;
 }
 
-/* Slide styling */
-.hero-offers-slide {
-  flex: 0 0 100%;
-  scroll-snap-align: start;
-  padding: 8px 0 16px;
+.hbo-card:hover {
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
 }
 
-@media (min-width: 640px) {
-  .hero-offers-slide {
-    flex: 0 0 calc(50% - 10px);
-  }
-}
-
-@media (min-width: 1024px) {
-  .hero-offers-slide {
-    flex: 0 0 calc(33.333% - 14px);
-  }
-}
-
-/* Card styling – light, modern */
-.hero-offers-card {
-  background: var(--hero-offers-card-bg);
-  border-radius: var(--hero-offers-radius);
-  border: 1px solid var(--hero-offers-card-border);
-  overflow: hidden;
-  transition: all 0.3s cubic-bezier(0.2, 0, 0, 1);
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  cursor: pointer;
-}
-
-.hero-offers-card:hover {
-  transform: translateY(-4px);
-  border-color: var(--hero-offers-accent);
-  box-shadow: var(--hero-offers-shadow), var(--hero-offers-glow);
-}
-
-.hero-offers-card-content {
-  padding: 32px 28px;
+/* ── Content side ──────────────────────────────────────────────────────── */
+.hbo-content {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 20px;
-}
-
-/* Brand row */
-.hero-offers-brand-row {
-  display: flex;
-  align-items: center;
   justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 16px;
+  padding: 1.125rem 1.125rem 1rem;
+  min-width: 0;
+  /* subtle separator between text and image */
+  border-inline-end: 1px solid #f3f4f6;
 }
 
-.hero-offers-store-logo {
-  max-height: 48px;
-  max-width: 140px;
+.hbo-card--no-image .hbo-content {
+  border-inline-end: none;
+}
+
+.hbo-logo-wrap {
+  /* anchors logo to the top of the content area */
+  display: flex;
+  align-items: flex-start;
+  min-height: 36px;
+}
+
+.hbo-logo {
+  max-height: 34px;
+  max-width: 130px;
+  width: auto;
   object-fit: contain;
-  object-position: left;
-  opacity: 0.85;
-  transition: opacity 0.2s;
+  object-position: left center;
+  display: block;
 }
 
-.hero-offers-card:hover .hero-offers-store-logo {
-  opacity: 1;
+[dir='rtl'] .hbo-logo {
+  object-position: right center;
 }
 
-/* Exclusive badge – modern pill */
-.hero-offers-exclusive-tag {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 11px;
+.hbo-store-name {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #111827;
+  line-height: 1.2;
+}
+
+/* Offer title — middle of the card */
+.hbo-title {
+  flex: 1;
+  margin: 0.5rem 0;
+  font-size: 0.78rem;
   font-weight: 600;
-  letter-spacing: 0.05em;
+  color: #1f2937;
+  line-height: 1.45;
+  /* clamp to 3 lines */
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* "SHOP NOW" style CTA — bold, uppercase, underline-bar */
+.hbo-cta {
+  display: inline-block;
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--hero-offers-accent);
-  background: var(--hero-offers-accent-light);
-  padding: 6px 14px;
-  border-radius: 40px;
-  border: 0.5px solid rgba(230, 126, 34, 0.15);
+  color: #111827;
+  border-bottom: 2px solid #111827;
+  padding-bottom: 1px;
+  line-height: 1;
+  transition: color 0.15s, border-color 0.15s;
 }
 
-.hero-offers-exclusive-tag svg {
-  width: 12px;
-  height: 12px;
-  fill: var(--hero-offers-accent);
+.hbo-card:hover .hbo-cta {
+  color: #470ae2;
+  border-bottom-color: #470ae2;
 }
 
-/* Offer title – modern, bold, clean */
-.hero-offers-voucher-title {
-  font-family: 'Space Grotesk', 'Inter', sans-serif;
-  font-size: clamp(20px, 4vw, 26px);
-  font-weight: 700;
-  letter-spacing: -0.01em;
-  line-height: 1.3;
-  color: var(--hero-offers-ink);
-  margin: 0;
+/* ── Image side ────────────────────────────────────────────────────────── */
+.hbo-image-wrap {
+  flex: 0 0 42%;
+  overflow: hidden;
+  /* overflow: hidden on .hbo-card clips this, but belt+suspenders: */
+  position: relative;
 }
 
-/* RTL title font */
-.hero-offers-root[dir="rtl"] .hero-offers-voucher-title {
-  font-family: 'Alexandria', 'Space Grotesk', sans-serif;
-  letter-spacing: 0;
-}
-
-/* CTA Button – sleek */
-.hero-offers-reveal-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  background: var(--hero-offers-cta);
-  color: var(--hero-offers-cta-txt);
-  padding: 14px 28px;
-  border-radius: 50px;
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
-  text-decoration: none;
-  border: none;
-  cursor: pointer;
-  transition: all 0.2s ease;
+.hbo-image {
+  position: absolute;
+  inset: 0;
   width: 100%;
-  font-family: 'Inter', sans-serif;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
-.hero-offers-reveal-btn:hover {
-  transform: scale(0.98);
-  background: #d35400;
-  gap: 14px;
-}
-
-.hero-offers-reveal-btn svg {
-  transition: transform 0.2s;
-}
-
-.hero-offers-reveal-btn:hover svg {
-  transform: translateX(4px);
-}
-
-/* RTL button hover */
-.hero-offers-root[dir="rtl"] .hero-offers-reveal-btn:hover svg {
-  transform: translateX(-4px);
-}
-
-/* Toast notification */
-.hero-offers-toast {
-  position: fixed;
-  bottom: 28px;
-  left: 50%;
-  transform: translateX(-50%) translateY(14px);
-  background: #ffffff;
-  backdrop-filter: blur(20px);
-  border: 1px solid var(--hero-offers-accent);
-  color: var(--hero-offers-accent);
-  font-size: 14px;
-  font-weight: 500;
-  padding: 12px 28px;
-  border-radius: 60px;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.22s, transform 0.22s;
-  z-index: 9999;
-  white-space: nowrap;
-  font-family: 'Inter', sans-serif;
-  letter-spacing: -0.01em;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-}
-
-.hero-offers-toast.show {
-  opacity: 1;
-  transform: translateX(-50%) translateY(0);
-}
-
-/* RTL toast */
-.hero-offers-root[dir="rtl"] .hero-offers-toast {
-  font-family: 'Alexandria', 'Inter', sans-serif;
-}
-
-/* RTL specific spacing and adjustments */
-.hero-offers-root[dir="rtl"] .hero-offers-brand-row {
-  flex-direction: row-reverse;
-}
-
-.hero-offers-root[dir="rtl"] .hero-offers-store-logo {
-  object-position: right;
-}
-
-.hero-offers-root[dir="rtl"] .hero-offers-exclusive-tag svg {
-  transform: scaleX(-1);
-}
-
-.hero-offers-root[dir="rtl"] .hero-offers-reveal-btn svg {
-  transform: rotate(180deg);
-}
-
-/* Desktop refinements */
+/* ─────────────────────────────────────────────────────────────────────────────
+   DESKTOP — static 3-column grid
+   ≥ 768px
+────────────────────────────────────────────────────────────────────────────── */
 @media (min-width: 768px) {
-  .hero-offers-section {
-    padding: 80px 0 100px;
+  .hbo-inner {
+    padding: 2.5rem 1.5rem 3rem;
   }
-  
-  .hero-offers-header {
-    margin-bottom: 64px;
+
+  .hbo-heading {
+    font-size: 1.25rem;
+    margin-bottom: 1.25rem;
   }
-  
-  .hero-offers-card-content {
-    padding: 36px 32px;
+
+  /* kill the scroll container */
+  .hbo-scroll {
+    margin-inline: 0;
+    overflow-x: visible;
+    scroll-snap-type: none;
   }
-  
-  .hero-offers-reveal-btn {
-    padding: 16px 32px;
-    font-size: 14px;
+
+  /* switch to grid */
+  .hbo-track {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    padding: 0.25rem 0 0.5rem;
+  }
+
+  .hbo-slide {
+    flex: unset;
+    scroll-snap-align: unset;
+  }
+
+  .hbo-card {
+    height: 200px;
   }
 }
 
-/* For very small screens, ensure proper spacing */
-@media (max-width: 480px) {
-  .hero-offers-inner {
-    padding: 0 16px;
+/* ── Large screens ──────────────────────────────────────────────────────── */
+@media (min-width: 1100px) {
+  .hbo-inner {
+    padding: 3rem 1.5rem 3.5rem;
   }
-  
-  .hero-offers-scroll-container {
-    margin: 0 -16px;
-    padding: 0 16px;
+
+  .hbo-heading {
+    font-size: 1.375rem;
+    margin-bottom: 1.5rem;
   }
-  
-  .hero-offers-card-content {
-    padding: 24px 20px;
+
+  .hbo-card {
+    height: 210px;
   }
-  
-  .hero-offers-brand-row {
-    gap: 12px;
+
+  .hbo-content {
+    padding: 1.25rem 1.375rem 1.125rem;
   }
-  
-  .hero-offers-store-logo {
-    max-height: 36px;
-    max-width: 110px;
+
+  .hbo-logo {
+    max-height: 38px;
+    max-width: 140px;
   }
+
+  .hbo-title {
+    font-size: 0.83rem;
+  }
+
+  .hbo-track {
+    gap: 1.25rem;
+  }
+}
+
+/* ── Reduced motion ─────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .hbo-card { transition: none; }
+  .hbo-card:hover { transform: none; }
 }
