@@ -245,7 +245,7 @@ const exclusiveVouchers = await prisma.voucher.findMany({
       
       <HeroCuratedSection locale={locale} countryCode={country} />
       <SavingsBanner locale={locale} />
-      <HeroBestOffersCarousel vouchers={exclusiveVouchers} locale={locale} />
+      <HeroBestOffersCarousel locale={locale} />
       {/*{transformedCarouselStores.length > 0 && (
         <HomepageHeroSection
           stores={transformedCarouselStores}
