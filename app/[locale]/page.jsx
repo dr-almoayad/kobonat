@@ -260,13 +260,13 @@ const exclusiveVouchers = await prisma.voucher.findMany({
       <FeaturedStoresSection locale={locale} />
 
       {/* Featured Stores Carousel */}
-      {topStores.length > 0 && (
+      {/*{topStores.length > 0 && (
         <FeaturedStoresCarousel
           title={carouselTitle}
           locale={locale}
           stores={topStores}
         />
-      )}
+      )}*/}
 
       {/* Stackable Offers */}
       <OfferStacksSection locale={locale} countryCode={country} />
