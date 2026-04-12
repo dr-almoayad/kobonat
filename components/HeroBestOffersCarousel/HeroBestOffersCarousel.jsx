@@ -1,157 +1,127 @@
-'use client';
 // components/HeroBestOffersCarousel/HeroBestOffersCarousel.jsx
 //
-// Modern, mobile-first carousel for exclusive offers.
-// Features: horizontal snap scrolling, light cards, gradient animated title.
-// No share button, no description – clean and focused.
+// RSC — no client JS needed.
+// Shows top 3 curated offers where displayOrder > 10, most recently added first.
+// Desktop: static 3-column grid. Mobile: horizontal scroll-snap carousel.
 
+import Link from 'next/link';
+import { prisma } from '@/lib/prisma';
 import './HeroBestOffersCarousel.css';
-import { useState, useRef, useEffect } from 'react';
 
-export default function HeroBestOffersCarousel({ vouchers = [], locale = 'ar-SA', heading }) {
-  const lang = locale.split('-')[0];
-  const isRtl = lang === 'ar';
-  const slides = vouchers.slice(0, 6);
-  const total = slides.length;
+async function getBestOffers(language) {
+  const offers = await prisma.curatedOffer.findMany({
+    where:   { displayOrder: { gt: 10 } },
+    orderBy: { createdAt: 'desc' },
+    take:    3,
+    include: {
+      voucher: {
+        include: {
+          translations: {
+            where:  { locale: language },
+            select: { title: true },
+          },
+          store: {
+            include: {
+              translations: {
+                where:  { locale: language },
+                select: { name: true, slug: true },
+              },
+            },
+          },
+        },
+      },
+    },
+  });
+  return offers;
+}
 
-  const [copiedCode, setCopiedCode] = useState('');
-  const [toastVisible, setToastVisible] = useState(false);
-  const toastTimer = useRef(null);
+export default async function HeroBestOffersCarousel({ locale = 'ar-SA', heading }) {
+  const [language] = locale.split('-');
+  const isAr = language === 'ar';
 
-  useEffect(() => {
-    return () => {
-      if (toastTimer.current) clearTimeout(toastTimer.current);
-    };
-  }, []);
+  let offers = [];
+  try {
+    offers = await getBestOffers(language);
+  } catch (err) {
+    console.error('[HeroBestOffersCarousel]', err?.message);
+    return null;
+  }
 
-  const showToast = (message) => {
-    setCopiedCode(message);
-    setToastVisible(true);
-    if (toastTimer.current) clearTimeout(toastTimer.current);
-    toastTimer.current = setTimeout(() => {
-      setToastVisible(false);
-      setCopiedCode('');
-    }, 2000);
-  };
+  if (!offers.length) return null;
 
-  const handleReveal = (voucher) => {
-    if (voucher.code) {
-      navigator.clipboard?.writeText(voucher.code).catch(() => {});
-      const message = isRtl ? `تم نسخ: ${voucher.code}` : `Copied: ${voucher.code}`;
-      showToast(message);
-    } else if (voucher.landingUrl) {
-      window.open(voucher.landingUrl, '_blank', 'noopener,noreferrer');
-    }
-  };
-
-  const defaultHeading = isRtl
-    ? 'عروض حصرية لا تفوتك'
-    : 'Exclusive Offers Just For You';
-
-  const handleCardClick = (voucher) => {
-    handleReveal(voucher);
-  };
-
-  if (!total) return null;
+  const defaultHeading = isAr
+    ? 'أفضل الكوبونات والعروض الحصرية'
+    : 'The Best Coupons, Promo Codes & Cash Back Offers';
 
   return (
-    <div className="hero-offers-root" dir={isRtl ? 'rtl' : 'ltr'}>
-      <section className="hero-offers-section">
-        <div className="hero-offers-inner">
-          {/* Modern sales title with shine effect */}
-          <div className="hero-offers-header">
-            <div className="hero-offers-title-wrapper">
-              <h2 className="hero-offers-title">
-                {heading || defaultHeading}
-              </h2>
-            </div>
-          </div>
+    <div className="hbo-root" dir={isAr ? 'rtl' : 'ltr'}>
+      <div className="hbo-inner">
 
-          {/* Horizontal snap carousel */}
-          <div className="hero-offers-scroll-container">
-            <div className="hero-offers-track">
-              {slides.map((voucher, idx) => {
-                const translation = voucher.translations?.find(tr => tr.locale === lang)
-                  || voucher.translations?.[0]
-                  || {};
+        <h2 className="hbo-heading">{heading || defaultHeading}</h2>
 
-                const storeName = voucher.store?.name
-                  || voucher.store?.translations?.[0]?.name
-                  || '';
+        {/* scroll wrapper — overflow on mobile, visible on desktop */}
+        <div className="hbo-scroll">
+          <div className="hbo-track">
+            {offers.map((offer, idx) => {
+              const v    = offer.voucher;
+              const t    = v.translations?.[0]  || {};
+              const st   = v.store?.translations?.[0] || {};
+              const name = st.name  || v.store?.name || '';
+              const slug = st.slug  || '';
+              const logo = v.store?.logo || null;
+              const img  = offer.featuredImage  || null;
+              const title = t.title || '';
+              const href  = v.landingUrl || `/${locale}/store/${slug}`;
 
-                const storeLogo = voucher.store?.logo || null;
-
-                const displayTitle = translation.title
-                  || voucher.discount
-                  || (isRtl ? 'عرض حصري' : 'Exclusive Offer');
-
-                return (
-                  <div key={voucher.id} className="hero-offers-slide">
-                    <div 
-                      className="hero-offers-card"
-                      onClick={() => handleCardClick(voucher)}
-                      role="button"
-                      tabIndex={0}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                          e.preventDefault();
-                          handleCardClick(voucher);
-                        }
-                      }}
-                    >
-                      <div className="hero-offers-card-content">
-                        <div className="hero-offers-brand-row">
-                          {storeLogo ? (
-                            <img
-                              src={storeLogo}
-                              alt={storeName}
-                              className="hero-offers-store-logo"
-                              loading={idx === 0 ? 'eager' : 'lazy'}
-                            />
-                          ) : (
-                            <span style={{ fontWeight: 600, fontSize: '1rem', color: '#212529' }}>
-                              {storeName}
-                            </span>
-                          )}
-                          <span className="hero-offers-exclusive-tag">
-                            <svg viewBox="0 0 24 24" fill="currentColor">
-                              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                            </svg>
-                            {isRtl ? 'حصري' : 'Exclusive'}
-                          </span>
-                        </div>
-
-                        <h3 className="hero-offers-voucher-title">{displayTitle}</h3>
-
-                        <button 
-                          className="hero-offers-reveal-btn"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleReveal(voucher);
-                          }}
-                          aria-label={isRtl ? 'كشف الكود' : 'Reveal code'}
-                        >
-                          {isRtl ? 'احصل على العرض' : 'Get Offer'}
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M5 12h14M12 5l7 7-7 7" />
-                          </svg>
-                        </button>
+              return (
+                <div key={offer.id} className="hbo-slide">
+                  <Link
+                    href={href}
+                    className={`hbo-card${img ? '' : ' hbo-card--no-image'}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={`${name} — ${title}`}
+                  >
+                    {/* ── Content side ── */}
+                    <div className="hbo-content">
+                      <div className="hbo-logo-wrap">
+                        {logo ? (
+                          <img
+                            src={logo}
+                            alt={name}
+                            className="hbo-logo"
+                            loading={idx === 0 ? 'eager' : 'lazy'}
+                          />
+                        ) : (
+                          <span className="hbo-store-name">{name}</span>
+                        )}
                       </div>
+
+                      <p className="hbo-title">{title}</p>
+
+                      <span className="hbo-cta" aria-hidden="true">
+                        {isAr ? 'تسوق الآن' : 'Shop Now'}
+                      </span>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
+
+                    {/* ── Featured image side ── */}
+                    {img && (
+                      <div className="hbo-image-wrap" aria-hidden="true">
+                        <img
+                          src={img}
+                          alt=""
+                          className="hbo-image"
+                          loading={idx === 0 ? 'eager' : 'lazy'}
+                        />
+                      </div>
+                    )}
+                  </Link>
+                </div>
+              );
+            })}
           </div>
         </div>
-      </section>
 
-      <div className={`hero-offers-toast ${toastVisible ? 'show' : ''}`}>
-        {toastVisible && (
-          <>
-            ✓ {copiedCode}
-          </>
-        )}
       </div>
     </div>
   );
