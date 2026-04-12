@@ -1,0 +1,347 @@
+/* HowItWorks.css */
+@import url('https://fonts.googleapis.com/css2?family=Alexandria:wght@400;500;600;700;800;900&display=swap');
+
+.hiw-section {
+  --hiw-primary: #6366f1;
+  --hiw-primary-dark: #4f46e5;
+  --hiw-primary-light: #e0e7ff;
+  --hiw-secondary: #10b981;
+  --hiw-secondary-light: #d1fae5;
+  --hiw-accent: #f59e0b;
+  --hiw-accent-light: #fef3c7;
+  --hiw-bg: #ffffff;
+  --hiw-card-bg: #ffffff;
+  --hiw-text: #1f2937;
+  --hiw-text-light: #6b7280;
+  --hiw-border: #f3f4f6;
+  --hiw-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --hiw-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --hiw-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --hiw-radius-card: 24px;
+  --hiw-radius-badge: 40px;
+  --hiw-font: 'Alexandria', system-ui, -apple-system, sans-serif;
+
+  font-family: var(--hiw-font);
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  position: relative;
+  padding: 5rem 1.5rem 5rem;
+  overflow-x: clip;
+}
+
+/* Subtle background decoration */
+.hiw-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 100%;
+  background: radial-gradient(circle at 0% 20%, rgba(99, 102, 241, 0.04) 0%, transparent 50%),
+              radial-gradient(circle at 100% 80%, rgba(16, 185, 129, 0.04) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+.hiw-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 2;
+}
+
+/* Header Styles */
+.hiw-header {
+  text-align: center;
+  margin-bottom: 4rem;
+}
+
+.hiw-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(99, 102, 241, 0.1);
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  border-radius: var(--hiw-radius-badge);
+  padding: 0.4rem 1.2rem;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--hiw-primary);
+  margin-bottom: 1.5rem;
+}
+
+.hiw-eyebrow svg {
+  width: 14px;
+  height: 14px;
+  fill: var(--hiw-primary);
+}
+
+.hiw-title {
+  font-size: clamp(2rem, 5vw, 3rem);
+  font-weight: 900;
+  color: var(--hiw-text);
+  line-height: 1.2;
+  margin: 0 0 0.75rem;
+  letter-spacing: -0.02em;
+}
+
+.hiw-title span {
+  background: linear-gradient(135deg, var(--hiw-primary) 0%, var(--hiw-primary-dark) 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.hiw-subtitle {
+  font-size: 1rem;
+  color: var(--hiw-text-light);
+  max-width: 560px;
+  margin: 0 auto;
+  line-height: 1.6;
+  font-weight: 500;
+}
+
+/* Grid Layout */
+.hiw-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2rem;
+  margin-bottom: 3rem;
+  position: relative;
+}
+
+/* Connector Line */
+.hiw-grid::before {
+  content: '';
+  position: absolute;
+  top: 80px;
+  left: 15%;
+  right: 15%;
+  height: 2px;
+  background: linear-gradient(90deg, 
+    transparent 0%, 
+    rgba(99, 102, 241, 0.25) 20%,
+    rgba(99, 102, 241, 0.4) 50%,
+    rgba(99, 102, 241, 0.25) 80%,
+    transparent 100%);
+  z-index: 0;
+  pointer-events: none;
+}
+
+[dir='rtl'] .hiw-grid::before {
+  background: linear-gradient(270deg, 
+    transparent 0%, 
+    rgba(99, 102, 241, 0.25) 20%,
+    rgba(99, 102, 241, 0.4) 50%,
+    rgba(99, 102, 241, 0.25) 80%,
+    transparent 100%);
+}
+
+/* Card Styles */
+.hiw-card {
+  background: var(--hiw-card-bg);
+  border-radius: var(--hiw-radius-card);
+  padding: 2rem 1.75rem 2rem;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  box-shadow: var(--hiw-shadow-sm);
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  transition: all 0.3s cubic-bezier(0.2, 0, 0, 1);
+  backdrop-filter: blur(0px);
+}
+
+.hiw-card:hover {
+  transform: translateY(-8px);
+  box-shadow: var(--hiw-shadow-lg);
+  border-color: rgba(99, 102, 241, 0.2);
+}
+
+/* Step Badge */
+.hiw-step-badge {
+  position: absolute;
+  top: -14px;
+  inset-inline-start: 1.75rem;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--hiw-primary);
+  color: white;
+  font-size: 0.85rem;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 10px rgba(79, 70, 229, 0.3);
+  transition: transform 0.2s ease;
+}
+
+.hiw-card:hover .hiw-step-badge {
+  transform: scale(1.05);
+}
+
+/* Card Colors */
+.hiw-card:nth-child(1) .hiw-step-badge { background: var(--hiw-primary); }
+.hiw-card:nth-child(2) .hiw-step-badge { background: var(--hiw-accent); }
+.hiw-card:nth-child(3) .hiw-step-badge { background: var(--hiw-secondary); }
+
+/* Illustration Container */
+.hiw-illus {
+  width: 120px;
+  height: 120px;
+  margin-bottom: 1.75rem;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hiw-illus svg {
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.05));
+  transition: transform 0.3s ease;
+}
+
+.hiw-card:hover .hiw-illus svg {
+  transform: scale(1.02);
+}
+
+/* Card Text */
+.hiw-card-title {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--hiw-text);
+  margin: 0 0 0.75rem;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+}
+
+.hiw-card-body {
+  font-size: 0.875rem;
+  color: var(--hiw-text-light);
+  line-height: 1.6;
+  margin: 0;
+  font-weight: 500;
+}
+
+/* CTA Button */
+.hiw-cta {
+  margin-top: 2rem;
+  text-align: center;
+}
+
+.hiw-cta-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: var(--hiw-primary);
+  color: white;
+  border: none;
+  border-radius: 60px;
+  padding: 0.9rem 2.2rem;
+  font-family: var(--hiw-font);
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3);
+  letter-spacing: 0.02em;
+}
+
+.hiw-cta-btn:hover {
+  background: var(--hiw-primary-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px rgba(79, 70, 229, 0.35);
+}
+
+.hiw-cta-btn:active {
+  transform: translateY(0);
+}
+
+.hiw-cta-btn svg {
+  width: 18px;
+  height: 18px;
+  transition: transform 0.2s ease;
+}
+
+.hiw-cta-btn:hover svg {
+  transform: translateX(4px);
+}
+
+[dir='rtl'] .hiw-cta-btn:hover svg {
+  transform: translateX(-4px);
+}
+
+/* Responsive Design */
+@media (max-width: 900px) {
+  .hiw-section {
+    padding: 4rem 1.5rem;
+  }
+  
+  .hiw-grid {
+    gap: 1.5rem;
+  }
+  
+  .hiw-card {
+    padding: 1.5rem 1.25rem;
+  }
+  
+  .hiw-card-title {
+    font-size: 1.1rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .hiw-grid {
+    grid-template-columns: 1fr;
+    max-width: 420px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  
+  .hiw-grid::before {
+    display: none;
+  }
+  
+  .hiw-step-badge {
+    inset-inline-start: 1.25rem;
+    width: 28px;
+    height: 28px;
+    font-size: 0.75rem;
+  }
+  
+  .hiw-illus {
+    width: 100px;
+    height: 100px;
+  }
+  
+  .hiw-card-body {
+    font-size: 0.85rem;
+  }
+  
+  .hiw-cta-btn {
+    padding: 0.8rem 1.8rem;
+    font-size: 0.85rem;
+  }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  .hiw-card,
+  .hiw-card:hover,
+  .hiw-cta-btn,
+  .hiw-illus svg {
+    transition: none;
+    transform: none;
+  }
+  
+  .hiw-step-badge {
+    transition: none;
+  }
+}
