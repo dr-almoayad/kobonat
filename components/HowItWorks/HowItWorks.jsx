@@ -100,10 +100,8 @@ export default function HowItWorks({ locale = 'ar-SA' }) {
       dir={isAr ? 'rtl' : 'ltr'}
       style={{
         fontFamily: "'Alexandria', system-ui, sans-serif",
-        padding: '2.5rem 2rem',
+        padding: '2.5rem 1.5rem',
         background: '#fff',
-        borderTop: '1px solid #f3f4f6',
-        borderBottom: '1px solid #f3f4f6',
       }}
     >
       <div
