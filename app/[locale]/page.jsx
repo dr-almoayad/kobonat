@@ -285,10 +285,7 @@ const exclusiveVouchers = await prisma.voucher.findMany({
       {/* Featured Products */}
       <HomeFeaturedProductsSection locale={locale} countryCode={country} />
 
-      
-
-
-      <HowItWorks locale={locale} />  // passes "ar-SA" or "en-SA"
+      <HowItWorks locale={locale} />
 
       {/* Blog */}
       <HomepageBlogSection locale={locale} count={3} />
