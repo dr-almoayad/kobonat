@@ -6,7 +6,7 @@ const CONTENT = {
   ar: {
     steps: [
       {
-        title: 'ابحث عن كوبونك',
+        title: 'ابحث عن كود خصم',
         desc: 'تصفّح متاجرك المفضلة واختر أفضل كود خصم أو عرض حصري يناسبك.',
       },
       {
@@ -15,23 +15,23 @@ const CONTENT = {
       },
       {
         title: 'وفّر فلوسك!',
-        desc: 'بعد الشراء ستصلك رسالة تأكيد بتطبيق الخصم أو استرداد الكاشباك في حسابك.',
+        desc: 'عند الشراء ستصلك رسالة تأكيد بتطبيق الخصم أو استرداد الكاشباك في حسابك.',
       },
     ],
   },
   en: {
     steps: [
       {
-        title: 'Activate Cash Back',
-        desc: 'Simply tap any participating offer to activate cash back and start shopping.',
+        title: 'Choose A Code',
+        desc: 'Simply tap any participating offer to copy the discount code and start shopping.',
       },
       {
         title: 'Make Your Purchase',
-        desc: 'Shop and checkout as you normally would. Earn cash back on eligible purchases.',
+        desc: 'Shop as you normally would.',
       },
       {
         title: 'Get Paid',
-        desc: 'After your purchase, look for an email confirming that your cash back is on its way.',
+        desc: 'Before finalizing your purchase, enter the discount code to activate it.',
       },
     ],
   },
