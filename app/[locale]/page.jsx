@@ -19,6 +19,8 @@ import HeroCuratedSection from '@/components/HeroCuratedCarousel/HeroCuratedSect
 import HeroBestOffersCarousel from '@/components/HeroBestOffersCarousel/HeroBestOffersCarousel';
 import PromoCodesFAQ from '@/components/PromoCodesFAQ/PromoCodesFAQ';
 import SavingsBanner from '@/components/SavingsBanner/SavingsBanner';
+import HowItWorks from '@/components/HowItWorks/HowItWorks';
+
 
 export const revalidate = 60;
 
@@ -285,7 +287,8 @@ const exclusiveVouchers = await prisma.voucher.findMany({
 
       
 
-      
+
+      <HowItWorks locale={locale} />  // passes "ar-SA" or "en-SA"
 
       {/* Blog */}
       <HomepageBlogSection locale={locale} count={3} />
