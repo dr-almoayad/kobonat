@@ -53,8 +53,8 @@ header {
 .logo { transition: transform 0.2s ease; }
 .logo:hover { transform: scale(1.02); }
 
-.logo--full    { display: block; height: 30px; width: auto; }
-.logo--compact { display: none;  height: 36px; width: auto; }
+.logo--full    { display: block; height: 35px; width: auto; }
+.logo--compact { display: none;  height: 40px; width: auto; }
 
 /* ── DESKTOP NAV (≥1025px) ───────────────────────────────────────────────────── */
 .header_nav--desktop {
