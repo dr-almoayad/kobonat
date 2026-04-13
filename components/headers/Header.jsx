@@ -11,8 +11,9 @@ import { useTranslations, useLocale } from 'next-intl';
 import { useRouter, usePathname } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
-import coubonatLogo from '../../public/cobonat.webp';
-import coubonatCompactLogo from '../../public/cobonat-compact.webp';
+import coubonatLogo from '../../public/cobonat_logo.webp';
+import coubonatLogoArabic from '../../public/cobonat_logo_arabic.webp';
+import coubonatCompactLogo from '../../public/cobonat_logo_compact.webp';
 import AnimatedSearchInput from '../SmartSearchInput/AnimatedSearchInput';
 import './header.css';
 
@@ -144,7 +145,11 @@ const Header = () => {
           {/* Logo */}
           <div className="logo_container">
             <Link href={`/${currentLocale}`} aria-label="Cobonat home">
-              <Image className="logo logo--full"    src={coubonatLogo}        width={130} height={30} alt="Cobonat" priority />
+              {isArabic ? 
+                <Image className="logo logo--full"    src={coubonatLogoArabic}  width={130} height={30} alt="Cobonat" priority />
+                :
+                <Image className="logo logo--full"    src={coubonatLogo}        width={130} height={30} alt="Cobonat" priority />
+              }
               <Image className="logo logo--compact" src={coubonatCompactLogo} width={36}  height={36} alt="Cobonat" priority />
             </Link>
           </div>
