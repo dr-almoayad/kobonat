@@ -19,7 +19,6 @@ header {
   background: var(--header-bg);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  box-shadow: 0 1px 0 var(--header-border);
 }
 
 /* ── MAIN BAR ────────────────────────────────────────────────────────────────── */
