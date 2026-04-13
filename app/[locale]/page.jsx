@@ -256,8 +256,8 @@ const exclusiveVouchers = await prisma.voucher.findMany({
         />
       )}*/}
 
-      {/* Featured Vouchers */}
-      <FeaturedVouchersSection locale={locale} countryCode={country} />
+      {/* Featured Vouchers 
+      <FeaturedVouchersSection locale={locale} countryCode={country} />*/}
 
       {/* Featured Stores */}
       <FeaturedStoresSection locale={locale} />
