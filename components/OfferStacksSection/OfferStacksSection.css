@@ -1,26 +1,19 @@
-/* components/OfferStacksSection/OfferStacksSection.css */
-
-/* ── Root custom property — shared between section and carousel ─────────── */
 .offer-stacks-section {
   --section-px: 1rem;
-  background: radial-gradient(circle,rgba(70, 11, 226, 1) 0%, rgba(165, 54, 255, 1) 100%);
+  background: radial-gradient(circle, rgba(70, 11, 226, 1) 0%, rgba(165, 54, 255, 1) 100%);
   border-radius: 32px 0 32px 0;
 }
-
 .offer-stacks-inner {
   max-width: 1312px;
   margin: 0 auto;
   padding: 2rem var(--section-px);
 }
-
-/* ── Header ─────────────────────────────────────────────────────────────── */
 .offer-stacks-header {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
   margin-bottom: 1.25rem;
 }
-
 .offer-stacks-header-content h2 {
   font-size: 1.3rem;
   font-weight: 700;
@@ -32,7 +25,6 @@
   font-family: var(--font-alexandria), sans-serif;
   line-height: 1.2;
 }
-
 .offer-stacks-header-content h2 .material-symbols-sharp {
   color: #fff;
   font-size: 1.6rem;
@@ -40,48 +32,28 @@
   -webkit-text-fill-color: transparent;
   text-shadow: 0 0 #ff1f8f, 2px 2px #000;
 }
-
 .offer-stacks-header-content p {
   color: #fff;
   margin: 0;
   font-size: 0.9rem;
   font-family: var(--font-alexandria), sans-serif;
 }
-
-/* ── Desktop ─────────────────────────────────────────────────────────────── */
 @media (min-width: 1024px) {
-  .offer-stacks-header-content h2 {
-    font-size: 1.875rem;
-  }
-
-  .offer-stacks-header {
-    margin-bottom: 1.75rem;
-  }
+  .offer-stacks-header-content h2 { font-size: 1.875rem; }
+  .offer-stacks-header { margin-bottom: 1.75rem; }
 }
-
-/* ── Mobile: full-bleed carousel, no side whitespace ────────────────────── */
 @media (max-width: 768px) {
-  .offer-stacks-section {
-    --section-px: 1rem;
-  }
-
+  .offer-stacks-section { --section-px: 1rem; }
   .offer-stacks-inner {
-    /* Remove side padding — carousel handles its own gutters */
     padding-left: 0;
     padding-right: 0;
     padding-top: 1.5rem;
     padding-bottom: 1rem;
   }
-
-  /* Restore horizontal breathing room for the header text only */
   .offer-stacks-header {
     padding-left: var(--section-px);
     padding-right: var(--section-px);
     margin-bottom: 1rem;
   }
-
-  /* Cards: drop-shadow is composited so it's fine; just ensure isolation */
-  .offer-stacks-section .sb-card {
-    isolation: isolate;
-  }
+  .offer-stacks-section .sb-card { isolation: isolate; }
 }
