@@ -1,4 +1,3 @@
-// components/OfferStacksSection/OfferStacksSection.jsx
 import { buildOfferStacks } from '@/lib/offerStacks';
 import OfferStackBox from '@/components/OfferStackBox/OfferStackBox';
 import EmblaCarousel from '@/components/EmblaCarousel/EmblaCarousel';
@@ -14,8 +13,6 @@ export default async function OfferStacksSection({ locale, countryCode = 'SA' })
       countryCode,
       language: lang,
       limit:    10,
-      // homepageOnly removed — it filtered to only vouchers with isFeaturedStack=true,
-      // causing all other active stacks to be hidden on the homepage.
     });
   } catch (err) {
     console.error('[OfferStacksSection] build error:', err?.message);
@@ -27,8 +24,6 @@ export default async function OfferStacksSection({ locale, countryCode = 'SA' })
   return (
     <section className="offer-stacks-section" dir={isAr ? 'rtl' : 'ltr'}>
       <div className="offer-stacks-inner">
-
-        {/* ── Header ── */}
         <div className="offer-stacks-header">
           <div className="offer-stacks-header-content">
             <h2>
@@ -42,14 +37,11 @@ export default async function OfferStacksSection({ locale, countryCode = 'SA' })
             </p>
           </div>
         </div>
-
-        {/* ── Carousel ── */}
         <EmblaCarousel locale={locale} slideWidth="280px" className="ec-full-bleed">
           {stacks.map((stack) => (
             <OfferStackBox key={stack.storeId} stack={stack} locale={locale} />
           ))}
         </EmblaCarousel>
-
       </div>
     </section>
   );
