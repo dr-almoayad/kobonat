@@ -1,6 +1,5 @@
 /* components/HeroCuratedCarousel/HeroCuratedCarousel.css */
 
-/* ── Root ────────────────────────────────────────────────────────────────── */
 .hcc-root {
   width: 100%;
   padding: 0.2rem 0 1.25rem;
@@ -10,29 +9,19 @@
   background: #fff;
 }
 
-/* On mobile, clip the viewport so the trailing peek stays crisp */
-@media (max-width: 768px) {
-  .hcc-root {
-    /* Fade the trailing 5% to hint at more slides */
-    -webkit-mask-image: linear-gradient(to right, black 92%, transparent 100%);
-    height: 54vh;
-    mask-image: linear-gradient(to right, black 92%, transparent 100%);
-  }
-
-  [dir='rtl'] .hcc-root {
-    -webkit-mask-image: linear-gradient(to left, black 92%, transparent 100%);
-    mask-image: linear-gradient(to left, black 92%, transparent 100%);
-  }
+/* Row with arrows + viewport */
+.hcc-carousel-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
 }
 
-/* ── Embla viewport — must be overflow:hidden ────────────────────────────── */
 .hcc-viewport {
+  flex: 1;
   overflow: hidden;
   width: 100%;
-  height: 100%;
 }
 
-/* ── Flex track ──────────────────────────────────────────────────────────── */
 .hcc-container {
   display: flex;
   gap: 0;
@@ -40,14 +29,14 @@
   will-change: transform;
 }
 
-/* ── Slide wrapper — 75% so ~12.5% of adjacent slides peek on each side ──── */
+/* Slide */
 .hcc-slide {
   flex: 0 0 1296px;
   margin: 0 13px;
   min-width: 0;
 }
 
-/* ── Card (the visible rounded box) ─────────────────────────────────────── */
+/* Card */
 .hcc-slide-card {
   display: flex;
   flex-direction: row;
@@ -62,39 +51,30 @@
   transition: box-shadow 0.2s;
   cursor: pointer;
 }
-
 .hcc-slide-card:hover {
   box-shadow: 0 6px 28px rgba(0, 0, 0, 0.10);
 }
-
-/* RTL — text panel on left, image on right */
 [dir='rtl'] .hcc-slide-card {
   flex-direction: row-reverse;
 }
 
-/* ── Image panel — left 55% ──────────────────────────────────────────────── */
 .hcc-img-panel {
   position: relative;
   flex: 0 0 55%;
   overflow: hidden;
 }
-
 .hcc-img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   object-position: center;
   display: block;
-  /* Subtle zoom on hover */
   transition: transform 0.5s ease;
   draggable: false;
 }
-
 .hcc-slide-card:hover .hcc-img {
   transform: scale(1.03);
 }
-
-/* ── Store logo badge — dark circle, bottom-left of image ───────────────── */
 .hcc-badge {
   position: absolute;
   bottom: 20px;
@@ -109,22 +89,18 @@
   overflow: hidden;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
   border: 2.5px solid rgba(255, 255, 255, 0.15);
-  flex-shrink: 0;
   z-index: 1;
 }
-
 [dir='rtl'] .hcc-badge {
   left: auto;
   right: 20px;
 }
-
 .hcc-badge-img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transform: scale(1.3)
+  transform: scale(1.3);
 }
-
 .hcc-badge-initials {
   font-size: 1.1rem;
   font-weight: 800;
@@ -133,8 +109,6 @@
   font-family: 'Alexandria', 'Open Sans', sans-serif;
   user-select: none;
 }
-
-/* ── Text panel — right 45% ──────────────────────────────────────────────── */
 .hcc-text-panel {
   flex: 1;
   display: flex;
@@ -143,8 +117,6 @@
   padding: 2.5rem 2.75rem;
   background: #fff;
 }
-
-/* Headline */
 .hcc-headline {
   font-size: 1.875rem;
   font-weight: 700;
@@ -152,22 +124,17 @@
   line-height: 1.25;
   margin: 0 0 0.6rem 0;
   font-family: 'Alexandria', 'Open Sans', sans-serif;
-  /* Clamp to 3 lines */
   display: -webkit-box;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
-
-/* "at StoreName" */
 .hcc-store-name {
   font-size: 0.9375rem;
   color: #6b7280;
   margin: 0 0 1.5rem 0;
   font-family: 'Alexandria', 'Open Sans', sans-serif;
 }
-
-/* "SHOP NOW" CTA */
 .hcc-cta {
   display: inline;
   font-size: 0.875rem;
@@ -180,14 +147,43 @@
   font-family: 'Alexandria', 'Open Sans', sans-serif;
 }
 
-/* ── Dots ────────────────────────────────────────────────────────────────── */
+/* Unified arrows */
+.hcc-arrow {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0, 0, 0, 0.04);
+  color: #1f2937;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.hcc-arrow .material-symbols-sharp {
+  font-size: 1.25rem;
+  line-height: 1;
+}
+.hcc-arrow:hover:not(:disabled) {
+  background: #470ae2;
+  color: white;
+  transform: scale(1.04);
+  box-shadow: 0 4px 10px rgba(71, 10, 226, 0.2);
+}
+.hcc-arrow:disabled {
+  opacity: 0.25;
+  cursor: default;
+}
+
+/* Dots */
 .hcc-dots {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 7px;
 }
-
 .hcc-dot {
   width: 8px;
   height: 8px;
@@ -197,170 +193,87 @@
   cursor: pointer;
   padding: 0;
   transition: background 0.2s, width 0.2s, border-radius 0.2s;
-  flex-shrink: 0;
 }
-
 .hcc-dot--active {
   background: #111827;
   width: 24px;
   border-radius: 4px;
 }
 
-/* ── Responsive ──────────────────────────────────────────────────────────── */
-
-/* Medium — tighten text padding, slightly smaller headline */
+/* Responsive */
 @media (max-width: 1024px) {
-  .hcc-slide {
-    flex: 0 0 80%;
-  }
-
-  .hcc-slide-card {
-    height: 320px;
-  }
-
-  .hcc-headline {
-    font-size: 1.5rem;
-  }
-
-  .hcc-text-panel {
-    padding: 1.75rem 2rem;
-  }
-
-  .hcc-badge {
-    width: 64px;
-    height: 64px;
-    bottom: 14px;
-    left: 14px;
-  }
-
-  [dir='rtl'] .hcc-badge {
-    left: auto;
-    right: 14px;
-  }
+  .hcc-slide { flex: 0 0 80%; }
+  .hcc-slide-card { height: 320px; }
+  .hcc-headline { font-size: 1.5rem; }
+  .hcc-text-panel { padding: 1.75rem 2rem; }
+  .hcc-badge { width: 64px; height: 64px; bottom: 14px; left: 14px; }
+  [dir='rtl'] .hcc-badge { left: auto; right: 14px; }
 }
 
-/* ── Tablet + Mobile — Amazon-style portrait cards ───────────────────────────
-   Layout: text panel (purple bg) on TOP, image fills the bottom.
-   One dominant card + peek of next card on the trailing edge.
-   ─────────────────────────────────────────────────────────────────────────── */
 @media (max-width: 768px) {
-
-  /* Root: tighter vertical rhythm */
-  .hcc-root {
-    padding: 0 0 1rem;
-    gap: 0.75rem;
-  }
-
-  .hcc-container{
-    display: flex;
-    gap: 0rem;
-    touch-action: pan-y pinch-zoom;
-    will-change: transform;
-    height: 100%;
-    margin-inline-end: 0rem;
-  }
-
-  .hcc-viewport{
-    overflow: hidden;
-    width: 100%;
-    height: 100%;
-    padding: 0.75rem 0;
-  }
-
-  /* Show ~88% of current card → ~12% peek of the next */
+  .hcc-root { padding: 0 0 1rem; gap: 0.75rem; }
+  .hcc-container { height: 100%; margin-inline-end: 0; }
+  .hcc-viewport { padding: 0.75rem 0; }
   .hcc-slide {
-    flex: 0 0 min(var(--slide-width,296px),calc(100vw - 2.5rem))!important;
+    flex: 0 0 min(var(--slide-width,296px), calc(100vw - 2.5rem)) !important;
     margin: 0 8px;
   }
-  
-
-  /* Portrait card — column layout, text panel FIRST (top) */
   .hcc-slide-card {
     flex-direction: column;
     height: 100%;
     border-radius: 16px;
     box-shadow: 0 4px 20px rgba(71, 10, 226, 0.14);
     border: none;
-    position: relative;
   }
-
-  /* RTL: same column order (text on top, image below) */
-  [dir='rtl'] .hcc-slide-card {
-    flex-direction: column;
-  }
-
-  /* ── Text panel — solid purple background, sits at the top ── */
+  [dir='rtl'] .hcc-slide-card { flex-direction: column; }
   .hcc-text-panel {
-    order: 0;                           /* text first */
+    order: 0;
     flex: 0 0 auto;
     padding: 1.25rem 1.375rem 1rem;
-    border-radius: 0;                  /* card handles radius */
-    background: linear-gradient(180deg,rgba(71, 10, 226, 1) 0%, rgba(255, 255, 255, 0) 50%);
+    background: linear-gradient(180deg, rgba(71, 10, 226, 1) 0%, rgba(255, 255, 255, 0) 50%);
     position: absolute;
     z-index: 2;
-    width: 100%; 
+    width: 100%;
     height: 100%;
     justify-content: flex-start;
   }
-
   .hcc-headline {
     font-size: 1.125rem;
     color: #fff;
-    -webkit-line-clamp: 3;
     margin-bottom: 0.4rem;
   }
-
   .hcc-store-name {
     font-size: 0.8125rem;
     color: rgba(255, 255, 255, 0.72);
     margin-bottom: 0.875rem;
   }
-
   .hcc-cta {
     font-size: 0.8125rem;
     color: #fff;
     text-decoration-color: rgba(255, 255, 255, 0.5);
   }
-
-  /* ── Image panel — fills the bottom portion ── */
   .hcc-img-panel {
-    order: 1;                           /* image second */
+    order: 1;
     flex: 0 0 auto;
     height: 100%;
     width: 100%;
   }
-  
-  /* Badge sits bottom-left of the image panel */
   .hcc-badge {
     width: 58px;
     height: 58px;
     bottom: 12px;
     left: 12px;
   }
+  [dir='rtl'] .hcc-badge { left: auto; right: 12px; }
+  .hcc-dot--active { background: #470ae2; }
 
-  [dir='rtl'] .hcc-badge {
-    left: auto;
-    right: 12px;
-  }
-
-  /* Active dot: purple to match */
-  .hcc-dot--active {
-    background: #470ae2;
-  }
+  /* Hide arrows on mobile for this carousel (optional, but matches typical behaviour) */
+  .hcc-arrow { display: none; }
+  .hcc-carousel-row { gap: 0; }
 }
 
-/* ── Small mobile: slightly taller image, tighter slide width ─────────────── */
 @media (max-width: 420px) {
-
-  .hcc-text-panel {
-    padding: 1rem 1.125rem 0.875rem;
-  }
-
-  .hcc-headline {
-    font-size: 1rem;
-  }
-
-  .hcc-img-panel {
-    height: 100%;
-  }
+  .hcc-text-panel { padding: 1rem 1.125rem 0.875rem; }
+  .hcc-headline { font-size: 1rem; }
+  .hcc-img-panel { height: 100%; }
 }
