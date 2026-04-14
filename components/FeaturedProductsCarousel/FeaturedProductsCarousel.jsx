@@ -15,12 +15,11 @@ const FeaturedProductsCarousel = ({
   storeWebsiteUrl,
   lastUpdated,
   // ── Multi-store mode (homepage) ──
-  // When true: header shows a generic title; each card reads its own store data.
   multiStore = false,
 }) => {
   const t      = useTranslations('FeaturedProducts');
   const locale = useLocale();
-  const isRtl  = locale.startsWith('ar');
+  const isRtl  = locale?.startsWith('ar') ?? false;
 
   const [emblaRef, emblaApi] = useEmblaCarousel({
     align: 'start',
@@ -58,7 +57,7 @@ const FeaturedProductsCarousel = ({
     };
   }, [emblaApi, onSelect]);
 
-  // ── Last-updated label (single-store mode only) ──────────────────────────
+  // ── Last-updated label (single-store mode only) ──
   const formatLastUpdated = () => {
     if (!lastUpdated) return null;
     const diff = Math.floor((Date.now() - new Date(lastUpdated)) / 3600000);
@@ -69,9 +68,8 @@ const FeaturedProductsCarousel = ({
 
   if (!products?.length) return null;
 
-  // ── Header content varies by mode ────────────────────────────────────────
+  // ── Header content varies by mode ──
   const headerContent = multiStore ? (
-    // Multi-store: generic homepage header
     <div className="carousel-header-top">
       <span className="material-symbols-sharp carousel-header-icon">
         auto_awesome
@@ -88,7 +86,6 @@ const FeaturedProductsCarousel = ({
       </div>
     </div>
   ) : (
-    // Single-store: store logo + name + last updated
     <div className="carousel-header-top">
       {storeLogo && (
         <Image
@@ -139,8 +136,6 @@ const FeaturedProductsCarousel = ({
               <div key={product.id} className="embla__slide">
                 <StoreProductCard
                   product={product}
-                  // Single-store: pass shared store props.
-                  // Multi-store: pass undefined — card falls back to product.storeName / product.storeLogo.
                   storeName={multiStore ? undefined : storeName}
                   storeLogo={multiStore ? undefined : storeLogo}
                 />
@@ -149,29 +144,28 @@ const FeaturedProductsCarousel = ({
           </div>
         </div>
 
-        {canScrollPrev && (
-          <button
-            className="embla__button embla__button--prev"
-            onClick={scrollPrev}
-            aria-label={t('previousSlide', { default: 'Previous' })}
-          >
-            <span className="material-symbols-sharp">
-              {isRtl ? 'arrow_forward' : 'arrow_back'}
-            </span>
-          </button>
-        )}
+        {/* Arrows always rendered, disabled when at ends */}
+        <button
+          className="embla__button embla__button--prev"
+          onClick={scrollPrev}
+          disabled={!canScrollPrev}
+          aria-label={t('previousSlide', { default: 'Previous' })}
+        >
+          <span className="material-symbols-sharp">
+            {isRtl ? 'chevron_right' : 'chevron_left'}
+          </span>
+        </button>
 
-        {canScrollNext && (
-          <button
-            className="embla__button embla__button--next"
-            onClick={scrollNext}
-            aria-label={t('nextSlide', { default: 'Next' })}
-          >
-            <span className="material-symbols-sharp">
-              {isRtl ? 'arrow_back' : 'arrow_forward'}
-            </span>
-          </button>
-        )}
+        <button
+          className="embla__button embla__button--next"
+          onClick={scrollNext}
+          disabled={!canScrollNext}
+          aria-label={t('nextSlide', { default: 'Next' })}
+        >
+          <span className="material-symbols-sharp">
+            {isRtl ? 'chevron_left' : 'chevron_right'}
+          </span>
+        </button>
       </div>
 
       {scrollSnaps.length > 1 && (
