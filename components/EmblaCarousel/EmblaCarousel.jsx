@@ -1,14 +1,4 @@
 'use client';
-// components/EmblaCarousel/EmblaCarousel.jsx
-//
-// Shared Embla carousel shell. Accepts RSC-rendered children — no re-render needed.
-//
-// Props:
-//   children    — slides (any RSC or client nodes)
-//   locale      — 'ar-SA' | 'en-SA' — drives RTL direction
-//   slideWidth  — CSS value, e.g. '300px', '220px', '85vw'
-//   slideGap    — CSS gap between slides, default '1rem'
-
 import { useCallback, useEffect, useState } from 'react';
 import useEmblaCarousel from 'embla-carousel-react';
 import './EmblaCarousel.css';
@@ -30,10 +20,10 @@ export default function EmblaCarousel({
     containScroll: false,
   });
 
-  const [canPrev,     setCanPrev]     = useState(false);
-  const [canNext,     setCanNext]     = useState(false);
+  const [canPrev, setCanPrev] = useState(false);
+  const [canNext, setCanNext] = useState(false);
   const [selectedIdx, setSelectedIdx] = useState(0);
-  const [snapCount,   setSnapCount]   = useState(0);
+  const [snapCount, setSnapCount] = useState(0);
 
   const sync = useCallback((api) => {
     setCanPrev(api.canScrollPrev());
@@ -53,74 +43,64 @@ export default function EmblaCarousel({
   const scrollNext = useCallback(() => emblaApi?.scrollNext(), [emblaApi]);
   const scrollTo   = useCallback((i) => emblaApi?.scrollTo(i), [emblaApi]);
 
-  // Normalize children into an array
   const slides = Array.isArray(children) ? children : [children];
 
   return (
     <div className={`ec-root${className ? ` ${className}` : ''}`} dir={isAr ? 'rtl' : 'ltr'}>
+      <div className="ec-carousel-row">
+        <button
+          className="ec-arrow"
+          onClick={isAr ? scrollNext : scrollPrev}
+          disabled={isAr ? !canNext : !canPrev}
+          aria-label={isAr ? 'السابق' : 'Previous'}
+        >
+          <span className="material-symbols-sharp">
+            {isAr ? 'chevron_right' : 'chevron_left'}
+          </span>
+        </button>
 
-      {/* ── Viewport ────────────────────────────────────────────────────── */}
-      <div className="ec-viewport" ref={emblaRef}>
-        {/*
-          NO gap on the container — Embla doesn't measure CSS gap when
-          calculating its scroll range. Use margin on each slide instead,
-          exactly like HeroCuratedCarousel (gap:0 + margin on slide).
-        */}
-        <div className="ec-container">
-          {slides.map((slide, i) => (
-            <div
-              key={i}
-              className="ec-slide"
-              style={{
-                flex: `0 0 ${slideWidth}`,
-                // Half-gap on each side → uniform spacing Embla can measure
-                marginInlineStart: i === 0 ? 0 : `calc(${slideGap} / 2)`,
-                marginInlineEnd:   i === slides.length - 1 ? 0 : `calc(${slideGap} / 2)`,
-              }}
-            >
-              {slide}
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* ── Controls: dots + arrows ──────────────────────────────────────── */}
-      {snapCount > 1 && (
-        <div className="ec-controls">
-          <button
-            className="ec-arrow"
-            onClick={isAr ? scrollNext : scrollPrev}
-            disabled={isAr ? !canNext : !canPrev}
-            aria-label={isAr ? 'السابق' : 'Previous'}
-          >
-            <span className="material-symbols-sharp">
-              {isAr ? 'chevron_right' : 'chevron_left'}
-            </span>
-          </button>
-
-          <div className="ec-dots" role="tablist">
-            {Array.from({ length: snapCount }).map((_, i) => (
-              <button
+        <div className="ec-viewport" ref={emblaRef}>
+          <div className="ec-container">
+            {slides.map((slide, i) => (
+              <div
                 key={i}
-                className={`ec-dot${i === selectedIdx ? ' ec-dot--active' : ''}`}
-                onClick={() => scrollTo(i)}
-                role="tab"
-                aria-selected={i === selectedIdx}
-                aria-label={`Slide ${i + 1}`}
-              />
+                className="ec-slide"
+                style={{
+                  flex: `0 0 ${slideWidth}`,
+                  marginInlineStart: i === 0 ? 0 : `calc(${slideGap} / 2)`,
+                  marginInlineEnd:   i === slides.length - 1 ? 0 : `calc(${slideGap} / 2)`,
+                }}
+              >
+                {slide}
+              </div>
             ))}
           </div>
+        </div>
 
-          <button
-            className="ec-arrow"
-            onClick={isAr ? scrollPrev : scrollNext}
-            disabled={isAr ? !canPrev : !canNext}
-            aria-label={isAr ? 'التالي' : 'Next'}
-          >
-            <span className="material-symbols-sharp">
-              {isAr ? 'chevron_left' : 'chevron_right'}
-            </span>
-          </button>
+        <button
+          className="ec-arrow"
+          onClick={isAr ? scrollPrev : scrollNext}
+          disabled={isAr ? !canPrev : !canNext}
+          aria-label={isAr ? 'التالي' : 'Next'}
+        >
+          <span className="material-symbols-sharp">
+            {isAr ? 'chevron_left' : 'chevron_right'}
+          </span>
+        </button>
+      </div>
+
+      {snapCount > 1 && (
+        <div className="ec-dots" role="tablist">
+          {Array.from({ length: snapCount }).map((_, i) => (
+            <button
+              key={i}
+              className={`ec-dot${i === selectedIdx ? ' ec-dot--active' : ''}`}
+              onClick={() => scrollTo(i)}
+              role="tab"
+              aria-selected={i === selectedIdx}
+              aria-label={`Slide ${i + 1}`}
+            />
+          ))}
         </div>
       )}
     </div>
