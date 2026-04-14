@@ -115,10 +115,7 @@ const CategoryCarouselSubHeader = () => {
                                     className="ccs-item"
                                 >
                                     <div className="ccs-icon-wrap">
-                                        <span className="material-symbols-sharp ccs-icon">
-                                            {category.icon || 'category'}
-                                        </span>
-                                        {/*{category.image ? (
+                                        {{category.image ? (
                                             <Image
                                                 src={category.image}
                                                 width={56}
@@ -130,7 +127,7 @@ const CategoryCarouselSubHeader = () => {
                                             <span className="material-symbols-sharp ccs-icon">
                                                 {category.icon || 'category'}
                                             </span>
-                                        )}*/}
+                                        )}
                                     </div>
                                     <span className="ccs-name">{category.name}</span>
                                 </Link>
