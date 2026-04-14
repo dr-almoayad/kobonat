@@ -1,6 +1,5 @@
 /* components/EmblaCarousel/EmblaCarousel.css */
 
-/* ── Root ───────────────────────────────────────────────────────────────────*/
 .ec-root {
   display: flex;
   flex-direction: column;
@@ -8,82 +7,77 @@
   width: 100%;
 }
 
-/* ── Viewport — Embla needs overflow:hidden ─────────────────────────────────*/
+/* Row with arrows + viewport */
+.ec-carousel-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+/* Viewport – fills remaining space */
 .ec-viewport {
-  width: 100%;
+  flex: 1;
+  overflow: hidden;
   transform: translateZ(0);
 }
 
-/* ── Track ──────────────────────────────────────────────────────────────────*/
+/* Track – no gap, margins on slides */
 .ec-container {
   display: flex;
   touch-action: pan-y pinch-zoom;
   will-change: transform;
   backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-    margin-inline-start: 1rem;
 }
 
-/* ── Slide ──────────────────────────────────────────────────────────────────*/
+/* Slide */
 .ec-slide {
   min-width: 0;
   display: flex;
   flex-direction: column;
   transform: translateZ(0);
   backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
 }
-
 .ec-slide > * {
   flex: 1;
 }
 
-/* ── Controls row (dots + arrows) ───────────────────────────────────────────*/
-.ec-controls {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.75rem;
-}
-
+/* Shared arrow styles */
 .ec-arrow {
-  width: 32px;
-  height: 32px;
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
-  border: 1.5px solid #e2e8f0;
-  background: #fff;
-  color: #475569;
+  border: none;
+  background: rgba(0, 0, 0, 0.04);
+  color: #1f2937;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  flex-shrink: 0;
-  transition: background 0.15s, border-color 0.15s, color 0.15s;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  transition: all 0.2s ease;
 }
-
+.ec-arrow .material-symbols-sharp {
+  font-size: 1.25rem;
+  line-height: 1;
+}
 .ec-arrow:hover:not(:disabled) {
   background: #470ae2;
-  border-color: #470ae2;
-  color: #fff;
+  color: white;
+  transform: scale(1.04);
+  box-shadow: 0 4px 10px rgba(71, 10, 226, 0.2);
 }
-
 .ec-arrow:disabled {
-  opacity: 0.3;
+  opacity: 0.25;
   cursor: default;
 }
 
-.ec-arrow .material-symbols-sharp {
-  font-size: 1rem;
-  line-height: 1;
-}
-
+/* Dots */
 .ec-dots {
   display: flex;
   align-items: center;
-  gap: 6px;
+  justify-content: center;
+  gap: 8px;
 }
-
 .ec-dot {
   width: 7px;
   height: 7px;
@@ -93,47 +87,29 @@
   cursor: pointer;
   padding: 0;
   transition: background 0.2s, width 0.2s, border-radius 0.2s;
-  flex-shrink: 0;
 }
-
 .ec-dot--active {
   background: #470ae2;
   width: 22px;
   border-radius: 4px;
 }
 
-/* ── Full‑bleed on mobile (used by OfferStacksSection) ───────────────────── */
+/* Full‑bleed mobile (used by OfferStacksSection) */
 @media (max-width: 768px) {
   .ec-full-bleed {
-    /*
-      Extend the root edge-to-edge so the carousel visually bleeds to the
-      screen edges, while the parent section still has its own padding.
-    */
     margin-left:  calc(-1 * var(--section-px, 1rem));
     margin-right: calc(-1 * var(--section-px, 1rem));
     width: calc(100% + 2 * var(--section-px, 1rem));
   }
-
-  /*
-    Clearance from screen edge is achieved with padding on the viewport
-    (NOT on the container — Embla ignores container padding in range calc).
-    This pushes the first slide inward visually.
-  */
   .ec-full-bleed .ec-viewport {
     padding-inline-start: var(--section-px, 1rem);
     box-sizing: border-box;
   }
-
-  /*
-    Trailing clearance: override the last slide's inline-end margin to match
-    the leading padding. Embla DOES measure slide margins, so the scroll range
-    extends fully to reveal the last card.
-  */
   .ec-full-bleed .ec-slide:last-child {
     margin-inline-end: var(--section-px, 1rem) !important;
   }
-
-  .ec-full-bleed .ec-controls {
+  .ec-full-bleed .ec-arrow,
+  .ec-full-bleed .ec-dots {
     display: none;
   }
 }
