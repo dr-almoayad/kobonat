@@ -1,39 +1,47 @@
 // app/sitemap.js
 // ─────────────────────────────────────────────────────────────────────────────
 // Sections:
-//  1. Homepage
-//  2. All-stores page
-//  3. Categories listing page      ← NEW
-//  4. Coupons page
-//  5. Static pages
-//  6. Individual category pages    ← now at /categories/[slug]
-//  7. Individual store pages
-//  8. Blog index page
-//  9. Individual blog post pages
+//  1.  Homepages
+//  2.  All-stores page
+//  3.  Categories listing page
+//  4.  Coupons page (page 1 only — rel="next"/"prev" handles the rest)
+//  5.  Stacks page (page 1 only)
+//  6.  Static pages
+//  7.  Individual category pages   → /categories/[slug]
+//  8.  Individual store pages      → /stores/[slug]
+//  9.  Seasonal pages              → /seasonal/[slug]
+//  10. Blog index page
+//  11. Individual blog post pages
 //
-// KEY CHANGE: Category pages are now at /categories/[slug], not /stores/[slug].
-// The old /stores/[slug] URLs for categories 301-redirect to /categories/[slug]
-// via permanentRedirect() in the stores/[slug]/page.jsx.
-// The sitemap reflects the new canonical URL so Googlebot discovers the right
-// destination directly rather than following a redirect chain.
+// hreflang rules:
+//  - A locale is only included in alternates when the URL will actually resolve
+//    (translation exists + country region matches for stores).
+//  - x-default always points to ar-SA if that locale is present, otherwise the
+//    first valid locale found.
+//  - Entries are deduplicated before returning to prevent sitemap bloat.
+//
+// Search pages are intentionally excluded — they are marked noindex in page
+// metadata and also blocked in robots.js.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { prisma }        from '@/lib/prisma';
+import { prisma }         from '@/lib/prisma';
 import { allLocaleCodes } from '@/i18n/locales';
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://cobonat.me';
-const LOCALES  = allLocaleCodes;
+const LOCALES  = allLocaleCodes; // ['ar-SA', 'en-SA']
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 function getMostRecentDate(...dates) {
   const valid = dates.filter(d => d instanceof Date && !isNaN(d));
-  return valid.length > 0 ? new Date(Math.max(...valid.map(d => d.getTime()))) : new Date();
+  return valid.length > 0
+    ? new Date(Math.max(...valid.map(d => d.getTime())))
+    : new Date();
 }
 
 /**
- * Alternates for paths that are identical across every locale.
- * Always includes x-default → ar-SA (primary market).
+ * Build alternates for paths that are identical across every locale.
+ * Always includes x-default → ar-SA.
  */
 function allAlternates(path = '') {
   const languages = Object.fromEntries(
@@ -43,44 +51,88 @@ function allAlternates(path = '') {
   return languages;
 }
 
+/**
+ * Build a validated alternates object from a map of locale → url.
+ * Ensures x-default points to ar-SA when available.
+ * Returns null if no valid URLs exist.
+ */
+function buildAlternates(localeUrlMap) {
+  if (!localeUrlMap || Object.keys(localeUrlMap).length === 0) return null;
+
+  const xDefault = localeUrlMap['ar-SA'] || Object.values(localeUrlMap)[0];
+  return {
+    ...localeUrlMap,
+    'x-default': xDefault,
+  };
+}
+
+/**
+ * Deduplicate sitemap entries by URL.
+ * Later entries for the same URL are discarded (first-wins).
+ */
+function deduplicateEntries(entries) {
+  const seen = new Set();
+  return entries.filter(entry => {
+    if (seen.has(entry.url)) return false;
+    seen.add(entry.url);
+    return true;
+  });
+}
+
 // ── Sitemap ───────────────────────────────────────────────────────────────────
 
 export default async function sitemap() {
   const urls = [];
 
   try {
+    // =========================================================================
+    // Shared "latest update" timestamps — avoids repeated queries
+    // =========================================================================
+    const [
+      latestVoucherUpdate,
+      latestStoreUpdate,
+      latestPostUpdate,
+    ] = await Promise.all([
+      prisma.voucher.findFirst({
+        orderBy: { updatedAt: 'desc' },
+        select:  { updatedAt: true },
+      }),
+      prisma.store.findFirst({
+        where:   { isActive: true },
+        orderBy: { updatedAt: 'desc' },
+        select:  { updatedAt: true },
+      }),
+      prisma.blogPost.findFirst({
+        where:   { status: 'PUBLISHED' },
+        orderBy: { updatedAt: 'desc' },
+        select:  { updatedAt: true },
+      }),
+    ]);
+
+    const voucherDate = latestVoucherUpdate?.updatedAt || new Date();
+    const storeDate   = latestStoreUpdate?.updatedAt   || new Date();
+    const postDate    = latestPostUpdate?.updatedAt    || new Date();
 
     // =========================================================================
-    // 1. HOMEPAGE
+    // 1. HOMEPAGES
     // =========================================================================
-    const latestVoucherUpdate = await prisma.voucher.findFirst({
-      orderBy: { updatedAt: 'desc' },
-      select:  { updatedAt: true },
-    });
-
     LOCALES.forEach(locale => {
       urls.push({
         url:             `${BASE_URL}/${locale}`,
-        lastModified:    latestVoucherUpdate?.updatedAt || new Date(),
-        changeFrequency: 'daily',   // was 'hourly' — misleading and harms trust
+        lastModified:    voucherDate,
+        changeFrequency: 'daily',
         priority:        1.0,
         alternates: { languages: allAlternates() },
       });
     });
 
     // =========================================================================
-    // 2. ALL STORES PAGE
+    // 2. ALL-STORES PAGE
     // =========================================================================
-    const latestStoreUpdate = await prisma.store.findFirst({
-      where:   { isActive: true },
-      orderBy: { updatedAt: 'desc' },
-      select:  { updatedAt: true },
-    });
-
     LOCALES.forEach(locale => {
       urls.push({
         url:             `${BASE_URL}/${locale}/stores`,
-        lastModified:    latestStoreUpdate?.updatedAt || new Date(),
+        lastModified:    storeDate,
         changeFrequency: 'daily',
         priority:        0.9,
         alternates: { languages: allAlternates('/stores') },
@@ -88,12 +140,12 @@ export default async function sitemap() {
     });
 
     // =========================================================================
-    // 3. CATEGORIES LISTING PAGE  ← NEW
+    // 3. CATEGORIES LISTING PAGE
     // =========================================================================
     LOCALES.forEach(locale => {
       urls.push({
         url:             `${BASE_URL}/${locale}/categories`,
-        lastModified:    latestStoreUpdate?.updatedAt || new Date(),
+        lastModified:    storeDate,
         changeFrequency: 'weekly',
         priority:        0.9,
         alternates: { languages: allAlternates('/categories') },
@@ -101,12 +153,15 @@ export default async function sitemap() {
     });
 
     // =========================================================================
-    // 4. COUPONS PAGE  (page 1 only — paginated pages use rel=next/prev)
+    // 4. COUPONS PAGE (page 1 only)
+    // Paginated pages are linked via rel="next"/"prev" in the page component.
+    // Including them here would create near-duplicate entries that dilute
+    // crawl budget without adding indexable value.
     // =========================================================================
     LOCALES.forEach(locale => {
       urls.push({
         url:             `${BASE_URL}/${locale}/coupons`,
-        lastModified:    latestVoucherUpdate?.updatedAt || new Date(),
+        lastModified:    voucherDate,
         changeFrequency: 'hourly',
         priority:        0.9,
         alternates: { languages: allAlternates('/coupons') },
@@ -114,7 +169,20 @@ export default async function sitemap() {
     });
 
     // =========================================================================
-    // 5. STATIC PAGES
+    // 5. STACKS PAGE (page 1 only)
+    // =========================================================================
+    LOCALES.forEach(locale => {
+      urls.push({
+        url:             `${BASE_URL}/${locale}/stacks`,
+        lastModified:    storeDate,
+        changeFrequency: 'daily',
+        priority:        0.8,
+        alternates: { languages: allAlternates('/stacks') },
+      });
+    });
+
+    // =========================================================================
+    // 6. STATIC PAGES
     // =========================================================================
     const staticPages = [
       { slug: 'about',   priority: 0.6, changeFreq: 'monthly' },
@@ -138,11 +206,12 @@ export default async function sitemap() {
     });
 
     // =========================================================================
-    // 6. INDIVIDUAL CATEGORY PAGES  (now at /categories/[slug])
+    // 7. INDIVIDUAL CATEGORY PAGES  → /categories/[slug]
     //
-    // Each category has different slugs per locale (e.g. "إلكترونيات" vs
-    // "electronics"). We only include locales where a real translation exists.
-    // x-default points to the ar-SA slug.
+    // Per-locale slugs differ (e.g. "إلكترونيات" vs "electronics").
+    // We only emit a locale entry when a real translation slug exists.
+    // The sitemap path is /categories/[slug], not /stores/[slug] —
+    // the old /stores/* category URLs redirect here via permanentRedirect().
     // =========================================================================
     const categories = await prisma.category.findMany({
       include: {
@@ -156,46 +225,50 @@ export default async function sitemap() {
     });
 
     for (const category of categories) {
+      // Skip categories with no active stores — they produce empty pages
       if (category.stores.length === 0) continue;
 
       const storeUpdates = category.stores.map(s => s.store.updatedAt);
       const lastModified = getMostRecentDate(category.updatedAt, ...storeUpdates);
 
-      // Build URL only for locales where a real slug exists
+      // Build validated locale → URL map
       const validUrls = new Map();
       for (const locale of LOCALES) {
         const [language] = locale.split('-');
         const translation = category.translations.find(t => t.locale === language);
+
+        // Only add this locale if a real slug exists
         if (translation?.slug) {
-          // NOTE: path is now /categories/[slug] not /stores/[slug]
           validUrls.set(locale, `${BASE_URL}/${locale}/categories/${translation.slug}`);
         }
       }
 
       if (validUrls.size === 0) continue;
 
-      const arSAUrl = validUrls.get('ar-SA') || validUrls.values().next().value;
-      const languages = {
-        ...Object.fromEntries(validUrls.entries()),
-        'x-default': arSAUrl,
-      };
+      const localeUrlMap = Object.fromEntries(validUrls.entries());
+      const alternates   = buildAlternates(localeUrlMap);
 
+      // Emit one entry per valid locale URL — each needs its own canonical
       for (const [, url] of validUrls.entries()) {
         urls.push({
           url,
           lastModified,
           changeFrequency: 'daily',
           priority:        0.8,
-          alternates: { languages },
+          alternates: { languages: alternates },
         });
       }
     }
 
     // =========================================================================
-    // 7. INDIVIDUAL STORE PAGES
+    // 8. INDIVIDUAL STORE PAGES  → /stores/[slug]
     //
-    // Only locales where both a translation AND a country-region match exist.
-    // x-default → ar-SA. changeFrequency 'daily' (not 'hourly').
+    // A locale is only included when:
+    //   a) A translation exists for that language
+    //   b) The store is associated with the locale's country region
+    //
+    // This prevents hreflang pointing to URLs that would return 404
+    // (store not available in that country) or empty content (no translation).
     // =========================================================================
     const stores = await prisma.store.findMany({
       where:   { isActive: true },
@@ -218,8 +291,11 @@ export default async function sitemap() {
       const validUrls = new Map();
       for (const locale of LOCALES) {
         const [language, region] = locale.split('-');
+
+        // Gate 1: store must be available in this locale's country region
         if (!countryCodes.includes(region)) continue;
 
+        // Gate 2: a translation slug must exist for this language
         const translation = store.translations.find(t => t.locale === language);
         if (!translation?.slug) continue;
 
@@ -228,11 +304,8 @@ export default async function sitemap() {
 
       if (validUrls.size === 0) continue;
 
-      const arSAUrl = validUrls.get('ar-SA') || validUrls.values().next().value;
-      const languages = {
-        ...Object.fromEntries(validUrls.entries()),
-        'x-default': arSAUrl,
-      };
+      const localeUrlMap = Object.fromEntries(validUrls.entries());
+      const alternates   = buildAlternates(localeUrlMap);
 
       for (const [, url] of validUrls.entries()) {
         urls.push({
@@ -240,24 +313,57 @@ export default async function sitemap() {
           lastModified,
           changeFrequency: 'daily',
           priority:        store.isFeatured ? 0.85 : 0.75,
-          alternates: { languages },
+          alternates: { languages: alternates },
         });
       }
     }
 
     // =========================================================================
-    // 8. BLOG INDEX PAGE
+    // 9. SEASONAL PAGES  → /seasonal/[slug]
+    //
+    // Only active pages that are available in at least one country.
+    // Both locales share the same slug (unlike stores/categories).
     // =========================================================================
-    const latestPostUpdate = await prisma.blogPost.findFirst({
-      where:   { status: 'PUBLISHED' },
-      orderBy: { updatedAt: 'desc' },
-      select:  { updatedAt: true },
+    const seasonalPages = await prisma.seasonalPage.findMany({
+      where:   { isActive: true },
+      include: {
+        translations: true,
+        countries:    { include: { country: true } },
+      },
+      orderBy: { createdAt: 'desc' },
     });
 
+    for (const page of seasonalPages) {
+      // Skip if no countries configured — page would return 403
+      if (page.countries.length === 0) continue;
+
+      // Only include if at least one translation has a title
+      const hasContent = page.translations.some(t => t.title);
+      if (!hasContent) continue;
+
+      const localeUrlMap = Object.fromEntries(
+        LOCALES.map(locale => [locale, `${BASE_URL}/${locale}/seasonal/${page.slug}`])
+      );
+      const alternates = buildAlternates(localeUrlMap);
+
+      LOCALES.forEach(locale => {
+        urls.push({
+          url:             `${BASE_URL}/${locale}/seasonal/${page.slug}`,
+          lastModified:    page.updatedAt,
+          changeFrequency: 'weekly',
+          priority:        0.75,
+          alternates: { languages: alternates },
+        });
+      });
+    }
+
+    // =========================================================================
+    // 10. BLOG INDEX PAGE
+    // =========================================================================
     LOCALES.forEach(locale => {
       urls.push({
         url:             `${BASE_URL}/${locale}/blog`,
-        lastModified:    latestPostUpdate?.updatedAt || new Date(),
+        lastModified:    postDate,
         changeFrequency: 'daily',
         priority:        0.85,
         alternates: { languages: allAlternates('/blog') },
@@ -265,25 +371,22 @@ export default async function sitemap() {
     });
 
     // =========================================================================
-    // NOTE — Blog category filter pages (?category=slug) intentionally omitted.
+    // 11. INDIVIDUAL BLOG POST PAGES
     //
-    // The blog page sets `robots: 'noindex, follow'` on filtered views.
-    // Including noindex pages in a sitemap creates "Submitted URL marked noindex"
-    // errors in Search Console and wastes crawl budget.
-    // =========================================================================
-
-    // =========================================================================
-    // 9. INDIVIDUAL BLOG POST PAGES
-    // Both locale variants share the same slug.
-    // x-default → ar-SA.
+    // Both locales share the same slug. We check that the post actually has
+    // a published translation for each locale before including it — a post
+    // with only an Arabic translation should not get an en-SA hreflang entry
+    // pointing to a page with empty content (soft 404 risk).
     // =========================================================================
     const blogPosts = await prisma.blogPost.findMany({
       where:   { status: 'PUBLISHED' },
+      include: { translations: { select: { locale: true } } },
       select: {
-        slug:        true,
-        isFeatured:  true,
-        publishedAt: true,
-        updatedAt:   true,
+        slug:         true,
+        isFeatured:   true,
+        publishedAt:  true,
+        updatedAt:    true,
+        translations: { select: { locale: true } },
       },
       orderBy: { publishedAt: 'desc' },
     });
@@ -291,38 +394,56 @@ export default async function sitemap() {
     for (const post of blogPosts) {
       const lastModified = getMostRecentDate(post.updatedAt, post.publishedAt);
 
-      const postAlternates = {
-        ...Object.fromEntries(LOCALES.map(loc => [loc, `${BASE_URL}/${loc}/blog/${post.slug}`])),
-        'x-default': `${BASE_URL}/ar-SA/blog/${post.slug}`,
-      };
+      // Build validated locale map — only include locales with real content
+      const localeUrlMap = {};
+      for (const locale of LOCALES) {
+        const [language] = locale.split('-');
+        const hasTranslation = post.translations.some(t => t.locale === language);
+        if (hasTranslation) {
+          localeUrlMap[locale] = `${BASE_URL}/${locale}/blog/${post.slug}`;
+        }
+      }
 
-      LOCALES.forEach(locale => {
+      if (Object.keys(localeUrlMap).length === 0) continue;
+
+      const alternates = buildAlternates(localeUrlMap);
+
+      // Emit one entry per valid locale
+      for (const [, url] of Object.entries(localeUrlMap)) {
         urls.push({
-          url:             `${BASE_URL}/${locale}/blog/${post.slug}`,
+          url,
           lastModified,
           changeFrequency: 'weekly',
           priority:        post.isFeatured ? 0.8 : 0.7,
-          alternates: { languages: postAlternates },
+          alternates: { languages: alternates },
         });
-      });
+      }
     }
 
-    // ── Summary ──────────────────────────────────────────────────────────────
-    const uniqueUrls = new Set(urls.map(u => u.url)).size;
-    console.log(`✅ Sitemap: ${urls.length} entries (${uniqueUrls} unique URLs)`);
-    if (urls.length > 45000) {
-      console.warn('⚠️  Sitemap approaching 50k limit — consider splitting into sitemap index.');
+    // =========================================================================
+    // Final: deduplicate and log
+    // =========================================================================
+    const deduplicated = deduplicateEntries(urls);
+    const uniqueUrls   = deduplicated.length;
+
+    console.log(`✅ Sitemap: ${uniqueUrls} unique entries (${urls.length - uniqueUrls} duplicates removed)`);
+
+    if (uniqueUrls > 45000) {
+      console.warn('⚠️  Sitemap approaching 50k limit — split into sitemap index before deploying.');
     }
 
-    return urls;
+    return deduplicated;
 
   } catch (error) {
     console.error('❌ Sitemap generation error:', error);
+
+    // Minimal fallback so Googlebot always gets something valid
     return LOCALES.map(locale => ({
       url:             `${BASE_URL}/${locale}`,
       lastModified:    new Date(),
       changeFrequency: 'daily',
       priority:        1.0,
+      alternates: { languages: allAlternates() },
     }));
   }
 }
