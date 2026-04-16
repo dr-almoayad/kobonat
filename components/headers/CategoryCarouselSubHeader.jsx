@@ -115,7 +115,7 @@ const CategoryCarouselSubHeader = () => {
                                     className="ccs-item"
                                 >
                                     <div className="ccs-icon-wrap">
-                                        {{category.image ? (
+                                        {category.image ? (
                                             <Image
                                                 src={category.image}
                                                 width={56}
