@@ -1,5 +1,5 @@
 /* CategoryCarouselSubHeader.css
-   Border‑free · Minimalistic · Sales‑focused
+   Mobile-First · Border‑free · Minimalistic · Sales‑focused
    Max width: 1312px (whole component, arrows included)
    RTL‑compatible · Embla‑powered
    ─────────────────────────────────────────────────────────────────────────── */
@@ -31,21 +31,22 @@
 
 /* ── Inner container: exactly 1312px max, centered ─────────────────────────── */
 .ccs-inner {
+  position: relative; /* Anchor for absolute arrows */
   display: flex;
   align-items: center;
   justify-content: center;
   width: 100%;
-  max-width: 1312px;      /* whole component – arrows + viewport */
+  max-width: 1312px;
   margin: 0 auto;
   padding: 0 1rem;
   box-sizing: border-box;
 }
 
-/* ── Embla viewport – takes remaining space after arrows ───────────────────── */
+/* ── Embla viewport ────────────────────────────────────────────────────────── */
 .ccs-viewport {
   overflow: hidden;
-  flex: 1;                /* fills space between arrows */
-  min-width: 0;           /* prevents overflow */
+  flex: 1;
+  min-width: 0;
 }
 
 /* ── Embla track ────────────────────────────────────────────────────────────── */
@@ -64,7 +65,7 @@
   min-width: 0;
 }
 
-/* ── Category link – no borders, subtle hover ───────────────────────────────── */
+/* ── Category link ──────────────────────────────────────────────────────────── */
 .ccs-item {
   display: flex;
   flex-direction: column;
@@ -89,7 +90,7 @@
   border-radius: 16px;
 }
 
-/* ── Icon wrapper – clean ───────────────────────────────────────────────────── */
+/* ── Icon wrapper ───────────────────────────────────────────────────────────── */
 .ccs-icon-wrap {
   width: 56px;
   height: 56px;
@@ -144,40 +145,28 @@
   color: #470ae2;
 }
 
-/* ── Arrows – subtle, no borders ───────────────────────────────────────────── */
+/* ── Arrows – Base (Hidden on Mobile/Tablet) ───────────────────────────────── */
 .ccs-arrow {
   display: none;
   flex-shrink: 0;
-  width: 36px;
-  height: 36px;
+  width: 38px;
+  height: 38px;
   border-radius: 50%;
-  background: rgba(0, 0, 0, 0.03);
+  background: #ffffff;
   color: #4b5563;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  margin: 0 0.5rem;
+  border: 1px solid rgba(0, 0, 0, 0.05);
   transition: all 0.2s ease;
-  box-shadow: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  z-index: 10;
 }
 
 .ccs-arrow .material-symbols-sharp {
-  font-size: 1.2rem;
+  font-size: 1.3rem;
   line-height: 1;
   display: block;
-}
-
-.ccs-arrow:hover:not(:disabled) {
-  background: #470ae2;
-  color: #ffffff;
-  transform: scale(1.04);
-  box-shadow: 0 4px 10px rgba(71, 10, 226, 0.2);
-}
-
-.ccs-arrow:disabled {
-  opacity: 0.2;
-  cursor: default;
-  background: rgba(0, 0, 0, 0.02);
 }
 
 /* ══════════════════════════════════════════════════════════════════════════════
@@ -194,13 +183,31 @@
 
 /* ══════════════════════════════════════════════════════════════════════════════
    DESKTOP  ≥ 1024px
-   – Arrows visible
-   – Slide width 86px
-   – Hover lift
+   – Arrows visible, absolutely positioned to prevent layout shift
 ══════════════════════════════════════════════════════════════════════════════ */
 @media (min-width: 1024px) {
   .ccs-arrow {
     display: flex;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  .ccs-arrow:hover {
+    background: #470ae2;
+    color: #ffffff;
+    border-color: #470ae2;
+    transform: translateY(-50%) scale(1.05);
+    box-shadow: 0 4px 10px rgba(71, 10, 226, 0.25);
+  }
+
+  /* Logical CSS ensures proper RTL mapping out of the box */
+  .ccs-arrow-prev {
+    inset-inline-start: 4px;
+  }
+  
+  .ccs-arrow-next {
+    inset-inline-end: 4px;
   }
 
   .ccs-slide {
@@ -228,11 +235,17 @@
 }
 
 /* ══════════════════════════════════════════════════════════════════════════════
-   LARGE SCREENS – ensure max-width 1312px is enforced
+   LARGE SCREENS
 ══════════════════════════════════════════════════════════════════════════════ */
 @media (min-width: 1312px) {
   .ccs-inner {
-    padding: 0;           /* no extra padding, stays exactly 1312px */
+    padding: 0 1rem;
+  }
+  .ccs-arrow-prev {
+    inset-inline-start: -12px;
+  }
+  .ccs-arrow-next {
+    inset-inline-end: -12px;
   }
 }
 
