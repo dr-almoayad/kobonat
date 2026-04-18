@@ -22,15 +22,18 @@ function LogoBadge({ logo, name }) {
 function HeroSlide({ slide, isAr, isActive }) {
   return (
     <Link href={slide.ctaUrl || '#'} className="hcc-slide-card" aria-label={slide.title}>
+      
+      {/* Background Image Panel */}
       <div className="hcc-img-panel">
         <img src={slide.offerImage} alt={slide.title} className="hcc-img" draggable={false} />
-        <LogoBadge logo={slide.storeLogo} name={slide.storeName} />
+        <div className="hcc-img-overlay" />
       </div>
+
+      {/* Floating Store Logo */}
+      <LogoBadge logo={slide.storeLogo} name={slide.storeName} />
+      
+      {/* Premium Floating Text Box */}
       <div className="hcc-text-panel">
-        {/*<div className="hcc-tag">
-          <span className="material-symbols-sharp" style={{ fontSize: '1rem' }}>local_fire_department</span>
-          {isAr ? 'عرض حصري' : 'HOT DEAL'}
-        </div>*/}
         <h2 className="hcc-headline">{slide.title}</h2>
         {slide.storeName && (
           <p className="hcc-store-name">
@@ -53,7 +56,7 @@ function HeroSlide({ slide, isAr, isActive }) {
 export default function HeroCuratedCarousel({ slides, locale }) {
   const isAr = locale?.split('-')[0] === 'ar';
 
-  // loop: false is required to hide arrows at the start/end
+  // Infinite Loop Enabled
   const [emblaRef, emblaApi] = useEmblaCarousel({
     loop:      true, 
     align:     'center',
