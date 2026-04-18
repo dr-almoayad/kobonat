@@ -1,20 +1,16 @@
-/* components/HeroCuratedCarousel/HeroCuratedCarousel.css */
-/* Mobile First · Bleed-out · Immersive Floating UI */
-
 :root {
   --hcc-max-width: 1312px;
-  --hcc-mobile-width: 86vw;
+  --hcc-mobile-width: 88vw;
+  --hcc-height-sm: 340px;
+  --hcc-height-md: 380px;
+  --hcc-height-lg: 420px; /* Reduced height */
 }
 
-/* ── Base Wrapper ────────────────────────────────────────────────────────── */
 .hcc-root {
   position: relative;
   width: 100%;
-  padding: 1.5rem 0 2rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
-  background: #f8fafc;
+  padding: 1rem 0 2rem;
+  background: #fdfdfd;
   overflow: hidden;
 }
 
@@ -25,19 +21,17 @@
 
 .hcc-container {
   display: flex;
-  gap: 0;
-  touch-action: pan-y pinch-zoom;
   will-change: transform;
 }
 
-/* ── Slide Setup (Mobile Defaults) ───────────────────────────────────────── */
+/* ── Slide Styling ───────────────────────────────────────────────────────── */
 .hcc-slide {
   flex: 0 0 var(--hcc-mobile-width);
-  margin: 0 8px;
+  margin: 0 10px;
   min-width: 0;
-  transition: transform 0.4s cubic-bezier(0.2, 0.9, 0.4, 1.1), opacity 0.4s ease;
-  opacity: 0.6;
-  transform: scale(0.94);
+  transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.6s ease;
+  opacity: 0.4;
+  transform: scale(0.92);
 }
 
 .hcc-slide.is-active {
@@ -45,241 +39,122 @@
   transform: scale(1);
 }
 
-/* ── Card (Immersive Layout) ─────────────────────────────────────────────── */
 .hcc-slide-card {
-  position: relative; /* Anchors absolute children */
+  position: relative;
   display: flex;
-  height: 440px;
-  border-radius: 24px;
+  height: var(--hcc-height-sm);
+  border-radius: 20px;
   overflow: hidden;
   text-decoration: none;
-  background: #cbd5e1;
-  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.1);
+  background: #eee;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
   cursor: pointer;
-  transition: box-shadow 0.3s ease;
 }
 
-.hcc-slide-card:hover {
-  box-shadow: 0 20px 40px -10px rgba(71, 10, 226, 0.2);
-}
-
-/* ── Background Image Panel ──────────────────────────────────────────────── */
+/* ── Background & Overlay ────────────────────────────────────────────────── */
 .hcc-img-panel {
   position: absolute;
   inset: 0;
-  width: 100%;
-  height: 100%;
   z-index: 1;
-  overflow: hidden;
 }
 
 .hcc-img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center;
-  display: block;
-  transition: transform 0.8s cubic-bezier(0.2, 0.9, 0.4, 1.1);
 }
 
-/* Smooth gradient overlay to ensure the background isn't too harsh */
 .hcc-img-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(to top, rgba(0, 0, 0, 0.4) 0%, rgba(0, 0, 0, 0) 60%);
+  background: linear-gradient(to top, rgba(0,0,0,0.3) 0%, transparent 50%);
   z-index: 2;
 }
 
-.hcc-slide-card:hover .hcc-img {
-  transform: scale(1.05);
-}
-
-/* ── Floating Store Badge ────────────────────────────────────────────────── */
+/* ── Logo ────────────────────────────────────────────────────────────────── */
 .hcc-badge {
   position: absolute;
-  top: 16px;
-  inset-inline-end: 16px;
-  width: 56px;
-  height: 56px;
+  top: 12px;
+  inset-inline-end: 12px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
   background: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-  border: 2px solid #ffffff;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
   z-index: 10;
+  border: 2px solid #fff;
 }
 
-.hcc-badge-img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-}
+.hcc-badge-img { width: 80%; height: 80%; object-fit: contain; }
 
-.hcc-badge-initials {
-  font-size: 1.1rem;
-  font-weight: 800;
-  color: #0f172a;
-  font-family: 'Alexandria', sans-serif;
-}
-
-/* ── Floating Text Panel (Frosted Glass Appearance) ──────────────────────── */
+/* ── Salesly Glass Text Box ──────────────────────────────────────────────── */
 .hcc-text-panel {
   position: absolute;
-  bottom: 16px;
-  inset-inline-start: 16px;
-  inset-inline-end: 16px; /* Spans across mobile width */
+  bottom: 12px;
+  inset-inline: 12px;
   z-index: 10;
-  display: flex;
-  flex-direction: column;
-  padding: 1.5rem;
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-radius: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.6);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  padding: 1.25rem;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.5);
 }
 
 .hcc-headline {
-  font-size: 1.25rem;
+  font-size: 1.15rem;
   font-weight: 800;
-  color: #0f172a;
-  line-height: 1.3;
-  margin: 0 0 0.4rem 0;
+  color: #111;
+  margin: 0 0 4px 0;
   font-family: 'Alexandria', sans-serif;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+  line-height: 1.2;
 }
 
 .hcc-store-name {
-  font-size: 0.875rem;
-  color: #475569;
-  margin: 0 0 1.25rem 0;
-}
-
-.hcc-store-name strong {
-  color: #0f172a;
-  font-weight: 700;
-}
-
-.hcc-cta-wrapper {
-  margin-top: auto;
+  font-size: 0.85rem;
+  color: #555;
+  margin-bottom: 1rem;
 }
 
 .hcc-cta {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  font-size: 0.875rem;
+  gap: 6px;
+  font-size: 0.8rem;
   font-weight: 700;
-  letter-spacing: 0.02em;
-  color: #ffffff;
-  background: #0f172a; /* Dark premium pill */
-  padding: 12px 24px;
-  border-radius: 100px;
-  font-family: 'Alexandria', sans-serif;
-  transition: background 0.2s, transform 0.2s;
+  color: #fff;
+  background: #111;
+  padding: 8px 18px;
+  border-radius: 50px;
+  transition: background 0.3s;
 }
 
-.hcc-slide-card:hover .hcc-cta {
-  background: #470ae2; /* Shifts to primary blue/purple on hover */
-  transform: translateX(4px);
-}
-[dir='rtl'] .hcc-slide-card:hover .hcc-cta {
-  transform: translateX(-4px);
-}
+.hcc-slide-card:hover .hcc-cta { background: #470ae2; }
 
-/* ── Arrows (Hidden on Mobile) ───────────────────────────────────────────── */
-.hcc-arrow-bounds {
-  display: none;
-}
-
-/* ── Dots ────────────────────────────────────────────────────────────────── */
-.hcc-dots {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-}
-
-.hcc-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  border: none;
-  background: #cbd5e1;
-  cursor: pointer;
-  padding: 0;
-  transition: all 0.3s ease;
-}
-
-.hcc-dot--active {
-  background: #470ae2;
-  width: 24px;
-  border-radius: 4px;
-}
-
-/* ═════════════════════════════════════════════════════════════════════════
-   TABLET (≥ 768px)
-═════════════════════════════════════════════════════════════════════════ */
+/* ── Desktop Adjustments ─────────────────────────────────────────────────── */
 @media (min-width: 768px) {
-  .hcc-slide {
-    flex: 0 0 70vw;
-    margin: 0 12px;
-  }
-  
-  .hcc-text-panel {
-    padding: 2rem;
-    inset-inline-end: auto; /* Unlocks full width expansion */
-    width: 360px; /* Card takes up partial space */
-  }
+  .hcc-slide { flex: 0 0 70vw; }
+  .hcc-slide-card { height: var(--hcc-height-md); }
+  .hcc-text-panel { width: 340px; inset-inline-end: auto; }
 }
 
-/* ═════════════════════════════════════════════════════════════════════════
-   DESKTOP (≥ 1024px) - ARROWS VISIBLE & FIXED SLIDE WIDTH
-═════════════════════════════════════════════════════════════════════════ */
 @media (min-width: 1024px) {
-  .hcc-slide {
-    flex: 0 0 var(--hcc-max-width); /* Locks to 1312px */
-    margin: 0 16px;
+  .hcc-slide { flex: 0 0 var(--hcc-max-width); }
+  .hcc-slide-card { height: var(--hcc-height-lg); border-radius: 28px; }
+  
+  .hcc-text-panel { 
+    bottom: 24px; 
+    inset-inline-start: 24px; 
+    width: 420px; 
+    padding: 2rem; 
   }
   
-  .hcc-slide-card {
-    height: 520px; /* Taller on Desktop to fit the floating elements gracefully */
-    border-radius: 32px;
-  }
+  .hcc-headline { font-size: 1.75rem; }
 
-  .hcc-badge {
-    top: 32px;
-    inset-inline-end: 32px;
-    width: 80px;
-    height: 80px;
-  }
-
-  .hcc-text-panel {
-    bottom: 32px;
-    inset-inline-start: 32px;
-    width: 440px;
-    padding: 2.5rem;
-    border-radius: 24px;
-  }
-
-  .hcc-headline {
-    font-size: 2rem;
-    margin-bottom: 0.5rem;
-  }
-
-  .hcc-store-name {
-    font-size: 1rem;
-    margin-bottom: 2rem;
-  }
-
-  /* Centered Arrow Container - Matches max width of slide exactly */
+  /* Arrows: 50% overlay on the 1312px container */
   .hcc-arrow-bounds {
     display: block;
     position: absolute;
@@ -288,41 +163,50 @@
     transform: translate(-50%, -50%);
     width: var(--hcc-max-width);
     height: 0;
-    z-index: 20;
     pointer-events: none;
+    z-index: 25;
   }
 
   .hcc-arrow {
     position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
+    pointer-events: auto;
+    width: 48px;
+    height: 48px;
+    background: #fff;
     border: none;
-    background: #ffffff;
-    color: #0f172a;
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
     cursor: pointer;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
-    transition: all 0.2s ease;
-    pointer-events: auto;
+    transition: all 0.2s;
   }
 
-  /* Exactly overlaps the slide by 50% */
-  .hcc-arrow--prev { inset-inline-start: -22px; }
-  .hcc-arrow--next { inset-inline-end: -22px; }
+  .hcc-arrow--prev { inset-inline-start: -24px; }
+  .hcc-arrow--next { inset-inline-end: -24px; }
+  .hcc-arrow:hover { background: #470ae2; color: #fff; transform: scale(1.1); }
+}
 
-  .hcc-arrow .material-symbols-sharp {
-    font-size: 1.5rem;
-  }
+.hcc-dots {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 1rem;
+}
 
-  .hcc-arrow:hover {
-    background: #470ae2;
-    color: #ffffff;
-    transform: translateY(-50%) scale(1.1);
-    box-shadow: 0 8px 20px rgba(71, 10, 226, 0.25);
-  }
+.hcc-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: none;
+  background: #ddd;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.hcc-dot--active {
+  background: #470ae2;
+  width: 20px;
+  border-radius: 4px;
 }
