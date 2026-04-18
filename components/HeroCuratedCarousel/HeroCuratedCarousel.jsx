@@ -19,7 +19,7 @@ function LogoBadge({ logo, name }) {
   );
 }
 
-function HeroSlide({ slide, isAr }) {
+function HeroSlide({ slide, isAr, isActive }) {
   return (
     <Link href={slide.ctaUrl || '#'} className="hcc-slide-card" aria-label={slide.title}>
       <div className="hcc-img-panel">
@@ -27,13 +27,24 @@ function HeroSlide({ slide, isAr }) {
         <LogoBadge logo={slide.storeLogo} name={slide.storeName} />
       </div>
       <div className="hcc-text-panel">
+        <div className="hcc-tag">
+          <span className="material-symbols-sharp" style={{ fontSize: '1rem' }}>local_fire_department</span>
+          {isAr ? 'عرض حصري' : 'HOT DEAL'}
+        </div>
         <h2 className="hcc-headline">{slide.title}</h2>
         {slide.storeName && (
           <p className="hcc-store-name">
-            {isAr ? `في ${slide.storeName}` : `at ${slide.storeName}`}
+            {isAr ? `في ` : `at `} <strong>{slide.storeName}</strong>
           </p>
         )}
-        <span className="hcc-cta">{slide.ctaText || (isAr ? 'تسوق الآن' : 'SHOP NOW')}</span>
+        <div className="hcc-cta-wrapper">
+            <span className="hcc-cta">
+              {slide.ctaText || (isAr ? 'تسوق الآن' : 'SHOP NOW')}
+              <span className="material-symbols-sharp">
+                {isAr ? 'arrow_left_alt' : 'arrow_right_alt'}
+              </span>
+            </span>
+        </div>
       </div>
     </Link>
   );
@@ -42,15 +53,16 @@ function HeroSlide({ slide, isAr }) {
 export default function HeroCuratedCarousel({ slides, locale }) {
   const isAr = locale?.split('-')[0] === 'ar';
 
+  // loop: false is required to hide arrows at the start/end
   const [emblaRef, emblaApi] = useEmblaCarousel({
-    loop:      true,
+    loop:      false, 
     align:     'center',
     direction: isAr ? 'rtl' : 'ltr',
   });
 
   const [selectedIdx, setSelectedIdx] = useState(0);
   const [canPrev, setCanPrev] = useState(false);
-  const [canNext, setCanNext] = useState(false);
+  const [canNext, setCanNext] = useState(true);
 
   const sync = useCallback((api) => {
     setSelectedIdx(api.selectedScrollSnap());
@@ -73,46 +85,55 @@ export default function HeroCuratedCarousel({ slides, locale }) {
 
   return (
     <div className="hcc-root" dir={isAr ? 'rtl' : 'ltr'}>
-      <div className="hcc-carousel-row">
-        <button
-          className="hcc-arrow"
-          onClick={isAr ? scrollNext : scrollPrev}
-          disabled={isAr ? !canNext : !canPrev}
-          aria-label={isAr ? 'السابق' : 'Previous'}
-        >
-          <span className="material-symbols-sharp">
-            {isAr ? 'chevron_right' : 'chevron_left'}
-          </span>
-        </button>
-
-        <div className="hcc-viewport" ref={emblaRef}>
-          <div className="hcc-container">
-            {slides.map((slide) => (
-              <div key={slide.id} className="hcc-slide">
-                <HeroSlide slide={slide} isAr={isAr} />
-              </div>
-            ))}
-          </div>
+      
+      {/* Viewport & Track */}
+      <div className="hcc-viewport" ref={emblaRef}>
+        <div className="hcc-container">
+          {slides.map((slide, i) => (
+            <div 
+              key={slide.id} 
+              className={`hcc-slide ${i === selectedIdx ? 'is-active' : ''}`}
+            >
+              <HeroSlide slide={slide} isAr={isAr} isActive={i === selectedIdx} />
+            </div>
+          ))}
         </div>
-
-        <button
-          className="hcc-arrow"
-          onClick={isAr ? scrollPrev : scrollNext}
-          disabled={isAr ? !canPrev : !canNext}
-          aria-label={isAr ? 'التالي' : 'Next'}
-        >
-          <span className="material-symbols-sharp">
-            {isAr ? 'chevron_left' : 'chevron_right'}
-          </span>
-        </button>
       </div>
 
+      {/* Desktop Absolute Arrows - Anchored to max-width of active slide */}
+      <div className="hcc-arrow-bounds">
+        {canPrev && (
+            <button
+              className="hcc-arrow hcc-arrow--prev"
+              onClick={scrollPrev}
+              aria-label={isAr ? 'السابق' : 'Previous'}
+            >
+              <span className="material-symbols-sharp">
+                {isAr ? 'chevron_right' : 'chevron_left'}
+              </span>
+            </button>
+        )}
+        
+        {canNext && (
+            <button
+              className="hcc-arrow hcc-arrow--next"
+              onClick={scrollNext}
+              aria-label={isAr ? 'التالي' : 'Next'}
+            >
+              <span className="material-symbols-sharp">
+                {isAr ? 'chevron_left' : 'chevron_right'}
+              </span>
+            </button>
+        )}
+      </div>
+
+      {/* Pagination Dots */}
       {slides.length > 1 && (
         <div className="hcc-dots" role="tablist">
           {slides.map((_, i) => (
             <button
               key={i}
-              className={`hcc-dot${i === selectedIdx ? ' hcc-dot--active' : ''}`}
+              className={`hcc-dot ${i === selectedIdx ? 'hcc-dot--active' : ''}`}
               onClick={() => scrollTo(i)}
               role="tab"
               aria-selected={i === selectedIdx}
