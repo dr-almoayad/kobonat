@@ -1,5 +1,5 @@
 /* components/HeroCuratedCarousel/HeroCuratedCarousel.css */
-/* Mobile First · Bleed-out · Modern Sales UI */
+/* Mobile First · Bleed-out · Immersive Floating UI */
 
 :root {
   --hcc-max-width: 1312px;
@@ -14,7 +14,7 @@
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
-  background: #f8fafc; /* Subtle contrast background */
+  background: #f8fafc;
   overflow: hidden;
 }
 
@@ -45,31 +45,31 @@
   transform: scale(1);
 }
 
-/* ── Card (Mobile Defaults) ──────────────────────────────────────────────── */
+/* ── Card (Immersive Layout) ─────────────────────────────────────────────── */
 .hcc-slide-card {
+  position: relative; /* Anchors absolute children */
   display: flex;
-  flex-direction: column;
-  height: 400px;
-  border-radius: 20px;
+  height: 440px;
+  border-radius: 24px;
   overflow: hidden;
   text-decoration: none;
-  background: #ffffff;
+  background: #cbd5e1;
   box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(0,0,0,0.04);
   cursor: pointer;
-  position: relative;
   transition: box-shadow 0.3s ease;
 }
 
 .hcc-slide-card:hover {
-  box-shadow: 0 20px 40px -10px rgba(71, 10, 226, 0.15);
+  box-shadow: 0 20px 40px -10px rgba(71, 10, 226, 0.2);
 }
 
-/* ── Image Panel ─────────────────────────────────────────────────────────── */
+/* ── Background Image Panel ──────────────────────────────────────────────── */
 .hcc-img-panel {
-  position: relative;
-  flex: 0 0 50%;
+  position: absolute;
+  inset: 0;
   width: 100%;
+  height: 100%;
+  z-index: 1;
   overflow: hidden;
 }
 
@@ -79,18 +79,26 @@
   object-fit: cover;
   object-position: center;
   display: block;
-  transition: transform 0.6s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+  transition: transform 0.8s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+}
+
+/* Smooth gradient overlay to ensure the background isn't too harsh */
+.hcc-img-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.4) 0%, rgba(0, 0, 0, 0) 60%);
+  z-index: 2;
 }
 
 .hcc-slide-card:hover .hcc-img {
   transform: scale(1.05);
 }
 
-/* ── Badge ───────────────────────────────────────────────────────────────── */
+/* ── Floating Store Badge ────────────────────────────────────────────────── */
 .hcc-badge {
   position: absolute;
-  bottom: -20px; /* Overlaps into text area slightly */
-  inset-inline-start: 20px;
+  top: 16px;
+  inset-inline-end: 16px;
   width: 56px;
   height: 56px;
   border-radius: 50%;
@@ -99,8 +107,8 @@
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
-  border: 3px solid #ffffff;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  border: 2px solid #ffffff;
   z-index: 10;
 }
 
@@ -113,34 +121,26 @@
 .hcc-badge-initials {
   font-size: 1.1rem;
   font-weight: 800;
-  color: #111827;
+  color: #0f172a;
   font-family: 'Alexandria', sans-serif;
 }
 
-/* ── Text Panel (Modern Sales Box) ───────────────────────────────────────── */
+/* ── Floating Text Panel (Frosted Glass Appearance) ──────────────────────── */
 .hcc-text-panel {
-  flex: 1;
+  position: absolute;
+  bottom: 16px;
+  inset-inline-start: 16px;
+  inset-inline-end: 16px; /* Spans across mobile width */
+  z-index: 10;
   display: flex;
   flex-direction: column;
-  padding: 2rem 1.5rem 1.5rem;
-  background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
-  position: relative;
-}
-
-.hcc-tag {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  background: #fee2e2;
-  color: #dc2626;
-  padding: 4px 10px;
-  border-radius: 6px;
-  font-size: 0.75rem;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  margin-bottom: 0.75rem;
-  align-self: flex-start;
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
 }
 
 .hcc-headline {
@@ -158,7 +158,7 @@
 
 .hcc-store-name {
   font-size: 0.875rem;
-  color: #64748b;
+  color: #475569;
   margin: 0 0 1.25rem 0;
 }
 
@@ -174,20 +174,20 @@
 .hcc-cta {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   font-size: 0.875rem;
   font-weight: 700;
   letter-spacing: 0.02em;
   color: #ffffff;
-  background: #470ae2;
-  padding: 10px 20px;
-  border-radius: 10px;
+  background: #0f172a; /* Dark premium pill */
+  padding: 12px 24px;
+  border-radius: 100px;
   font-family: 'Alexandria', sans-serif;
   transition: background 0.2s, transform 0.2s;
 }
 
 .hcc-slide-card:hover .hcc-cta {
-  background: #3607b0;
+  background: #470ae2; /* Shifts to primary blue/purple on hover */
   transform: translateX(4px);
 }
 [dir='rtl'] .hcc-slide-card:hover .hcc-cta {
@@ -196,7 +196,7 @@
 
 /* ── Arrows (Hidden on Mobile) ───────────────────────────────────────────── */
 .hcc-arrow-bounds {
-  display: none; /* Hidden by default */
+  display: none;
 }
 
 /* ── Dots ────────────────────────────────────────────────────────────────── */
@@ -229,31 +229,14 @@
 ═════════════════════════════════════════════════════════════════════════ */
 @media (min-width: 768px) {
   .hcc-slide {
-    flex: 0 0 65vw;
+    flex: 0 0 70vw;
     margin: 0 12px;
   }
-  .hcc-slide-card {
-    flex-direction: row;
-    height: 320px;
-  }
-  [dir='rtl'] .hcc-slide-card {
-    flex-direction: row-reverse;
-  }
-  .hcc-img-panel {
-    flex: 0 0 45%;
-  }
-  .hcc-badge {
-    bottom: 20px;
-    inset-inline-start: 20px;
-    width: 68px;
-    height: 68px;
-  }
+  
   .hcc-text-panel {
-    padding: 2.5rem 2.5rem 2rem;
-    justify-content: center;
-  }
-  .hcc-headline {
-    font-size: 1.5rem;
+    padding: 2rem;
+    inset-inline-end: auto; /* Unlocks full width expansion */
+    width: 360px; /* Card takes up partial space */
   }
 }
 
@@ -267,21 +250,28 @@
   }
   
   .hcc-slide-card {
-    height: 380px;
+    height: 520px; /* Taller on Desktop to fit the floating elements gracefully */
     border-radius: 32px;
   }
 
-  .hcc-img-panel {
-    flex: 0 0 55%;
+  .hcc-badge {
+    top: 32px;
+    inset-inline-end: 32px;
+    width: 80px;
+    height: 80px;
   }
 
   .hcc-text-panel {
-    padding: 3.5rem 4rem;
+    bottom: 32px;
+    inset-inline-start: 32px;
+    width: 440px;
+    padding: 2.5rem;
+    border-radius: 24px;
   }
 
   .hcc-headline {
     font-size: 2rem;
-    margin-bottom: 0.75rem;
+    margin-bottom: 0.5rem;
   }
 
   .hcc-store-name {
@@ -321,14 +311,9 @@
     pointer-events: auto;
   }
 
-  /* -22px pulls it out exactly 50% since width is 44px */
-  .hcc-arrow--prev {
-    inset-inline-start: -22px; 
-  }
-
-  .hcc-arrow--next {
-    inset-inline-end: -22px;
-  }
+  /* Exactly overlaps the slide by 50% */
+  .hcc-arrow--prev { inset-inline-start: -22px; }
+  .hcc-arrow--next { inset-inline-end: -22px; }
 
   .hcc-arrow .material-symbols-sharp {
     font-size: 1.5rem;
