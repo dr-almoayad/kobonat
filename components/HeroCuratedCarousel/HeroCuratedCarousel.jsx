@@ -55,7 +55,7 @@ export default function HeroCuratedCarousel({ slides, locale }) {
 
   // loop: false is required to hide arrows at the start/end
   const [emblaRef, emblaApi] = useEmblaCarousel({
-    loop:      false, 
+    loop:      true, 
     align:     'center',
     direction: isAr ? 'rtl' : 'ltr',
   });
