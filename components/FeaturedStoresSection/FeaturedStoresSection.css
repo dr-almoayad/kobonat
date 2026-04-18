@@ -74,7 +74,7 @@
     hinting there is more to scroll.
     Gap accounts for the visible partial card.
   */
-  grid-auto-columns: calc(75% - 0.625rem);
+  grid-auto-columns: calc(82% - 0.625rem);
   gap: 0.5rem;
 
   /* scroll */
