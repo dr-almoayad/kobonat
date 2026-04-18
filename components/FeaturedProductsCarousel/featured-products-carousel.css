@@ -1,386 +1,312 @@
-/* ============================================
-   FEATURED PRODUCTS CAROUSEL – UNIFIED STYLES
-   ============================================ */
+/* featured-products-carousel.css — Amazon "Today's Top Deals" style */
 
-.featured-products-carousel {
+/* ── Section wrapper ────────────────────────────────────────── */
+.fpc-section {
   width: 100%;
-  background: #ffffff;
-  padding: 1.5rem 0;
+  background: #fff;
+  border-top: 1px solid #e8e8e8;
+  border-bottom: 1px solid #e8e8e8;
+  padding: 1.25rem 0 1rem;
   margin: 1.5rem 0;
-  position: relative;
-  border-top: 1px solid #e3e6e6;
-  border-bottom: 1px solid #e3e6e6;
+  font-family: 'Alexandria', 'Open Sans', Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
 
-/* ── Header Section (kept original layout but fonts aligned) ── */
-.carousel-header {
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 0 1rem 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-.carousel-header-top {
+/* ── Header row ─────────────────────────────────────────────── */
+.fpc-header {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0 1.25rem 0.875rem;
+  max-width: 1400px;
+  margin: 0 auto;
 }
-.carousel-store-logo {
-  width: 40px;
-  height: 40px;
-  object-fit: contain;
-  flex-shrink: 0;
-}
-.carousel-header-icon {
-  font-size: 2rem;
-  color: #470ae2;
-  flex-shrink: 0;
-}
-.carousel-title-wrapper {
-  flex: 1;
+
+.fpc-header-left {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
   min-width: 0;
 }
-.carousel-title {
-  font-size: 1.125rem;
-  font-weight: 700;
-  color: #0f1111;
-  margin: 0 0 0.25rem 0;
-  line-height: 1.3;
-  font-family: 'Alexandria', 'Open Sans', Arial, sans-serif;
-}
-.carousel-store-name {
-  color: #007185;
-  font-weight: 700;
-}
-.carousel-last-updated {
-  font-size: 0.75rem;
-  color: #565959;
-  margin: 0;
-  font-weight: 400;
-  font-family: 'Open Sans', Arial, sans-serif;
-}
-.view-more-btn {
-  background: #ffffff;
-  border: 1px solid #d5d9d9;
-  border-radius: 8px;
-  padding: 0.625rem 1rem;
-  color: #0f1111;
-  font-size: 0.875rem;
-  font-weight: 500;
-  cursor: pointer;
-  text-decoration: none;
-  display: inline-flex;
+
+/* ── Stacked avatars (multi-store) ──────────────────────────── */
+.fpc-avatar-stack {
+  display: flex;
+  flex-direction: row;
   align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  align-self: flex-start;
-  white-space: nowrap;
-  transition: all 0.2s ease;
-}
-.view-more-btn:hover {
-  background: #f7fafa;
-  border-color: #007185;
-}
-.view-more-btn:active {
-  background: #edfdff;
-}
-.view-more-btn .material-symbols-sharp {
-  font-size: 1.125rem;
+  flex-shrink: 0;
 }
 
-/* ── Embla Container (no gap on container – margins on slides) ── */
-.embla {
+.fpc-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 2.5px solid #fff;
+  background: #1a1a2e;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.18);
+  /* Overlapping: each subsequent avatar shifts left */
+  margin-inline-start: -10px;
+  transition: transform 0.15s ease;
+}
+
+.fpc-avatar:first-child {
+  margin-inline-start: 0;
+}
+
+.fpc-avatar:hover {
+  transform: translateY(-2px);
+  z-index: 10 !important;
+}
+
+.fpc-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 4px;
+}
+
+.fpc-avatar-fallback {
+  font-size: 1rem;
+  font-weight: 800;
+  color: #fff;
+  font-family: 'Alexandria', 'Open Sans', Arial, sans-serif;
+  line-height: 1;
+}
+
+.fpc-avatar-more {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: #444;
+  background: #f0f0f0;
+  border-color: #fff;
+  letter-spacing: -0.02em;
+}
+
+/* ── Single-store logo ──────────────────────────────────────── */
+.fpc-single-logo-wrap {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: #1a1a2e;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+.fpc-single-logo {
+  width: 80%;
+  height: 80%;
+  object-fit: contain;
+}
+
+/* ── Title block ────────────────────────────────────────────── */
+.fpc-title-block {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.fpc-title {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #111;
+  margin: 0;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  font-family: 'Alexandria', 'Open Sans', Arial, sans-serif;
+}
+
+.fpc-subtitle {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: #767676;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin: 0;
+  font-family: 'Open Sans', Arial, sans-serif;
+}
+
+/* ── "View more" CTA ────────────────────────────────────────── */
+.fpc-view-more {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.5rem 1.125rem;
+  border: 1px solid #c8c8c8;
+  border-radius: 20px;
+  background: #fff;
+  color: #111;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  text-decoration: none;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: border-color 0.15s, background 0.15s;
+  font-family: 'Alexandria', 'Open Sans', Arial, sans-serif;
+}
+
+.fpc-view-more:hover {
+  border-color: #666;
+  background: #f7f8fa;
+}
+
+/* ── Divider ────────────────────────────────────────────────── */
+.fpc-divider {
+  height: 1px;
+  background: #e8e8e8;
+  margin: 0 1.25rem 0.875rem;
+  max-width: calc(1400px - 2.5rem);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* ── Embla carousel ─────────────────────────────────────────── */
+.fpc-embla {
   position: relative;
   width: 100%;
   max-width: 1400px;
   margin: 0 auto;
+  overflow: hidden;
 }
-.embla__viewport {
+
+.fpc-embla__viewport {
   overflow: hidden;
   width: 100%;
 }
-.embla__container {
+
+.fpc-embla__container {
   display: flex;
   touch-action: pan-y pinch-zoom;
-  will-change: transform;
-}
-.embla__slide {
-  flex: 0 0 175px;
-  min-width: 0;
-  margin-inline: 0.625rem; /* half of desired gap 1.25rem */
-}
-.embla__slide:first-child {
-  margin-inline-start: 1rem;
-}
-.embla__slide:last-child {
-  margin-inline-end: 1rem;
+  padding-inline: 1.25rem;
 }
 
-/* ── Unified Arrows (visible only on desktop 1024px+) ── */
-.embla__button {
-  display: none; /* hidden by default, shown on desktop */
-  flex-shrink: 0;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  border: none;
-  background: rgba(0, 0, 0, 0.04);
-  color: #1f2937;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.2s ease;
+.fpc-embla__slide {
+  flex: 0 0 160px;
+  min-width: 0;
+  padding-inline-end: 0.75rem;
+}
+
+/* ── Navigation arrows ──────────────────────────────────────── */
+.fpc-arrow {
+  display: none;
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
   z-index: 10;
-  box-shadow: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid #d5d9d9;
+  background: #fff;
+  color: #333;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+  transition: background 0.15s, box-shadow 0.15s;
 }
-.embla__button .material-symbols-sharp {
+
+.fpc-arrow .material-symbols-sharp {
   font-size: 1.25rem;
   line-height: 1;
 }
-.embla__button:hover:not(:disabled) {
-  background: #470ae2;
-  color: white;
-  transform: translateY(-50%) scale(1.04);
-  box-shadow: 0 4px 10px rgba(71, 10, 226, 0.2);
-}
-.embla__button:disabled {
-  opacity: 0.25;
-  cursor: default;
-  transform: translateY(-50%);
-}
-.embla__button--prev {
-  left: 0.25rem;
-}
-.embla__button--next {
-  right: 0.25rem;
-}
-[dir="rtl"] .embla__button--prev {
-  left: auto;
-  right: 0.25rem;
-}
-[dir="rtl"] .embla__button--next {
-  right: auto;
-  left: 0.25rem;
+
+.fpc-arrow:hover:not(:disabled) {
+  background: #f5f5f5;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.18);
 }
 
-/* ── Unified Dots ── */
-.carousel-dots {
+.fpc-arrow:disabled {
+  opacity: 0.3;
+  cursor: default;
+  pointer-events: none;
+}
+
+.fpc-arrow--prev { inset-inline-start: 0.25rem; }
+.fpc-arrow--next { inset-inline-end: 0.25rem; }
+
+/* ── Dots ───────────────────────────────────────────────────── */
+.fpc-dots {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  margin-top: 1rem;
-  padding: 0 1rem;
+  gap: 6px;
+  padding: 0.75rem 1.25rem 0;
 }
-.carousel-dot {
-  width: 7px;
-  height: 7px;
+
+.fpc-dot {
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   border: none;
-  background: #cbd5e1;
-  cursor: pointer;
+  background: #d5d9d9;
   padding: 0;
-  transition: background 0.2s, width 0.2s, border-radius 0.2s;
+  cursor: pointer;
+  transition: width 0.2s, background 0.2s, border-radius 0.2s;
 }
-.carousel-dot.active {
-  background: #470ae2;
+
+.fpc-dot--active {
+  background: #333;
   width: 22px;
   border-radius: 4px;
 }
 
-/* ── Empty State ── */
-.carousel-empty {
-  padding: 3rem 1rem;
-  text-align: center;
-}
-.carousel-empty .material-symbols-sharp {
-  font-size: 3rem;
-  color: #d5d9d9;
-  margin-bottom: 0.75rem;
-}
-.carousel-empty p {
-  color: #565959;
-  font-size: 0.875rem;
-  margin: 0;
-}
+/* ─────────────────────────────────────────────────────────────
+   RESPONSIVE
+───────────────────────────────────────────────────────────── */
 
-/* ═══════════════════════════════════════════════════════════════
-   RESPONSIVE BREAKPOINTS (aligned with unified carousels)
-   ═══════════════════════════════════════════════════════════════ */
-
-/* Tablet (480px+) – larger slides, adjusted margins */
 @media (min-width: 480px) {
-  .carousel-header {
-    padding: 0 1.25rem 1rem;
-  }
-  .carousel-store-logo {
-    width: 48px;
-    height: 48px;
-  }
-  .carousel-title {
-    font-size: 1.25rem;
-  }
-  .embla__slide {
-    flex: 0 0 200px;
-    margin-inline: 0.4375rem; /* half of 0.875rem gap */
-  }
-  .embla__slide:first-child {
-    margin-inline-start: 1.25rem;
-  }
-  .embla__slide:last-child {
-    margin-inline-end: 1.25rem;
-  }
-  .view-more-btn {
-    padding: 0.75rem 1.25rem;
-    font-size: 0.9375rem;
-  }
+  .fpc-embla__slide { flex: 0 0 185px; }
+  .fpc-title        { font-size: 1.375rem; }
 }
 
-/* Tablet (768px+) – more breathing */
 @media (min-width: 768px) {
-  .featured-products-carousel {
-    padding: 2rem 0;
-    margin: 2rem 0;
-  }
-  .carousel-header {
-    padding: 0 1.5rem 1.25rem;
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-  }
-  .carousel-header-top {
-    gap: 1rem;
-  }
-  .carousel-store-logo {
-    width: 56px;
-    height: 56px;
-  }
-  .carousel-title {
-    font-size: 1.5rem;
-  }
-  .view-more-btn {
-    align-self: auto;
-  }
-  .embla__slide {
-    flex: 0 0 240px;
-    margin-inline: 0.5rem; /* half of 1rem gap */
-  }
-  .embla__slide:first-child {
-    margin-inline-start: 1.5rem;
-  }
-  .embla__slide:last-child {
-    margin-inline-end: 1.5rem;
-  }
-  .carousel-dots {
-    padding: 0 1.5rem;
-  }
+  .fpc-header        { padding: 0 1.5rem 1rem; }
+  .fpc-divider       { margin-inline: 1.5rem; }
+  .fpc-embla__container { padding-inline: 1.5rem; }
+  .fpc-embla__slide  { flex: 0 0 210px; }
+  .fpc-title         { font-size: 1.5rem; }
+  .fpc-single-logo-wrap { width: 56px; height: 56px; }
+  .fpc-avatar        { width: 48px; height: 48px; }
 }
 
-/* Desktop (1024px+) – arrows become visible */
 @media (min-width: 1024px) {
-  .carousel-header {
-    padding: 0 2rem 1.5rem;
-  }
-  .carousel-store-logo {
-    width: 64px;
-    height: 64px;
-  }
-  .carousel-title {
-    font-size: 1.75rem;
-  }
-  .carousel-last-updated {
-    font-size: 0.875rem;
-  }
-  .embla__slide {
-    flex: 0 0 260px;
-    margin-inline: 0.5625rem; /* half of 1.125rem gap */
-  }
-  .embla__slide:first-child {
-    margin-inline-start: 2rem;
-  }
-  .embla__slide:last-child {
-    margin-inline-end: 2rem;
-  }
-  .view-more-btn {
-    padding: 0.75rem 1.5rem;
-  }
-  /* Show arrows */
-  .embla__button {
-    display: flex;
-  }
-  .embla__button--prev {
-    left: 0.5rem;
-  }
-  .embla__button--next {
-    right: 0.5rem;
-  }
-  [dir="rtl"] .embla__button--prev {
-    left: auto;
-    right: 0.5rem;
-  }
-  [dir="rtl"] .embla__button--next {
-    right: auto;
-    left: 0.5rem;
-  }
-  .carousel-dots {
-    padding: 0 2rem;
-  }
+  .fpc-header        { padding: 0 2rem 1.125rem; }
+  .fpc-divider       { margin-inline: 2rem; }
+  .fpc-embla__container { padding-inline: 2rem; }
+  .fpc-embla__slide  { flex: 0 0 230px; }
+  .fpc-arrow         { display: flex; }
+  .fpc-arrow--prev   { inset-inline-start: 0.375rem; }
+  .fpc-arrow--next   { inset-inline-end: 0.375rem; }
 }
 
-/* Large Desktop (1280px+) – wider slides, arrows slightly outward */
 @media (min-width: 1280px) {
-  .carousel-header {
-    padding: 0 2.5rem 1.5rem;
-  }
-  .embla__slide {
-    flex: 0 0 280px;
-    margin-inline: 0.625rem; /* half of 1.25rem gap */
-  }
-  .embla__slide:first-child {
-    margin-inline-start: 2.5rem;
-  }
-  .embla__slide:last-child {
-    margin-inline-end: 2.5rem;
-  }
-  .embla__button--prev {
-    left: 1rem;
-  }
-  .embla__button--next {
-    right: 1rem;
-  }
-  [dir="rtl"] .embla__button--prev {
-    left: auto;
-    right: 1rem;
-  }
-  [dir="rtl"] .embla__button--next {
-    right: auto;
-    left: 1rem;
-  }
-  .carousel-dots {
-    padding: 0 2.5rem;
-  }
+  .fpc-embla__slide  { flex: 0 0 250px; }
+  .fpc-title         { font-size: 1.625rem; }
 }
 
-/* ── RTL fine-tuning ── */
-[dir="rtl"] .carousel-header-top {
-  direction: rtl;
+/* ── RTL fixes ──────────────────────────────────────────────── */
+[dir='rtl'] .fpc-header        { flex-direction: row; }
+[dir='rtl'] .fpc-avatar-stack  { flex-direction: row-reverse; }
+[dir='rtl'] .fpc-avatar {
+  margin-inline-start: 0;
+  margin-inline-end: -10px;
 }
-[dir="rtl"] .view-more-btn .material-symbols-sharp {
-  transform: scaleX(-1);
+[dir='rtl'] .fpc-avatar:last-child {
+  margin-inline-end: 0;
 }
 
-/* Reduced motion */
+/* ── Reduced motion ─────────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
-  .embla__button,
-  .carousel-dot,
-  .view-more-btn {
-    transition: none !important;
-  }
-  .embla__button:hover:not(:disabled) {
-    transform: translateY(-50%) scale(1) !important;
-  }
+  .fpc-arrow, .fpc-dot, .fpc-view-more, .fpc-avatar { transition: none; }
 }
