@@ -7,7 +7,7 @@
 /* ── Section shell ───────────────────────────────────────────────────────────── */
 .fss-section {
   width: 100%;
-  padding: 2.5rem 0;
+  padding: 2.5rem 1rem;
   background: var(--color-background-secondary, #f9fafb);
 }
 
@@ -21,7 +21,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 1rem 1.25rem;
+  padding: 1rem 0;
 }
 
 .fss-title {
@@ -74,8 +74,8 @@
     hinting there is more to scroll.
     Gap accounts for the visible partial card.
   */
-  grid-auto-columns: calc(50% - 0.625rem);
-  gap: 0.75rem;
+  grid-auto-columns: calc(75% - 0.625rem);
+  gap: 0.5rem;
 
   /* scroll */
   overflow-x: auto;
@@ -85,7 +85,7 @@
   scrollbar-width: none;
 
   /* edge padding so first/last cards have breathing room */
-  padding: 0.25rem 1rem 0.75rem;
+  padding: 0.25rem 0 0.75rem;
 }
 
 .fss-grid::-webkit-scrollbar { display: none; }
@@ -104,9 +104,9 @@
    ≥ 768px
 ────────────────────────────────────────────────────────────────────────────── */
 @media (min-width: 768px) {
-  .fss-section { padding: 3rem 0; }
+  .fss-section { padding: 3rem 1rem; }
 
-  .fss-header { padding: 0 1.5rem 1.5rem; }
+  .fss-header { padding: 0 1rem 1.5rem; }
 
   .fss-grid {
     /* switch to static 4-column grid */
@@ -121,8 +121,8 @@
     overflow-y: visible;
     scroll-snap-type: none;
 
-    gap: 1rem;
-    padding: 0 1.5rem 0.25rem;
+    gap: 0.5rem;
+    padding: 0 0 0.25rem;
   }
 
   .fss-cell {
@@ -135,9 +135,9 @@
    ≥ 1100px
 ────────────────────────────────────────────────────────────────────────────── */
 @media (min-width: 1100px) {
-  .fss-section { padding: 3.5rem 0; }
+  .fss-section { padding: 3.5rem 1.5rem; }
 
-  .fss-header { padding: 0 1.5rem 1.75rem; }
+  .fss-header { padding: 0 1.5rem 1.5rem; }
 
   .fss-title { font-size: 1.25rem; }
 
