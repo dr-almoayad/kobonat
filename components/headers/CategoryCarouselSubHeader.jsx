@@ -8,28 +8,27 @@ import './CategoryCarouselSubHeader.css';
 
 const CategoryCarouselSubHeader = () => {
     const locale = useLocale();
-    const isAr   = locale?.startsWith('ar');
+    const isAr = locale?.startsWith('ar');
 
     const [categories, setCategories] = useState([]);
-    const [loading,    setLoading]    = useState(true);
-    const [isVisible,  setIsVisible]  = useState(true);
-    const [canPrev,    setCanPrev]    = useState(false);
-    const [canNext,    setCanNext]    = useState(false);
+    const [loading, setLoading] = useState(true);
+    const [isVisible, setIsVisible] = useState(true);
+    const [canPrev, setCanPrev] = useState(false);
+    const [canNext, setCanNext] = useState(false);
 
     const lastScrollYRef = useRef(0);
 
     // ── Embla ──────────────────────────────────────────────────────────────
-    // containScroll:'trimSnaps' is critical — prevents the empty gap at the
-    // end by trimming the scroll range to exactly the last slide edge.
     const [emblaRef, emblaApi] = useEmblaCarousel({
-        direction:     isAr ? 'rtl' : 'ltr',
-        align:         'start',
-        dragFree:      true,
-        loop:          false,
+        direction: isAr ? 'rtl' : 'ltr',
+        align: 'start',
+        dragFree: true,
+        loop: false,
         containScroll: 'trimSnaps',
     });
 
     const syncArrows = useCallback((api) => {
+        if (!api) return;
         setCanPrev(api.canScrollPrev());
         setCanNext(api.canScrollNext());
     }, []);
@@ -37,9 +36,9 @@ const CategoryCarouselSubHeader = () => {
     useEffect(() => {
         if (!emblaApi) return;
         syncArrows(emblaApi);
-        emblaApi.on('scroll',  () => syncArrows(emblaApi));
-        emblaApi.on('reInit',  () => syncArrows(emblaApi));
-        emblaApi.on('select',  () => syncArrows(emblaApi));
+        emblaApi.on('scroll', () => syncArrows(emblaApi));
+        emblaApi.on('reInit', () => syncArrows(emblaApi));
+        emblaApi.on('select', () => syncArrows(emblaApi));
     }, [emblaApi, syncArrows]);
 
     const scrollPrev = useCallback(() => emblaApi?.scrollPrev(), [emblaApi]);
@@ -65,7 +64,7 @@ const CategoryCarouselSubHeader = () => {
         fetchCategories();
     }, [locale]);
 
-    // ── Hide on scroll-down, reveal on scroll-up ───────────────────────────
+    // ── Scroll Visibility ──────────────────────────────────────────────────
     useEffect(() => {
         let ticking = false;
         const handleScroll = () => {
@@ -88,18 +87,19 @@ const CategoryCarouselSubHeader = () => {
     return (
         <div className={`ccs-wrapper ${isVisible ? 'ccs-visible' : 'ccs-hidden'}`}>
             <div className="ccs-inner">
-
-                {/* Prev — desktop only */}
-                <button
-                    className="ccs-arrow"
-                    onClick={isAr ? scrollNext : scrollPrev}
-                    disabled={isAr ? !canNext : !canPrev}
-                    aria-label={isAr ? 'السابق' : 'Previous'}
-                >
-                    <span className="material-symbols-sharp">
-                        {isAr ? 'chevron_right' : 'chevron_left'}
-                    </span>
-                </button>
+                
+                {/* Prev Arrow — Rendered only if there are previous items */}
+                {canPrev && (
+                    <button
+                        className="ccs-arrow ccs-arrow-prev"
+                        onClick={scrollPrev}
+                        aria-label={isAr ? 'السابق' : 'Previous'}
+                    >
+                        <span className="material-symbols-sharp">
+                            {isAr ? 'chevron_right' : 'chevron_left'}
+                        </span>
+                    </button>
+                )}
 
                 {/* Embla viewport */}
                 <div className="ccs-viewport" ref={emblaRef}>
@@ -136,17 +136,18 @@ const CategoryCarouselSubHeader = () => {
                     </div>
                 </div>
 
-                {/* Next — desktop only */}
-                <button
-                    className="ccs-arrow"
-                    onClick={isAr ? scrollPrev : scrollNext}
-                    disabled={isAr ? !canPrev : !canNext}
-                    aria-label={isAr ? 'التالي' : 'Next'}
-                >
-                    <span className="material-symbols-sharp">
-                        {isAr ? 'chevron_left' : 'chevron_right'}
-                    </span>
-                </button>
+                {/* Next Arrow — Rendered only if there are remaining items */}
+                {canNext && (
+                    <button
+                        className="ccs-arrow ccs-arrow-next"
+                        onClick={scrollNext}
+                        aria-label={isAr ? 'التالي' : 'Next'}
+                    >
+                        <span className="material-symbols-sharp">
+                            {isAr ? 'chevron_left' : 'chevron_right'}
+                        </span>
+                    </button>
+                )}
 
             </div>
         </div>
