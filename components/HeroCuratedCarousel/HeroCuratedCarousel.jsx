@@ -27,10 +27,10 @@ function HeroSlide({ slide, isAr, isActive }) {
         <LogoBadge logo={slide.storeLogo} name={slide.storeName} />
       </div>
       <div className="hcc-text-panel">
-        <div className="hcc-tag">
+        {/*<div className="hcc-tag">
           <span className="material-symbols-sharp" style={{ fontSize: '1rem' }}>local_fire_department</span>
           {isAr ? 'عرض حصري' : 'HOT DEAL'}
-        </div>
+        </div>*/}
         <h2 className="hcc-headline">{slide.title}</h2>
         {slide.storeName && (
           <p className="hcc-store-name">
