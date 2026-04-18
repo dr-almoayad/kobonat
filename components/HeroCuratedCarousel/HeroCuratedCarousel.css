@@ -1,16 +1,36 @@
+/* components/HeroCuratedCarousel/HeroCuratedCarousel.css */
+/* Sales-Focused · High Impact · Conversion Optimized */
+
 :root {
   --hcc-max-width: 1312px;
-  --hcc-mobile-width: 88vw;
-  --hcc-height-sm: 340px;
-  --hcc-height-md: 380px;
-  --hcc-height-lg: 420px; /* Reduced height */
+  --hcc-mobile-width: 86vw;
+  
+  /* Sales-driven color palette */
+  --hcc-primary: #ff4d1e;
+  --hcc-primary-dark: #e63e10;
+  --hcc-primary-glow: rgba(255, 77, 30, 0.4);
+  --hcc-dark: #0a0c10;
+  --hcc-surface: #ffffff;
+  --hcc-text-dark: #111315;
+  --hcc-text-muted: #5a626e;
+  --hcc-gradient-sale: linear-gradient(135deg, #ff4d1e 0%, #ff9068 100%);
+  --hcc-gradient-cta: linear-gradient(135deg, #ff4d1e 0%, #ff6a3a 100%);
+  --hcc-shadow-sm: 0 8px 20px rgba(0, 0, 0, 0.08);
+  --hcc-shadow-md: 0 16px 32px rgba(0, 0, 0, 0.12);
+  --hcc-shadow-lg: 0 25px 40px -12px rgba(255, 77, 30, 0.35);
+  --hcc-transition-fast: 0.2s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+  --hcc-transition-smooth: 0.4s cubic-bezier(0.2, 0.9, 0.4, 1.1);
 }
 
+/* ── Base Wrapper – More Contrast & Depth ───────────────────────────────── */
 .hcc-root {
   position: relative;
   width: 100%;
-  padding: 1rem 0 2rem;
-  background: #fdfdfd;
+  padding: 2rem 0 2.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  background: linear-gradient(180deg, #f5f7fa 0%, #ffffff 100%);
   overflow: hidden;
 }
 
@@ -21,16 +41,18 @@
 
 .hcc-container {
   display: flex;
+  gap: 0;
+  touch-action: pan-y pinch-zoom;
   will-change: transform;
 }
 
-/* ── Slide Styling ───────────────────────────────────────────────────────── */
+/* ── Slide – Dramatic Scaling & Opacity Transitions ────────────────────── */
 .hcc-slide {
   flex: 0 0 var(--hcc-mobile-width);
-  margin: 0 10px;
+  margin: 0 8px;
   min-width: 0;
-  transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.6s ease;
-  opacity: 0.4;
+  transition: transform var(--hcc-transition-smooth), opacity var(--hcc-transition-smooth);
+  opacity: 0.5;
   transform: scale(0.92);
 }
 
@@ -39,122 +61,259 @@
   transform: scale(1);
 }
 
+/* ── Card – Premium Feel with Depth & Hover Impact ─────────────────────── */
 .hcc-slide-card {
   position: relative;
   display: flex;
-  height: var(--hcc-height-sm);
-  border-radius: 20px;
+  height: 440px;
+  border-radius: 28px;
   overflow: hidden;
   text-decoration: none;
-  background: #eee;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  background: #cbd5e1;
+  box-shadow: var(--hcc-shadow-sm);
   cursor: pointer;
+  transition: box-shadow var(--hcc-transition-fast), transform 0.3s ease;
 }
 
-/* ── Background & Overlay ────────────────────────────────────────────────── */
+.hcc-slide-card:hover {
+  box-shadow: var(--hcc-shadow-lg);
+  transform: translateY(-4px);
+}
+
+/* ── Background Image with Dramatic Zoom ───────────────────────────────── */
 .hcc-img-panel {
   position: absolute;
   inset: 0;
+  width: 100%;
+  height: 100%;
   z-index: 1;
+  overflow: hidden;
 }
 
 .hcc-img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center;
+  display: block;
+  transition: transform 0.8s cubic-bezier(0.2, 0.9, 0.4, 1.1);
 }
 
+.hcc-slide-card:hover .hcc-img {
+  transform: scale(1.08);
+}
+
+/* ── Stronger Overlay for Better Text Contrast & Sales Focus ───────────── */
 .hcc-img-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(to top, rgba(0,0,0,0.3) 0%, transparent 50%);
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.7) 0%,
+    rgba(0, 0, 0, 0.2) 50%,
+    rgba(0, 0, 0, 0.1) 100%
+  );
   z-index: 2;
 }
 
-/* ── Logo ────────────────────────────────────────────────────────────────── */
+.hcc-slide-card:hover .hcc-img-overlay {
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.8) 0%,
+    rgba(0, 0, 0, 0.3) 60%,
+    rgba(0, 0, 0, 0.15) 100%
+  );
+}
+
+/* ── SALE / DISCOUNT BADGE – High Visibility ───────────────────────────── */
+.hcc-sale-badge {
+  position: absolute;
+  top: 16px;
+  inset-inline-start: 16px;
+  background: var(--hcc-gradient-sale);
+  color: white;
+  font-size: 0.85rem;
+  font-weight: 800;
+  font-family: 'Alexandria', sans-serif;
+  padding: 6px 14px;
+  border-radius: 40px;
+  box-shadow: 0 4px 12px rgba(255, 77, 30, 0.3);
+  z-index: 12;
+  letter-spacing: 0.5px;
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+/* Pulsing animation for urgency */
+@keyframes pulseSale {
+  0% { transform: scale(1); box-shadow: 0 4px 12px rgba(255, 77, 30, 0.3); }
+  50% { transform: scale(1.03); box-shadow: 0 6px 18px rgba(255, 77, 30, 0.5); }
+  100% { transform: scale(1); box-shadow: 0 4px 12px rgba(255, 77, 30, 0.3); }
+}
+
+.hcc-sale-badge--urgent {
+  animation: pulseSale 1.2s ease-in-out infinite;
+}
+
+/* ── Floating Store Badge – Elevated & Premium ─────────────────────────── */
 .hcc-badge {
   position: absolute;
-  top: 12px;
-  inset-inline-end: 12px;
-  width: 48px;
-  height: 48px;
+  top: 16px;
+  inset-inline-end: 16px;
+  width: 56px;
+  height: 56px;
   border-radius: 50%;
-  background: #fff;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.8);
   z-index: 10;
-  border: 2px solid #fff;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.hcc-badge-img { width: 80%; height: 80%; object-fit: contain; }
+.hcc-slide-card:hover .hcc-badge {
+  transform: scale(1.05);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.25);
+}
 
-/* ── Salesly Glass Text Box ──────────────────────────────────────────────── */
+.hcc-badge-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.hcc-badge-initials {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--hcc-primary);
+  font-family: 'Alexandria', sans-serif;
+}
+
+/* ── Floating Text Panel – Glassmorphism with Sales Edge ───────────────── */
 .hcc-text-panel {
   position: absolute;
-  bottom: 12px;
-  inset-inline: 12px;
+  bottom: 16px;
+  inset-inline-start: 16px;
+  inset-inline-end: 16px;
   z-index: 10;
-  padding: 1.25rem;
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.5);
+  display: flex;
+  flex-direction: column;
+  padding: 1.25rem 1.25rem 1.5rem;
+  background: rgba(10, 12, 16, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.3);
+  transition: all var(--hcc-transition-fast);
+}
+
+.hcc-slide-card:hover .hcc-text-panel {
+  background: rgba(10, 12, 16, 0.92);
+  border-color: rgba(255, 77, 30, 0.5);
 }
 
 .hcc-headline {
-  font-size: 1.15rem;
+  font-size: 1.3rem;
   font-weight: 800;
-  color: #111;
-  margin: 0 0 4px 0;
+  color: #ffffff;
+  line-height: 1.3;
+  margin: 0 0 0.3rem 0;
   font-family: 'Alexandria', sans-serif;
-  line-height: 1.2;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .hcc-store-name {
-  font-size: 0.85rem;
-  color: #555;
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0 0 0.8rem 0;
+  letter-spacing: 0.3px;
+}
+
+.hcc-store-name strong {
+  color: #ffffff;
+  font-weight: 700;
+}
+
+/* ── PRICE & DISCOUNT ROW (Sales Boost) ────────────────────────────────── */
+.hcc-price-row {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
   margin-bottom: 1rem;
+}
+
+.hcc-price-current {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--hcc-primary);
+  font-family: 'Alexandria', sans-serif;
+  line-height: 1;
+  text-shadow: 0 0 8px rgba(255, 77, 30, 0.3);
+}
+
+.hcc-price-original {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.5);
+  text-decoration: line-through;
+}
+
+.hcc-discount-percent {
+  background: var(--hcc-primary);
+  padding: 2px 8px;
+  border-radius: 30px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: white;
+  margin-inline-start: 6px;
+}
+
+/* ── CTA BUTTON – High Contrast, Gradient, Glow Effect ─────────────────── */
+.hcc-cta-wrapper {
+  margin-top: auto;
 }
 
 .hcc-cta {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: #fff;
-  background: #111;
-  padding: 8px 18px;
-  border-radius: 50px;
-  transition: background 0.3s;
+  justify-content: center;
+  gap: 10px;
+  font-size: 0.85rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: #ffffff;
+  background: var(--hcc-gradient-cta);
+  padding: 12px 24px;
+  border-radius: 100px;
+  font-family: 'Alexandria', sans-serif;
+  transition: all 0.25s ease;
+  width: 100%;
+  box-shadow: 0 4px 12px rgba(255, 77, 30, 0.3);
+  border: none;
+  cursor: pointer;
 }
 
-.hcc-slide-card:hover .hcc-cta { background: #470ae2; }
-
-/* ── Desktop Adjustments ─────────────────────────────────────────────────── */
-@media (min-width: 768px) {
-  .hcc-slide { flex: 0 0 70vw; }
-  .hcc-slide-card { height: var(--hcc-height-md); }
-  .hcc-text-panel { width: 340px; inset-inline-end: auto; }
+.hcc-slide-card:hover .hcc-cta {
+  background: linear-gradient(135deg, #ff6a3a 0%, #ff4d1e 100%);
+  transform: translateX(4px);
+  box-shadow: 0 8px 20px rgba(255, 77, 30, 0.5);
 }
 
+[dir='rtl'] .hcc-slide-card:hover .hcc-cta {
+  transform: translateX(-4px);
+}
+
+/* ── ARROWS – Bolder, Visible, Sales-Colored on Desktop ───────────────── */
 @media (min-width: 1024px) {
-  .hcc-slide { flex: 0 0 var(--hcc-max-width); }
-  .hcc-slide-card { height: var(--hcc-height-lg); border-radius: 28px; }
-  
-  .hcc-text-panel { 
-    bottom: 24px; 
-    inset-inline-start: 24px; 
-    width: 420px; 
-    padding: 2rem; 
-  }
-  
-  .hcc-headline { font-size: 1.75rem; }
-
-  /* Arrows: 50% overlay on the 1312px container */
   .hcc-arrow-bounds {
     display: block;
     position: absolute;
@@ -163,36 +322,52 @@
     transform: translate(-50%, -50%);
     width: var(--hcc-max-width);
     height: 0;
+    z-index: 20;
     pointer-events: none;
-    z-index: 25;
   }
 
   .hcc-arrow {
     position: absolute;
-    pointer-events: auto;
+    top: 50%;
+    transform: translateY(-50%);
     width: 48px;
     height: 48px;
-    background: #fff;
-    border: none;
     border-radius: 50%;
+    border: none;
+    background: rgba(255, 255, 255, 0.95);
+    color: var(--hcc-primary);
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
     cursor: pointer;
-    transition: all 0.2s;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    transition: all 0.2s ease;
+    pointer-events: auto;
+    backdrop-filter: blur(4px);
   }
 
   .hcc-arrow--prev { inset-inline-start: -24px; }
   .hcc-arrow--next { inset-inline-end: -24px; }
-  .hcc-arrow:hover { background: #470ae2; color: #fff; transform: scale(1.1); }
+
+  .hcc-arrow .material-symbols-sharp {
+    font-size: 1.8rem;
+    font-weight: 600;
+  }
+
+  .hcc-arrow:hover {
+    background: var(--hcc-primary);
+    color: white;
+    transform: translateY(-50%) scale(1.1);
+    box-shadow: 0 8px 24px rgba(255, 77, 30, 0.4);
+  }
 }
 
+/* ── DOTS – Dynamic & Engaging ─────────────────────────────────────────── */
 .hcc-dots {
   display: flex;
+  align-items: center;
   justify-content: center;
-  gap: 8px;
-  margin-top: 1rem;
+  gap: 10px;
 }
 
 .hcc-dot {
@@ -200,13 +375,96 @@
   height: 8px;
   border-radius: 50%;
   border: none;
-  background: #ddd;
+  background: #cbd5e1;
   cursor: pointer;
-  transition: all 0.3s;
+  padding: 0;
+  transition: all 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
 }
 
 .hcc-dot--active {
-  background: #470ae2;
-  width: 20px;
-  border-radius: 4px;
+  background: var(--hcc-primary);
+  width: 32px;
+  border-radius: 6px;
+  box-shadow: 0 0 8px var(--hcc-primary-glow);
+}
+
+/* ═════════════════════════════════════════════════════════════════════════
+   TABLET (≥ 768px)
+═════════════════════════════════════════════════════════════════════════ */
+@media (min-width: 768px) {
+  .hcc-slide {
+    flex: 0 0 70vw;
+    margin: 0 12px;
+  }
+  
+  .hcc-text-panel {
+    padding: 1.5rem;
+    inset-inline-end: auto;
+    width: 360px;
+  }
+  
+  .hcc-headline {
+    font-size: 1.5rem;
+  }
+  
+  .hcc-cta {
+    width: auto;
+    padding: 12px 28px;
+  }
+}
+
+/* ═════════════════════════════════════════════════════════════════════════
+   DESKTOP (≥ 1024px)
+═════════════════════════════════════════════════════════════════════════ */
+@media (min-width: 1024px) {
+  .hcc-slide {
+    flex: 0 0 var(--hcc-max-width);
+    margin: 0 16px;
+  }
+  
+  .hcc-slide-card {
+    height: 540px;
+    border-radius: 36px;
+  }
+
+  .hcc-sale-badge {
+    top: 28px;
+    inset-inline-start: 28px;
+    font-size: 1rem;
+    padding: 8px 20px;
+  }
+
+  .hcc-badge {
+    top: 28px;
+    inset-inline-end: 28px;
+    width: 80px;
+    height: 80px;
+  }
+
+  .hcc-text-panel {
+    bottom: 32px;
+    inset-inline-start: 32px;
+    width: 480px;
+    padding: 2rem;
+    border-radius: 28px;
+  }
+
+  .hcc-headline {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .hcc-store-name {
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+  }
+
+  .hcc-price-current {
+    font-size: 1.8rem;
+  }
+  
+  .hcc-cta {
+    font-size: 1rem;
+    padding: 14px 32px;
+  }
 }
