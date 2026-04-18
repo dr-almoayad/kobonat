@@ -17,7 +17,7 @@ export default async function HomeFeaturedProductsSection({ locale, countryCode 
       products: {
         some: {
           isFeatured: true,
-          countries: { some: { country: { code: countryCode } } },
+          
         },
       },
     },
@@ -31,7 +31,7 @@ export default async function HomeFeaturedProductsSection({ locale, countryCode 
       products: {
         where: {
           isFeatured: true,
-          countries: { some: { country: { code: countryCode } } },
+          
         },
         select: {
           id:            true,
