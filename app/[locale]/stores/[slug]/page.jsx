@@ -470,12 +470,12 @@ export default async function StorePage({ params }) {
                   />
                 )}
 
-                <StoreIntelligenceCard
+                {/*<StoreIntelligenceCard
                   storeId={store.id}
                   locale={locale}
                   countryCode={countryCode}
                   variant="full"
-                />
+                />*/}
 
                 {faqs.length > 0 && (
                   <StoreFAQ
