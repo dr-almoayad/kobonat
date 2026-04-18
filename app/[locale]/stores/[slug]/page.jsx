@@ -486,20 +486,6 @@ export default async function StorePage({ params }) {
                   />
                 )}
 
-                {transformedRelatedStores.length > 0 && (
-                  <section className="related-stores-section">
-                    <h2 className="section-title">
-                      <span className="material-symbols-sharp">storefront</span>
-                      {tStore('similarStores')}
-                    </h2>
-                    <div className="related-stores-grid">
-                      {transformedRelatedStores.map(s => (
-                        <StoreCard key={s.id} store={s} />
-                      ))}
-                    </div>
-                  </section>
-                )}
-
               </main>
 
               <aside className="store-content-sidebar">
@@ -510,7 +496,22 @@ export default async function StorePage({ params }) {
 
             </div>
           </div>
-<PromoCodesFAQ/>
+          
+          {transformedRelatedStores.length > 0 && (
+            <section className="related-stores-section">
+              <h2 className="section-title">
+                <span className="material-symbols-sharp">storefront</span>
+                {tStore('similarStores')}
+              </h2>
+              <div className="related-stores-grid">
+                {transformedRelatedStores.map(s => (
+                  <StoreCard key={s.id} store={s} />
+                ))}
+              </div>
+            </section>
+          )}
+          
+          <PromoCodesFAQ/>
           <HelpBox locale={locale} />
         </div>
       </>
