@@ -24,6 +24,7 @@ export default async function HomeFeaturedProductsSection({ locale, countryCode 
     select: {
       id: true,
       logo: true,
+      bigLogo: true,
       translations: {
         where:  { locale: lang },
         select: { name: true, slug: true },
