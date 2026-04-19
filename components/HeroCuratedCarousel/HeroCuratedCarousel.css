@@ -250,7 +250,7 @@
   }
   
   .hcc-slide-card {
-    height: 520px; /* Taller on Desktop to fit the floating elements gracefully */
+    height: 360px; /* Taller on Desktop to fit the floating elements gracefully */
     border-radius: 32px;
   }
 
