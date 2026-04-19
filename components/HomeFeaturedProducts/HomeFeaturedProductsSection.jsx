@@ -90,7 +90,7 @@ export default async function HomeFeaturedProductsSection({ locale, countryCode 
         title:         p.translations[0]?.title || '',
         // Attach store info for multi-store mode
         storeName:     store.translations[0]?.name || '',
-        storeLogo:     store.logo || null,
+        storeLogo:     store.bigLogo || null,
       });
       added++;
       anyAdded = true;
@@ -105,7 +105,7 @@ export default async function HomeFeaturedProductsSection({ locale, countryCode 
   const storesMeta = sortedStores.map(store => ({
     id:           store.id,
     name:         store.translations[0]?.name || '',
-    logo:         store.logo || null,
+    logo:         store.bigLogo || null,
     featuredCount: store.products.length,
   }));
 
