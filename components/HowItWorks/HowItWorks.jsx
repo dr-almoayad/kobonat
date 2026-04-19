@@ -1,7 +1,9 @@
+/* HowItWorks.jsx - Mobile First, Unique Design, Max Width 1312px */
 'use client';
-// components/HowItWorks/HowItWorks.jsx
-// Usage: <HowItWorks locale="ar-SA" />  or  <HowItWorks locale="en-SA" />
+import React from 'react';
+import './HowItWorks.css'; // import the separate CSS file
 
+// ---------------------- Content (Unchanged) ----------------------
 const CONTENT = {
   ar: {
     steps: [
@@ -37,6 +39,7 @@ const CONTENT = {
   },
 };
 
+// ---------------------- Icons (Preserved) ----------------------
 function IconFind() {
   return (
     <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" width={64} height={64}>
@@ -90,72 +93,32 @@ function IconSave() {
 
 const ICONS = [IconFind, IconShop, IconSave];
 
+// ---------------------- Main Component ----------------------
 export default function HowItWorks({ locale = 'ar-SA' }) {
   const lang = locale?.split('-')[0] === 'en' ? 'en' : 'ar';
   const isAr = lang === 'ar';
   const { steps } = CONTENT[lang];
 
   return (
-    <section
-      dir={isAr ? 'rtl' : 'ltr'}
-      style={{
-        fontFamily: "'Alexandria', system-ui, sans-serif",
-        padding: '2.5rem 1.5rem',
-        background: '#fff',
-      }}
-    >
-      <div
-        style={{
-          maxWidth: 960,
-          margin: '0 auto',
-          display: 'grid',
-          gridTemplateColumns: 'repeat(3, 1fr)',
-        }}
-      >
-        {steps.map((step, i) => {
-          const Icon = ICONS[i];
-          return (
-            <div
-              key={i}
-              style={{
-                display: 'flex',
-                alignItems: 'flex-start',
-                gap: 16,
-                padding: '0 2rem',
-                borderInlineStart: i > 0 ? '1px solid #e5e7eb' : 'none',
-              }}
-            >
-              <div style={{ flexShrink: 0 }}>
-                <Icon />
+    <section dir={isAr ? 'rtl' : 'ltr'} className="hiw-unique-section">
+      <div className="hiw-unique-container">
+        <div className="hiw-unique-grid">
+          {steps.map((step, idx) => {
+            const Icon = ICONS[idx];
+            const stepNumber = idx + 1;
+            return (
+              <div key={idx} className="hiw-unique-card">
+                <div className="hiw-unique-step-badge">{stepNumber}</div>
+                <div className="hiw-unique-icon-wrapper">
+                  <Icon />
+                </div>
+                <h3 className="hiw-unique-title">{step.title}</h3>
+                <p className="hiw-unique-description">{step.desc}</p>
+                <div className="hiw-unique-glow" />
               </div>
-              <div>
-                <p
-                  style={{
-                    margin: '0 0 6px',
-                    fontSize: 13,
-                    fontWeight: 900,
-                    letterSpacing: '0.07em',
-                    textTransform: 'uppercase',
-                    color: '#111827',
-                    lineHeight: 1.3,
-                  }}
-                >
-                  {step.title}
-                </p>
-                <p
-                  style={{
-                    margin: 0,
-                    fontSize: 13,
-                    color: '#6b7280',
-                    lineHeight: 1.65,
-                  }}
-                >
-                  {step.desc}
-                </p>
-              </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
     </section>
   );
