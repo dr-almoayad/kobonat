@@ -30,9 +30,9 @@ function StackedStoreAvatars({ stores = [], max = 4 }) {
           title={store.name}
           style={{ zIndex: sorted.length - i }}
         >
-          {store.logo ? (
+          {store.bigLogo ? (
             <Image
-              src={store.logo}
+              src={store.bigLogo}
               alt={store.name || ''}
               width={36}
               height={36}
