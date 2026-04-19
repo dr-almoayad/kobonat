@@ -43,33 +43,42 @@
 
 /* Shared arrow styles */
 .ec-arrow {
-  flex-shrink: 0;
-  width: 40px;
-  height: 40px;
+  display: none;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
-  border: none;
-  background: rgba(0, 0, 0, 0.04);
-  color: #1f2937;
-  display: flex;
+  border: 1px solid #d5d9d9;
+  background: #fff;
+  color: #333;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+  transition: background 0.15s, box-shadow 0.15s;
 }
+
 .ec-arrow .material-symbols-sharp {
   font-size: 1.25rem;
   line-height: 1;
 }
+
 .ec-arrow:hover:not(:disabled) {
-  background: #470ae2;
-  color: white;
-  transform: scale(1.04);
-  box-shadow: 0 4px 10px rgba(71, 10, 226, 0.2);
+  background: #f5f5f5;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.18);
 }
+
 .ec-arrow:disabled {
-  opacity: 0.25;
+  opacity: 0.3;
   cursor: default;
+  pointer-events: none;
 }
+
+.ec-arrow--prev { inset-inline-start: 0.25rem; }
+.ec-arrow--next { inset-inline-end: 0.25rem; }
 
 /* Dots */
 .ec-dots {
