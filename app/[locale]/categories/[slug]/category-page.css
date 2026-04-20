@@ -15,9 +15,9 @@
 
 /* ── Breadcrumb ─────────────────────────────────────────────────────────── */
 .cd-breadcrumb {
-  max-width: 1280px;
+  max-width: 1312px;
   margin: 0 auto;
-  padding: 1rem 1.5rem 0;
+  padding: 1rem 1.5rem;
   display: flex;
   align-items: center;
   gap: 0.4rem;
@@ -60,7 +60,7 @@
 }
 
 .cd-hero-inner {
-  max-width: 1280px;
+  max-width: 1312px;
   margin: 0 auto;
   padding: 2rem 1.5rem 2.25rem;
   display: flex;
