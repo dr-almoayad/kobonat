@@ -6,7 +6,7 @@ import { useLocale, useTranslations } from 'next-intl';
 import VoucherModal from '@/components/VoucherModal/VoucherModal';
 import './VoucherCard.css';
 
-const VoucherCard = ({ voucher, featured = false, bestDeal = false }) => {
+const VoucherCard = ({ voucher, featured = false, bestDeal = false, expired = false }) => {
   const locale = useLocale();
   const t = useTranslations('VoucherCard');
   const [copied, setCopied] = useState(false);
@@ -25,7 +25,7 @@ const VoucherCard = ({ voucher, featured = false, bestDeal = false }) => {
   const currentLanguage = locale.split('-')[0];
   const isRtl = currentLanguage === 'ar';
 
-  // ── Text extractors ──────────────────────────────────────────────
+  // ── Text extractors (unchanged) ─────────────────────────────────
   const getVoucherTitle = () => {
     if (voucher.title) return voucher.title;
     if (voucher.translations?.[0]?.title) return voucher.translations[0].title;
@@ -62,9 +62,11 @@ const VoucherCard = ({ voucher, featured = false, bestDeal = false }) => {
   };
 
   // Date helpers
-  const isExpired = voucher.expiryDate ? new Date(voucher.expiryDate) < new Date() : false;
+  const isExpiredByDate = voucher.expiryDate ? new Date(voucher.expiryDate) < new Date() : false;
+  const isExpiredCard = expired || isExpiredByDate; // ✅ use prop or date check
+
   const getDaysRemaining = () => {
-    if (!voucher.expiryDate || isExpired) return null;
+    if (!voucher.expiryDate || isExpiredByDate) return null;
     return Math.ceil((new Date(voucher.expiryDate) - new Date()) / (1000 * 60 * 60 * 24));
   };
   const isExpiringSoon = (() => {
@@ -108,7 +110,7 @@ const VoucherCard = ({ voucher, featured = false, bestDeal = false }) => {
     return null;
   };
 
-  const isActive   = !isExpired && (!voucher.startDate || new Date(voucher.startDate) <= new Date());
+  const isActive   = !isExpiredByDate && (!voucher.startDate || new Date(voucher.startDate) <= new Date());
   const timesUsed  = voucher.clickCount ?? voucher._count?.clicks ?? 0;
   const storeName  = getStoreName();
   const storeSlug  = getStoreSlug();
@@ -122,7 +124,7 @@ const VoucherCard = ({ voucher, featured = false, bestDeal = false }) => {
   // ── Handlers ─────────────────────────────────────────────────────
   const handleCodeCopy = async (e) => {
     e?.stopPropagation();
-    if (!voucher.code) return;
+    if (isExpiredCard || !voucher.code) return;
     try {
       await navigator.clipboard.writeText(voucher.code);
       setCopied(true);
@@ -141,6 +143,7 @@ const VoucherCard = ({ voucher, featured = false, bestDeal = false }) => {
 
   const handleDealActivate = async (e) => {
     e?.stopPropagation();
+    if (isExpiredCard) return;
     const [, countryCode] = locale.split('-');
     await fetch('/api/vouchers/track', {
       method: 'POST',
@@ -152,10 +155,12 @@ const VoucherCard = ({ voucher, featured = false, bestDeal = false }) => {
 
   const handleDetailsClick = (e) => {
     e?.stopPropagation();
+    if (isExpiredCard) return;
     setModalOpen(true);
   };
 
   const handleCardClick = () => {
+    if (isExpiredCard) return;
     if (isMobileRef.current) setModalOpen(true);
   };
 
@@ -167,18 +172,19 @@ const VoucherCard = ({ voucher, featured = false, bestDeal = false }) => {
       <div
         className={[
           'vc-card',
-          isExpired ? 'vc-expired'         : '',
-          featured  ? 'vc-featured'        : '',
-          bestDeal  ? 'vc-card--best-deal' : '',
+          isExpiredCard ? 'vc-expired'      : '',
+          featured      ? 'vc-featured'     : '',
+          bestDeal      ? 'vc-card--best-deal' : '',
         ].filter(Boolean).join(' ')}
         dir={isRtl ? 'rtl' : 'ltr'}
         onClick={handleCardClick}
         role="button"
-        tabIndex={0}
-        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleCardClick(); }}
+        tabIndex={isExpiredCard ? -1 : 0}
+        onKeyDown={(e) => { if (!isExpiredCard && (e.key === 'Enter' || e.key === ' ')) handleCardClick(); }}
         aria-label={title}
+        aria-disabled={isExpiredCard}
       >
-        {/* Ribbons */}
+        {/* Ribbons – unchanged */}
         {featured && !bestDeal && (
           <div className="vc-ribbon">
             <span className="material-symbols-sharp">star</span>
@@ -202,7 +208,6 @@ const VoucherCard = ({ voucher, featured = false, bestDeal = false }) => {
 
         {/* BODY */}
         <div className="vc-body">
-          {/* Store logo row */}
           {voucher.store && (
             <Link
               href={`/${locale}/stores/${storeSlug}`}
@@ -216,22 +221,17 @@ const VoucherCard = ({ voucher, featured = false, bestDeal = false }) => {
               />
             </Link>
           )}
-
-          {/* Title */}
           <h3 className="vc-title">{title}</h3>
-
-          {/* Description (desktop only) */}
           {description && <p className="vc-desc">{description}</p>}
 
-          {/* Badges */}
           <div className="vc-badges">
-            {isActive && !isExpired && (
+            {isActive && !isExpiredByDate && (
               <span className="vc-badge vc-badge-active">
                 <span className="material-symbols-sharp">check_circle</span>
                 {t('badges.active')}
               </span>
             )}
-            {isExpiringSoon && !isExpired && (
+            {isExpiringSoon && !isExpiredByDate && (
               <span className="vc-badge vc-badge-urgent">
                 <span className="material-symbols-sharp">timer</span>
                 {daysRemaining !== null
@@ -239,7 +239,7 @@ const VoucherCard = ({ voucher, featured = false, bestDeal = false }) => {
                   : (isRtl ? 'ينتهي قريباً' : 'Ending soon')}
               </span>
             )}
-            {isExpired && (
+            {isExpiredCard && (
               <span className="vc-badge vc-badge-expired">
                 <span className="material-symbols-sharp">block</span>
                 {t('meta.expired')}
@@ -259,7 +259,6 @@ const VoucherCard = ({ voucher, featured = false, bestDeal = false }) => {
             )}
           </div>
 
-          {/* Meta line */}
           {(timesUsed > 0 || lastUpdated) && (
             <div className="vc-meta-line">
               {timesUsed > 0 && (
@@ -279,7 +278,7 @@ const VoucherCard = ({ voucher, featured = false, bestDeal = false }) => {
             <button
               className={`vc-btn-primary ${copied ? 'vc-copied' : ''}`}
               onClick={handleCodeCopy}
-              disabled={isExpired}
+              disabled={isExpiredCard}
             >
               {copied ? (
                 <><span className="material-symbols-sharp">check_circle</span>{isRtl ? 'تم النسخ!' : 'Copied!'}</>
@@ -291,7 +290,7 @@ const VoucherCard = ({ voucher, featured = false, bestDeal = false }) => {
             <button
               className="vc-btn-deal"
               onClick={handleDealActivate}
-              disabled={isExpired}
+              disabled={isExpiredCard}
             >
               <span className="material-symbols-sharp">arrow_outward</span>
               {isRtl ? 'تفعيل العرض' : 'Get Deal'}
@@ -302,6 +301,7 @@ const VoucherCard = ({ voucher, featured = false, bestDeal = false }) => {
             className="vc-details-btn"
             onClick={handleDetailsClick}
             aria-label={isRtl ? 'عرض التفاصيل' : 'View details'}
+            disabled={isExpiredCard}
           >
             <span className="material-symbols-sharp">info</span>
             {isRtl ? 'التفاصيل' : 'Details'}
@@ -316,15 +316,14 @@ const VoucherCard = ({ voucher, featured = false, bestDeal = false }) => {
         </div>
       </div>
 
-      {/* ✅ MODAL – integrated with new VoucherModal */}
-      {mounted && (
+      {/* Modal – only rendered if not expired */}
+      {mounted && !isExpiredCard && (
         <VoucherModal
           isOpen={modalOpen}
           onClose={closeModal}
           voucher={voucher}
           store={voucher.store}
           locale={locale}
-          // Optional: pass custom bank tips or feedback handler
         />
       )}
     </>
