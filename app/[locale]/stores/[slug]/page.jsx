@@ -1,8 +1,7 @@
 // app/[locale]/stores/[slug]/page.jsx
-// CHANGE vs previous version:
-//  - Category branch now 301-redirects to /categories/[slug]
-//  - All store handling is unchanged
-//  - Removes the dual-purpose routing that confused Google
+// ✅ Uses new StoreStructuredSchemas (dynamic FAQ schema + Offer schema)
+// ✅ Removes old StoreStructuredData and FAQStructuredData
+// ✅ Passes same faqs to both StoreFAQ and StoreStructuredSchemas
 
 import { prisma } from '@/lib/prisma';
 import { notFound, permanentRedirect } from 'next/navigation';
@@ -13,8 +12,9 @@ import StoreFAQ from '@/components/StoreFAQ/StoreFAQ';
 import StoreCard from '@/components/StoreCard/StoreCard';
 import FeaturedProductsCarousel from '@/components/FeaturedProductsCarousel/FeaturedProductsCarousel';
 import OtherPromosSection from '@/components/OtherPromosSection/OtherPromosSection';
-import FAQStructuredData from '@/components/StructuredData/FAQStructuredData';
-import StoreStructuredData from '@/components/StructuredData/StoreStructuredData';
+// ❌ REMOVED: import FAQStructuredData from '@/components/StructuredData/FAQStructuredData';
+// ❌ REMOVED: import StoreStructuredData from '@/components/StructuredData/StoreStructuredData';
+import { StoreStructuredSchemas } from '@/lib/seo/storeSchemas'; // ✅ NEW import
 import Breadcrumbs from '@/components/Breadcrumbs/Breadcrumbs';
 import RelatedPostsSidebar from '@/components/blog/RelatedPostsSidebar';
 import StoreIntelligenceCard from '@/components/StoreIntelligenceCard/StoreIntelligenceCard';
@@ -127,8 +127,6 @@ export default async function StorePage({ params }) {
 
     // ── CATEGORY REDIRECT ────────────────────────────────────────────────────
     // If the slug matches a category, permanently redirect to /categories/[slug].
-    // This consolidates the canonical URL at /categories/* and passes any link
-    // equity from old /stores/* category URLs to the new canonical location.
     const category = await getCategoryData(slug, language, countryCode);
     if (category) {
       permanentRedirect(`/${locale}/categories/${slug}`);
@@ -166,7 +164,7 @@ export default async function StorePage({ params }) {
     const [
       vouchers,
       paymentMethodsData,
-      faqs,
+      faqs,                       // ✅ dynamic FAQs from DB (used in UI + schema)
       relatedStores,
       storeProducts,
       relatedPostsRaw,
@@ -284,7 +282,7 @@ export default async function StorePage({ params }) {
       }),
     ]);
 
-    // Transform
+    // Transform vouchers
     const transformedVouchers = vouchers.map(v => ({
       ...v,
       title:       v.translations[0]?.title       || '',
@@ -292,6 +290,7 @@ export default async function StorePage({ params }) {
       store:       transformedStore,
     }));
 
+    // Payment methods
     const allPaymentMethods   = paymentMethodsData.map(spm => ({
       ...spm.paymentMethod,
       name:        spm.paymentMethod.translations[0]?.name        || '',
@@ -301,12 +300,14 @@ export default async function StorePage({ params }) {
     const otherPaymentMethods = allPaymentMethods.filter(pm => !pm.isBnpl);
     const mostTrackedVoucher  = transformedVouchers[0] || null;
 
+    // Related stores
     const transformedRelatedStores = relatedStores.map(s => ({
       ...s,
       name: s.translations[0]?.name || '',
       slug: s.translations[0]?.slug || '',
     }));
 
+    // Products
     const transformedProducts = storeProducts.map(p => ({
       id:            p.id,
       image:         p.image,
@@ -316,6 +317,7 @@ export default async function StorePage({ params }) {
       discountType:  p.discountType,
     }));
 
+    // Blog posts
     const relatedPosts = relatedPostsRaw.map(post => ({
       id:            post.id,
       slug:          post.slug,
@@ -329,6 +331,7 @@ export default async function StorePage({ params }) {
       } : null,
     }));
 
+    // Other promos
     const transformedOtherPromos = otherPromos.map(p => ({
       id:          p.id,
       type:        p.type,
@@ -341,6 +344,7 @@ export default async function StorePage({ params }) {
       terms:       p.translations[0]?.terms       || null,
     }));
 
+    // Curated offers
     const transformedCuratedOffers = curatedOffers.map(o => ({
       id:          o.id,
       type:        o.type,
@@ -354,6 +358,7 @@ export default async function StorePage({ params }) {
       ctaText:     o.translations[0]?.ctaText     || null,
     }));
 
+    // Offer stacks
     const transformedOfferStacks = offerStacks.map(s => ({
       id:    s.id,
       label: s.label,
@@ -376,16 +381,29 @@ export default async function StorePage({ params }) {
       } : null,
     }));
 
+    // Categorised vouchers
     const codeVouchers     = transformedVouchers.filter(v => v.type === 'CODE');
     const dealVouchers     = transformedVouchers.filter(v => v.type === 'DEAL');
     const shippingVouchers = transformedVouchers.filter(v => v.type === 'FREE_SHIPPING');
     const countryName      = country.translations[0]?.name || country.code;
 
+    // Breadcrumbs
     const breadcrumbs = [
       { name: language === 'ar' ? 'الرئيسية' : 'Home',   url: `${BASE_URL}/${locale}` },
       { name: language === 'ar' ? 'المتاجر'  : 'Stores', url: `${BASE_URL}/${locale}/stores` },
       { name: transformedStore.name, url: `${BASE_URL}/${locale}/stores/${slug}` },
     ];
+
+    // Compute maxSavings from vouchers or other promos
+    const maxSavings = Math.max(
+      ...transformedVouchers.map(v => v.verifiedAvgPercent ?? v.discountPercent ?? 0),
+      ...transformedOtherPromos.map(p => p.discountPercent ?? 0),
+      0
+    );
+
+    // Prepare title and description for structured data
+    const pageTitle = storeTranslation?.seoTitle || `${transformedStore.name} Coupons`;
+    const pageDescription = storeTranslation?.seoDescription || transformedStore.description || '';
 
     const headerProps = {
       store:          transformedStore,
@@ -398,18 +416,18 @@ export default async function StorePage({ params }) {
 
     return (
       <>
-        <StoreStructuredData
-          store={transformedStore}
-          vouchers={transformedVouchers}
-          otherPromos={transformedOtherPromos}
-          storeProducts={transformedProducts}
-          curatedOffers={transformedCuratedOffers}
-          offerStacks={transformedOfferStacks}
+        {/* ✅ NEW: StoreStructuredSchemas – replaces both old StoreStructuredData and FAQStructuredData */}
+        <StoreStructuredSchemas
+          storeName={transformedStore.name}
+          storeSlug={transformedStore.slug}
+          title={pageTitle}
+          description={pageDescription}
           locale={locale}
-          country={country}
-          breadcrumbs={breadcrumbs}
+          voucherCount={transformedVouchers.length}
+          maxSavings={maxSavings}
+          updatedAt={store.updatedAt}
+          faqs={faqs}   // ✅ same dynamic FAQs used in <StoreFAQ> below
         />
-        <FAQStructuredData faqs={faqs} locale={locale} />
 
         <div className="store-page-layout">
           <Breadcrumbs items={breadcrumbs} locale={locale} />
@@ -470,6 +488,7 @@ export default async function StorePage({ params }) {
                   />
                 )}
 
+                {/* Optional: StoreIntelligenceCard – currently commented out */}
                 {/*<StoreIntelligenceCard
                   storeId={store.id}
                   locale={locale}
@@ -511,7 +530,7 @@ export default async function StorePage({ params }) {
             </section>
           )}
           
-          <PromoCodesFAQ/>
+          <PromoCodesFAQ />
           <HelpBox locale={locale} />
         </div>
       </>
