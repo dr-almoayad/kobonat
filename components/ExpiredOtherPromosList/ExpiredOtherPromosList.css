@@ -70,7 +70,7 @@
   filter: grayscale(0.15);
 }
 
-/* Card styling – mimics the original OtherPromos card but with expired treatment */
+/* Card styling – mirrors OtherPromos card but muted */
 .expired-other-card {
   border-radius: 12px;
   border: 1px solid #e5e7eb;
