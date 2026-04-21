@@ -1,9 +1,9 @@
-// components/VoucherCard/VoucherCard.jsx (refactored)
+// components/VoucherCard/VoucherCard.jsx
 'use client';
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useLocale, useTranslations } from 'next-intl';
-import VoucherModal from '@/components/VoucherModal/VoucherModal'; // ✅ NEW import
+import VoucherModal from '@/components/VoucherModal/VoucherModal';
 import './VoucherCard.css';
 
 const VoucherCard = ({ voucher, featured = false, bestDeal = false }) => {
@@ -22,12 +22,10 @@ const VoucherCard = ({ voucher, featured = false, bestDeal = false }) => {
     return () => window.removeEventListener('resize', check);
   }, []);
 
-  // No body scroll lock needed – VoucherModal handles it
-
   const currentLanguage = locale.split('-')[0];
   const isRtl = currentLanguage === 'ar';
 
-  // ── Text extractors (unchanged) ──────────────────────────────
+  // ── Text extractors ──────────────────────────────────────────────
   const getVoucherTitle = () => {
     if (voucher.title) return voucher.title;
     if (voucher.translations?.[0]?.title) return voucher.translations[0].title;
@@ -55,7 +53,6 @@ const VoucherCard = ({ voucher, featured = false, bestDeal = false }) => {
     return 'store';
   };
 
-  // Discount display (unchanged)
   const getDiscountText = () => {
     if (voucher.discount) return voucher.discount;
     if (voucher.discountPercent != null) return `${Math.round(voucher.discountPercent)}%`;
@@ -64,7 +61,7 @@ const VoucherCard = ({ voucher, featured = false, bestDeal = false }) => {
     return isRtl ? 'خصم' : 'SALE';
   };
 
-  // Date helpers (unchanged)
+  // Date helpers
   const isExpired = voucher.expiryDate ? new Date(voucher.expiryDate) < new Date() : false;
   const getDaysRemaining = () => {
     if (!voucher.expiryDate || isExpired) return null;
@@ -122,7 +119,7 @@ const VoucherCard = ({ voucher, featured = false, bestDeal = false }) => {
   const daysRemaining = getDaysRemaining();
   const discountText  = getDiscountText();
 
-  // ── Handlers (unchanged) ─────────────────────────────────────
+  // ── Handlers ─────────────────────────────────────────────────────
   const handleCodeCopy = async (e) => {
     e?.stopPropagation();
     if (!voucher.code) return;
@@ -164,7 +161,7 @@ const VoucherCard = ({ voucher, featured = false, bestDeal = false }) => {
 
   const closeModal = () => setModalOpen(false);
 
-  // ── Render card (unchanged, except the modal is replaced) ────
+  // ── Render card ─────────────────────────────────────────────────
   return (
     <>
       <div
@@ -181,12 +178,145 @@ const VoucherCard = ({ voucher, featured = false, bestDeal = false }) => {
         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleCardClick(); }}
         aria-label={title}
       >
-        {/* Ribbons, discount panel, body, actions – unchanged */}
-        {/* ... (keep all existing JSX exactly as in your original VoucherCard, but remove the old modal) */}
-        {/* The original modal section (with vc-overlay, vc-modal, etc.) should be deleted */}
+        {/* Ribbons */}
+        {featured && !bestDeal && (
+          <div className="vc-ribbon">
+            <span className="material-symbols-sharp">star</span>
+            {isRtl ? 'مميز' : 'Featured'}
+          </div>
+        )}
+        {bestDeal && (
+          <div className="vc-ribbon vc-ribbon--best">
+            <span className="material-symbols-sharp">bolt</span>
+            {isRtl ? 'أفضل عرض' : 'Best Deal'}
+          </div>
+        )}
+
+        {/* LEFT — Discount panel */}
+        <div className="vc-left">
+          {bestDeal && (
+            <span className="vc-best-bolt material-symbols-sharp" aria-hidden="true">bolt</span>
+          )}
+          <div className="vc-discount">{discountText}</div>
+        </div>
+
+        {/* BODY */}
+        <div className="vc-body">
+          {/* Store logo row */}
+          {voucher.store && (
+            <Link
+              href={`/${locale}/stores/${storeSlug}`}
+              className="vc-logo-row"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <img
+                src={voucher.store.logo || '/placeholder_store.png'}
+                alt={storeName}
+                className="vc-logo"
+              />
+            </Link>
+          )}
+
+          {/* Title */}
+          <h3 className="vc-title">{title}</h3>
+
+          {/* Description (desktop only) */}
+          {description && <p className="vc-desc">{description}</p>}
+
+          {/* Badges */}
+          <div className="vc-badges">
+            {isActive && !isExpired && (
+              <span className="vc-badge vc-badge-active">
+                <span className="material-symbols-sharp">check_circle</span>
+                {t('badges.active')}
+              </span>
+            )}
+            {isExpiringSoon && !isExpired && (
+              <span className="vc-badge vc-badge-urgent">
+                <span className="material-symbols-sharp">timer</span>
+                {daysRemaining !== null
+                  ? (isRtl ? `ينتهي خلال ${daysRemaining} يوم` : `${daysRemaining}d left`)
+                  : (isRtl ? 'ينتهي قريباً' : 'Ending soon')}
+              </span>
+            )}
+            {isExpired && (
+              <span className="vc-badge vc-badge-expired">
+                <span className="material-symbols-sharp">block</span>
+                {t('meta.expired')}
+              </span>
+            )}
+            {voucher.isVerified && (
+              <span className="vc-badge vc-badge-verified">
+                <span className="material-symbols-sharp">verified</span>
+                {t('badges.verified')}
+              </span>
+            )}
+            {voucher.isExclusive && (
+              <span className="vc-badge vc-badge-exclusive">
+                <span className="material-symbols-sharp">star</span>
+                {t('badges.exclusive')}
+              </span>
+            )}
+          </div>
+
+          {/* Meta line */}
+          {(timesUsed > 0 || lastUpdated) && (
+            <div className="vc-meta-line">
+              {timesUsed > 0 && (
+                <span className="vc-meta-item">
+                  {timesUsed.toLocaleString()} {t('meta.timesUsed')}
+                </span>
+              )}
+              {timesUsed > 0 && lastUpdated && <span className="vc-meta-dot">·</span>}
+              {lastUpdated && <span className="vc-meta-item">{lastUpdated}</span>}
+            </div>
+          )}
+        </div>
+
+        {/* RIGHT — Action buttons (desktop) */}
+        <div className="vc-actions">
+          {voucher.type === 'CODE' ? (
+            <button
+              className={`vc-btn-primary ${copied ? 'vc-copied' : ''}`}
+              onClick={handleCodeCopy}
+              disabled={isExpired}
+            >
+              {copied ? (
+                <><span className="material-symbols-sharp">check_circle</span>{isRtl ? 'تم النسخ!' : 'Copied!'}</>
+              ) : (
+                <><span className="material-symbols-sharp">content_copy</span>{isRtl ? 'نسخ الكود' : 'Copy Code'}</>
+              )}
+            </button>
+          ) : (
+            <button
+              className="vc-btn-deal"
+              onClick={handleDealActivate}
+              disabled={isExpired}
+            >
+              <span className="material-symbols-sharp">arrow_outward</span>
+              {isRtl ? 'تفعيل العرض' : 'Get Deal'}
+            </button>
+          )}
+
+          <button
+            className="vc-details-btn"
+            onClick={handleDetailsClick}
+            aria-label={isRtl ? 'عرض التفاصيل' : 'View details'}
+          >
+            <span className="material-symbols-sharp">info</span>
+            {isRtl ? 'التفاصيل' : 'Details'}
+          </button>
+        </div>
+
+        {/* Mobile chevron */}
+        <div className="vc-mobile-chevron" aria-hidden="true">
+          <span className="material-symbols-sharp">
+            {isRtl ? 'chevron_left' : 'chevron_right'}
+          </span>
+        </div>
       </div>
 
-      {/* ✅ NEW: Use VoucherModal instead of internal modal */}
+      {/* ✅ MODAL – integrated with new VoucherModal */}
       {mounted && (
         <VoucherModal
           isOpen={modalOpen}
@@ -194,7 +324,7 @@ const VoucherCard = ({ voucher, featured = false, bestDeal = false }) => {
           voucher={voucher}
           store={voucher.store}
           locale={locale}
-          // Optionally pass custom bankTips or onFeedback
+          // Optional: pass custom bank tips or feedback handler
         />
       )}
     </>
