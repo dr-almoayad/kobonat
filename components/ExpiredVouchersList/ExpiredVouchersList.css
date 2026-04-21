@@ -1,0 +1,78 @@
+.expired-vouchers-section {
+  margin-top: 2rem;
+  border-top: 1px solid #e5e7eb;
+  padding-top: 1rem;
+}
+
+.expired-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: none;
+  border: none;
+  font-family: 'Alexandria', system-ui, sans-serif;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 0.5rem 0;
+  transition: color 0.2s;
+}
+
+.expired-toggle:hover {
+  color: #470ae2;
+}
+
+.expired-toggle .material-symbols-sharp {
+  font-size: 1.2rem;
+}
+
+.expired-count {
+  font-size: 0.75rem;
+  font-weight: 500;
+  background: #f3f4f6;
+  padding: 0.1rem 0.4rem;
+  border-radius: 20px;
+  margin-left: 0.5rem;
+}
+
+.expired-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+@media (min-width: 640px) {
+  .expired-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .expired-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.expired-item {
+  opacity: 0.7;
+  filter: grayscale(0.3);
+  transition: opacity 0.2s;
+}
+
+.expired-item:hover {
+  opacity: 0.85;
+  filter: grayscale(0.15);
+}
+
+.expired-note {
+  grid-column: 1 / -1;
+  font-size: 0.75rem;
+  color: #9ca3af;
+  text-align: center;
+  margin-top: 1rem;
+  padding: 0.5rem;
+  background: #f9fafb;
+  border-radius: 8px;
+}
