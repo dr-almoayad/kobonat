@@ -266,11 +266,11 @@ export default async function StorePage({ params }) {
     ]);
 
     // Split vouchers
-    const activeVouchers = allVouchers.filter(v => !v.expiryDate || v.expiryDate >= now);
+    const activeVouchers  = allVouchers.filter(v => !v.expiryDate || v.expiryDate >= now);
     const expiredVouchers = allVouchers.filter(v => v.expiryDate && v.expiryDate < now).slice(0, 10);
 
     // Split other promos
-    const activeOtherPromos = allOtherPromos.filter(p => !p.expiryDate || p.expiryDate >= now);
+    const activeOtherPromos  = allOtherPromos.filter(p => !p.expiryDate || p.expiryDate >= now);
     const expiredOtherPromos = allOtherPromos.filter(p => p.expiryDate && p.expiryDate < now).slice(0, 10);
 
     // Transform active vouchers
@@ -322,32 +322,35 @@ export default async function StorePage({ params }) {
       } : null,
     }));
 
-    // Active other promos (already filtered)
+    // Active other promos — FIX: include discountPercent and verifiedAvgPercent so
+    // maxSavings calculation can read the actual bank/card offer savings figures.
     const transformedOtherPromos = activeOtherPromos.map(p => ({
-      id:          p.id,
-      type:        p.type,
-      image:       p.image,
-      url:         p.url,
-      startDate:   p.startDate,
-      expiryDate:  p.expiryDate,
-      title:       p.translations[0]?.title       || '',
-      description: p.translations[0]?.description || null,
-      terms:       p.translations[0]?.terms       || null,
+      id:                 p.id,
+      type:               p.type,
+      image:              p.image,
+      url:                p.url,
+      startDate:          p.startDate,
+      expiryDate:         p.expiryDate,
+      discountPercent:    p.discountPercent    ?? null,
+      verifiedAvgPercent: p.verifiedAvgPercent ?? null,
+      title:              p.translations[0]?.title       || '',
+      description:        p.translations[0]?.description || null,
+      terms:              p.translations[0]?.terms       || null,
       bank: p.bank ? {
         name: p.bank.translations[0]?.name || '',
         logo: p.bank.logo,
       } : null,
       paymentMethod: p.paymentMethod ? {
-        name:  p.paymentMethod.translations[0]?.name || '',
-        logo:  p.paymentMethod.logo,
-        type:  p.paymentMethod.type,
+        name:   p.paymentMethod.translations[0]?.name || '',
+        logo:   p.paymentMethod.logo,
+        type:   p.paymentMethod.type,
         isBnpl: p.paymentMethod.isBnpl,
       } : null,
-      card: p.card,
+      card:        p.card,
       voucherCode: p.voucherCode,
     }));
 
-    // Curated offers (unchanged)
+    // Curated offers
     const transformedCuratedOffers = curatedOffers.map(o => ({
       id:          o.id,
       type:        o.type,
@@ -361,7 +364,7 @@ export default async function StorePage({ params }) {
       ctaText:     o.translations[0]?.ctaText     || null,
     }));
 
-    // Offer stacks (unchanged)
+    // Offer stacks
     const transformedOfferStacks = offerStacks.map(s => ({
       id:    s.id,
       label: s.label,
@@ -397,14 +400,15 @@ export default async function StorePage({ params }) {
       { name: transformedStore.name, url: `${BASE_URL}/${locale}/stores/${slug}` },
     ];
 
-    // Compute max savings for structured data
+    // FIX: use verifiedAvgPercent ?? discountPercent for both vouchers and promos,
+    // so bank/card offer discounts are included in the max savings figure.
     const maxSavings = Math.max(
       ...transformedVouchers.map(v => v.verifiedAvgPercent ?? v.discountPercent ?? 0),
-      ...transformedOtherPromos.map(p => p.discountPercent ?? 0),
+      ...transformedOtherPromos.map(p => p.verifiedAvgPercent ?? p.discountPercent ?? 0),
       0
     );
 
-    // Prepare props for StorePageShell (will pass to StoreHeader)
+    // Props for StorePageShell → StoreHeader
     const headerProps = {
       store:          transformedStore,
       mostTrackedVoucher,
@@ -417,7 +421,7 @@ export default async function StorePage({ params }) {
     };
 
     // SEO title/description for structured data
-    const pageTitle = storeTranslation?.seoTitle || `${transformedStore.name} Coupons`;
+    const pageTitle       = storeTranslation?.seoTitle       || `${transformedStore.name} Coupons`;
     const pageDescription = storeTranslation?.seoDescription || transformedStore.description || '';
 
     return (
@@ -492,14 +496,6 @@ export default async function StorePage({ params }) {
                   />
                 )}
 
-                {/* Optional: StoreIntelligenceCard – currently commented out */}
-                {/*<StoreIntelligenceCard
-                  storeId={store.id}
-                  locale={locale}
-                  countryCode={countryCode}
-                  variant="full"
-                />*/}
-
                 {faqs.length > 0 && (
                   <StoreFAQ
                     faqs={faqs}
@@ -509,11 +505,10 @@ export default async function StorePage({ params }) {
                   />
                 )}
 
-                {/* Expired sections – collapsed by default */}
                 {expiredVouchers.length > 0 && (
                   <ExpiredVouchersList vouchers={expiredVouchers} />
                 )}
-      
+
                 {expiredOtherPromos.length > 0 && (
                   <ExpiredOtherPromosList
                     promos={expiredOtherPromos}
@@ -521,7 +516,7 @@ export default async function StorePage({ params }) {
                     storeLogo={transformedStore.logo}
                   />
                 )}
-      
+
                 {transformedRelatedStores.length > 0 && (
                   <section className="related-stores-section">
                     <h2 className="section-title">
@@ -545,8 +540,6 @@ export default async function StorePage({ params }) {
             </div>
           </div>
 
-          
-
           <PromoCodesFAQ />
           <HelpBox locale={locale} />
         </div>
@@ -557,4 +550,4 @@ export default async function StorePage({ params }) {
     console.error('[StorePage] error:', error);
     return notFound();
   }
-}
+            }
