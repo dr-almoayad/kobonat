@@ -1,9 +1,10 @@
-// components/headers/StoreHeader.jsx - WITH LAST UPDATED
+// components/headers/StoreHeader.jsx
 'use client';
 
 import { useState, useRef, useLayoutEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { generateStorePageTitle, generateStoreHeroSubtitle } from '@/lib/seo/dynamicStoreTitle';
 import './StoreHeader.css';
 
 const StoreHeader = ({ 
@@ -13,7 +14,9 @@ const StoreHeader = ({
   bnplMethods = [],
   locale,
   country,
-  sentinelRef
+  sentinelRef,
+  voucherCount = 0,      // ✅ new
+  maxSavings = 0         // ✅ new
 }) => {
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
   const [isDescriptionOverflowing, setIsDescriptionOverflowing] = useState(false);
@@ -30,40 +33,40 @@ const StoreHeader = ({
   const categories = store?.categories || [];
   const websiteUrl = store?.websiteUrl;
 
-  // ✅ Format last updated time
+  // ✅ Generate dynamic title and H1
+  const { h1, description: seoDescription } = generateStorePageTitle({
+    storeName,
+    locale,
+    codeCount: voucherCount,
+  });
+
+  // ✅ Generate hero subtitle (active codes, max savings, month/year)
+  const heroSubtitle = generateStoreHeroSubtitle({
+    storeName,
+    codeCount: voucherCount,
+    maxSavings,
+    locale,
+  });
+
+  // Format last updated time (unchanged)
   const getLastUpdatedTime = () => {
     if (!store?.updatedAt) return null;
-    
     const updated = new Date(store.updatedAt);
     const now = new Date();
     const diffHours = Math.floor((now - updated) / (1000 * 60 * 60));
-    
-    if (diffHours < 1) {
-      return isArabic ? 'محدث للتو' : 'Updated just now';
-    } else if (diffHours < 24) {
-      return isArabic 
-        ? `محدث قبل ${diffHours} ساعة`
-        : `Updated ${diffHours}h ago`;
-    } else {
-      const diffDays = Math.floor(diffHours / 24);
-      if (diffDays === 1) {
-        return isArabic ? 'محدث أمس' : 'Updated yesterday';
-      } else if (diffDays < 7) {
-        return isArabic
-          ? `محدث قبل ${diffDays} أيام`
-          : `Updated ${diffDays}d ago`;
-      } else {
-        const diffWeeks = Math.floor(diffDays / 7);
-        return isArabic
-          ? `محدث قبل ${diffWeeks} ${diffWeeks === 1 ? 'أسبوع' : 'أسابيع'}`
-          : `Updated ${diffWeeks}w ago`;
-      }
-    }
+    if (diffHours < 1) return isArabic ? 'محدث للتو' : 'Updated just now';
+    if (diffHours < 24) return isArabic ? `محدث قبل ${diffHours} ساعة` : `Updated ${diffHours}h ago`;
+    const diffDays = Math.floor(diffHours / 24);
+    if (diffDays === 1) return isArabic ? 'محدث أمس' : 'Updated yesterday';
+    if (diffDays < 7) return isArabic ? `محدث قبل ${diffDays} أيام` : `Updated ${diffDays}d ago`;
+    const diffWeeks = Math.floor(diffDays / 7);
+    return isArabic
+      ? `محدث قبل ${diffWeeks} ${diffWeeks === 1 ? 'أسبوع' : 'أسابيع'}`
+      : `Updated ${diffWeeks}w ago`;
   };
-
   const lastUpdated = getLastUpdatedTime();
 
-  // Overflow detection for "Read more"
+  // Overflow detection (unchanged)
   useLayoutEffect(() => {
     const checkOverflow = () => {
       const element = descriptionRef.current;
@@ -71,7 +74,6 @@ const StoreHeader = ({
         setIsDescriptionOverflowing(element.scrollHeight > element.clientHeight + 2);
       }
     };
-
     checkOverflow();
     window.addEventListener('resize', checkOverflow);
     return () => window.removeEventListener('resize', checkOverflow);
@@ -82,7 +84,7 @@ const StoreHeader = ({
   return (
     <header className="sh-container" dir={dir} ref={sentinelRef}>
       
-      {/* Banner */}
+      {/* Banner (unchanged) */}
       <div className="sh-banner-wrapper">
         {storeCover ? (
           <Image
@@ -104,7 +106,7 @@ const StoreHeader = ({
       <div className="sh-content-wrapper">
         <div className="sh-main-grid">
           
-          {/* Identity column: logo + name + meta */}
+          {/* Identity column */}
           <div className="sh-identity-col">
             <div className="sh-logo-wrapper">
               {storeLogo ? (
@@ -124,21 +126,15 @@ const StoreHeader = ({
             </div>
             
             <div className="sh-identity-text">
-              <h1 className="sh-store-name">
-                {isArabic ? (
-                  <>
-                    <span className="sh-store-name-keyword">عروض واكواد خصم </span>
-                    {storeName}
-                  </>
-                ) : (
-                  <>
-                    {storeName}
-                    <span className="sh-store-name-keyword"> Coupons & Deals</span>
-                  </>
-                )}
-              </h1>
-                            
-              {/* ✅ LAST UPDATED TAG */}
+              {/* ✅ Dynamic H1 from generateStorePageTitle */}
+              <h1 className="sh-store-name">{h1}</h1>
+              
+              {/* ✅ Hero subtitle (stats) */}
+              {heroSubtitle && (
+                <div className="sh-hero-subtitle">{heroSubtitle}</div>
+              )}
+              
+              {/* Last updated tag */}
               {lastUpdated && (
                 <div className="sh-last-updated">
                   <span className="material-symbols-sharp">update</span>
@@ -157,7 +153,7 @@ const StoreHeader = ({
             </div>
           </div>
 
-          {/* Details column: description, categories, payments */}
+          {/* Details column (unchanged) */}
           <div className="sh-details-container">
             {storeDescription && (
               <div className="sh-description-wrapper">
@@ -167,7 +163,6 @@ const StoreHeader = ({
                 >
                   {storeDescription}
                 </p>
-                
                 {(isDescriptionOverflowing || isDescriptionExpanded) && (
                   <button 
                     onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
@@ -176,8 +171,7 @@ const StoreHeader = ({
                   >
                     {isDescriptionExpanded 
                       ? (isArabic ? 'عرض أقل' : 'Read less')
-                      : (isArabic ? 'عرض المزيد' : 'Read more')
-                    }
+                      : (isArabic ? 'عرض المزيد' : 'Read more')}
                   </button>
                 )}
               </div>
@@ -210,7 +204,6 @@ const StoreHeader = ({
                     )}
                   </div>
                 ))}
-                
                 {paymentMethods.slice(0, 5).map(pm => (
                   <div key={pm.id} className="sh-pay-icon" title={pm.name}>
                     {pm.logo ? (
