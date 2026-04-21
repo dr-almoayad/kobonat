@@ -131,16 +131,16 @@ const StoreHeader = ({
               
               {/* ✅ Hero subtitle (stats) */}
               {heroSubtitle && (
-                <div className="sh-hero-subtitle">{heroSubtitle}</div>
+                <div className="sh-last-updated">{heroSubtitle}</div>
               )}
               
-              {/* Last updated tag */}
+              {/* Last updated tag 
               {lastUpdated && (
                 <div className="sh-last-updated">
                   <span className="material-symbols-sharp">update</span>
                   {lastUpdated}
                 </div>
-              )}
+              )}*/}
               
               <div className="sh-meta-row">
                 {country?.name && (
