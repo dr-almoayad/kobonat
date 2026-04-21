@@ -1,0 +1,204 @@
+/* components/ExpiredOtherPromosList/ExpiredOtherPromosList.css */
+
+.expired-other-promos-section {
+  margin-top: 2rem;
+  border-top: 1px solid #e5e7eb;
+  padding-top: 1rem;
+}
+
+.expired-other-promos-section .expired-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: none;
+  border: none;
+  font-family: 'Alexandria', system-ui, sans-serif;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 0.5rem 0;
+  transition: color 0.2s;
+  width: 100%;
+  justify-content: flex-start;
+}
+
+.expired-other-promos-section .expired-toggle:hover {
+  color: #470ae2;
+}
+
+.expired-other-promos-section .expired-toggle .material-symbols-sharp {
+  font-size: 1.2rem;
+}
+
+.expired-other-promos-section .expired-count {
+  font-size: 0.75rem;
+  font-weight: 500;
+  background: #f3f4f6;
+  padding: 0.1rem 0.4rem;
+  border-radius: 20px;
+  margin-left: 0.5rem;
+}
+
+.expired-other-promos-section .expired-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+@media (min-width: 640px) {
+  .expired-other-promos-section .expired-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .expired-other-promos-section .expired-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.expired-other-item {
+  opacity: 0.65;
+  filter: grayscale(0.35);
+  transition: opacity 0.2s, filter 0.2s;
+}
+
+.expired-other-item:hover {
+  opacity: 0.85;
+  filter: grayscale(0.15);
+}
+
+/* Card styling – mimics the original OtherPromos card but with expired treatment */
+.expired-other-card {
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  cursor: default;
+}
+
+.expired-other-card .op-card__image-wrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background: #f1f5f9;
+}
+
+.expired-other-card .op-card__image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  filter: grayscale(0.5);
+}
+
+.expired-other-card .op-card__image-placeholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
+}
+
+.expired-other-card .op-card__type-badge {
+  position: absolute;
+  bottom: 0.625rem;
+  inset-inline-start: 0.625rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: #9ca3af;
+  color: #fff;
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.22rem 0.55rem;
+  border-radius: 5px;
+  z-index: 1;
+}
+
+.expired-other-card .op-card__body {
+  padding: 0.875rem 1rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex: 1;
+}
+
+.expired-other-card .op-card__title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
+  margin: 0;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.expired-other-card .op-card__code-preview {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: #f3f4f6;
+  border: 1px dashed #d1d5db;
+  border-radius: 5px;
+  padding: 0.25rem 0.6rem;
+  font-family: 'Courier New', monospace;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  color: #6b7280;
+  width: fit-content;
+}
+
+.expired-other-card .op-card__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: auto;
+  padding-top: 0.5rem;
+  border-top: 1px solid #f1f5f9;
+}
+
+.expired-other-card .op-card__expiry--expired {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: #9ca3af;
+  background: #f9fafb;
+  padding: 0.18rem 0.4rem;
+  border-radius: 4px;
+}
+
+.expired-other-card .op-card__expiry--expired .material-symbols-sharp {
+  font-size: 0.72rem;
+}
+
+.expired-other-promos-section .expired-note {
+  grid-column: 1 / -1;
+  font-size: 0.75rem;
+  color: #9ca3af;
+  text-align: center;
+  margin-top: 1rem;
+  padding: 0.5rem;
+  background: #f9fafb;
+  border-radius: 8px;
+}
+
+/* RTL adjustments */
+[dir='rtl'] .expired-other-promos-section .expired-toggle .material-symbols-sharp {
+  transform: scaleX(-1);
+}
+
+[dir='rtl'] .expired-other-card .op-card__type-badge {
+  inset-inline-start: auto;
+  inset-inline-end: 0.625rem;
+}
