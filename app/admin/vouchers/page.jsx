@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { createVoucher, updateVoucher, deleteVoucher } from '../_lib/actions';
 import { DataTable } from '../_components/DataTable';
 import { FormField, FormRow, FormSection } from '../_components/FormField';
+import CategoryTagger from '@/components/admin/CategoryTagger/CategoryTagger';
 import styles from '../admin.module.css';
 
 export default function VouchersPage() {
@@ -17,6 +18,7 @@ export default function VouchersPage() {
   const [vouchers, setVouchers] = useState([]);
   const [stores, setStores] = useState([]);
   const [countries, setCountries] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [editing, setEditing] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isPending, startTransition] = useTransition();
@@ -24,15 +26,17 @@ export default function VouchersPage() {
   useEffect(() => {
     async function fetchData() {
       try {
-        const [vouchersRes, storesRes, countriesRes] = await Promise.all([
+        const [vouchersRes, storesRes, countriesRes, categoriesRes] = await Promise.all([
           fetch('/api/admin/vouchers?locale=en'),
           fetch('/api/admin/stores?locale=en'),
-          fetch('/api/admin/countries?locale=en')
+          fetch('/api/admin/countries?locale=en'),
+          fetch('/api/admin/categories?locale=en'),
         ]);
         
         setVouchers(await vouchersRes.json());
         setStores(await storesRes.json());
         setCountries((await countriesRes.json()).countries || []);
+        setCategories(await categoriesRes.json());
       } catch (error) {
         console.error('Error fetching data:', error);
       } finally {
@@ -249,6 +253,22 @@ export default function VouchersPage() {
               />
             )}
           </FormSection>
+
+          {/* Category Tags Section */}
+          {editId && (
+            <FormSection title="Category Tags">
+              <p style={{ fontSize: '0.8rem', color: '#666', marginBottom: '0.75rem', marginTop: 0 }}>
+                Tag this voucher to appear directly on specific category pages, regardless
+                of which store it belongs to. Mark as <strong>Featured</strong> to show it
+                in the highlighted strip at the top of the category page.
+              </p>
+              <CategoryTagger
+                itemType="VOUCHER"
+                itemId={parseInt(editId)}
+                availableCategories={categories}
+              />
+            </FormSection>
+          )}
 
           <div className={styles.formActions}>
             <button type="submit" className={styles.btnPrimary} disabled={isPending}>
