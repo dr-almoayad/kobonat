@@ -380,7 +380,6 @@ export default async function sitemap() {
     // =========================================================================
     const blogPosts = await prisma.blogPost.findMany({
       where:   { status: 'PUBLISHED' },
-      include: { translations: { select: { locale: true } } },
       select: {
         slug:         true,
         isFeatured:   true,
