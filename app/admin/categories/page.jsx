@@ -7,6 +7,7 @@ import { upsertCategory, deleteCategory } from '../_lib/actions';
 import { DataTable } from '../_components/DataTable';
 import { FormField, FormRow, FormSection } from '../_components/FormField';
 import CategoryOrderPanel from '@/components/admin/CategoryOrderPanel';
+import CategoryItemsManager from '@/components/admin/CategoryItemsManager/CategoryItemsManager';
 import styles from '../admin.module.css';
 
 // ─── All criteria the scoring engine understands ──────────────────────────────
@@ -140,6 +141,7 @@ export default function CategoriesPage() {
   const [isPending,   startTransition] = useTransition();
   const [formError,   setFormError]   = useState('');
   const [weights,     setWeights]     = useState({});
+  const [activeTab,   setActiveTab]   = useState('basic'); // 'basic' | 'items'
 
   async function refetchCategories() {
     const res  = await fetch('/api/admin/categories?locale=en');
@@ -152,15 +154,17 @@ export default function CategoriesPage() {
     refetchCategories().finally(() => setLoading(false));
   }, []);
 
-  // ── Load category for editing ─────────────────────────────────────────────
+  // ── Load category for editing & reset tab ─────────────────────────────────
   useEffect(() => {
     if (editId && categories.length > 0) {
       const category = categories.find(c => c.id === parseInt(editId));
       setEditing(category || null);
       setWeights(category?.bankScoringWeights ?? {});
+      setActiveTab('basic');          // reset to basic tab when editing changes
     } else {
       setEditing(null);
       setWeights({});
+      setActiveTab('basic');
     }
   }, [editId, categories]);
 
@@ -229,99 +233,137 @@ export default function CategoriesPage() {
 
       {/* ── Create / Edit Form ──────────────────────────────────────────────── */}
       {(showCreate || editId) && (
-        <form action={handleSubmit} className={styles.form}>
-          <div className={styles.formHeader}>
-            <h2>{showCreate ? 'Create New Category' : `Edit Category: ${enTranslation.name || ''}`}</h2>
-          </div>
+        <>
+          {/* Tab bar – only when editing an existing category */}
+          {editId && (
+            <div style={{ display: 'flex', gap: 4, marginBottom: '1.25rem' }}>
+              {[
+                { key: 'basic', label: 'Basic Info' },
+                { key: 'items', label: 'Featured Items' },
+              ].map(t => (
+                <button
+                  key={t.key}
+                  type="button"
+                  onClick={() => setActiveTab(t.key)}
+                  className={activeTab === t.key ? styles.tabActive : styles.tab}
+                >
+                  {t.label}
+                </button>
+              ))}
+            </div>
+          )}
 
-          {formError && <div className={styles.errorMessage}>{formError}</div>}
+          {/* Basic Info Form – shown on 'basic' tab (or always when creating) */}
+          {(activeTab === 'basic' || showCreate) && (
+            <form action={handleSubmit} className={styles.form}>
+              <div className={styles.formHeader}>
+                <h2>{showCreate ? 'Create New Category' : `Edit Category: ${enTranslation.name || ''}`}</h2>
+              </div>
 
-          <FormSection title="Basic Information">
-            <FormRow>
-              <FormField
-                label="Display Order"
-                name="order"
-                type="number"
-                defaultValue={editing?.order ?? 0}
-                helpText="Lower number = appears first in carousel"
-              />
-              <FormField
-                label="Color" name="color" type="color"
-                defaultValue={editing?.color || '#0070f3'}
-              />
-            </FormRow>
-            <FormRow>
-              <FormField
-                label="Emoji Icon" name="icon"
-                defaultValue={editing?.icon || ''}
-                placeholder="🛒, 🛍️, 📱"
-                helpText="Optional emoji icon"
-              />
-              <FormField
-                label="Image URL" name="image"
-                defaultValue={editing?.image || ''}
-                placeholder="/images/fashion-banner.jpg"
-              />
-            </FormRow>
-          </FormSection>
+              {formError && <div className={styles.errorMessage}>{formError}</div>}
 
-          <FormSection title="English Translation">
-            <FormRow>
-              <FormField
-                label="Name (English)" name="name_en" required
-                defaultValue={enTranslation.name || ''}
-                placeholder="Electronics"
-              />
-              <FormField
-                label="Slug (English)" name="slug_en" required
-                defaultValue={enTranslation.slug || ''}
-                placeholder="electronics"
-                helpText="URL-friendly, lowercase, no spaces"
-              />
-            </FormRow>
-            <FormField
-              label="Description (English)" name="description_en" type="textarea"
-              defaultValue={enTranslation.description || ''}
-            />
-            <FormRow>
-              <FormField label="SEO Title" name="seoTitle_en" defaultValue={enTranslation.seoTitle || ''} />
-              <FormField label="SEO Description" name="seoDescription_en" type="textarea" rows={2} defaultValue={enTranslation.seoDescription || ''} />
-            </FormRow>
-          </FormSection>
+              <FormSection title="Basic Information">
+                <FormRow>
+                  <FormField
+                    label="Display Order"
+                    name="order"
+                    type="number"
+                    defaultValue={editing?.order ?? 0}
+                    helpText="Lower number = appears first in carousel"
+                  />
+                  <FormField
+                    label="Color" name="color" type="color"
+                    defaultValue={editing?.color || '#0070f3'}
+                  />
+                </FormRow>
+                <FormRow>
+                  <FormField
+                    label="Emoji Icon" name="icon"
+                    defaultValue={editing?.icon || ''}
+                    placeholder="🛒, 🛍️, 📱"
+                    helpText="Optional emoji icon"
+                  />
+                  <FormField
+                    label="Image URL" name="image"
+                    defaultValue={editing?.image || ''}
+                    placeholder="/images/fashion-banner.jpg"
+                  />
+                </FormRow>
+              </FormSection>
 
-          <FormSection title="Arabic Translation">
-            <FormRow>
-              <FormField
-                label="Name (Arabic)" name="name_ar" required dir="rtl"
-                defaultValue={arTranslation.name || ''}
-                placeholder="الإلكترونيات"
-              />
-              <FormField
-                label="Slug (Arabic)" name="slug_ar" required dir="rtl"
-                defaultValue={arTranslation.slug || ''}
-                placeholder="الإلكترونيات"
-              />
-            </FormRow>
-            <FormField label="Description (Arabic)" name="description_ar" type="textarea" dir="rtl" defaultValue={arTranslation.description || ''} />
-            <FormRow>
-              <FormField label="SEO Title" name="seoTitle_ar" dir="rtl" defaultValue={arTranslation.seoTitle || ''} />
-              <FormField label="SEO Description" name="seoDescription_ar" type="textarea" rows={2} dir="rtl" defaultValue={arTranslation.seoDescription || ''} />
-            </FormRow>
-          </FormSection>
+              <FormSection title="English Translation">
+                <FormRow>
+                  <FormField
+                    label="Name (English)" name="name_en" required
+                    defaultValue={enTranslation.name || ''}
+                    placeholder="Electronics"
+                  />
+                  <FormField
+                    label="Slug (English)" name="slug_en" required
+                    defaultValue={enTranslation.slug || ''}
+                    placeholder="electronics"
+                    helpText="URL-friendly, lowercase, no spaces"
+                  />
+                </FormRow>
+                <FormField
+                  label="Description (English)" name="description_en" type="textarea"
+                  defaultValue={enTranslation.description || ''}
+                />
+                <FormRow>
+                  <FormField label="SEO Title" name="seoTitle_en" defaultValue={enTranslation.seoTitle || ''} />
+                  <FormField label="SEO Description" name="seoDescription_en" type="textarea" rows={2} defaultValue={enTranslation.seoDescription || ''} />
+                </FormRow>
+              </FormSection>
 
-          <FormSection title="Bank Leaderboard">
-            <BankNicheSection category={editing} weights={weights} setWeights={setWeights} />
-          </FormSection>
+              <FormSection title="Arabic Translation">
+                <FormRow>
+                  <FormField
+                    label="Name (Arabic)" name="name_ar" required dir="rtl"
+                    defaultValue={arTranslation.name || ''}
+                    placeholder="الإلكترونيات"
+                  />
+                  <FormField
+                    label="Slug (Arabic)" name="slug_ar" required dir="rtl"
+                    defaultValue={arTranslation.slug || ''}
+                    placeholder="الإلكترونيات"
+                  />
+                </FormRow>
+                <FormField label="Description (Arabic)" name="description_ar" type="textarea" dir="rtl" defaultValue={arTranslation.description || ''} />
+                <FormRow>
+                  <FormField label="SEO Title" name="seoTitle_ar" dir="rtl" defaultValue={arTranslation.seoTitle || ''} />
+                  <FormField label="SEO Description" name="seoDescription_ar" type="textarea" rows={2} dir="rtl" defaultValue={arTranslation.seoDescription || ''} />
+                </FormRow>
+              </FormSection>
 
-          <div className={styles.formActions}>
-            <button type="submit" className={styles.btnPrimary} disabled={isPending}>
-              {isPending ? 'Saving…' : editId ? 'Update Category' : 'Create Category'}
-            </button>
-            <button type="button" onClick={handleCancel} className={styles.btnSecondary} disabled={isPending}>
-              Cancel
-            </button>
-          </div>
-        </form>
+              <FormSection title="Bank Leaderboard">
+                <BankNicheSection category={editing} weights={weights} setWeights={setWeights} />
+              </FormSection>
+
+              <div className={styles.formActions}>
+                <button type="submit" className={styles.btnPrimary} disabled={isPending}>
+                  {isPending ? 'Saving…' : editId ? 'Update Category' : 'Create Category'}
+                </button>
+                <button type="button" onClick={handleCancel} className={styles.btnSecondary} disabled={isPending}>
+                  Cancel
+                </button>
+              </div>
+            </form>
+          )}
+
+          {/* Featured Items Manager – shown only on 'items' tab when editing */}
+          {activeTab === 'items' && editId && (
+            <div className={styles.formSection}>
+              <h3 className={styles.formSectionTitle}>Directly Tagged Items</h3>
+              <p style={{ fontSize: '0.82rem', color: '#666', marginBottom: '1rem', marginTop: 0 }}>
+                These items are tagged directly to this category and will appear in
+                dedicated sections on the category page. Use the Featured checkbox to
+                promote an item to the highlighted strip at the top.
+                To add an item, open the item's own edit page and use its "Category Tags" section.
+              </p>
+              <CategoryItemsManager categoryId={parseInt(editId)} />
+            </div>
+          )}
+        </>
       )}
 
       {/* ── List View ───────────────────────────────────────────────────────── */}
