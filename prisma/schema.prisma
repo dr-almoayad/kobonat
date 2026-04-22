@@ -324,6 +324,12 @@ model Category {
   savingsSnapshots StoreSavingsSnapshot[]
   bankNicheSnapshots BankNicheSnapshot[]
 
+  // STEP 1 — ADDED BACK-RELATIONS
+  voucherCategories       VoucherCategory[]
+  offerStackCategories    OfferStackCategory[]
+  storeProductCategories  StoreProductCategory[]
+  otherPromoCategories    OtherPromoCategory[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -397,6 +403,9 @@ model Voucher {
 
   seasonalPages SeasonalPageVoucher[] // ADDED
 
+  // STEP 1 — ADDED BACK-RELATION
+  directCategories VoucherCategory[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -454,6 +463,9 @@ model StoreProduct {
 
   // Section block embeds
   embeddedInSectionBlocks SectionBlock[] @relation("SectionEmbeddedProducts")
+
+  // STEP 1 — ADDED BACK-RELATION
+  directCategories StoreProductCategory[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -542,6 +554,9 @@ model OtherPromo {
 
   comparisonColumns ComparisonTableColumn[]
 
+  // STEP 1 — ADDED BACK-RELATION
+  directCategories OtherPromoCategory[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -594,6 +609,9 @@ model OfferStack {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  // STEP 1 — ADDED BACK-RELATION
+  directCategories OfferStackCategory[]
 
   @@index([storeId])
   @@index([isActive])
@@ -1658,4 +1676,72 @@ model SeasonalPageBlogPost {
 
   @@id([seasonalPageId, postId])
   @@index([seasonalPageId, order])
+}
+
+// ============================================================================
+// STEP 2 — DIRECT CATEGORY JUNCTION MODELS
+// ============================================================================
+
+// Direct item → Category tagging.
+// Allows featuring specific Vouchers, OfferStacks, StoreProducts, and OtherPromos
+// on Category pages independently of their store's category membership.
+//
+// isFeatured — controls whether the item appears in the "Featured" strip at the
+//              top of the category page (vs. appearing in the general pool).
+// order      — sort priority within the category page section (lower = first).
+
+model VoucherCategory {
+  voucherId  Int
+  categoryId Int
+  isFeatured Boolean @default(false)
+  order      Int     @default(0)
+
+  voucher  Voucher  @relation(fields: [voucherId],  references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([voucherId, categoryId])
+  @@index([categoryId, isFeatured, order])
+  @@index([voucherId])
+}
+
+model OfferStackCategory {
+  stackId    Int
+  categoryId Int
+  isFeatured Boolean @default(false)
+  order      Int     @default(0)
+
+  stack    OfferStack @relation(fields: [stackId],    references: [id], onDelete: Cascade)
+  category Category   @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([stackId, categoryId])
+  @@index([categoryId, isFeatured, order])
+  @@index([stackId])
+}
+
+model StoreProductCategory {
+  productId  Int
+  categoryId Int
+  isFeatured Boolean @default(false)
+  order      Int     @default(0)
+
+  product  StoreProduct @relation(fields: [productId],  references: [id], onDelete: Cascade)
+  category Category     @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([productId, categoryId])
+  @@index([categoryId, isFeatured, order])
+  @@index([productId])
+}
+
+model OtherPromoCategory {
+  promoId    Int
+  categoryId Int
+  isFeatured Boolean @default(false)
+  order      Int     @default(0)
+
+  promo    OtherPromo @relation(fields: [promoId],    references: [id], onDelete: Cascade)
+  category Category   @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([promoId, categoryId])
+  @@index([categoryId, isFeatured, order])
+  @@index([promoId])
 }
