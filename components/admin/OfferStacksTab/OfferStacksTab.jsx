@@ -4,6 +4,7 @@
 // Each stack explicitly links: one CODE voucher + one DEAL voucher + one OtherPromo (any combination ≥ 2).
 
 import { useState, useEffect, useCallback } from 'react';
+import CategoryTagger from '@/components/admin/CategoryTagger/CategoryTagger';
 import styles from '@/app/admin/admin.module.css';
 
 const TYPE_STYLE = {
@@ -149,7 +150,7 @@ function StackCard({ stack, onEdit, onDelete, onToggle, saving }) {
 }
 
 // ── Main component ────────────────────────────────────────────────────────────
-export default function OfferStacksTab({ storeId }) {
+export default function OfferStacksTab({ storeId, allCategories = [] }) {
   const [stacks,   setStacks]   = useState([]);
   const [vouchers, setVouchers] = useState([]);   // all CODE + DEAL vouchers for this store
   const [promos,   setPromos]   = useState([]);   // all active OtherPromos for this store
@@ -383,6 +384,21 @@ export default function OfferStacksTab({ storeId }) {
               ? `✓ ${filledCount} offers selected — ready to save`
               : `Select at least 2 offers (${filledCount}/2 selected)`}
           </p>
+
+          {/* Category Tags – only when editing an existing stack */}
+          {editing && allCategories.length > 0 && (
+            <div style={{ marginTop: '1rem', marginBottom: '1rem', paddingTop: '0.5rem', borderTop: '1px solid var(--ap-border-light)' }}>
+              <h4 style={{ fontSize: '0.85rem', marginBottom: '0.5rem' }}>Category Tags</h4>
+              <p style={{ fontSize: '0.75rem', color: 'var(--ap-text-muted)', marginBottom: '0.75rem' }}>
+                Tag this stack to appear directly on specific category pages. Mark as <strong>Featured</strong> to show it in the highlighted strip.
+              </p>
+              <CategoryTagger
+                itemType="OFFER_STACK"
+                itemId={editing.id}
+                availableCategories={allCategories}
+              />
+            </div>
+          )}
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
             <button className={styles.btnPrimary} onClick={handleSave} disabled={saving || filledCount < 2}>
