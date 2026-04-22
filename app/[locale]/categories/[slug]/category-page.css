@@ -335,3 +335,46 @@
 
   .cd-hero-inner { padding-inline: 1rem; }
 }
+
+
+
+
+
+
+
+/* ============================================================
+   ADDITIONS for app/[locale]/categories/[slug]/category-page.css
+   Paste these at the end of the existing file.
+   ============================================================ */
+
+/* ── Featured products grid ─────────────────────────────────── */
+.cd-products-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 1rem;
+}
+
+@media (min-width: 640px) {
+  .cd-products-grid {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  }
+}
+
+/* ── Bank & card promos grid ─────────────────────────────────── */
+.cd-promos-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.875rem;
+}
+
+@media (min-width: 768px) {
+  .cd-promos-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1200px) {
+  .cd-promos-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
