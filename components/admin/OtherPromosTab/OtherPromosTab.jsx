@@ -9,16 +9,13 @@
 //       storeId={store.id}
 //       allCountries={allCountries}
 //       allBanks={allBanks}
-//       allPaymentMethods={allPaymentMethods}   ← new prop
+//       allPaymentMethods={allPaymentMethods}
+//       allCategories={allCategories}   // ← new prop
 //     />
 //   )}
-//
-// In the parent page's fetchData(), also fetch:
-//   const pmRes  = await fetch('/api/admin/payment-methods?locale=en');
-//   const pmData = await pmRes.json();
-//   setAllPaymentMethods(pmData.paymentMethods || []);
 
 import { useState, useEffect, useCallback } from 'react';
+import CategoryTagger from '@/components/admin/CategoryTagger/CategoryTagger';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const PROMO_TYPES = [
@@ -97,7 +94,7 @@ const sectionLabel = {
 };
 
 // ─── PromoForm ────────────────────────────────────────────────────────────────
-function PromoForm({ initial, allCountries, allBanks, allPaymentMethods = [], onSave, onCancel, saving, title }) {
+function PromoForm({ initial, allCountries, allBanks, allPaymentMethods = [], allCategories = [], itemId = null, onSave, onCancel, saving, title }) {
   const [form,      setForm]      = useState(initial);
   const [bankCards, setBankCards] = useState([]);
 
@@ -313,6 +310,23 @@ function PromoForm({ initial, allCountries, allBanks, allPaymentMethods = [], on
         </Field>
       </div>
 
+      {/* Category Tags – only when editing an existing promo */}
+      {itemId && allCategories.length > 0 && (
+        <div style={sectionBox}>
+          <div style={sectionLabel}>Category Tags</div>
+          <p style={{ fontSize: '0.8rem', color: '#666', marginBottom: '0.75rem', marginTop: 0 }}>
+            Tag this promo to appear directly on specific category pages, regardless
+            of which store it belongs to. Mark as <strong>Featured</strong> to show it
+            in the highlighted strip at the top of the category page.
+          </p>
+          <CategoryTagger
+            itemType="OTHER_PROMO"
+            itemId={itemId}
+            availableCategories={allCategories}
+          />
+        </div>
+      )}
+
       {/* ── Actions ── */}
       <div style={{ display: 'flex', gap: '0.6rem', justifyContent: 'flex-end' }}>
         {onCancel && (
@@ -340,7 +354,8 @@ export default function OtherPromosTab({
   storeId,
   allCountries     = [],
   allBanks         = [],
-  allPaymentMethods = [],   // ← new prop; fetch from /api/admin/payment-methods
+  allPaymentMethods = [],
+  allCategories     = [],   // ← new prop
 }) {
   const [promos,     setPromos]     = useState([]);
   const [loading,    setLoading]    = useState(true);
@@ -404,12 +419,12 @@ export default function OtherPromosTab({
     setEditInit({
       countryId:          p.countryId           || '',
       type:               p.type                || 'BANK_OFFER',
-      paymentMethodId:    p.paymentMethodId      || '',   // ← new
+      paymentMethodId:    p.paymentMethodId      || '',
       bankId:             p.bankId              || '',
       cardId:             p.cardId              || '',
       cardNetwork:        p.cardNetwork         || '',
       installmentMonths:  p.installmentMonths != null ? String(p.installmentMonths) : '',
-      voucherCode:        p.voucherCode         || '',   // ← new
+      voucherCode:        p.voucherCode         || '',
       image:              p.image               || '',
       url:                p.url                 || '',
       startDate:          fmt(p.startDate),
@@ -510,6 +525,7 @@ export default function OtherPromosTab({
           allCountries={allCountries}
           allBanks={allBanks}
           allPaymentMethods={allPaymentMethods}
+          allCategories={allCategories}
           saving={saving}
           onSave={handleCreate}
           onCancel={() => setShowCreate(false)}
@@ -546,6 +562,8 @@ export default function OtherPromosTab({
                     allCountries={allCountries}
                     allBanks={allBanks}
                     allPaymentMethods={allPaymentMethods}
+                    allCategories={allCategories}
+                    itemId={editId}
                     saving={saving}
                     onSave={handleEdit}
                     onCancel={() => { setEditId(null); setEditInit(null); }}
