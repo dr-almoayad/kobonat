@@ -87,7 +87,7 @@ async function getCategoryVouchers(categoryId, language, countryCode) {
   });
 }
 
-// ── NEW: Directly-tagged item fetchers ────────────────────────────────────────
+// ── CORRECTED: Directly-tagged item fetchers ─────────────────────────────────
 
 async function getDirectVouchers(categoryId, language, countryCode) {
   const rows = await prisma.voucherCategory.findMany({
@@ -104,7 +104,6 @@ async function getDirectVouchers(categoryId, language, countryCode) {
     },
     orderBy: [{ isFeatured: 'desc' }, { order: 'asc' }],
   });
-  // Filter out expired or country-unavailable vouchers
   const now = new Date();
   return rows
     .filter(r =>
@@ -120,7 +119,6 @@ async function getDirectStacks(categoryId, language, countryCode) {
     where: { categoryId },
     include: {
       stack: {
-        where: { isActive: true },
         include: {
           store: { include: { translations: { where: { locale: language } } } },
           codeVoucher: {
@@ -148,18 +146,25 @@ async function getDirectStacks(categoryId, language, countryCode) {
     orderBy: [{ isFeatured: 'desc' }, { order: 'asc' }],
   });
 
-  return rows
-    .filter(r => r.stack)
-    .map(r =>
-      serializeStack({
-        store:       r.stack.store,
-        codeVoucher: r.stack.codeVoucher,
-        dealVoucher: r.stack.dealVoucher,
-        promo:       r.stack.promo,
+  const validStacks = [];
+  for (const row of rows) {
+    const stack = row.stack;
+    if (!stack || !stack.isActive) continue;
+    // verify at least one of the linked offers is available for this country
+    const codeOk = !stack.codeVoucher || stack.codeVoucher.countries.some(vc => vc.country.code === countryCode);
+    const dealOk = !stack.dealVoucher || stack.dealVoucher.countries.some(vc => vc.country.code === countryCode);
+    const promoOk = !stack.promo || stack.promo.country?.code === countryCode;
+    if (codeOk && dealOk && promoOk) {
+      validStacks.push(serializeStack({
+        store:       stack.store,
+        codeVoucher: stack.codeVoucher,
+        dealVoucher: stack.dealVoucher,
+        promo:       stack.promo,
         language,
-      })
-    )
-    .filter(Boolean);
+      }));
+    }
+  }
+  return validStacks.filter(Boolean);
 }
 
 async function getDirectProducts(categoryId, language) {
@@ -188,11 +193,6 @@ async function getDirectPromos(categoryId, language, countryCode) {
     where: { categoryId },
     include: {
       promo: {
-        where: {
-          isActive: true,
-          country: { code: countryCode },
-          OR: [{ expiryDate: null }, { expiryDate: { gte: new Date() } }],
-        },
         include: {
           translations: { where: { locale: language } },
           store: { include: { translations: { where: { locale: language } } } },
@@ -203,15 +203,23 @@ async function getDirectPromos(categoryId, language, countryCode) {
     },
     orderBy: [{ isFeatured: 'desc' }, { order: 'asc' }],
   });
-  return rows.filter(r => r.promo).map(r => ({
-    ...r.promo,
-    title:       r.promo.translations?.[0]?.title       || '',
-    description: r.promo.translations?.[0]?.description || '',
-    storeName:   r.promo.store?.translations?.[0]?.name || '',
-    storeLogo:   r.promo.store?.logo || null,
-    bankName:    r.promo.bank?.translations?.[0]?.name  || '',
-    bankLogo:    r.promo.bank?.logo || null,
-  }));
+  const now = new Date();
+  return rows
+    .filter(r =>
+      r.promo &&
+      r.promo.isActive &&
+      r.promo.country?.code === countryCode &&
+      (!r.promo.expiryDate || r.promo.expiryDate >= now)
+    )
+    .map(r => ({
+      ...r.promo,
+      title:       r.promo.translations?.[0]?.title       || '',
+      description: r.promo.translations?.[0]?.description || '',
+      storeName:   r.promo.store?.translations?.[0]?.name || '',
+      storeLogo:   r.promo.store?.logo || null,
+      bankName:    r.promo.bank?.translations?.[0]?.name  || '',
+      bankLogo:    r.promo.bank?.logo || null,
+    }));
 }
 
 // ── Static params ─────────────────────────────────────────────────────────────
@@ -430,7 +438,7 @@ export default async function CategoryDetailPage({ params }) {
 
         <main className="cd-main">
 
-          {/* ── [NEW] FEATURED OFFER STACKS ── */}
+          {/* ── FEATURED OFFER STACKS ── */}
           {directStacks.length > 0 && (
             <section className="cd-section">
               <div className="cd-section-header">
@@ -456,7 +464,7 @@ export default async function CategoryDetailPage({ params }) {
             </section>
           )}
 
-          {/* ── [NEW] FEATURED PRODUCTS ── */}
+          {/* ── FEATURED PRODUCTS ── */}
           {directProducts.length > 0 && (
             <section className="cd-section">
               <div className="cd-section-header">
@@ -499,7 +507,7 @@ export default async function CategoryDetailPage({ params }) {
             </section>
           )}
 
-          {/* ── [NEW] BANK & CARD HIGHLIGHTS ── */}
+          {/* ── BANK & CARD HIGHLIGHTS ── */}
           {directPromos.length > 0 && (
             <section className="cd-section">
               <div className="cd-section-header">
