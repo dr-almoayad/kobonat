@@ -3,9 +3,10 @@
 import { useState } from 'react';
 import { createStoreProduct, updateStoreProduct, deleteStoreProduct } from '@/app/admin/_lib/actions';
 import { FormField, FormRow, FormSection } from '@/app/admin/_components/FormField';
+import CategoryTagger from '@/components/admin/CategoryTagger/CategoryTagger';
 import styles from '../../../admin.module.css';
 
-export default function ProductsSection({ storeId, products: initialProducts }) {
+export default function ProductsSection({ storeId, products: initialProducts, categories = [] }) {
   const [products, setProducts] = useState(initialProducts || []);
   const [showForm, setShowForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
@@ -98,6 +99,22 @@ export default function ProductsSection({ storeId, products: initialProducts }) 
               </label>
             </div>
           </FormSection>
+
+          {/* Category Tags – only when editing an existing product */}
+          {editingProduct && categories.length > 0 && (
+            <FormSection title="Category Tags">
+              <p style={{ fontSize: '0.8rem', color: '#666', marginBottom: '0.75rem', marginTop: 0 }}>
+                Tag this product to appear directly on specific category pages, regardless
+                of which store it belongs to. Mark as <strong>Featured</strong> to show it
+                in the highlighted strip at the top of the category page.
+              </p>
+              <CategoryTagger
+                itemType="STORE_PRODUCT"
+                itemId={editingProduct.id}
+                availableCategories={categories}
+              />
+            </FormSection>
+          )}
           
           <div className={styles.formActions}>
             <button type="submit" className={styles.btnPrimary} disabled={isPending}>
