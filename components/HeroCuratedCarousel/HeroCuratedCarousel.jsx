@@ -1,148 +1,206 @@
 'use client';
-import { useCallback, useEffect, useState } from 'react';
+// components/HeroCuratedCarousel/HeroCuratedCarousel.jsx
+//
+// Amazon-style promotional banner carousel.
+// Features:
+//   · No loop (as requested)
+//   · Variable bg color, text color per slide
+//   · Optional color overlay on image
+//   · Optional CTA button
+//   · Optional store badge
+//   · imagePosition: 'cover' | 'bottom' | 'right'
+//   · Arrow + dot controls
+
+import { useState, useEffect, useCallback } from 'react';
 import useEmblaCarousel from 'embla-carousel-react';
 import Link from 'next/link';
 import './HeroCuratedCarousel.css';
 
-function LogoBadge({ logo, name }) {
-  const initials = name
-    ? name.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase()
-    : '?';
-  return (
-    <div className="hcc-badge" aria-hidden="true">
-      {logo ? (
-        <img src={logo} alt={name} className="hcc-badge-img" />
-      ) : (
-        <span className="hcc-badge-initials">{initials}</span>
+// ── Single card ─────────────────────────────────────────────────────────────
+
+function SlideCard({ slide, isAr }) {
+  const {
+    offerImage,
+    ctaUrl,
+    title,
+    ctaText,
+    storeName,
+    storeLogo,
+    // display config (all have safe defaults)
+    textColor     = '#ffffff',
+    bgColor       = '#1a1a2e',
+    overlayColor  = null,
+    overlayOpacity = 0.5,
+    imagePosition = 'cover',
+    showCta       = true,
+    showStore     = true,
+  } = slide;
+
+  const isExternal  = Boolean(ctaUrl && (ctaUrl.startsWith('http://') || ctaUrl.startsWith('https://')));
+  const hasLink     = Boolean(ctaUrl);
+
+  const cardStyle = {
+    '--c-bg':   bgColor,
+    '--c-text': textColor,
+  };
+
+  const inner = (
+    <div
+      className={`hcc-card hcc-card--${imagePosition}${!hasLink ? ' hcc-card--no-link' : ''}`}
+      style={cardStyle}
+    >
+      {/* ── Image ── */}
+      {offerImage && (
+        <div className="hcc-img-wrap">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={offerImage}
+            alt={title}
+            className="hcc-img"
+            draggable={false}
+            loading="lazy"
+            decoding="async"
+          />
+          {/* Programmable colour overlay */}
+          {overlayColor && (
+            <div
+              className="hcc-overlay"
+              style={{ backgroundColor: overlayColor, opacity: overlayOpacity }}
+            />
+          )}
+        </div>
       )}
+
+      {/* ── Text body ── */}
+      <div className="hcc-body">
+        {/* Store badge */}
+        {showStore && storeName && (
+          <div className="hcc-store">
+            {storeLogo && (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img src={storeLogo} alt={storeName} className="hcc-store-logo" />
+            )}
+            <span className="hcc-store-name">{storeName}</span>
+          </div>
+        )}
+
+        {/* Headline */}
+        <h2 className="hcc-title">{title}</h2>
+
+        {/* CTA pill */}
+        {showCta && hasLink && (
+          <div className="hcc-cta">
+            <span>{ctaText || (isAr ? 'تسوق الآن' : 'Shop Now')}</span>
+            <span className="material-symbols-sharp">
+              {isAr ? 'arrow_back' : 'arrow_forward'}
+            </span>
+          </div>
+        )}
+      </div>
     </div>
   );
-}
 
-function HeroSlide({ slide, isAr, isActive }) {
+  if (!hasLink) return inner;
+
   return (
-    <Link href={slide.ctaUrl || '#'} className="hcc-slide-card" aria-label={slide.title}>
-      
-      {/* Background Image Panel */}
-      <div className="hcc-img-panel">
-        <img src={slide.offerImage} alt={slide.title} className="hcc-img" draggable={false} />
-        <div className="hcc-img-overlay" />
-      </div>
-
-      {/* Floating Store Logo */}
-      <LogoBadge logo={slide.storeLogo} name={slide.storeName} />
-      
-      {/* Premium Floating Text Box */}
-      <div className="hcc-text-panel">
-        <h2 className="hcc-headline">{slide.title}</h2>
-        {slide.storeName && (
-          <p className="hcc-store-name">
-            {isAr ? `في ` : `at `} <strong>{slide.storeName}</strong>
-          </p>
-        )}
-        <div className="hcc-cta-wrapper">
-            <span className="hcc-cta">
-              {slide.ctaText || (isAr ? 'تسوق الآن' : 'SHOP NOW')}
-              <span className="material-symbols-sharp">
-                {isAr ? 'arrow_left_alt' : 'arrow_right_alt'}
-              </span>
-            </span>
-        </div>
-      </div>
+    <Link
+      href={ctaUrl}
+      className="hcc-card-link"
+      target={isExternal ? '_blank' : '_self'}
+      rel={isExternal ? 'noopener noreferrer' : undefined}
+      aria-label={title}
+    >
+      {inner}
     </Link>
   );
 }
 
+// ── Carousel shell ──────────────────────────────────────────────────────────
+
 export default function HeroCuratedCarousel({ slides, locale }) {
   const isAr = locale?.split('-')[0] === 'ar';
 
-  // Infinite Loop Enabled
   const [emblaRef, emblaApi] = useEmblaCarousel({
-    loop:      true, 
-    align:     'center',
-    direction: isAr ? 'rtl' : 'ltr',
+    loop:           false,           // no loop
+    align:          'start',
+    direction:      isAr ? 'rtl' : 'ltr',
+    containScroll:  'trimSnaps',
+    dragFree:       false,
+    skipSnaps:      false,
   });
 
-  const [selectedIdx, setSelectedIdx] = useState(0);
-  const [canPrev, setCanPrev] = useState(false);
-  const [canNext, setCanNext] = useState(true);
+  const [selectedIndex,   setSelectedIndex]   = useState(0);
+  const [canScrollPrev,   setCanScrollPrev]   = useState(false);
+  const [canScrollNext,   setCanScrollNext]   = useState(true);
 
-  const sync = useCallback((api) => {
-    setSelectedIdx(api.selectedScrollSnap());
-    setCanPrev(api.canScrollPrev());
-    setCanNext(api.canScrollNext());
+  const syncState = useCallback((api) => {
+    setSelectedIndex(api.selectedScrollSnap());
+    setCanScrollPrev(api.canScrollPrev());
+    setCanScrollNext(api.canScrollNext());
   }, []);
 
   useEffect(() => {
     if (!emblaApi) return;
-    sync(emblaApi);
-    emblaApi.on('select', () => sync(emblaApi));
-    emblaApi.on('reInit', () => sync(emblaApi));
-  }, [emblaApi, sync]);
-
-  const scrollPrev = useCallback(() => emblaApi?.scrollPrev(), [emblaApi]);
-  const scrollNext = useCallback(() => emblaApi?.scrollNext(), [emblaApi]);
-  const scrollTo   = useCallback((i) => emblaApi?.scrollTo(i), [emblaApi]);
+    syncState(emblaApi);
+    emblaApi.on('select', () => syncState(emblaApi));
+    emblaApi.on('reInit', () => syncState(emblaApi));
+    return () => {
+      emblaApi.off('select', () => syncState(emblaApi));
+    };
+  }, [emblaApi, syncState]);
 
   if (!slides?.length) return null;
 
   return (
     <div className="hcc-root" dir={isAr ? 'rtl' : 'ltr'}>
-      
-      {/* Viewport & Track */}
+      {/* ── Slide track ── */}
       <div className="hcc-viewport" ref={emblaRef}>
-        <div className="hcc-container">
-          {slides.map((slide, i) => (
-            <div 
-              key={slide.id} 
-              className={`hcc-slide ${i === selectedIdx ? 'is-active' : ''}`}
-            >
-              <HeroSlide slide={slide} isAr={isAr} isActive={i === selectedIdx} />
+        <div className="hcc-track">
+          {slides.map((slide) => (
+            <div key={slide.id} className="hcc-slide">
+              <SlideCard slide={slide} isAr={isAr} />
             </div>
           ))}
         </div>
       </div>
 
-      {/* Desktop Absolute Arrows - Anchored to max-width of active slide */}
-      <div className="hcc-arrow-bounds">
-        {canPrev && (
-            <button
-              className="hcc-arrow hcc-arrow--prev"
-              onClick={scrollPrev}
-              aria-label={isAr ? 'السابق' : 'Previous'}
-            >
-              <span className="material-symbols-sharp">
-                {isAr ? 'chevron_right' : 'chevron_left'}
-              </span>
-            </button>
-        )}
-        
-        {canNext && (
-            <button
-              className="hcc-arrow hcc-arrow--next"
-              onClick={scrollNext}
-              aria-label={isAr ? 'التالي' : 'Next'}
-            >
-              <span className="material-symbols-sharp">
-                {isAr ? 'chevron_left' : 'chevron_right'}
-              </span>
-            </button>
-        )}
-      </div>
-
-      {/* Pagination Dots */}
+      {/* ── Controls: prev arrow · dots · next arrow ── */}
       {slides.length > 1 && (
-        <div className="hcc-dots" role="tablist">
-          {slides.map((_, i) => (
-            <button
-              key={i}
-              className={`hcc-dot ${i === selectedIdx ? 'hcc-dot--active' : ''}`}
-              onClick={() => scrollTo(i)}
-              role="tab"
-              aria-selected={i === selectedIdx}
-              aria-label={`Slide ${i + 1} of ${slides.length}`}
-            />
-          ))}
+        <div className="hcc-controls">
+          <button
+            className="hcc-arrow"
+            onClick={() => emblaApi?.scrollPrev()}
+            disabled={!canScrollPrev}
+            aria-label={isAr ? 'الشريحة السابقة' : 'Previous slide'}
+          >
+            <span className="material-symbols-sharp">
+              {isAr ? 'chevron_right' : 'chevron_left'}
+            </span>
+          </button>
+
+          <div className="hcc-dots" role="tablist">
+            {slides.map((_, i) => (
+              <button
+                key={i}
+                role="tab"
+                aria-selected={i === selectedIndex}
+                aria-label={`Slide ${i + 1} of ${slides.length}`}
+                className={`hcc-dot${i === selectedIndex ? ' is-active' : ''}`}
+                onClick={() => emblaApi?.scrollTo(i)}
+              />
+            ))}
+          </div>
+
+          <button
+            className="hcc-arrow"
+            onClick={() => emblaApi?.scrollNext()}
+            disabled={!canScrollNext}
+            aria-label={isAr ? 'الشريحة التالية' : 'Next slide'}
+          >
+            <span className="material-symbols-sharp">
+              {isAr ? 'chevron_left' : 'chevron_right'}
+            </span>
+          </button>
         </div>
       )}
     </div>
