@@ -1,7 +1,7 @@
 'use client';
 // components/footers/footer.jsx
 // Premium desktop footer – on mobile: 2‑col grid + logo at bottom (full width)
-
+ 
 import React, { useState, useEffect } from 'react';
 import './footer.css';
 import coubonatLogo from '../../public/cobonat.webp';
