@@ -1,328 +1,384 @@
-/* components/HeroCuratedCarousel/HeroCuratedCarousel.css */
-/* Mobile First · Bleed-out · Immersive Floating UI */
+/* components/HeroCuratedCarousel/HeroCuratedCarousel.css
+   Amazon-style promotional banner carousel
+   Mobile-first · No loop · Peek of next slide · Per-card theming via CSS vars
+*/
 
-:root {
-  --hcc-max-width: 1312px;
-  --hcc-mobile-width: 86vw;
-}
-
-/* ── Base Wrapper ────────────────────────────────────────────────────────── */
+/* ── Root ─────────────────────────────────────────────────────────────────── */
 .hcc-root {
-  position: relative;
   width: 100%;
-  padding: 1.5rem 0 2rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
-  background: #f8fafc;
-  overflow: hidden;
+  padding: 0.75rem 0 1.25rem;
+  --hcc-gap: 10px;
+  --hcc-peek: 36px; /* how much of next card shows on mobile */
+  --hcc-radius: 20px;
 }
 
+/* ── Embla viewport + track ───────────────────────────────────────────────── */
 .hcc-viewport {
-  width: 100%;
   overflow: hidden;
+  width: 100%;
+  padding-inline-start: 16px; /* left breathing room */
+  box-sizing: border-box;
 }
 
-.hcc-container {
+.hcc-track {
   display: flex;
-  gap: 0;
+  gap: var(--hcc-gap);
   touch-action: pan-y pinch-zoom;
   will-change: transform;
 }
 
-/* ── Slide Setup (Mobile Defaults) ───────────────────────────────────────── */
+/* ── Slide sizing ─────────────────────────────────────────────────────────── */
+/* Mobile: almost full width, peek = var(--hcc-peek) + gap */
 .hcc-slide {
-  flex: 0 0 var(--hcc-mobile-width);
-  margin: 0 8px;
+  flex: 0 0 calc(100% - var(--hcc-peek) - 16px); /* 16px = start padding */
   min-width: 0;
-  transition: transform 0.4s cubic-bezier(0.2, 0.9, 0.4, 1.1), opacity 0.4s ease;
-  opacity: 0.6;
-  transform: scale(0.94);
 }
 
-.hcc-slide.is-active {
-  opacity: 1;
-  transform: scale(1);
-}
-
-/* ── Card (Immersive Layout) ─────────────────────────────────────────────── */
-.hcc-slide-card {
-  position: relative; /* Anchors absolute children */
-  display: flex;
-  height: 440px;
-  border-radius: 24px;
-  overflow: hidden;
+/* ── Card anchor (Link or div wrapper) ────────────────────────────────────── */
+.hcc-card-link {
+  display: block;
   text-decoration: none;
-  background: #cbd5e1;
-  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.1);
-  cursor: pointer;
-  transition: box-shadow 0.3s ease;
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
+}
+.hcc-card-link:focus-visible .hcc-card {
+  box-shadow: 0 0 0 3px #fff, 0 0 0 5px #470ae2;
 }
 
-.hcc-slide-card:hover {
-  box-shadow: 0 20px 40px -10px rgba(71, 10, 226, 0.2);
+/* ── Card shell ───────────────────────────────────────────────────────────── */
+.hcc-card {
+  position: relative;
+  height: 300px;
+  border-radius: var(--hcc-radius);
+  overflow: hidden;
+  background-color: var(--c-bg, #1a1a2e);
+  color: var(--c-text, #ffffff);
+  user-select: none;
+  -webkit-user-select: none;
 }
 
-/* ── Background Image Panel ──────────────────────────────────────────────── */
-.hcc-img-panel {
+/* ══════════════════════════════════════════════════════════════
+   IMAGE LAYERS  (one per imagePosition variant)
+══════════════════════════════════════════════════════════════ */
+
+/* ── COVER: image fills entire card ─────────────────────────────────────── */
+.hcc-card--cover .hcc-img-wrap {
   position: absolute;
   inset: 0;
-  width: 100%;
-  height: 100%;
   z-index: 1;
-  overflow: hidden;
 }
-
-.hcc-img {
+.hcc-card--cover .hcc-img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center;
   display: block;
-  transition: transform 0.8s cubic-bezier(0.2, 0.9, 0.4, 1.1);
 }
-
-/* Smooth gradient overlay to ensure the background isn't too harsh */
-.hcc-img-overlay {
+/* Auto readability gradient (always on for cover so text is legible) */
+.hcc-card--cover::after {
+  content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(to top, rgba(0, 0, 0, 0.4) 0%, rgba(0, 0, 0, 0) 60%);
   z-index: 2;
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.7) 0%,
+    rgba(0, 0, 0, 0.15) 55%,
+    rgba(0, 0, 0, 0) 100%
+  );
+  pointer-events: none;
 }
 
-.hcc-slide-card:hover .hcc-img {
-  transform: scale(1.05);
-}
-
-/* ── Floating Store Badge ────────────────────────────────────────────────── */
-.hcc-badge {
+/* ── BOTTOM: image at bottom-center, text on solid bg at top ─────────────── */
+.hcc-card--bottom .hcc-img-wrap {
   position: absolute;
-  top: 16px;
-  inset-inline-end: 16px;
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  background: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-  border: 2px solid #ffffff;
-  z-index: 10;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90%;
+  height: 58%;
+  z-index: 1;
 }
-
-.hcc-badge-img {
+.hcc-card--bottom .hcc-img {
   width: 100%;
   height: 100%;
   object-fit: contain;
+  object-position: bottom center;
+  display: block;
 }
 
-.hcc-badge-initials {
-  font-size: 1.1rem;
-  font-weight: 800;
-  color: #0f172a;
-  font-family: 'Alexandria', sans-serif;
-}
-
-/* ── Floating Text Panel (Frosted Glass Appearance) ──────────────────────── */
-.hcc-text-panel {
+/* ── RIGHT: image on end side, text on start side ────────────────────────── */
+.hcc-card--right .hcc-img-wrap {
   position: absolute;
-  bottom: 16px;
-  inset-inline-start: 16px;
-  inset-inline-end: 16px; /* Spans across mobile width */
+  inset-inline-end: 0;
+  top: 0;
+  bottom: 0;
+  width: 48%;
+  z-index: 1;
+}
+.hcc-card--right .hcc-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+/* Soft fade from text side to image */
+.hcc-card--right .hcc-img-wrap::before {
+  content: '';
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  width: 30%;
+  z-index: 2;
+  background: linear-gradient(
+    to inline-end,
+    var(--c-bg, #1a1a2e) 0%,
+    transparent 100%
+  );
+}
+
+/* ── Programmable color overlay (all modes) ────────────────────────────────── */
+.hcc-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   BODY  (text content layer)
+══════════════════════════════════════════════════════════════ */
+.hcc-body {
+  position: absolute;
   z-index: 10;
+  padding: 1.375rem 1.375rem 1.25rem;
   display: flex;
   flex-direction: column;
-  padding: 1.5rem;
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-radius: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.6);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  gap: 0.45rem;
 }
 
-.hcc-headline {
-  font-size: 1.25rem;
-  font-weight: 800;
-  color: #0f172a;
-  line-height: 1.3;
-  margin: 0 0 0.4rem 0;
-  font-family: 'Alexandria', sans-serif;
+/* Cover: text pinned to bottom */
+.hcc-card--cover .hcc-body {
+  bottom: 0;
+  inset-inline-start: 0;
+  inset-inline-end: 0;
+}
+/* Bottom: text pinned to top */
+.hcc-card--bottom .hcc-body {
+  top: 0;
+  inset-inline-start: 0;
+  inset-inline-end: 0;
+}
+/* Right: text on start half, vertically centered */
+.hcc-card--right .hcc-body {
+  top: 0;
+  bottom: 0;
+  inset-inline-start: 0;
+  inset-inline-end: 52%;
+  justify-content: center;
+}
+
+/* ── Store badge ────────────────────────────────────────────────────────── */
+.hcc-store {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.hcc-store-logo {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+  border-radius: 5px;
+  background: rgba(255,255,255,0.15);
+  padding: 2px;
+}
+.hcc-store-name {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--c-text, #fff);
+  opacity: 0.8;
+  font-family: var(--font-open-sans, sans-serif);
+}
+
+/* ── Title ──────────────────────────────────────────────────────────────── */
+.hcc-title {
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 900;
+  line-height: 1.15;
+  color: var(--c-text, #fff);
+  font-family: var(--font-alexandria, sans-serif);
+  letter-spacing: -0.01em;
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
 
-.hcc-store-name {
-  font-size: 0.875rem;
-  color: #475569;
-  margin: 0 0 1.25rem 0;
-}
-
-.hcc-store-name strong {
-  color: #0f172a;
-  font-weight: 700;
-}
-
-.hcc-cta-wrapper {
-  margin-top: auto;
-}
-
+/* ── CTA button ─────────────────────────────────────────────────────────── */
 .hcc-cta {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  font-size: 0.875rem;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  color: #ffffff;
-  background: #0f172a; /* Dark premium pill */
-  padding: 12px 24px;
+  gap: 5px;
+  padding: 7px 16px 7px 18px;
   border-radius: 100px;
-  font-family: 'Alexandria', sans-serif;
-  transition: background 0.2s, transform 0.2s;
+  background-color: var(--c-text, #fff);
+  color: var(--c-bg, #1a1a2e);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.015em;
+  align-self: flex-start;
+  margin-top: 0.15rem;
+  transition: transform 0.18s, opacity 0.18s;
+  font-family: var(--font-open-sans, sans-serif);
+  white-space: nowrap;
+}
+[dir='rtl'] .hcc-cta {
+  padding: 7px 18px 7px 16px;
+}
+.hcc-cta .material-symbols-sharp {
+  font-size: 0.95rem;
+  flex-shrink: 0;
+}
+.hcc-card-link:hover .hcc-cta,
+.hcc-card:not(.hcc-card--no-link):hover .hcc-cta {
+  transform: translateX(3px);
+  opacity: 0.92;
+}
+[dir='rtl'] .hcc-card-link:hover .hcc-cta {
+  transform: translateX(-3px);
 }
 
-.hcc-slide-card:hover .hcc-cta {
-  background: #470ae2; /* Shifts to primary blue/purple on hover */
-  transform: translateX(4px);
-}
-[dir='rtl'] .hcc-slide-card:hover .hcc-cta {
-  transform: translateX(-4px);
+/* ══════════════════════════════════════════════════════════════
+   CONTROLS  (arrows + dots)
+══════════════════════════════════════════════════════════════ */
+.hcc-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  margin-top: 0.85rem;
+  padding: 0 16px;
 }
 
-/* ── Arrows (Hidden on Mobile) ───────────────────────────────────────────── */
-.hcc-arrow-bounds {
-  display: none;
+/* ── Arrows ─────────────────────────────────────────────────────────────── */
+.hcc-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1.5px solid #e2e8f0;
+  background: #ffffff;
+  color: #475569;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: border-color 0.2s, color 0.2s, opacity 0.2s;
+  padding: 0;
+}
+.hcc-arrow .material-symbols-sharp {
+  font-size: 1rem;
+}
+.hcc-arrow:disabled {
+  opacity: 0.25;
+  cursor: default;
+  pointer-events: none;
+}
+.hcc-arrow:not(:disabled):hover {
+  border-color: #470ae2;
+  color: #470ae2;
 }
 
 /* ── Dots ────────────────────────────────────────────────────────────────── */
 .hcc-dots {
   display: flex;
   align-items: center;
+  gap: 5px;
+  flex: 1;
   justify-content: center;
-  gap: 8px;
+  flex-wrap: wrap;
 }
-
 .hcc-dot {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
   border: none;
+  padding: 0;
   background: #cbd5e1;
   cursor: pointer;
-  padding: 0;
-  transition: all 0.3s ease;
+  transition: width 0.22s ease, border-radius 0.22s ease, background 0.22s ease;
 }
-
-.hcc-dot--active {
+.hcc-dot.is-active {
+  width: 18px;
+  border-radius: 3px;
   background: #470ae2;
-  width: 24px;
-  border-radius: 4px;
 }
 
-/* ═════════════════════════════════════════════════════════════════════════
-   TABLET (≥ 768px)
-═════════════════════════════════════════════════════════════════════════ */
-@media (min-width: 768px) {
-  .hcc-slide {
-    flex: 0 0 70vw;
-    margin: 0 12px;
+/* ══════════════════════════════════════════════════════════════
+   TABLET  ≥ 640px
+══════════════════════════════════════════════════════════════ */
+@media (min-width: 640px) {
+  .hcc-root {
+    --hcc-peek: 60px;
   }
-  
-  .hcc-text-panel {
-    padding: 2rem;
-    inset-inline-end: auto; /* Unlocks full width expansion */
-    width: 360px; /* Card takes up partial space */
+  .hcc-card {
+    height: 330px;
+    border-radius: 22px;
+  }
+  .hcc-title {
+    font-size: 1.6rem;
   }
 }
 
-/* ═════════════════════════════════════════════════════════════════════════
-   DESKTOP (≥ 1024px) - ARROWS VISIBLE & FIXED SLIDE WIDTH
-═════════════════════════════════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════════════════════
+   DESKTOP  ≥ 1024px
+   Show ~2 cards + peek at once
+══════════════════════════════════════════════════════════════ */
 @media (min-width: 1024px) {
+  .hcc-root {
+    --hcc-gap: 14px;
+    --hcc-peek: 0px;
+  }
+  .hcc-viewport {
+    padding-inline-start: 0;
+  }
   .hcc-slide {
-    flex: 0 0 var(--hcc-max-width); /* Locks to 1312px */
-    margin: 0 16px;
+    /* Show ~2.15 cards on desktop */
+    flex: 0 0 calc(50% - var(--hcc-gap) / 2 - 30px);
   }
-  
-  .hcc-slide-card {
-    height: 360px; /* Taller on Desktop to fit the floating elements gracefully */
-    border-radius: 32px;
-  }
-
-  .hcc-badge {
-    top: 32px;
-    inset-inline-end: 32px;
-    width: 80px;
-    height: 80px;
-  }
-
-  .hcc-text-panel {
-    bottom: 32px;
-    inset-inline-start: 32px;
-    width: 440px;
-    padding: 2.5rem;
+  .hcc-card {
+    height: 360px;
     border-radius: 24px;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
   }
-
-  .hcc-headline {
-    font-size: 2rem;
-    margin-bottom: 0.5rem;
+  .hcc-card-link:hover .hcc-card,
+  .hcc-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.14);
   }
-
-  .hcc-store-name {
-    font-size: 1rem;
-    margin-bottom: 2rem;
+  .hcc-title {
+    font-size: 1.9rem;
   }
-
-  /* Centered Arrow Container - Matches max width of slide exactly */
-  .hcc-arrow-bounds {
-    display: block;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: var(--hcc-max-width);
-    height: 0;
-    z-index: 20;
-    pointer-events: none;
+  .hcc-body {
+    padding: 1.75rem;
   }
-
-  .hcc-arrow {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    border: none;
-    background: #ffffff;
-    color: #0f172a;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
-    transition: all 0.2s ease;
-    pointer-events: auto;
-  }
-
-  /* Exactly overlaps the slide by 50% */
-  .hcc-arrow--prev { inset-inline-start: -22px; }
-  .hcc-arrow--next { inset-inline-end: -22px; }
-
-  .hcc-arrow .material-symbols-sharp {
-    font-size: 1.5rem;
-  }
-
-  .hcc-arrow:hover {
-    background: #470ae2;
-    color: #ffffff;
-    transform: translateY(-50%) scale(1.1);
-    box-shadow: 0 8px 20px rgba(71, 10, 226, 0.25);
+  .hcc-card--bottom .hcc-img-wrap {
+    height: 60%;
+    width: 80%;
   }
 }
+
+/* ══════════════════════════════════════════════════════════════
+   WIDE  ≥ 1280px
+══════════════════════════════════════════════════════════════ */
+@media (min-width: 1280px) {
+  .hcc-slide {
+    /* ~2.2 cards wide */
+    flex: 0 0 calc(50% - var(--hcc-gap) / 2 - 10px);
+  }
+  .hcc-card {
+    height: 380px;
+  }
+    }
