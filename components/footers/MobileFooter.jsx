@@ -1,10 +1,6 @@
 'use client';
 // components/footers/MobileFooter.jsx
-// Updates:
-//  - Adds "Stacks" as 5th nav tab (scrollable row)
-//  - Seasonal pages (showInNav) appear as a row inside the categories menu
-//  - Category links → /categories/[slug]
-//  - Mobile-first: 5-tab bar with overflow-x scroll on very small screens
+// Premium mobile footer: full‑width nav bar, context menus with static seasonal links
 
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
@@ -12,6 +8,33 @@ import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useTranslations, useLocale } from 'next-intl';
 import './MobileFooter.css';
+
+// ─── Static seasonal links (sorted by SEO/popularity) ─────────────────────────
+const SEASONAL_LINKS = [
+  { slug: 'white_friday',    priority: 1, icon: '🎄' },
+  { slug: 'ramadan',         priority: 2, icon: '🌙' },
+  { slug: 'eid_al_fitr',     priority: 3, icon: '🕌' },
+  { slug: 'eid_al_adha',     priority: 4, icon: '🐏' },
+  { slug: 'summer_sale',     priority: 5, icon: '☀️' },
+  { slug: 'back_to_school',  priority: 6, icon: '📚' },
+  { slug: 'national_day',    priority: 7, icon: '🇸🇦' },
+  { slug: 'year_end',        priority: 8, icon: '🎆' },
+];
+
+function getSeasonalTitle(slug, locale) {
+  const titles = {
+    white_friday:    { ar: 'الجمعة البيضاء',   en: 'White Friday'    },
+    ramadan:         { ar: 'رمضان',            en: 'Ramadan'         },
+    eid_al_fitr:     { ar: 'عيد الفطر',        en: 'Eid al-Fitr'     },
+    eid_al_adha:     { ar: 'عيد الأضحى',       en: 'Eid al-Adha'     },
+    summer_sale:     { ar: 'تخفيضات الصيف',    en: 'Summer Sale'     },
+    back_to_school:  { ar: 'العودة للمدارس',   en: 'Back to School'  },
+    national_day:    { ar: 'اليوم الوطني',     en: 'National Day'    },
+    year_end:        { ar: 'نهاية السنة',      en: 'Year End'        },
+  };
+  const lang = locale.startsWith('ar') ? 'ar' : 'en';
+  return titles[slug]?.[lang] || slug.replace(/_/g, ' ');
+}
 
 const MobileFooter = () => {
   const t = useTranslations('MobileFooter');
@@ -24,33 +47,29 @@ const MobileFooter = () => {
 
   const [categories,        setCategories]        = useState([]);
   const [stores,            setStores]            = useState([]);
-  const [seasonalPages,     setSeasonalPages]     = useState([]);
   const [categoriesLoading, setCategoriesLoading] = useState(true);
   const [storesLoading,     setStoresLoading]     = useState(false);
 
   const categoriesMenuRef = useRef(null);
   const storesMenuRef     = useRef(null);
 
-  // Fetch categories + seasonal nav pages on mount
+  // Fetch categories only (static seasonal links always available)
   useEffect(() => {
     let mounted = true;
-    Promise.all([
-      fetch(`/api/categories?locale=${language}&country=${region}`, { cache: 'no-store' })
-        .then(r => r.ok ? r.json() : []),
-      fetch(`/api/seasonal?locale=${language}&nav=1`, { cache: 'no-store' })
-        .then(r => r.ok ? r.json() : []),
-    ]).then(([catData, seasonalData]) => {
-      if (!mounted) return;
-      const all = Array.isArray(catData) ? catData : [];
-      setCategories(
-        all
-          .filter(c => (c._count?.stores || 0) > 0)
-          .sort((a, b) => (b._count?.stores || 0) - (a._count?.stores || 0))
-          .slice(0, 16)
-      );
-      setSeasonalPages(Array.isArray(seasonalData) ? seasonalData : []);
-      setCategoriesLoading(false);
-    }).catch(() => mounted && setCategoriesLoading(false));
+    fetch(`/api/categories?locale=${language}&country=${region}`, { cache: 'no-store' })
+      .then(r => r.ok ? r.json() : [])
+      .then(data => {
+        if (!mounted) return;
+        const all = Array.isArray(data) ? data : [];
+        setCategories(
+          all
+            .filter(c => (c._count?.stores || 0) > 0)
+            .sort((a, b) => (b._count?.stores || 0) - (a._count?.stores || 0))
+            .slice(0, 16)
+        );
+        setCategoriesLoading(false);
+      })
+      .catch(() => mounted && setCategoriesLoading(false));
     return () => { mounted = false; };
   }, [language, region]);
 
@@ -86,6 +105,9 @@ const MobileFooter = () => {
     setShowStoresMenu(false);
   };
 
+  // Static seasonal links sorted by priority
+  const seasonalLinksSorted = [...SEASONAL_LINKS].sort((a, b) => a.priority - b.priority);
+
   return (
     <>
       {/* Overlay */}
@@ -101,28 +123,26 @@ const MobileFooter = () => {
             <h3>{t('categories') || 'Categories'}</h3>
           </div>
 
-          {/* Seasonal pages row — shown above the grid when available */}
-          {!categoriesLoading && seasonalPages.length > 0 && (
-            <div className="seasonal-row">
-              <div className="seasonal-row__label">
-                <span className="material-symbols-sharp">celebration</span>
-                {language === 'ar' ? 'مواسم' : 'Seasonal'}
-              </div>
-              <div className="seasonal-row__items">
-                {seasonalPages.map(sp => (
-                  <Link
-                    key={sp.id}
-                    href={`/${locale}/seasonal/${sp.slug}`}
-                    className={`seasonal-pill${sp.isLive ? ' seasonal-pill--live' : ''}`}
-                    onClick={closeAll}
-                  >
-                    {sp.isLive && <span className="seasonal-pill__dot" aria-hidden="true" />}
-                    {sp.title}
-                  </Link>
-                ))}
-              </div>
+          {/* Seasonal row – static important links */}
+          <div className="seasonal-row">
+            <div className="seasonal-row__label">
+              <span className="material-symbols-sharp">celebration</span>
+              {language === 'ar' ? 'مواسم' : 'Seasonal'}
             </div>
-          )}
+            <div className="seasonal-row__items">
+              {seasonalLinksSorted.map(link => (
+                <Link
+                  key={link.slug}
+                  href={`/${locale}/seasonal/${link.slug}`}
+                  className="seasonal-pill"
+                  onClick={closeAll}
+                >
+                  <span className="seasonal-pill__icon">{link.icon}</span>
+                  {getSeasonalTitle(link.slug, locale)}
+                </Link>
+              ))}
+            </div>
+          </div>
 
           {/* Stacks shortcut */}
           <div className="stacks-shortcut">
@@ -150,48 +170,48 @@ const MobileFooter = () => {
                 <span className="material-symbols-sharp empty-icon">category</span>
                 <p>{language === 'ar' ? 'لا توجد فئات' : 'No categories available'}</p>
               </div>
-            ) : categories.map(cat => (
-              <Link
-                key={cat.id}
-                href={`/${locale}/categories/${cat.slug}`}
-                className="category-grid-item"
-                onClick={closeAll}
-              >
-                <div className="category-image-wrapper">
-                  {cat.image ? (
-                    <Image
-                      src={cat.image}
-                      alt={cat.name}
-                      width={48} height={48}
-                      className="category-image"
-                      sizes="48px"
-                    />
-                  ) : (
-                    <span className="material-symbols-sharp category-icon-fallback">
-                      {cat.icon || 'category'}
-                    </span>
-                  )}
-                </div>
-                <span className="category-name-grid">{cat.name}</span>
-              </Link>
-            ))}
+            ) : (
+              categories.map(cat => (
+                <Link
+                  key={cat.id}
+                  href={`/${locale}/categories/${cat.slug}`}
+                  className="category-grid-item"
+                  onClick={closeAll}
+                >
+                  <div className="category-image-wrapper">
+                    {cat.image ? (
+                      <Image
+                        src={cat.image}
+                        alt={cat.name}
+                        width={48}
+                        height={48}
+                        className="category-image"
+                        sizes="48px"
+                      />
+                    ) : (
+                      <span className="material-symbols-sharp category-icon-fallback">
+                        {cat.icon || 'category'}
+                      </span>
+                    )}
+                  </div>
+                  <span className="category-name-grid">{cat.name}</span>
+                </Link>
+              ))
+            )}
           </div>
         </div>
       )}
 
-      {/* ── Stores menu ── */}
+      {/* ── Stores menu (unchanged) ── */}
       {showStoresMenu && (
         <div className="stores-context-menu" ref={storesMenuRef}>
           <div className="stores-menu-header">
             <span className="material-symbols-sharp">storefront</span>
             <h3>{t('stores') || 'Stores'}</h3>
           </div>
-
           <div className="stores-menu-items">
             {storesLoading ? (
-              <div className="menu-loading">
-                <p>{language === 'ar' ? 'جاري التحميل…' : 'Loading…'}</p>
-              </div>
+              <div className="menu-loading"><p>{language === 'ar' ? 'جاري التحميل…' : 'Loading…'}</p></div>
             ) : stores.length === 0 ? (
               <div className="menu-empty">
                 <span className="material-symbols-sharp empty-icon">storefront</span>
@@ -208,8 +228,7 @@ const MobileFooter = () => {
                   >
                     <div className="store-logo-wrapper">
                       {store.logo ? (
-                        <Image src={store.logo} alt={store.name}
-                          width={56} height={32} className="store-logo-img" />
+                        <Image src={store.logo} alt={store.name} width={56} height={32} className="store-logo-img" />
                       ) : (
                         <span className="material-symbols-sharp">storefront</span>
                       )}
@@ -217,9 +236,7 @@ const MobileFooter = () => {
                     <div className="store-info">
                       <span className="store-name">{store.name}</span>
                       {store._count?.vouchers > 0 && (
-                        <span className="store-voucher-count">
-                          {store._count.vouchers} {language === 'ar' ? 'كوبون' : 'coupons'}
-                        </span>
+                        <span className="store-voucher-count">{store._count.vouchers} {language === 'ar' ? 'كوبون' : 'coupons'}</span>
                       )}
                     </div>
                     <span className="material-symbols-sharp menu-arrow">
@@ -227,12 +244,9 @@ const MobileFooter = () => {
                     </span>
                   </Link>
                 ))}
-
                 <Link href={`/${locale}/stores`} className="view-all-link" onClick={closeAll}>
                   <span>{language === 'ar' ? 'عرض جميع المتاجر' : 'View all stores'}</span>
-                  <span className="material-symbols-sharp">
-                    {language === 'ar' ? 'arrow_back' : 'arrow_forward'}
-                  </span>
+                  <span className="material-symbols-sharp">{language === 'ar' ? 'arrow_back' : 'arrow_forward'}</span>
                 </Link>
               </>
             )}
@@ -240,65 +254,29 @@ const MobileFooter = () => {
         </div>
       )}
 
-      {/* ── Sticky bottom nav — 5 tabs ── */}
+      {/* ── Sticky bottom nav – full width buttons ── */}
       <nav className="mobile-footer" aria-label="Mobile navigation">
         <div className="mobile-footer-container">
-
-          {/* Home */}
-          <Link
-            href={`/${locale}`}
-            className={`footer-item ${pathname === `/${locale}` || pathname === `/${locale}/` ? 'active' : ''}`}
-          >
+          <Link href={`/${locale}`} className={`footer-item ${pathname === `/${locale}` || pathname === `/${locale}/` ? 'active' : ''}`}>
             <span className="material-symbols-sharp">home</span>
             <span className="footer-label">{t('home') || 'Home'}</span>
           </Link>
-
-          {/* Stacks — prominent accent tab */}
-          <Link
-            href={`/${locale}/stacks`}
-            className={`footer-item footer-item--stacks ${isActive('/stacks') ? 'active' : ''}`}
-            onClick={closeAll}
-          >
+          <Link href={`/${locale}/stacks`} className={`footer-item footer-item--stacks ${isActive('/stacks') ? 'active' : ''}`} onClick={closeAll}>
             <span className="material-symbols-sharp">bolt</span>
             <span className="footer-label">{language === 'ar' ? 'ادمج' : 'Stacks'}</span>
           </Link>
-
-          {/* Stores */}
-          <button
-            className={`footer-item ${showStoresMenu ? 'active' : ''}`}
-            onClick={() => {
-              setShowCategoriesMenu(false);
-              const opening = !showStoresMenu;
-              setShowStoresMenu(opening);
-              if (opening) fetchStores();
-            }}
-          >
+          <button className={`footer-item ${showStoresMenu ? 'active' : ''}`} onClick={() => { setShowCategoriesMenu(false); const opening = !showStoresMenu; setShowStoresMenu(opening); if (opening) fetchStores(); }}>
             <span className="material-symbols-sharp">storefront</span>
             <span className="footer-label">{t('stores') || 'Stores'}</span>
           </button>
-
-          {/* Categories */}
-          <button
-            className={`footer-item ${showCategoriesMenu ? 'active' : ''}`}
-            onClick={() => {
-              setShowStoresMenu(false);
-              setShowCategoriesMenu(v => !v);
-            }}
-          >
+          <button className={`footer-item ${showCategoriesMenu ? 'active' : ''}`} onClick={() => { setShowStoresMenu(false); setShowCategoriesMenu(v => !v); }}>
             <span className="material-symbols-sharp">category</span>
             <span className="footer-label">{t('categories') || 'Categories'}</span>
           </button>
-
-          {/* Coupons */}
-          <Link
-            href={`/${locale}/coupons`}
-            className={`footer-item ${isActive('/coupons') ? 'active' : ''}`}
-            onClick={closeAll}
-          >
+          <Link href={`/${locale}/coupons`} className={`footer-item ${isActive('/coupons') ? 'active' : ''}`} onClick={closeAll}>
             <span className="material-symbols-sharp">local_offer</span>
             <span className="footer-label">{t('coupons') || 'Coupons'}</span>
           </Link>
-
         </div>
       </nav>
     </>
