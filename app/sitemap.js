@@ -7,7 +7,7 @@
 //  4.  Coupons page (page 1 only — rel="next"/"prev" handles the rest)
 //  5.  Stacks page (page 1 only)
 //  6.  Bank & Payment Offers page (NEW)
-//  7.  Static pages
+//  7.  Static pages 
 //  8.  Individual category pages   → /categories/[slug]
 //  9.  Individual store pages      → /stores/[slug]
 //  10. Seasonal pages              → /seasonal/[slug]
