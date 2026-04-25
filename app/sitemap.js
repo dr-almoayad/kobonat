@@ -6,22 +6,13 @@
 //  3.  Categories listing page
 //  4.  Coupons page (page 1 only — rel="next"/"prev" handles the rest)
 //  5.  Stacks page (page 1 only)
-//  6.  Static pages
-//  7.  Individual category pages   → /categories/[slug]
-//  8.  Individual store pages      → /stores/[slug]
-//  9.  Seasonal pages              → /seasonal/[slug]
-//  10. Blog index page
-//  11. Individual blog post pages
-//
-// hreflang rules:
-//  - A locale is only included in alternates when the URL will actually resolve
-//    (translation exists + country region matches for stores).
-//  - x-default always points to ar-SA if that locale is present, otherwise the
-//    first valid locale found.
-//  - Entries are deduplicated before returning to prevent sitemap bloat.
-//
-// Search pages are intentionally excluded — they are marked noindex in page
-// metadata and also blocked in robots.js.
+//  6.  Bank & Payment Offers page (NEW)
+//  7.  Static pages
+//  8.  Individual category pages   → /categories/[slug]
+//  9.  Individual store pages      → /stores/[slug]
+//  10. Seasonal pages              → /seasonal/[slug]
+//  11. Blog index page
+//  12. Individual blog post pages
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { prisma }         from '@/lib/prisma';
@@ -154,9 +145,6 @@ export default async function sitemap() {
 
     // =========================================================================
     // 4. COUPONS PAGE (page 1 only)
-    // Paginated pages are linked via rel="next"/"prev" in the page component.
-    // Including them here would create near-duplicate entries that dilute
-    // crawl budget without adding indexable value.
     // =========================================================================
     LOCALES.forEach(locale => {
       urls.push({
@@ -182,7 +170,28 @@ export default async function sitemap() {
     });
 
     // =========================================================================
-    // 6. STATIC PAGES
+    // 6. BANK & PAYMENT OFFERS PAGE (NEW)
+    // =========================================================================
+    const bankOffersUrlMap = {};
+    for (const locale of LOCALES) {
+      bankOffersUrlMap[locale] = `${BASE_URL}/${locale}/bank-and-payment-offers`;
+    }
+
+    if (Object.keys(bankOffersUrlMap).length > 0) {
+      const bankOffersAlternates = buildAlternates(bankOffersUrlMap);
+      for (const [, url] of Object.entries(bankOffersUrlMap)) {
+        urls.push({
+          url,
+          lastModified: new Date(),
+          changeFrequency: 'daily',
+          priority: 0.8,
+          alternates: { languages: bankOffersAlternates },
+        });
+      }
+    }
+
+    // =========================================================================
+    // 7. STATIC PAGES
     // =========================================================================
     const staticPages = [
       { slug: 'about',   priority: 0.6, changeFreq: 'monthly' },
@@ -206,12 +215,7 @@ export default async function sitemap() {
     });
 
     // =========================================================================
-    // 7. INDIVIDUAL CATEGORY PAGES  → /categories/[slug]
-    //
-    // Per-locale slugs differ (e.g. "إلكترونيات" vs "electronics").
-    // We only emit a locale entry when a real translation slug exists.
-    // The sitemap path is /categories/[slug], not /stores/[slug] —
-    // the old /stores/* category URLs redirect here via permanentRedirect().
+    // 8. INDIVIDUAL CATEGORY PAGES  → /categories/[slug]
     // =========================================================================
     const categories = await prisma.category.findMany({
       include: {
@@ -225,19 +229,15 @@ export default async function sitemap() {
     });
 
     for (const category of categories) {
-      // Skip categories with no active stores — they produce empty pages
       if (category.stores.length === 0) continue;
 
       const storeUpdates = category.stores.map(s => s.store.updatedAt);
       const lastModified = getMostRecentDate(category.updatedAt, ...storeUpdates);
 
-      // Build validated locale → URL map
       const validUrls = new Map();
       for (const locale of LOCALES) {
         const [language] = locale.split('-');
         const translation = category.translations.find(t => t.locale === language);
-
-        // Only add this locale if a real slug exists
         if (translation?.slug) {
           validUrls.set(locale, `${BASE_URL}/${locale}/categories/${translation.slug}`);
         }
@@ -248,7 +248,6 @@ export default async function sitemap() {
       const localeUrlMap = Object.fromEntries(validUrls.entries());
       const alternates   = buildAlternates(localeUrlMap);
 
-      // Emit one entry per valid locale URL — each needs its own canonical
       for (const [, url] of validUrls.entries()) {
         urls.push({
           url,
@@ -261,14 +260,7 @@ export default async function sitemap() {
     }
 
     // =========================================================================
-    // 8. INDIVIDUAL STORE PAGES  → /stores/[slug]
-    //
-    // A locale is only included when:
-    //   a) A translation exists for that language
-    //   b) The store is associated with the locale's country region
-    //
-    // This prevents hreflang pointing to URLs that would return 404
-    // (store not available in that country) or empty content (no translation).
+    // 9. INDIVIDUAL STORE PAGES  → /stores/[slug]
     // =========================================================================
     const stores = await prisma.store.findMany({
       where:   { isActive: true },
@@ -291,14 +283,9 @@ export default async function sitemap() {
       const validUrls = new Map();
       for (const locale of LOCALES) {
         const [language, region] = locale.split('-');
-
-        // Gate 1: store must be available in this locale's country region
         if (!countryCodes.includes(region)) continue;
-
-        // Gate 2: a translation slug must exist for this language
         const translation = store.translations.find(t => t.locale === language);
         if (!translation?.slug) continue;
-
         validUrls.set(locale, `${BASE_URL}/${locale}/stores/${translation.slug}`);
       }
 
@@ -319,10 +306,7 @@ export default async function sitemap() {
     }
 
     // =========================================================================
-    // 9. SEASONAL PAGES  → /seasonal/[slug]
-    //
-    // Only active pages that are available in at least one country.
-    // Both locales share the same slug (unlike stores/categories).
+    // 10. SEASONAL PAGES  → /seasonal/[slug]
     // =========================================================================
     const seasonalPages = await prisma.seasonalPage.findMany({
       where:   { isActive: true },
@@ -334,10 +318,7 @@ export default async function sitemap() {
     });
 
     for (const page of seasonalPages) {
-      // Skip if no countries configured — page would return 403
       if (page.countries.length === 0) continue;
-
-      // Only include if at least one translation has a title
       const hasContent = page.translations.some(t => t.title);
       if (!hasContent) continue;
 
@@ -358,7 +339,7 @@ export default async function sitemap() {
     }
 
     // =========================================================================
-    // 10. BLOG INDEX PAGE
+    // 11. BLOG INDEX PAGE
     // =========================================================================
     LOCALES.forEach(locale => {
       urls.push({
@@ -371,12 +352,7 @@ export default async function sitemap() {
     });
 
     // =========================================================================
-    // 11. INDIVIDUAL BLOG POST PAGES
-    //
-    // Both locales share the same slug. We check that the post actually has
-    // a published translation for each locale before including it — a post
-    // with only an Arabic translation should not get an en-SA hreflang entry
-    // pointing to a page with empty content (soft 404 risk).
+    // 12. INDIVIDUAL BLOG POST PAGES
     // =========================================================================
     const blogPosts = await prisma.blogPost.findMany({
       where:   { status: 'PUBLISHED' },
@@ -393,7 +369,6 @@ export default async function sitemap() {
     for (const post of blogPosts) {
       const lastModified = getMostRecentDate(post.updatedAt, post.publishedAt);
 
-      // Build validated locale map — only include locales with real content
       const localeUrlMap = {};
       for (const locale of LOCALES) {
         const [language] = locale.split('-');
@@ -407,7 +382,6 @@ export default async function sitemap() {
 
       const alternates = buildAlternates(localeUrlMap);
 
-      // Emit one entry per valid locale
       for (const [, url] of Object.entries(localeUrlMap)) {
         urls.push({
           url,
