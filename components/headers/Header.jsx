@@ -81,6 +81,7 @@ const Header = () => {
   const staticNavLinks = useMemo(() => [
     { href: '/coupons', label: t('deals')  || 'Deals', icon: '🔥'  },
     { href: '/stacks',  label: isArabic ? 'اجمع ووفر' : 'Stack & Save', icon: '✨' },
+    { href: '/bank-and-payment-offers',  label: isArabic ? 'عروض البنوك والدفع' : 'Bank & Payment Offers', icon: '💸' },
     { href: '/stores',  label: t('stores') || 'Stores' },
     { href: '/blog',    label: t('blog')   || 'Blog'   },
     { href: '/help',    label: t('help')   || 'Help'   },
