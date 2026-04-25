@@ -17,7 +17,7 @@
 .bo-header {
   background: #fff;
   border-bottom: 1px solid #e2e8f0;
-  position: relative;
+  position: static;
   overflow: hidden;
 }
 
