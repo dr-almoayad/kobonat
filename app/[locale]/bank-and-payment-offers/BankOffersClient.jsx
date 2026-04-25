@@ -4,6 +4,7 @@
 // Props come fully resolved from the server — zero client-side fetching.
 
 import { useState, useMemo, useCallback } from 'react';
+import './page.css';
 
 // ── Type config ───────────────────────────────────────────────────────────────
 
