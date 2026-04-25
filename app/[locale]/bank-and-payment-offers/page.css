@@ -126,6 +126,7 @@
   align-items: center;
   gap: 0.4rem;
   padding: 1rem 1.25rem;
+  font-family: var(--font-open-sans), 'Segoe UI', sans-serif;
   font-size: 0.875rem;
   font-weight: 600;
   color: #64748b;
@@ -137,6 +138,10 @@
   transition: color 0.15s, border-color 0.15s;
   position: relative;
   bottom: -1px;
+}
+
+[dir='rtl'] .bo-type-btn {
+  font-family: var(--font-alexandria), 'Noto Sans Arabic', sans-serif;
 }
 
 .bo-type-btn .material-symbols-sharp { font-size: 1.125rem; }
