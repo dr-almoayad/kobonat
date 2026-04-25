@@ -13,7 +13,7 @@ export const revalidate = 600; // 10-minute ISR
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://cobonat.me';
 
-// ── Metadata ─────────────────────────────────────────────────────────────────
+// ── Metadata (FIXED: canonical, hreflang, OG, Twitter) ──────────────────────
 
 export async function generateMetadata({ params }) {
   const { locale } = await params;
@@ -28,26 +28,36 @@ export async function generateMetadata({ params }) {
     ? 'احصل على أفضل خصومات البنوك والبطاقات الائتمانية ووسائل الدفع في المملكة العربية السعودية. عروض مدى، Apple Pay، فيزا، ماستركارد وأكثر — محدثة باستمرار.'
     : 'Find the best bank card, credit card, and payment method discounts in Saudi Arabia. Mada, Apple Pay, Visa, Mastercard offers and more — updated regularly.';
 
+  const arUrl = `${BASE_URL}/ar-SA/bank-and-payment-offers`;
+  const enUrl = `${BASE_URL}/en-SA/bank-and-payment-offers`;
+  const currentUrl = `${BASE_URL}/${locale}/bank-and-payment-offers`;
+
   return {
     metadataBase: new URL(BASE_URL),
     title,
     description,
     alternates: {
-      canonical: `${BASE_URL}/${locale}/bank-offers`,
+      canonical: currentUrl,
       languages: {
-        'ar-SA':     `${BASE_URL}/ar-SA/bank-offers`,
-        'en-SA':     `${BASE_URL}/en-SA/bank-offers`,
-        'x-default': `${BASE_URL}/ar-SA/bank-offers`,
+        'ar-SA': arUrl,
+        'en-SA': enUrl,
+        'x-default': arUrl, // default to Arabic for the region
       },
     },
     openGraph: {
-      siteName:    isAr ? 'كوبونات' : 'Cobonat',
       title,
       description,
-      url:         `${BASE_URL}/${locale}/bank-offers`,
-      type:        'website',
+      url: currentUrl,
+      siteName: isAr ? 'كوبونات' : 'Cobonat',
       locale,
+      type: 'website',
       images: [{ url: `${BASE_URL}/logo-512x512.png`, width: 512, height: 512 }],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: [`${BASE_URL}/logo-512x512.png`],
     },
     robots: { index: true, follow: true },
   };
@@ -196,7 +206,7 @@ export default async function BankOffersPage({ params }) {
       '@type':    'ListItem',
       position:   i + 1,
       name:       o.title,
-      url:        o.url || `${BASE_URL}/${locale}/bank-offers`,
+      url:        o.url || `${BASE_URL}/${locale}/bank-and-payment-offers`,
     })),
   };
 
