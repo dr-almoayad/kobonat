@@ -261,6 +261,10 @@ const MobileFooter = () => {
             <span className="material-symbols-sharp">home</span>
             <span className="footer-label">{t('home') || 'Home'}</span>
           </Link>
+          <Link href={`/${locale}/coupons`} className={`footer-item ${isActive('/coupons') ? 'active' : ''}`} onClick={closeAll}>
+            <span className="material-symbols-sharp">local_offer</span>
+            <span className="footer-label">{t('coupons') || 'Coupons'}</span>
+          </Link>
           <Link href={`/${locale}/stacks`} className={`footer-item footer-item--stacks ${isActive('/stacks') ? 'active' : ''}`} onClick={closeAll}>
             <span className="material-symbols-sharp">bolt</span>
             <span className="footer-label">{language === 'ar' ? 'ادمج' : 'Stacks'}</span>
@@ -273,10 +277,7 @@ const MobileFooter = () => {
             <span className="material-symbols-sharp">category</span>
             <span className="footer-label">{t('categories') || 'Categories'}</span>
           </button>
-          <Link href={`/${locale}/coupons`} className={`footer-item ${isActive('/coupons') ? 'active' : ''}`} onClick={closeAll}>
-            <span className="material-symbols-sharp">local_offer</span>
-            <span className="footer-label">{t('coupons') || 'Coupons'}</span>
-          </Link>
+          
         </div>
       </nav>
     </>
