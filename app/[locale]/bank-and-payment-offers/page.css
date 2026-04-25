@@ -183,7 +183,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 0;
-  overflow-x: auto;
+  overflow-x: scroll;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
 }
@@ -196,7 +196,7 @@
   gap: 0.4rem;
   padding: 0.35rem 0.875rem;
   border-radius: 999px;
-  font-size: 0.8125rem;
+  font-size: 0.7rem;
   font-family: var(--font-open-sans), 'Segoe UI', sans-serif;
   font-weight: 500;
   border: 1.5px solid #e2e8f0;
