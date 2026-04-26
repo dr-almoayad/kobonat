@@ -1,0 +1,59 @@
+.co-card{
+    min-width: 0;
+    height: 170px;
+    width: 400px;
+    border-radius: .75rem;
+    background-color: #fff;
+    color: #000;
+}
+
+@media (min-width: 1024px) {
+    .co-card{
+        width: 33.333333%;
+    }
+}
+
+.co-card_content {
+    padding-right: 1rem;
+    padding-left: 1.25rem;
+    flex-direction: column;
+    display: flex;
+}
+
+.co-card_logo {
+    margin-top: .75rem;
+    height: auto;
+    max-width: 100%;
+    display: block;
+}
+
+.co-card_text {
+    line-height: 1.25;
+    font-weight: 600;
+    font-size: .875rem;
+    line-height: 1.25rem;
+    margin-bottom: 1rem;
+    margin-top: 1rem;
+}
+
+.co-card_cta {
+    text-underline-offset: 4px;
+    text-decoration-line: underline;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    font-size: .75rem;
+    line-height: 1rem;
+    margin: 0;
+}
+
+.rounded-xl {
+    border-radius: .75rem;
+    overflow: hidden;
+    justify-content: flex-end;
+    flex-shrink: 0;
+    height: 100%;
+    display: flex;
+    height: auto;
+    max-width: 100%;
+    vertical-align: middle;
+}
