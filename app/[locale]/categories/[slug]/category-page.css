@@ -1,4 +1,5 @@
 /* app/[locale]/categories/[slug]/category-page.css */
+/* ── All existing styles are preserved below ────────────────────────────── */
 
 /* ── Page wrapper ──────────────────────────────────────────────────────── */
 .category-detail-page {
@@ -53,7 +54,6 @@
   overflow: hidden;
 }
 
-/* Decorative diagonal stripe at top */
 .cd-hero-stripe {
   height: 5px;
   width: 100%;
@@ -199,6 +199,29 @@
   border-radius: 999px;
 }
 
+/* ── "View all" link inside carousel section headers ─────────────────────── */
+.cd-carousel-view-all {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #470ae2;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: opacity 0.15s;
+}
+
+.cd-carousel-view-all:hover { opacity: 0.7; }
+
+.cd-carousel-view-all .material-symbols-sharp {
+  font-size: 0.9375rem;
+}
+
+[dir='rtl'] .cd-carousel-view-all .material-symbols-sharp {
+  transform: scaleX(-1);
+}
+
 /* ── Store grid ─────────────────────────────────────────────────────────── */
 .cd-stores-grid {
   display: grid;
@@ -206,7 +229,7 @@
   gap: 1.25rem;
 }
 
-/* ── Vouchers grid ──────────────────────────────────────────────────────── */
+/* ── Vouchers grid (kept for fallback) ──────────────────────────────────── */
 .cd-vouchers-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
@@ -335,17 +358,6 @@
 
   .cd-hero-inner { padding-inline: 1rem; }
 }
-
-
-
-
-
-
-
-/* ============================================================
-   ADDITIONS for app/[locale]/categories/[slug]/category-page.css
-   Paste these at the end of the existing file.
-   ============================================================ */
 
 /* ── Featured products grid ─────────────────────────────────── */
 .cd-products-grid {
