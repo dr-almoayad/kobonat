@@ -25,6 +25,7 @@ import ExpiredOtherPromosList from '@/components/ExpiredOtherPromosList/ExpiredO
 import './store-page.css';
 
 export const revalidate = 300;
+
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://cobonat.me';
 
 // ── Metadata ─────────────────────────────────────────────────────────────────
@@ -35,7 +36,7 @@ export async function generateMetadata({ params }) {
     const [language, countryCode] = locale.split('-');
     const isArabic = language === 'ar';
 
-    // If it's a category slug, redirect will handle it
+    // If slug belongs to a category, redirect – metadata not needed
     const isCategory = await getCategoryData(slug, language, countryCode);
     if (isCategory) return {};
 
@@ -115,7 +116,7 @@ export default async function StorePage({ params }) {
     const [language, countryCode] = locale.split('-');
     const currentWeek = getCurrentWeekIdentifier();
 
-    // Category redirect
+    // Category redirect (if slug matches a category)
     const category = await getCategoryData(slug, language, countryCode);
     if (category) permanentRedirect(`/${locale}/categories/${slug}`);
 
@@ -322,8 +323,7 @@ export default async function StorePage({ params }) {
       } : null,
     }));
 
-    // Active other promos — FIX: include discountPercent and verifiedAvgPercent so
-    // maxSavings calculation can read the actual bank/card offer savings figures.
+    // Active other promos
     const transformedOtherPromos = activeOtherPromos.map(p => ({
       id:                 p.id,
       type:               p.type,
@@ -393,15 +393,13 @@ export default async function StorePage({ params }) {
     const shippingVouchers = transformedVouchers.filter(v => v.type === 'FREE_SHIPPING');
     const countryName      = country.translations[0]?.name || country.code;
 
-    // Breadcrumbs
+    // Breadcrumbs (absolute URLs)
     const breadcrumbs = [
       { name: language === 'ar' ? 'الرئيسية' : 'Home',   url: `${BASE_URL}/${locale}` },
       { name: language === 'ar' ? 'المتاجر'  : 'Stores', url: `${BASE_URL}/${locale}/stores` },
       { name: transformedStore.name, url: `${BASE_URL}/${locale}/stores/${slug}` },
     ];
 
-    // FIX: use verifiedAvgPercent ?? discountPercent for both vouchers and promos,
-    // so bank/card offer discounts are included in the max savings figure.
     const maxSavings = Math.max(
       ...transformedVouchers.map(v => v.verifiedAvgPercent ?? v.discountPercent ?? 0),
       ...transformedOtherPromos.map(p => p.verifiedAvgPercent ?? p.discountPercent ?? 0),
@@ -420,7 +418,6 @@ export default async function StorePage({ params }) {
       maxSavings,
     };
 
-    // SEO title/description for structured data
     const pageTitle       = storeTranslation?.seoTitle       || `${transformedStore.name} Coupons`;
     const pageDescription = storeTranslation?.seoDescription || transformedStore.description || '';
 
@@ -550,4 +547,4 @@ export default async function StorePage({ params }) {
     console.error('[StorePage] error:', error);
     return notFound();
   }
-            }
+}
