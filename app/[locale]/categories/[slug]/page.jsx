@@ -489,43 +489,43 @@ export default async function CategoryDetailPage({ params }) {
           )}
 
           {/* ── VOUCHERS CAROUSEL (direct-tagged first, then store-linked) ── */}
-          {mergedVouchers.length > 0 && (
-            <section className="cd-section">
-              <div className="cd-section-header">
-                <h2 className="cd-section-title">
-                  <span className="material-symbols-sharp">local_offer</span>
-                  {isAr ? `أفضل عروض ${categoryName}` : `Top ${categoryName} Deals`}
-                </h2>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                  <span className="cd-section-count">
-                    {mergedVouchers.length} {isAr ? 'عرض' : 'offer'}
-                    {mergedVouchers.length !== 1 ? (isAr ? '' : 's') : ''}
-                  </span>
-                  <Link
-                    href={`/${locale}/coupons`}
-                    className="cd-carousel-view-all"
-                  >
-                    {isAr ? 'كل العروض' : 'View all'}
-                    <span className="material-symbols-sharp">
-                      {isAr ? 'arrow_back' : 'arrow_forward'}
-                    </span>
-                  </Link>
-                </div>
-              </div>
-              {/* Carousel — each slide is a VoucherCard */}
-              <EmblaCarousel locale={locale} slideWidth="400px" slideGap="1.25rem">
-                {mergedVouchers.map(v => (
-                  <CuratedOfferCard
-                    key={voucher.id}
-                    offer={voucher}               // pass the whole voucher object
-                    featured={voucher.isFeatured}
-                    bestDeal={voucher.bestDeal}
-                    expired={false}
-                  />
-                ))}
-              </EmblaCarousel>
-            </section>
-          )}
+{mergedVouchers.length > 0 && (
+  <section className="cd-section">
+    <div className="cd-section-header">
+      <h2 className="cd-section-title">
+        <span className="material-symbols-sharp">local_offer</span>
+        {isAr ? `أفضل عروض ${categoryName}` : `Top ${categoryName} Deals`}
+      </h2>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+        <span className="cd-section-count">
+          {mergedVouchers.length} {isAr ? 'عرض' : 'offer'}
+          {mergedVouchers.length !== 1 ? (isAr ? '' : 's') : ''}
+        </span>
+        <Link
+          href={`/${locale}/coupons`}
+          className="cd-carousel-view-all"
+        >
+          {isAr ? 'كل العروض' : 'View all'}
+          <span className="material-symbols-sharp">
+            {isAr ? 'arrow_back' : 'arrow_forward'}
+          </span>
+        </Link>
+      </div>
+    </div>
+
+    <EmblaCarousel locale={locale} slideWidth="400px" slideGap="1.25rem">
+      {mergedVouchers.map(voucher => (
+        <CuratedOfferCard
+          key={voucher.id}
+          offer={voucher}
+          featured={voucher.isFeatured}
+          bestDeal={voucher.bestDeal}
+          expired={false}
+        />
+      ))}
+    </EmblaCarousel>
+  </section>
+)}
 
           {/* ── FEATURED PRODUCTS CAROUSEL ── */}
           {directProducts.length > 0 && (
