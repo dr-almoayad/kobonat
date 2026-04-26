@@ -1,74 +1,240 @@
-.co-card{
-    min-width: 0;
-    height: 170px;
-    width: 400px;
+/* components/CuratedOfferCard/CuratedOfferCard.css */
+
+.co-card {
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  width: 100%;
+  max-width: 400px;
+  aspect-ratio: 400 / 170;      /* fixed 400×170 proportion */
+  background: #fff;
+  border: 1px solid #e4e9f0;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  overflow: hidden;
+  transition: box-shadow 0.22s ease, border-color 0.22s ease;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.co-card:hover {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.09), 0 2px 4px rgba(0,0,0,0.05);
+  border-color: #c9d2df;
+}
+
+.co-card:active {
+  transform: scale(0.99);
+  transition: transform 0.05s ease;
+}
+
+.co-card.co-expired {
+  opacity: 0.55;
+  filter: grayscale(0.6);
+  pointer-events: none;
+}
+
+.co-card.co-featured {
+  border-color: #470ae2;
+  border-width: 1.5px;
+  box-shadow: 0 0 0 3px rgba(71,10,226,0.07), var(--vc-shadow);
+}
+
+.co-card--best-deal {
+  border-color: #06b6d4;
+  border-width: 1.5px;
+  background: linear-gradient(0deg, #fff, #fff), radial-gradient(circle at top left, #cffafe, #fff);
+}
+
+/* Ribbons (identical to VoucherCard) */
+.co-ribbon {
+  position: absolute;
+  top: 0;
+  inset-inline-end: 0;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  background: #470ae2;
+  color: #fff;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  padding: 3px 10px 3px 8px;
+  border-end-start-radius: 8px;
+  z-index: 2;
+  pointer-events: none;
+}
+.co-ribbon .material-symbols-sharp { font-size: 0.875rem; }
+.co-ribbon--best { background: #0891b2; }
+
+/* LEFT – FEATURED IMAGE (fills left side, maintains aspect inside the card) */
+.co-image {
+  flex: 0 0 40%;          /* 40% width of the card (≈160px) */
+  overflow: hidden;
+  background: #f8fafc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.co-card__image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* RIGHT CONTENT AREA */
+.co-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  padding: 0.5rem 0.875rem;
+  min-width: 0;
+}
+
+.co-store-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+.co-store-link {
+  display: block;
+  line-height: 0;
+}
+.co-store-logo {
+  height: 32px;
+  width: auto;
+  max-width: 90px;
+  object-fit: contain;
+}
+.co-discount-badge {
+  background: #f0ebff;
+  color: #470ae2;
+  font-size: 0.75rem;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+
+.co-title {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #0f172a;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.co-desc {
+  margin: 0;
+  font-size: 0.75rem;
+  color: #475569;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Badges (same as VoucherCard) */
+.co-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 2px;
+}
+.co-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+.co-badge .material-symbols-sharp { font-size: 0.8125rem; }
+.co-badge-active    { background: #d1fae5; color: #065f46; }
+.co-badge-urgent    { background: #fef3c7; color: #92400e; }
+.co-badge-expired   { background: #fee2e2; color: #991b1b; }
+.co-badge-verified  { background: #dbeafe; color: #1e40af; }
+.co-badge-exclusive { background: #f5f3ff; color: #6d28d9; }
+
+/* Meta line */
+.co-meta-line {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.7rem;
+  color: #94a3b8;
+}
+.co-meta-item { display: inline-flex; align-items: center; gap: 3px; }
+.co-meta-dot  { color: #94a3b8; }
+
+/* Mobile chevron (hidden on desktop, shown on mobile) */
+.co-mobile-chevron {
+  display: none;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  color: #94a3b8;
+}
+
+/* ──────────────────────────────────────────────────────────────
+   RTL SUPPORT
+   ────────────────────────────────────────────────────────────── */
+[dir="rtl"] .co-image {
+  order: 2;
+}
+[dir="rtl"] .co-content {
+  order: 1;
+}
+[dir="rtl"] .co-mobile-chevron .material-symbols-sharp {
+  transform: scaleX(-1);
+}
+
+/* ──────────────────────────────────────────────────────────────
+   RESPONSIVE (mobile)
+   ────────────────────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .co-card {
+    max-width: 80vw;          /* 80% of viewport width, still maintains aspect ratio */
+    aspect-ratio: 400 / 170;
+  }
+  .co-image {
+    flex: 0 0 45%;            /* slightly larger on mobile */
+  }
+  .co-desc {
+    display: none;            /* save space */
+  }
+  .co-badge .material-symbols-sharp {
+    display: none;
+  }
+  .co-badge {
+    font-size: 0.625rem;
+    padding: 2px 6px;
+  }
+  .co-meta-line {
+    font-size: 0.6rem;
+  }
+  .co-mobile-chevron {
     display: flex;
-    flex-wrap: nowrap;
-    justify-content: space-between;
-    border-radius: .75rem;
-    box-shadow: 0 10px 15px -3px rgba(0,0,0,.1),0 4px 6px -4px rgba(0,0,0,.1);
-    background-color: #fff;
-    color: #000;
+  }
+  /* optional: hide store logo on very small screens to reduce clutter */
+  @media (max-width: 480px) {
+    .co-store-logo {
+      display: none;
+    }
+  }
 }
 
-.co-card:focus {
-    outline: 2px solid #700cd7;
-    outline-offset: 6px;
-}
-
-.co-card_content {
-    padding-right: 1rem;
-    padding-left: 1.25rem;
-    flex-direction: column;
-    display: flex;
-}
-
-.co-card_logo {
-    margin-top: .75rem;
-    height: auto;
-    max-height: 48px;
-    width: 100%;
-    max-width: 110px;
-    background: #fff;
-    justify-content: center;
-    overflow: hidden;
-}
-
-.co-card_text {
-    line-height: 1.25;
-    font-weight: 600;
-    font-size: .875rem;
-    line-height: 1.25rem;
-    margin-bottom: 1rem;
-    margin-top: 1rem;
-}
-
-.co-card_cta {
-    text-underline-offset: 4px;
-    text-decoration-line: underline;
-    letter-spacing: .1em;
-    text-transform: uppercase;
-    font-size: .75rem;
-    line-height: 1rem;
-    margin: 0;
-}
-
-.rounded-xl {
-    border-radius: .75rem;
-    overflow: hidden;
-    justify-content: flex-end;
-    flex-shrink: 0;
-    height: 100%;
-    display: flex;
-    height: auto;
-    max-width: 100%;
-    vertical-align: middle;
-}
-
-.co-card_image {
-    height: 100%;
-    aspect-ratio: 1;
-    object-fit: cover;
-    border-radius: 0.75rem;
-    box-shadow: 0 10px 15px -3px rgba(0,0,0,.1),0 4px 6px -4px rgba(0,0,0,.1);
+@media (prefers-reduced-motion: reduce) {
+  .co-card { animation: none; transition: none; }
+  .co-card:active { transform: none; }
 }
