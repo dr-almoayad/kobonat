@@ -27,6 +27,7 @@
   touch-action: pan-y pinch-zoom;
   will-change: transform;
   backface-visibility: hidden;
+  padding: 0.5rem 0.2rem;
 }
 
 /* Slide */
