@@ -9,6 +9,7 @@ import './VoucherCard.css';
 const VoucherCard = ({ voucher, featured = false, bestDeal = false, expired = false }) => {
   const locale = useLocale();
   const t = useTranslations('VoucherCard');
+  const [copied, setCopied] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const isMobileRef = useRef(false);
@@ -24,7 +25,7 @@ const VoucherCard = ({ voucher, featured = false, bestDeal = false, expired = fa
   const currentLanguage = locale.split('-')[0];
   const isRtl = currentLanguage === 'ar';
 
-  // ── Text helpers ─────────────────────────────────────────────────
+  // ── Text extractors (unchanged) ─────────────────────────────────
   const getVoucherTitle = () => {
     if (voucher.title) return voucher.title;
     if (voucher.translations?.[0]?.title) return voucher.translations[0].title;
@@ -60,9 +61,9 @@ const VoucherCard = ({ voucher, featured = false, bestDeal = false, expired = fa
     return isRtl ? 'خصم' : 'SALE';
   };
 
-  // Date / expiry helpers
+  // Date helpers
   const isExpiredByDate = voucher.expiryDate ? new Date(voucher.expiryDate) < new Date() : false;
-  const isExpiredCard = expired || isExpiredByDate;
+  const isExpiredCard = expired || isExpiredByDate; // ✅ use prop or date check
 
   const getDaysRemaining = () => {
     if (!voucher.expiryDate || isExpiredByDate) return null;
@@ -121,13 +122,51 @@ const VoucherCard = ({ voucher, featured = false, bestDeal = false, expired = fa
   const discountText  = getDiscountText();
 
   // ── Handlers ─────────────────────────────────────────────────────
-  const handleCardClick = () => {
+  const handleCodeCopy = async (e) => {
+    e?.stopPropagation();
+    if (isExpiredCard || !voucher.code) return;
+    try {
+      await navigator.clipboard.writeText(voucher.code);
+      setCopied(true);
+      const [, countryCode] = locale.split('-');
+      await fetch('/api/vouchers/track', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ voucherId: voucher.id, countryCode }),
+      });
+      setTimeout(() => { window.open(voucher.landingUrl || voucher.store?.websiteUrl, '_blank'); }, 600);
+      setTimeout(() => setCopied(false), 2500);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+    }
+  };
+
+  const handleDealActivate = async (e) => {
+    e?.stopPropagation();
+    if (isExpiredCard) return;
+    const [, countryCode] = locale.split('-');
+    await fetch('/api/vouchers/track', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ voucherId: voucher.id, countryCode }),
+    });
+    window.open(voucher.landingUrl || voucher.store?.websiteUrl, '_blank');
+  };
+
+  const handleDetailsClick = (e) => {
+    e?.stopPropagation();
     if (isExpiredCard) return;
     setModalOpen(true);
   };
 
+  const handleCardClick = () => {
+    if (isExpiredCard) return;
+    if (isMobileRef.current) setModalOpen(true);
+  };
+
   const closeModal = () => setModalOpen(false);
 
+  // ── Render card ─────────────────────────────────────────────────
   return (
     <>
       <div
@@ -145,7 +184,7 @@ const VoucherCard = ({ voucher, featured = false, bestDeal = false, expired = fa
         aria-label={title}
         aria-disabled={isExpiredCard}
       >
-        {/* Ribbons */}
+        {/* Ribbons – unchanged */}
         {featured && !bestDeal && (
           <div className="vc-ribbon">
             <span className="material-symbols-sharp">star</span>
@@ -159,7 +198,7 @@ const VoucherCard = ({ voucher, featured = false, bestDeal = false, expired = fa
           </div>
         )}
 
-        {/* LEFT — Starburst discount panel (absolute) */}
+        {/* LEFT — Discount panel */}
         <div className="vc-left">
           {bestDeal && (
             <span className="vc-best-bolt material-symbols-sharp" aria-hidden="true">bolt</span>
@@ -167,7 +206,7 @@ const VoucherCard = ({ voucher, featured = false, bestDeal = false, expired = fa
           <div className="vc-discount">{discountText}</div>
         </div>
 
-        {/* BODY — main content, pushed right (or left in RTL) */}
+        {/* BODY */}
         <div className="vc-body">
           {voucher.store && (
             <Link
@@ -232,9 +271,52 @@ const VoucherCard = ({ voucher, featured = false, bestDeal = false, expired = fa
             </div>
           )}
         </div>
+
+        {/* RIGHT — Action buttons (desktop) */}
+        <div className="vc-actions">
+          {voucher.type === 'CODE' ? (
+            <button
+              className={`vc-btn-primary ${copied ? 'vc-copied' : ''}`}
+              onClick={handleCodeCopy}
+              disabled={isExpiredCard}
+            >
+              {copied ? (
+                <><span className="material-symbols-sharp">check_circle</span>{isRtl ? 'تم النسخ!' : 'Copied!'}</>
+              ) : (
+                <><span className="material-symbols-sharp">content_copy</span>{isRtl ? 'نسخ الكود' : 'Copy Code'}</>
+              )}
+            </button>
+          ) : (
+            <button
+              className="vc-btn-deal"
+              onClick={handleDealActivate}
+              disabled={isExpiredCard}
+            >
+              <span className="material-symbols-sharp">arrow_outward</span>
+              {isRtl ? 'تفعيل العرض' : 'Get Deal'}
+            </button>
+          )}
+
+          <button
+            className="vc-details-btn"
+            onClick={handleDetailsClick}
+            aria-label={isRtl ? 'عرض التفاصيل' : 'View details'}
+            disabled={isExpiredCard}
+          >
+            <span className="material-symbols-sharp">info</span>
+            {isRtl ? 'التفاصيل' : 'Details'}
+          </button>
+        </div>
+
+        {/* Mobile chevron */}
+        <div className="vc-mobile-chevron" aria-hidden="true">
+          <span className="material-symbols-sharp">
+            {isRtl ? 'chevron_left' : 'chevron_right'}
+          </span>
+        </div>
       </div>
 
-      {/* Modal – only if not expired */}
+      {/* Modal – only rendered if not expired */}
       {mounted && !isExpiredCard && (
         <VoucherModal
           isOpen={modalOpen}
