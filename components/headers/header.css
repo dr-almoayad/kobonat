@@ -20,7 +20,6 @@ header {
   background: var(--header-bg);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
-  border-bottom: 1px solid var(--header-border);
 }
 
 /* ── MAIN BAR ────────────────────────────────────────────────────────────────── */
