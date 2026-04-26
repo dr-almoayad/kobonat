@@ -137,7 +137,7 @@ const Header = () => {
   const staticNavLinks = useMemo(() => [
     { href: '/coupons',                    label: t('deals') || 'Deals',               icon: 'local_offer',      extra: '' },
     { href: '/stacks',                     label: isArabic ? 'اجمع ووفر' : 'Stack & Save', icon: 'bolt',          extra: 'stacks' },
-    { href: '/categories',                 label: isArabic ? 'الفئات' : 'Categories',  icon: 'grid_view',        extra: 'categories' },
+    { href: '/categories',                 label: isArabic ? 'الفئات' : 'Categories',  icon: 'grid_view' },
     { href: '/bank-and-payment-offers',    label: isArabic ? 'عروض البنوك' : 'Bank Offers', icon: 'account_balance', extra: 'bank' },
     { href: '/stores',                     label: t('stores') || 'Stores',             icon: 'storefront',       extra: '' },
     { href: '/blog',                       label: t('blog') || 'Blog',                 icon: 'article',          extra: '' },
