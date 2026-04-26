@@ -1,6 +1,8 @@
 // app/[locale]/terms/page.js
 import "../../../app/[locale]/static-pages.css";
 
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://cobonat.me';
+
 export async function generateMetadata({ params }) {
   const { locale } = await params;
   const isArabic = locale.startsWith("ar");
@@ -10,7 +12,13 @@ export async function generateMetadata({ params }) {
     description: isArabic
       ? "اقرأ شروط الخدمة الخاصة بـ كوبونات قبل استخدام الموقع والخدمات."
       : "Read Cobonat's terms of service before using our website and services.",
-    alternates: { canonical: `/${locale}/terms` },
+    alternates: { 
+      canonical: `${BASE_URL}/${locale}/terms`,  // ✅ absolute URL
+      languages: {
+        'ar-SA': `${BASE_URL}/ar-SA/terms`,
+        'en-SA': `${BASE_URL}/en-SA/terms`,
+      },
+    },
     robots: { index: true, follow: true },
   };
 }
