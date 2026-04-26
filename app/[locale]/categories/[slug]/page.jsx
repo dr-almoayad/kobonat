@@ -15,6 +15,7 @@ import HelpBox               from '@/components/help/HelpBox';
 import OfferStackBox         from '@/components/OfferStackBox/OfferStackBox';
 import StoreProductCard      from '@/components/StoreProductCard/StoreProductCard';
 import EmblaCarousel         from '@/components/EmblaCarousel/EmblaCarousel';
+import CuratedOfferCard      from './CuratedOfferCard';
 import { serializeStack }    from '@/lib/offerStacks';
 import './category-page.css';
 
@@ -512,9 +513,9 @@ export default async function CategoryDetailPage({ params }) {
                 </div>
               </div>
               {/* Carousel — each slide is a VoucherCard */}
-              <EmblaCarousel locale={locale} slideWidth="340px" slideGap="1.25rem">
+              <EmblaCarousel locale={locale} slideWidth="400px" slideGap="1.25rem">
                 {mergedVouchers.map(v => (
-                  <VoucherCard key={v.id} voucher={v} />
+                  <CuratedOfferCard/>
                 ))}
               </EmblaCarousel>
             </section>
