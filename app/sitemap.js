@@ -6,7 +6,7 @@
 //  3.  Categories listing page
 //  4.  Coupons page (page 1 only — rel="next"/"prev" handles the rest)
 //  5.  Stacks page (page 1 only)
-//  6.  Bank & Payment Offers page (NEW)
+//  6.  Bank & Payment Offers page
 //  7.  Static pages 
 //  8.  Individual category pages   → /categories/[slug]
 //  9.  Individual store pages      → /stores/[slug]
@@ -20,6 +20,9 @@ import { allLocaleCodes } from '@/i18n/locales';
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://cobonat.me';
 const LOCALES  = allLocaleCodes; // ['ar-SA', 'en-SA']
+
+// ── Regenerate every hour – prevents stale URLs ─────────────────────────────
+export const revalidate = 3600;
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -49,7 +52,6 @@ function allAlternates(path = '') {
  */
 function buildAlternates(localeUrlMap) {
   if (!localeUrlMap || Object.keys(localeUrlMap).length === 0) return null;
-
   const xDefault = localeUrlMap['ar-SA'] || Object.values(localeUrlMap)[0];
   return {
     ...localeUrlMap,
@@ -170,7 +172,7 @@ export default async function sitemap() {
     });
 
     // =========================================================================
-    // 6. BANK & PAYMENT OFFERS PAGE (NEW)
+    // 6. BANK & PAYMENT OFFERS PAGE
     // =========================================================================
     const bankOffersUrlMap = {};
     for (const locale of LOCALES) {
@@ -216,17 +218,37 @@ export default async function sitemap() {
 
     // =========================================================================
     // 8. INDIVIDUAL CATEGORY PAGES  → /categories/[slug]
+    // ✅ FIX: Only include category if it has active stores in the specific country
     // =========================================================================
     const categories = await prisma.category.findMany({
       include: {
         translations: true,
         stores: {
           where:   { store: { isActive: true } },
-          include: { store: { select: { updatedAt: true } } },
+          include: {
+            store: {
+              select: {
+                updatedAt: true,
+                countries: { select: { country: { select: { code: true } } } },
+              },
+            },
+          },
         },
       },
       orderBy: [{ order: 'asc' }, { id: 'asc' }],
     });
+
+    // Also fetch all category slugs per locale to later exclude conflicting store slugs
+    const categoryTranslations = await prisma.categoryTranslation.findMany({
+      select: { slug: true, locale: true },
+    });
+    const categorySlugsByLocale = new Map();
+    for (const ct of categoryTranslations) {
+      if (!categorySlugsByLocale.has(ct.locale)) {
+        categorySlugsByLocale.set(ct.locale, new Set());
+      }
+      categorySlugsByLocale.get(ct.locale).add(ct.slug);
+    }
 
     for (const category of categories) {
       if (category.stores.length === 0) continue;
@@ -236,11 +258,17 @@ export default async function sitemap() {
 
       const validUrls = new Map();
       for (const locale of LOCALES) {
-        const [language] = locale.split('-');
+        const [language, region] = locale.split('-');
         const translation = category.translations.find(t => t.locale === language);
-        if (translation?.slug) {
-          validUrls.set(locale, `${BASE_URL}/${locale}/categories/${translation.slug}`);
-        }
+        if (!translation?.slug) continue;
+
+        // ✅ Check if category has at least one store in this country
+        const hasStoreInCountry = category.stores.some(sc =>
+          sc.store?.countries?.some(c => c.country.code === region)
+        );
+        if (!hasStoreInCountry) continue;
+
+        validUrls.set(locale, `${BASE_URL}/${locale}/categories/${translation.slug}`);
       }
 
       if (validUrls.size === 0) continue;
@@ -261,6 +289,7 @@ export default async function sitemap() {
 
     // =========================================================================
     // 9. INDIVIDUAL STORE PAGES  → /stores/[slug]
+    // ✅ FIX: Exclude store if its slug matches a category slug in same locale
     // =========================================================================
     const stores = await prisma.store.findMany({
       where:   { isActive: true },
@@ -286,6 +315,11 @@ export default async function sitemap() {
         if (!countryCodes.includes(region)) continue;
         const translation = store.translations.find(t => t.locale === language);
         if (!translation?.slug) continue;
+
+        // ✅ Skip if this store slug conflicts with a category slug in the same locale
+        const categorySlugs = categorySlugsByLocale.get(language);
+        if (categorySlugs && categorySlugs.has(translation.slug)) continue;
+
         validUrls.set(locale, `${BASE_URL}/${locale}/stores/${translation.slug}`);
       }
 
