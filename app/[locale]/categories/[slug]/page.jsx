@@ -515,7 +515,13 @@ export default async function CategoryDetailPage({ params }) {
               {/* Carousel — each slide is a VoucherCard */}
               <EmblaCarousel locale={locale} slideWidth="400px" slideGap="1.25rem">
                 {mergedVouchers.map(v => (
-                  <CuratedOfferCard/>
+                  <CuratedOfferCard
+                    key={voucher.id}
+                    offer={voucher}               // pass the whole voucher object
+                    featured={voucher.isFeatured}
+                    bestDeal={voucher.bestDeal}
+                    expired={false}
+                  />
                 ))}
               </EmblaCarousel>
             </section>
