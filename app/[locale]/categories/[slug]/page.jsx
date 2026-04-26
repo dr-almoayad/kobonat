@@ -2,15 +2,15 @@
 // Individual category page — fully server-rendered.
 // Enhanced with four new sections sourced from direct item-category associations:
 //   1. Featured Offer Stacks  → OfferStackBox carousel
-//   2. Featured Vouchers      → VouchersGrid (directly-tagged, prioritised)
-//   3. Featured Products      → StoreProductCard grid
+//   2. Featured Vouchers      → VoucherCard CAROUSEL (directly-tagged, prioritised)
+//   3. Featured Products      → StoreProductCard CAROUSEL
 //   4. Bank & Card Highlights → inline promo cards
 
 import { prisma }           from '@/lib/prisma';
 import { notFound }          from 'next/navigation';
 import Link                  from 'next/link';
 import StoreCard             from '@/components/StoreCard/StoreCard';
-import VouchersGrid          from '@/components/VouchersGrid/VouchersGrid';
+import VoucherCard           from '@/components/VoucherCard/VoucherCard';
 import HelpBox               from '@/components/help/HelpBox';
 import OfferStackBox         from '@/components/OfferStackBox/OfferStackBox';
 import StoreProductCard      from '@/components/StoreProductCard/StoreProductCard';
@@ -87,7 +87,7 @@ async function getCategoryVouchers(categoryId, language, countryCode) {
   });
 }
 
-// ── CORRECTED: Directly-tagged item fetchers ─────────────────────────────────
+// ── Directly-tagged item fetchers ─────────────────────────────────────────────
 
 async function getDirectVouchers(categoryId, language, countryCode) {
   const rows = await prisma.voucherCategory.findMany({
@@ -150,9 +150,8 @@ async function getDirectStacks(categoryId, language, countryCode) {
   for (const row of rows) {
     const stack = row.stack;
     if (!stack || !stack.isActive) continue;
-    // verify at least one of the linked offers is available for this country
-    const codeOk = !stack.codeVoucher || stack.codeVoucher.countries.some(vc => vc.country.code === countryCode);
-    const dealOk = !stack.dealVoucher || stack.dealVoucher.countries.some(vc => vc.country.code === countryCode);
+    const codeOk  = !stack.codeVoucher || stack.codeVoucher.countries.some(vc => vc.country.code === countryCode);
+    const dealOk  = !stack.dealVoucher || stack.dealVoucher.countries.some(vc => vc.country.code === countryCode);
     const promoOk = !stack.promo || stack.promo.country?.code === countryCode;
     if (codeOk && dealOk && promoOk) {
       validStacks.push(serializeStack({
@@ -292,6 +291,30 @@ function buildIntro(categoryName, storeCount, voucherCount, countryName, isAr) {
   return `Cobonat aggregates the best ${categoryName} discount codes and offers from ${storeCount} trusted stores in ${countryName}. ` +
     `We guarantee ${voucherCount}+ active, verified coupons updated daily. ` +
     `Whether you're looking for a first-order discount, free shipping, or seasonal deals, you'll find everything here.`;
+}
+
+// ── Carousel section header ───────────────────────────────────────────────────
+
+function SectionHeader({ icon, title, count, countLabel, viewAllHref, viewAllLabel }) {
+  return (
+    <div className="cd-section-header">
+      <h2 className="cd-section-title">
+        <span className="material-symbols-sharp">{icon}</span>
+        {title}
+      </h2>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+        <span className="cd-section-count">
+          {count} {countLabel}
+        </span>
+        {viewAllHref && (
+          <Link href={viewAllHref} className="cd-carousel-view-all">
+            {viewAllLabel}
+            <span className="material-symbols-sharp">arrow_forward</span>
+          </Link>
+        )}
+      </div>
+    </div>
+  );
 }
 
 export default async function CategoryDetailPage({ params }) {
@@ -464,7 +487,40 @@ export default async function CategoryDetailPage({ params }) {
             </section>
           )}
 
-          {/* ── FEATURED PRODUCTS ── */}
+          {/* ── VOUCHERS CAROUSEL (direct-tagged first, then store-linked) ── */}
+          {mergedVouchers.length > 0 && (
+            <section className="cd-section">
+              <div className="cd-section-header">
+                <h2 className="cd-section-title">
+                  <span className="material-symbols-sharp">local_offer</span>
+                  {isAr ? `أفضل عروض ${categoryName}` : `Top ${categoryName} Deals`}
+                </h2>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                  <span className="cd-section-count">
+                    {mergedVouchers.length} {isAr ? 'عرض' : 'offer'}
+                    {mergedVouchers.length !== 1 ? (isAr ? '' : 's') : ''}
+                  </span>
+                  <Link
+                    href={`/${locale}/coupons`}
+                    className="cd-carousel-view-all"
+                  >
+                    {isAr ? 'كل العروض' : 'View all'}
+                    <span className="material-symbols-sharp">
+                      {isAr ? 'arrow_back' : 'arrow_forward'}
+                    </span>
+                  </Link>
+                </div>
+              </div>
+              {/* Carousel — each slide is a VoucherCard */}
+              <EmblaCarousel locale={locale} slideWidth="340px" slideGap="1.25rem">
+                {mergedVouchers.map(v => (
+                  <VoucherCard key={v.id} voucher={v} />
+                ))}
+              </EmblaCarousel>
+            </section>
+          )}
+
+          {/* ── FEATURED PRODUCTS CAROUSEL ── */}
           {directProducts.length > 0 && (
             <section className="cd-section">
               <div className="cd-section-header">
@@ -477,7 +533,8 @@ export default async function CategoryDetailPage({ params }) {
                   {directProducts.length !== 1 ? (isAr ? '' : 's') : ''}
                 </span>
               </div>
-              <div className="cd-products-grid">
+              {/* Carousel — each slide is a StoreProductCard */}
+              <EmblaCarousel locale={locale} slideWidth="180px" slideGap="1rem">
                 {directProducts.map(product => (
                   <StoreProductCard
                     key={product.id}
@@ -486,24 +543,7 @@ export default async function CategoryDetailPage({ params }) {
                     storeLogo={product.storeLogo}
                   />
                 ))}
-              </div>
-            </section>
-          )}
-
-          {/* ── VOUCHERS (direct + store-linked merged) ── */}
-          {mergedVouchers.length > 0 && (
-            <section className="cd-section">
-              <div className="cd-section-header">
-                <h2 className="cd-section-title">
-                  <span className="material-symbols-sharp">local_offer</span>
-                  {isAr ? `أفضل عروض ${categoryName}` : `Top ${categoryName} Deals`}
-                </h2>
-                <span className="cd-section-count">
-                  {mergedVouchers.length} {isAr ? 'عرض' : 'offer'}
-                  {mergedVouchers.length !== 1 ? (isAr ? '' : 's') : ''}
-                </span>
-              </div>
-              <VouchersGrid vouchers={mergedVouchers} />
+              </EmblaCarousel>
             </section>
           )}
 
