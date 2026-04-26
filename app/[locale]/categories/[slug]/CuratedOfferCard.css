@@ -2,15 +2,15 @@
     min-width: 0;
     height: 170px;
     width: 400px;
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: space-between;
     border-radius: .75rem;
+    box-shadow: 0 10px 15px -3px rgba(0,0,0,.1),0 4px 6px -4px rgba(0,0,0,.1);
     background-color: #fff;
     color: #000;
-}
-
-@media (min-width: 1024px) {
-    .co-card{
-        width: 33.333333%;
-    }
+    outline: 2px solid #700cd7;
+    outline-offset: 6px;
 }
 
 .co-card_content {
@@ -22,9 +22,12 @@
 
 .co-card_logo {
     margin-top: .75rem;
-    height: auto;
-    max-width: 100%;
-    display: block;
+    height: 48px;
+    width: auto;
+    max-width: 90px;
+    background: #fff;
+    justify-content: center;
+    overflow: hidden;
 }
 
 .co-card_text {
@@ -56,4 +59,12 @@
     height: auto;
     max-width: 100%;
     vertical-align: middle;
+}
+
+.co-card_image {
+    height: 100%;
+    aspect-ratio: 1;
+    object-fit: cover;
+    border-radius: 0.75rem;
+    box-shadow: 0 10px 15px -3px rgba(0,0,0,.1),0 4px 6px -4px rgba(0,0,0,.1);
 }
