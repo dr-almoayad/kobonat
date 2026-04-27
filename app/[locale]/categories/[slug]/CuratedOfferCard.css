@@ -123,8 +123,8 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  gap: 4px;
+  justify-content: flex-start;
+  gap: 0.5rem;
   padding: 0.75rem 0.75rem 0.75rem 0;
   min-width: 0;
 }
@@ -132,15 +132,15 @@
 /* LTR: content on the left */
 .co-content {
   order: 1;
-  padding-right: 0.75rem;
-  padding-left: 0;
+  padding-right: 0;
+  padding-left: 0.75rem;
 }
 
 /* RTL: content on the right */
 [dir="rtl"] .co-content {
   order: 1;
-  padding-right: 0;
-  padding-left: 0.75rem;
+  padding-right: 0.75rem;
+  padding-left: 0;
 }
 
 .co-store-row {
