@@ -7,6 +7,7 @@
   align-items: stretch;
   width: 100%;
   max-width: 400px;
+  min-width: 330px;
   aspect-ratio: 400 / 170;
   background: #fff;
   border-radius: 0.75rem;
@@ -36,14 +37,14 @@
   background: linear-gradient(0deg, #fff, #fff), radial-gradient(circle at top left, #cffafe, #fff);
 }
 
-/* ── FOLDED RIBBON (based on user snippet) ───────────────────────── */
+/* ── FOLDED RIBBON (on the image side) ───────────────────────── */
 .co-ribbon {
-  --f: 0.5em;                 /* control the folded part */
+  --f: 0.5em;
   font-size: 0.75rem;
   font-weight: 800;
   letter-spacing: 0.5px;
   color: #fff;
-  background-color: #f07818;  /* orange */
+  background-color: #f07818;
   position: absolute;
   top: 0;
   left: 0;
@@ -59,7 +60,7 @@
   );
   transform: translate(calc((cos(45deg) - 1) * 100%), -100%) rotate(-45deg);
   transform-origin: 100% 100%;
-  z-index: 2;
+  z-index: 3;
   white-space: nowrap;
   pointer-events: none;
 }
@@ -69,10 +70,7 @@
   background-color: #0891b2;
 }
 
-/* Ribbon on the opposite corner of the store logo:
-   In LTR, store logo is on the right → ribbon on left (default).
-   In RTL, store logo is on the left → ribbon on right.
-*/
+/* In RTL, ribbon moves to the right side (image side) */
 [dir="rtl"] .co-ribbon {
   left: auto;
   right: 0;
@@ -80,10 +78,15 @@
   transform-origin: 0% 100%;
 }
 
-/* ── LEFT IMAGE ─────────────────────────────────────────────────── */
+/* ── IMAGE SIDE – always square (1:1) ─────────────────────────── */
 .co-image {
-  flex: 0 0 40%;               /* ~160px on a 400px card */
+  flex: 0 0 auto;
+  width: 120px;
+  aspect-ratio: 1 / 1;
+  align-self: center;
+  margin: 0.5rem;
   overflow: hidden;
+  border-radius: 0.5rem;
   background: #f8fafc;
   display: flex;
   align-items: center;
@@ -94,18 +97,19 @@
   height: 100%;
   object-fit: cover;
   display: block;
-  border-radius: 0.75rem;
+  border-radius: 0.5rem;
 }
 
-/* ── RIGHT CONTENT ──────────────────────────────────────────────── */
+/* ── CONTENT SIDE ────────────────────────────────────────────── */
 .co-content {
   flex: 1;
   display: flex;
   flex-direction: column;
   justify-content: center;
   gap: 4px;
-  padding: 0.5rem 0.875rem;
+  padding: 0.5rem 0.875rem 0.5rem 0.25rem;
   min-width: 0;
+  overflow: hidden;
 }
 
 .co-store-row {
@@ -145,14 +149,67 @@
   text-overflow: ellipsis;
 }
 
-/* ── RESPONSIVE (mobile) ────────────────────────────────────────── */
+/* CTA button (original styling) */
+.co-card_cta {
+  display: inline-block;
+  text-underline-offset: 4px;
+  text-decoration-line: underline;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1rem;
+  margin-top: 4px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #470ae2;
+  padding: 0;
+  width: fit-content;
+}
+.co-card_cta:hover {
+  color: #3508b8;
+}
+.co-card_cta:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── LAYOUT SWAP: image on right for LTR, left for RTL ───────── */
+/* LTR (default): image on right, content on left */
+.co-image {
+  order: 2;
+  margin-left: 0;
+  margin-right: 0.5rem;
+}
+.co-content {
+  order: 1;
+  padding-right: 0.25rem;
+  padding-left: 0.875rem;
+}
+
+/* RTL: image on left, content on right */
+[dir="rtl"] .co-image {
+  order: 1;
+  margin-left: 0.5rem;
+  margin-right: 0;
+}
+[dir="rtl"] .co-content {
+  order: 2;
+  padding-right: 0.875rem;
+  padding-left: 0.25rem;
+}
+
+/* ── RESPONSIVE (mobile) ─────────────────────────────────────── */
 @media (max-width: 640px) {
   .co-card {
     max-width: 80vw;
+    min-width: 280px;
     aspect-ratio: 400 / 170;
   }
   .co-image {
-    flex: 0 0 45%;
+    width: 90px;
+    margin: 0.375rem;
   }
   .co-store-logo {
     height: 28px;
@@ -162,21 +219,27 @@
     font-size: 0.8rem;
   }
   .co-desc {
-    display: none;            /* conserve space */
+    display: none;
   }
   .co-ribbon {
     font-size: 0.65rem;
-    padding-inline: 1lh;
+    --f: 0.4em;
+  }
+  .co-card_cta {
+    font-size: 0.7rem;
   }
 }
 
 @media (max-width: 480px) {
+  .co-image {
+    width: 75px;
+  }
   .co-store-logo {
     max-width: 65px;
   }
   .co-ribbon {
     font-size: 0.6rem;
-    --f: 0.4em;
+    --f: 0.35em;
   }
 }
 
