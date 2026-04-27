@@ -7,11 +7,10 @@
   align-items: stretch;
   width: 100%;
   max-width: 400px;
-  aspect-ratio: 400 / 170;      /* fixed 400×170 proportion */
+  aspect-ratio: 400 / 170;
   background: #fff;
-  border: 1px solid #e4e9f0;
-  border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.09), 0 2px 4px rgba(0, 0, 0, 0.02);
   overflow: hidden;
   transition: box-shadow 0.22s ease, border-color 0.22s ease;
   cursor: pointer;
@@ -19,13 +18,7 @@
 }
 
 .co-card:hover {
-  box-shadow: 0 4px 12px rgba(0,0,0,0.09), 0 2px 4px rgba(0,0,0,0.05);
-  border-color: #c9d2df;
-}
-
-.co-card:active {
-  transform: scale(0.99);
-  transition: transform 0.05s ease;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12), 0 4px 8px rgba(0, 0, 0, 0.06);
 }
 
 .co-card.co-expired {
@@ -35,41 +28,61 @@
 }
 
 .co-card.co-featured {
-  border-color: #470ae2;
-  border-width: 1.5px;
-  box-shadow: 0 0 0 3px rgba(71,10,226,0.07), var(--vc-shadow);
+  border: 1.5px solid #470ae2;
 }
 
 .co-card--best-deal {
-  border-color: #06b6d4;
-  border-width: 1.5px;
+  border: 1.5px solid #0891b2;
   background: linear-gradient(0deg, #fff, #fff), radial-gradient(circle at top left, #cffafe, #fff);
 }
 
-/* Ribbons (identical to VoucherCard) */
+/* ── FOLDED RIBBON (based on user snippet) ───────────────────────── */
 .co-ribbon {
+  --f: 0.5em;                 /* control the folded part */
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  color: #fff;
+  background-color: #f07818;  /* orange */
   position: absolute;
   top: 0;
-  inset-inline-end: 0;
-  display: flex;
-  align-items: center;
-  gap: 3px;
-  background: #470ae2;
-  color: #fff;
-  font-size: 0.6875rem;
-  font-weight: 700;
-  letter-spacing: 0.3px;
-  padding: 3px 10px 3px 8px;
-  border-end-start-radius: 8px;
+  left: 0;
+  line-height: 1.6;
+  padding-inline: 1.2lh;
+  padding-bottom: var(--f);
+  border-image: conic-gradient(#0008 0 0) 51% / var(--f);
+  clip-path: polygon(
+    100% calc(100% - var(--f)), 100% 100%,
+    calc(100% - var(--f)) calc(100% - var(--f)),
+    var(--f) calc(100% - var(--f)), 0 100%, 0 calc(100% - var(--f)),
+    999px calc(100% - var(--f) - 999px), calc(100% - 999px) calc(100% - var(--f) - 999px)
+  );
+  transform: translate(calc((cos(45deg) - 1) * 100%), -100%) rotate(-45deg);
+  transform-origin: 100% 100%;
   z-index: 2;
+  white-space: nowrap;
   pointer-events: none;
 }
-.co-ribbon .material-symbols-sharp { font-size: 0.875rem; }
-.co-ribbon--best { background: #0891b2; }
 
-/* LEFT – FEATURED IMAGE (fills left side, maintains aspect inside the card) */
+/* Best deal variant ribbon */
+.co-card--best-deal .co-ribbon {
+  background-color: #0891b2;
+}
+
+/* Ribbon on the opposite corner of the store logo:
+   In LTR, store logo is on the right → ribbon on left (default).
+   In RTL, store logo is on the left → ribbon on right.
+*/
+[dir="rtl"] .co-ribbon {
+  left: auto;
+  right: 0;
+  transform: translate(calc((cos(45deg) - 1) * 100%), -100%) rotate(45deg);
+  transform-origin: 0% 100%;
+}
+
+/* ── LEFT IMAGE ─────────────────────────────────────────────────── */
 .co-image {
-  flex: 0 0 40%;          /* 40% width of the card (≈160px) */
+  flex: 0 0 40%;               /* ~160px on a 400px card */
   overflow: hidden;
   background: #f8fafc;
   display: flex;
@@ -81,9 +94,10 @@
   height: 100%;
   object-fit: cover;
   display: block;
+  border-radius: 0.75rem;
 }
 
-/* RIGHT CONTENT AREA */
+/* ── RIGHT CONTENT ──────────────────────────────────────────────── */
 .co-content {
   flex: 1;
   display: flex;
@@ -97,7 +111,6 @@
 .co-store-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 6px;
 }
 .co-store-link {
@@ -107,17 +120,8 @@
 .co-store-logo {
   height: 32px;
   width: auto;
-  max-width: 90px;
+  max-width: 100px;
   object-fit: contain;
-}
-.co-discount-badge {
-  background: #f0ebff;
-  color: #470ae2;
-  font-size: 0.75rem;
-  font-weight: 800;
-  padding: 2px 8px;
-  border-radius: 20px;
-  white-space: nowrap;
 }
 
 .co-title {
@@ -141,100 +145,44 @@
   text-overflow: ellipsis;
 }
 
-/* Badges (same as VoucherCard) */
-.co-badges {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  margin-top: 2px;
-}
-.co-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  font-size: 0.6875rem;
-  font-weight: 600;
-  padding: 2px 8px;
-  border-radius: 20px;
-  white-space: nowrap;
-}
-.co-badge .material-symbols-sharp { font-size: 0.8125rem; }
-.co-badge-active    { background: #d1fae5; color: #065f46; }
-.co-badge-urgent    { background: #fef3c7; color: #92400e; }
-.co-badge-expired   { background: #fee2e2; color: #991b1b; }
-.co-badge-verified  { background: #dbeafe; color: #1e40af; }
-.co-badge-exclusive { background: #f5f3ff; color: #6d28d9; }
-
-/* Meta line */
-.co-meta-line {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 0.7rem;
-  color: #94a3b8;
-}
-.co-meta-item { display: inline-flex; align-items: center; gap: 3px; }
-.co-meta-dot  { color: #94a3b8; }
-
-/* Mobile chevron (hidden on desktop, shown on mobile) */
-.co-mobile-chevron {
-  display: none;
-  flex: 0 0 auto;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  color: #94a3b8;
-}
-
-/* ──────────────────────────────────────────────────────────────
-   RTL SUPPORT
-   ────────────────────────────────────────────────────────────── */
-[dir="rtl"] .co-image {
-  order: 2;
-}
-[dir="rtl"] .co-content {
-  order: 1;
-}
-[dir="rtl"] .co-mobile-chevron .material-symbols-sharp {
-  transform: scaleX(-1);
-}
-
-/* ──────────────────────────────────────────────────────────────
-   RESPONSIVE (mobile)
-   ────────────────────────────────────────────────────────────── */
+/* ── RESPONSIVE (mobile) ────────────────────────────────────────── */
 @media (max-width: 640px) {
   .co-card {
-    max-width: 80vw;          /* 80% of viewport width, still maintains aspect ratio */
+    max-width: 80vw;
     aspect-ratio: 400 / 170;
   }
   .co-image {
-    flex: 0 0 45%;            /* slightly larger on mobile */
+    flex: 0 0 45%;
+  }
+  .co-store-logo {
+    height: 28px;
+    max-width: 80px;
+  }
+  .co-title {
+    font-size: 0.8rem;
   }
   .co-desc {
-    display: none;            /* save space */
+    display: none;            /* conserve space */
   }
-  .co-badge .material-symbols-sharp {
-    display: none;
-  }
-  .co-badge {
-    font-size: 0.625rem;
-    padding: 2px 6px;
-  }
-  .co-meta-line {
-    font-size: 0.6rem;
-  }
-  .co-mobile-chevron {
-    display: flex;
-  }
-  /* optional: hide store logo on very small screens to reduce clutter */
-  @media (max-width: 480px) {
-    .co-store-logo {
-      display: none;
-    }
+  .co-ribbon {
+    font-size: 0.65rem;
+    padding-inline: 1lh;
   }
 }
 
+@media (max-width: 480px) {
+  .co-store-logo {
+    max-width: 65px;
+  }
+  .co-ribbon {
+    font-size: 0.6rem;
+    --f: 0.4em;
+  }
+}
+
+/* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
-  .co-card { animation: none; transition: none; }
-  .co-card:active { transform: none; }
+  .co-card {
+    transition: none;
+  }
 }
