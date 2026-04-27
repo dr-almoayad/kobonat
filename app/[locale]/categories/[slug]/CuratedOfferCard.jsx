@@ -1,3 +1,4 @@
+// components/CuratedOfferCard/CuratedOfferCard.jsx
 'use client';
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
@@ -9,6 +10,7 @@ const CuratedOfferCard = ({ offer, featured = false, bestDeal = false, expired =
   const locale = useLocale();
   const t = useTranslations('VoucherCard');
   const [modalOpen, setModalOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -18,14 +20,12 @@ const CuratedOfferCard = ({ offer, featured = false, bestDeal = false, expired =
   const currentLanguage = locale.split('-')[0];
   const isRtl = currentLanguage === 'ar';
 
-  // Guard
   if (!offer) return null;
 
   const voucher = offer.voucher || offer;
   const store = voucher.store || offer.store;
   if (!store) return null;
 
-  // Helper texts (same as VoucherCard)
   const getVoucherTitle = () => {
     if (voucher.title) return voucher.title;
     if (voucher.translations?.[0]?.title) return voucher.translations[0].title;
@@ -57,13 +57,12 @@ const CuratedOfferCard = ({ offer, featured = false, bestDeal = false, expired =
 
   const getDiscountText = () => {
     if (voucher.discount) return voucher.discount;
-    if (voucher.discountPercent != null) return `${Math.round(voucher.discountPercent)}% OFF`;
-    if (voucher.type === 'FREE_SHIPPING') return isRtl ? 'شحن مجاني' : 'FREE SHIP';
-    if (voucher.type === 'DEAL') return isRtl ? 'عرض' : 'DEAL';
-    return isRtl ? 'خصم' : 'SALE';
+    if (voucher.discountPercent != null) return `${Math.round(voucher.discountPercent)}% Off`;
+    if (voucher.type === 'FREE_SHIPPING') return isRtl ? 'شحن مجاني' : 'Free Shipping';
+    if (voucher.type === 'DEAL') return isRtl ? 'عرض' : 'Deal';
+    return isRtl ? 'خصم' : 'Sale';
   };
 
-  // Expiry & activity (only used for ribbon urgency, but we remove badges)
   const isExpiredByDate = voucher.expiryDate ? new Date(voucher.expiryDate) < new Date() : false;
   const isExpiredCard = expired || isExpiredByDate;
   const isActive = !isExpiredByDate && (!voucher.startDate || new Date(voucher.startDate) <= new Date());
@@ -80,7 +79,47 @@ const CuratedOfferCard = ({ offer, featured = false, bestDeal = false, expired =
   };
   const closeModal = () => setModalOpen(false);
 
-  // Ribbon content: use discountText, or "BEST DEAL" if bestDeal flag is true
+  // Primary action (copy code or get deal)
+  const handlePrimaryAction = async (e) => {
+    e.stopPropagation();
+    if (isExpiredCard) return;
+
+    const [, countryCode] = locale.split('-');
+
+    if (voucher.type === 'CODE' && voucher.code) {
+      try {
+        await navigator.clipboard.writeText(voucher.code);
+        setCopied(true);
+        await fetch('/api/vouchers/track', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ voucherId: voucher.id, countryCode }),
+        });
+        setTimeout(() => {
+          window.open(voucher.landingUrl || store.websiteUrl, '_blank');
+        }, 600);
+        setTimeout(() => setCopied(false), 2500);
+      } catch (err) {
+        console.error('Copy failed:', err);
+      }
+    } else {
+      // DEAL or FREE_SHIPPING
+      await fetch('/api/vouchers/track', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ voucherId: voucher.id, countryCode }),
+      });
+      window.open(voucher.landingUrl || store.websiteUrl, '_blank');
+    }
+  };
+
+  const primaryButtonText = copied
+    ? (isRtl ? 'تم النسخ!' : 'Copied!')
+    : (voucher.type === 'CODE'
+        ? (isRtl ? 'نسخ الكود' : 'Copy Code')
+        : (isRtl ? 'احصل على العرض' : 'Get Deal'));
+
+  // Ribbon text: use discount text or "BEST DEAL" if bestDeal flag
   const ribbonText = bestDeal ? (isRtl ? 'أفضل عرض' : 'BEST DEAL') : discountText;
 
   return (
@@ -102,17 +141,17 @@ const CuratedOfferCard = ({ offer, featured = false, bestDeal = false, expired =
         aria-label={title}
         aria-disabled={isExpiredCard}
       >
-        {/* Ribbon – folded corner opposite to store logo */}
+        {/* Ribbon – on the image side, folded corner */}
         <div className="co-ribbon" aria-hidden="true">
           {ribbonText}
         </div>
 
-        {/* LEFT – featured image */}
+        {/* Image side (order changes based on RTL/LTR) */}
         <div className="co-image">
           <img src={getFeaturedImage()} alt={storeName} className="co-card__image" />
         </div>
 
-        {/* RIGHT – content area */}
+        {/* Content side */}
         <div className="co-content">
           <div className="co-store-row">
             <Link
@@ -130,6 +169,15 @@ const CuratedOfferCard = ({ offer, featured = false, bestDeal = false, expired =
 
           <h3 className="co-title">{title}</h3>
           {description && <p className="co-desc">{description}</p>}
+
+          {/* CTA button – original styling, stops propagation */}
+          <button
+            className="co-card_cta"
+            onClick={handlePrimaryAction}
+            disabled={isExpiredCard}
+          >
+            {primaryButtonText}
+          </button>
         </div>
       </div>
 
