@@ -1,22 +1,22 @@
 // app/[locale]/categories/[slug]/page.jsx
 // Individual category page — fully server-rendered.
-// Enhanced with four new sections sourced from direct item-category associations:
-//   1. Featured Offer Stacks  → OfferStackBox carousel
-//   2. Featured Vouchers      → VoucherCard CAROUSEL (directly-tagged, prioritised)
-//   3. Featured Products      → StoreProductCard CAROUSEL
-//   4. Bank & Card Highlights → inline promo cards
+// Sections:
+//   1. Tagged Vouchers        → CuratedOfferCard carousel (max 3, most recent)
+//   2. Tagged Products        → StoreProductCard carousel (max 6, most recent)
+//   3. Featured Offer Stacks  → OfferStackBox carousel
+//   4. Bank & Card Highlights → promo cards
+//   5. Stores grid
 
-import { prisma }           from '@/lib/prisma';
-import { notFound }          from 'next/navigation';
-import Link                  from 'next/link';
-import StoreCard             from '@/components/StoreCard/StoreCard';
-import VoucherCard           from '@/components/VoucherCard/VoucherCard';
-import HelpBox               from '@/components/help/HelpBox';
-import OfferStackBox         from '@/components/OfferStackBox/OfferStackBox';
-import StoreProductCard      from '@/components/StoreProductCard/StoreProductCard';
-import EmblaCarousel         from '@/components/EmblaCarousel/EmblaCarousel';
-import CuratedOfferCard      from './CuratedOfferCard';
-import { serializeStack }    from '@/lib/offerStacks';
+import { prisma }        from '@/lib/prisma';
+import { notFound }       from 'next/navigation';
+import Link               from 'next/link';
+import StoreCard          from '@/components/StoreCard/StoreCard';
+import HelpBox            from '@/components/help/HelpBox';
+import OfferStackBox      from '@/components/OfferStackBox/OfferStackBox';
+import StoreProductCard   from '@/components/StoreProductCard/StoreProductCard';
+import EmblaCarousel      from '@/components/EmblaCarousel/EmblaCarousel';
+import CuratedOfferCard   from './CuratedOfferCard';
+import { serializeStack } from '@/lib/offerStacks';
 import './category-page.css';
 
 export const revalidate = 300;
@@ -37,7 +37,7 @@ function getCategoryIcon(icon, slug) {
   return FALLBACK_ICONS[key] || FALLBACK_ICONS.default;
 }
 
-// ── Data helpers ─────────────────────────────────────────────────────────────
+// ── Data helpers ──────────────────────────────────────────────────────────────
 
 async function getCategoryBySlug(slug, language) {
   return prisma.categoryTranslation.findFirst({
@@ -71,51 +71,80 @@ async function getCategoryStores(categoryId, language, countryCode) {
   });
 }
 
-async function getCategoryVouchers(categoryId, language, countryCode) {
-  return prisma.voucher.findMany({
-    where: {
-      expiryDate: { gte: new Date() },
-      store:      { isActive: true, categories: { some: { categoryId } } },
-      countries:  { some: { country: { code: countryCode } } },
-    },
-    include: {
-      translations: { where: { locale: language } },
-      store: { include: { translations: { where: { locale: language } } } },
-      _count: { select: { clicks: true } },
-    },
-    orderBy: [{ isExclusive: 'desc' }, { isVerified: 'desc' }, { popularityScore: 'desc' }],
-    take: 24,
-  });
-}
-
-// ── Directly-tagged item fetchers ─────────────────────────────────────────────
-
-async function getDirectVouchers(categoryId, language, countryCode) {
+/**
+ * Tagged vouchers only — max 3, sorted by updatedAt desc (most recent first).
+ * Active only, available in requested country.
+ */
+async function getTaggedVouchers(categoryId, language, countryCode) {
   const rows = await prisma.voucherCategory.findMany({
     where: { categoryId },
     include: {
       voucher: {
         include: {
           translations: { where: { locale: language } },
-          store: { include: { translations: { where: { locale: language } } } },
+          store: {
+            include: { translations: { where: { locale: language } } },
+          },
           countries: { select: { country: { select: { code: true } } } },
           _count: { select: { clicks: true } },
         },
       },
     },
-    orderBy: [{ isFeatured: 'desc' }, { order: 'asc' }],
   });
+
   const now = new Date();
+
   return rows
     .filter(r =>
       r.voucher &&
       (!r.voucher.expiryDate || r.voucher.expiryDate >= now) &&
       r.voucher.countries.some(vc => vc.country.code === countryCode)
     )
-    .map(r => r.voucher);
+    .map(r => ({
+      ...r.voucher,
+      title:       r.voucher.translations?.[0]?.title       || '',
+      description: r.voucher.translations?.[0]?.description || null,
+      store: r.voucher.store
+        ? {
+            ...r.voucher.store,
+            name: r.voucher.store.translations?.[0]?.name || '',
+            slug: r.voucher.store.translations?.[0]?.slug || '',
+          }
+        : null,
+    }))
+    .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt))
+    .slice(0, 3);
 }
 
-async function getDirectStacks(categoryId, language, countryCode) {
+/**
+ * Tagged products only — max 6, sorted by updatedAt desc (most recent first).
+ */
+async function getTaggedProducts(categoryId, language) {
+  const rows = await prisma.storeProductCategory.findMany({
+    where: { categoryId },
+    include: {
+      product: {
+        include: {
+          translations: { where: { locale: language } },
+          store: { include: { translations: { where: { locale: language } } } },
+        },
+      },
+    },
+  });
+
+  return rows
+    .filter(r => r.product)
+    .map(r => ({
+      ...r.product,
+      title:     r.product.translations?.[0]?.title     || '',
+      storeName: r.product.store?.translations?.[0]?.name || '',
+      storeLogo: r.product.store?.logo || null,
+    }))
+    .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt))
+    .slice(0, 6);
+}
+
+async function getTaggedStacks(categoryId, language, countryCode) {
   const rows = await prisma.offerStackCategory.findMany({
     where: { categoryId },
     include: {
@@ -147,48 +176,22 @@ async function getDirectStacks(categoryId, language, countryCode) {
     orderBy: [{ isFeatured: 'desc' }, { order: 'asc' }],
   });
 
-  const validStacks = [];
+  const valid = [];
   for (const row of rows) {
-    const stack = row.stack;
-    if (!stack || !stack.isActive) continue;
-    const codeOk  = !stack.codeVoucher || stack.codeVoucher.countries.some(vc => vc.country.code === countryCode);
-    const dealOk  = !stack.dealVoucher || stack.dealVoucher.countries.some(vc => vc.country.code === countryCode);
-    const promoOk = !stack.promo || stack.promo.country?.code === countryCode;
+    const s = row.stack;
+    if (!s || !s.isActive) continue;
+    const codeOk  = !s.codeVoucher || s.codeVoucher.countries.some(vc => vc.country.code === countryCode);
+    const dealOk  = !s.dealVoucher || s.dealVoucher.countries.some(vc => vc.country.code === countryCode);
+    const promoOk = !s.promo       || s.promo.country?.code === countryCode;
     if (codeOk && dealOk && promoOk) {
-      validStacks.push(serializeStack({
-        store:       stack.store,
-        codeVoucher: stack.codeVoucher,
-        dealVoucher: stack.dealVoucher,
-        promo:       stack.promo,
-        language,
-      }));
+      const serialized = serializeStack({ store: s.store, codeVoucher: s.codeVoucher, dealVoucher: s.dealVoucher, promo: s.promo, language });
+      if (serialized) valid.push(serialized);
     }
   }
-  return validStacks.filter(Boolean);
+  return valid;
 }
 
-async function getDirectProducts(categoryId, language) {
-  const rows = await prisma.storeProductCategory.findMany({
-    where: { categoryId },
-    include: {
-      product: {
-        include: {
-          translations: { where: { locale: language } },
-          store: { include: { translations: { where: { locale: language } } } },
-        },
-      },
-    },
-    orderBy: [{ isFeatured: 'desc' }, { order: 'asc' }],
-  });
-  return rows.filter(r => r.product).map(r => ({
-    ...r.product,
-    title:     r.product.translations?.[0]?.title     || '',
-    storeName: r.product.store?.translations?.[0]?.name || '',
-    storeLogo: r.product.store?.logo || null,
-  }));
-}
-
-async function getDirectPromos(categoryId, language, countryCode) {
+async function getTaggedPromos(categoryId, language, countryCode) {
   const rows = await prisma.otherPromoCategory.findMany({
     where: { categoryId },
     include: {
@@ -197,12 +200,12 @@ async function getDirectPromos(categoryId, language, countryCode) {
           translations: { where: { locale: language } },
           store: { include: { translations: { where: { locale: language } } } },
           bank:  { include: { translations: { where: { locale: language } } } },
-          paymentMethod: { include: { translations: { where: { locale: language } } } },
         },
       },
     },
     orderBy: [{ isFeatured: 'desc' }, { order: 'asc' }],
   });
+
   const now = new Date();
   return rows
     .filter(r =>
@@ -283,45 +286,11 @@ export async function generateMetadata({ params }) {
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 
-function buildIntro(categoryName, storeCount, voucherCount, countryName, isAr) {
-  if (isAr) {
-    return `تجمع منصة كوبونات أفضل أكواد الخصم وعروض ${categoryName} من ${storeCount} متجر موثوق في ${countryName}. ` +
-      `نضمن لك ${voucherCount}+ كوبون فعال ومُحقق، يتم تحديثه يومياً. ` +
-      `سواء كنت تبحث عن كوبون لأول طلب أو شحن مجاني أو خصومات موسمية، ستجد هنا كل ما تحتاجه.`;
-  }
-  return `Cobonat aggregates the best ${categoryName} discount codes and offers from ${storeCount} trusted stores in ${countryName}. ` +
-    `We guarantee ${voucherCount}+ active, verified coupons updated daily. ` +
-    `Whether you're looking for a first-order discount, free shipping, or seasonal deals, you'll find everything here.`;
-}
-
-// ── Carousel section header ───────────────────────────────────────────────────
-
-function SectionHeader({ icon, title, count, countLabel, viewAllHref, viewAllLabel }) {
-  return (
-    <div className="cd-section-header">
-      <h2 className="cd-section-title">
-        <span className="material-symbols-sharp">{icon}</span>
-        {title}
-      </h2>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-        <span className="cd-section-count">
-          {count} {countLabel}
-        </span>
-        {viewAllHref && (
-          <Link href={viewAllHref} className="cd-carousel-view-all">
-            {viewAllLabel}
-            <span className="material-symbols-sharp">arrow_forward</span>
-          </Link>
-        )}
-      </div>
-    </div>
-  );
-}
-
 export default async function CategoryDetailPage({ params }) {
   const { locale, slug } = await params;
   const [language, countryCode] = locale.split('-');
   const isAr = language === 'ar';
+  const cc   = countryCode || 'SA';
 
   const catTranslation = await getCategoryBySlug(slug, language);
   if (!catTranslation) return notFound();
@@ -331,28 +300,33 @@ export default async function CategoryDetailPage({ params }) {
   const categoryDesc  = catTranslation.description || null;
   const categoryIcon  = getCategoryIcon(category.icon, slug);
   const categoryColor = category.color || '#470ae2';
-  const cc            = countryCode || 'SA';
 
-  // Parallel fetch — all data at once
   const [
-    stores, vouchers, country,
-    directVouchers, directStacks, directProducts, directPromos,
+    stores,
+    country,
+    taggedVouchers,
+    taggedProducts,
+    taggedStacks,
+    taggedPromos,
   ] = await Promise.all([
     getCategoryStores(category.id, language, cc),
-    getCategoryVouchers(category.id, language, cc),
     prisma.country.findUnique({
       where:   { code: cc },
       include: { translations: { where: { locale: language } } },
     }),
-    getDirectVouchers(category.id, language, cc),
-    getDirectStacks(category.id, language, cc),
-    getDirectProducts(category.id, language),
-    getDirectPromos(category.id, language, cc),
+    getTaggedVouchers(category.id, language, cc),
+    getTaggedProducts(category.id, language),
+    getTaggedStacks(category.id, language, cc),
+    getTaggedPromos(category.id, language, cc),
   ]);
 
-  if (stores.length === 0 && directVouchers.length === 0 && directStacks.length === 0) {
-    return notFound();
-  }
+  const hasContent =
+    stores.length > 0 ||
+    taggedVouchers.length > 0 ||
+    taggedProducts.length > 0 ||
+    taggedStacks.length > 0;
+
+  if (!hasContent) return notFound();
 
   const countryName    = country?.translations[0]?.name || (isAr ? 'السعودية' : 'Saudi Arabia');
   const featuredStores = stores.filter(s => s.isFeatured);
@@ -366,54 +340,19 @@ export default async function CategoryDetailPage({ params }) {
     showOffer:   s.translations[0]?.showOffer   || '',
   });
 
-  // Merge: directly-tagged vouchers first, then store-linked (deduplicated by id)
-  const directVoucherIds = new Set(directVouchers.map(v => v.id));
-  const mergedVouchers   = [
-    ...directVouchers,
-    ...vouchers.filter(v => !directVoucherIds.has(v.id)),
-  ].map(v => ({
-    ...v,
-    title:       v.translations?.[0]?.title       || '',
-    description: v.translations?.[0]?.description || null,
-    store: v.store ? {
-      ...v.store,
-      name: v.store.translations?.[0]?.name || '',
-      slug: v.store.translations?.[0]?.slug || '',
-    } : null,
-  }));
-
-  const totalVouchers = stores.reduce((s, st) => s + (st._count?.vouchers ?? 0), 0)
-                      + directVouchers.length;
-
-  const introText = buildIntro(categoryName, stores.length, totalVouchers, countryName, isAr);
-
-  // Structured data
   const breadcrumbSchema = {
     '@context': 'https://schema.org',
     '@type':    'BreadcrumbList',
     itemListElement: [
-      { '@type': 'ListItem', position: 1, name: isAr ? 'الرئيسية' : 'Home', item: `${BASE_URL}/${locale}` },
-      { '@type': 'ListItem', position: 2, name: isAr ? 'الفئات' : 'Categories', item: `${BASE_URL}/${locale}/categories` },
-      { '@type': 'ListItem', position: 3, name: categoryName, item: `${BASE_URL}/${locale}/categories/${slug}` },
+      { '@type': 'ListItem', position: 1, name: isAr ? 'الرئيسية' : 'Home',       item: `${BASE_URL}/${locale}` },
+      { '@type': 'ListItem', position: 2, name: isAr ? 'الفئات'   : 'Categories', item: `${BASE_URL}/${locale}/categories` },
+      { '@type': 'ListItem', position: 3, name: categoryName,                      item: `${BASE_URL}/${locale}/categories/${slug}` },
     ],
-  };
-
-  const itemListSchema = {
-    '@context': 'https://schema.org',
-    '@type':    'ItemList',
-    name:       isAr ? `متاجر ${categoryName}` : `${categoryName} Stores`,
-    numberOfItems: stores.length,
-    itemListElement: stores.slice(0, 10).map((s, i) => ({
-      '@type': 'ListItem', position: i + 1,
-      name: s.translations[0]?.name || '',
-      url:  `${BASE_URL}/${locale}/stores/${s.translations[0]?.slug || s.id}`,
-    })),
   };
 
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListSchema) }} />
 
       <div className="category-detail-page" dir={isAr ? 'rtl' : 'ltr'}>
 
@@ -439,22 +378,24 @@ export default async function CategoryDetailPage({ params }) {
                   ? `كوبونات ${categoryName} في ${countryName}`
                   : `${categoryName} Coupons & Deals in ${countryName}`}
               </h1>
-              <p className="cd-hero-intro">{introText}</p>
+              {categoryDesc && <p className="cd-hero-intro">{categoryDesc}</p>}
               <div className="cd-stats">
-                <span className="cd-stat-pill cd-stat-pill--accent">
-                  <span className="material-symbols-sharp">local_offer</span>
-                  {totalVouchers} {isAr ? 'كوبون فعال' : 'active coupons'}
-                </span>
+                {taggedVouchers.length > 0 && (
+                  <span className="cd-stat-pill cd-stat-pill--accent">
+                    <span className="material-symbols-sharp">local_offer</span>
+                    {taggedVouchers.length} {isAr ? 'كوبون مميز' : 'featured coupons'}
+                  </span>
+                )}
+                {taggedProducts.length > 0 && (
+                  <span className="cd-stat-pill cd-stat-pill--accent">
+                    <span className="material-symbols-sharp">inventory_2</span>
+                    {taggedProducts.length} {isAr ? 'منتج مميز' : 'featured products'}
+                  </span>
+                )}
                 <span className="cd-stat-pill">
                   <span className="material-symbols-sharp">storefront</span>
                   {stores.length} {isAr ? 'متجر' : 'stores'}
                 </span>
-                {directStacks.length > 0 && (
-                  <span className="cd-stat-pill">
-                    <span className="material-symbols-sharp">bolt</span>
-                    {directStacks.length} {isAr ? 'عرض مدمج' : 'stacked offers'}
-                  </span>
-                )}
               </div>
             </div>
           </div>
@@ -462,73 +403,28 @@ export default async function CategoryDetailPage({ params }) {
 
         <main className="cd-main">
 
-          {/* ── FEATURED OFFER STACKS ── */}
-          {directStacks.length > 0 && (
+          {/* ── 1. TAGGED VOUCHERS CAROUSEL — max 3, most recent ── */}
+          {taggedVouchers.length > 0 && (
             <section className="cd-section">
               <div className="cd-section-header">
                 <h2 className="cd-section-title">
-                  <span className="material-symbols-sharp">bolt</span>
-                  {isAr ? 'ادمج ووفّر أكثر' : 'Stack & Save More'}
+                  <span className="material-symbols-sharp">local_offer</span>
+                  {isAr ? `عروض ${categoryName} المميزة` : `Featured ${categoryName} Deals`}
                 </h2>
                 <span className="cd-section-count">
-                  {directStacks.length} {isAr ? 'عرض مدمج' : 'stacked offer'}
-                  {directStacks.length !== 1 ? (isAr ? '' : 's') : ''}
+                  {taggedVouchers.length} {isAr ? 'عرض' : taggedVouchers.length === 1 ? 'offer' : 'offers'}
                 </span>
               </div>
-              <p style={{ fontSize: '0.875rem', color: '#64748b', margin: '0 0 1.25rem', lineHeight: 1.7 }}>
-                {isAr
-                  ? 'ادمج كوبون الخصم مع العرض التلقائي أو عرض بنكي للحصول على أعلى توفير ممكن.'
-                  : 'Combine a coupon code with an auto-deal or bank offer for the maximum possible saving.'}
-              </p>
-              <EmblaCarousel locale={locale} slideWidth="300px" slideGap="1.25rem">
-                {directStacks.map((stack, i) => (
-                  <OfferStackBox key={`${stack.storeId}-${i}`} stack={stack} locale={locale} />
+              <EmblaCarousel locale={locale} slideWidth="360px" slideGap="1.25rem">
+                {taggedVouchers.map(v => (
+                  <CuratedOfferCard key={v.id} offer={v} />
                 ))}
               </EmblaCarousel>
             </section>
           )}
 
-          {/* ── VOUCHERS CAROUSEL (direct-tagged first, then store-linked) ── */}
-{mergedVouchers.length > 0 && (
-  <section className="cd-section">
-    <div className="cd-section-header">
-      <h2 className="cd-section-title">
-        <span className="material-symbols-sharp">local_offer</span>
-        {isAr ? `أفضل عروض ${categoryName}` : `Top ${categoryName} Deals`}
-      </h2>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-        <span className="cd-section-count">
-          {mergedVouchers.length} {isAr ? 'عرض' : 'offer'}
-          {mergedVouchers.length !== 1 ? (isAr ? '' : 's') : ''}
-        </span>
-        <Link
-          href={`/${locale}/coupons`}
-          className="cd-carousel-view-all"
-        >
-          {isAr ? 'كل العروض' : 'View all'}
-          <span className="material-symbols-sharp">
-            {isAr ? 'arrow_back' : 'arrow_forward'}
-          </span>
-        </Link>
-      </div>
-    </div>
-
-    <EmblaCarousel locale={locale} slideWidth="400px" slideGap="1.25rem">
-      {mergedVouchers.map(voucher => (
-        <CuratedOfferCard
-          key={voucher.id}
-          offer={voucher}
-          featured={voucher.isFeatured}
-          bestDeal={voucher.bestDeal}
-          expired={false}
-        />
-      ))}
-    </EmblaCarousel>
-  </section>
-)}
-
-          {/* ── FEATURED PRODUCTS CAROUSEL ── */}
-          {directProducts.length > 0 && (
+          {/* ── 2. TAGGED PRODUCTS CAROUSEL — max 6, most recent ── */}
+          {taggedProducts.length > 0 && (
             <section className="cd-section">
               <div className="cd-section-header">
                 <h2 className="cd-section-title">
@@ -536,13 +432,11 @@ export default async function CategoryDetailPage({ params }) {
                   {isAr ? `منتجات ${categoryName} المميزة` : `Featured ${categoryName} Products`}
                 </h2>
                 <span className="cd-section-count">
-                  {directProducts.length} {isAr ? 'منتج' : 'product'}
-                  {directProducts.length !== 1 ? (isAr ? '' : 's') : ''}
+                  {taggedProducts.length} {isAr ? 'منتج' : taggedProducts.length === 1 ? 'product' : 'products'}
                 </span>
               </div>
-              {/* Carousel — each slide is a StoreProductCard */}
               <EmblaCarousel locale={locale} slideWidth="180px" slideGap="1rem">
-                {directProducts.map(product => (
+                {taggedProducts.map(product => (
                   <StoreProductCard
                     key={product.id}
                     product={product}
@@ -554,8 +448,28 @@ export default async function CategoryDetailPage({ params }) {
             </section>
           )}
 
-          {/* ── BANK & CARD HIGHLIGHTS ── */}
-          {directPromos.length > 0 && (
+          {/* ── 3. OFFER STACKS CAROUSEL ── */}
+          {taggedStacks.length > 0 && (
+            <section className="cd-section">
+              <div className="cd-section-header">
+                <h2 className="cd-section-title">
+                  <span className="material-symbols-sharp">bolt</span>
+                  {isAr ? 'ادمج ووفّر أكثر' : 'Stack & Save More'}
+                </h2>
+                <span className="cd-section-count">
+                  {taggedStacks.length} {isAr ? 'عرض مدمج' : taggedStacks.length === 1 ? 'stacked offer' : 'stacked offers'}
+                </span>
+              </div>
+              <EmblaCarousel locale={locale} slideWidth="300px" slideGap="1.25rem">
+                {taggedStacks.map((stack, i) => (
+                  <OfferStackBox key={`${stack.storeId}-${i}`} stack={stack} locale={locale} />
+                ))}
+              </EmblaCarousel>
+            </section>
+          )}
+
+          {/* ── 4. BANK & CARD OFFERS ── */}
+          {taggedPromos.length > 0 && (
             <section className="cd-section">
               <div className="cd-section-header">
                 <h2 className="cd-section-title">
@@ -563,78 +477,46 @@ export default async function CategoryDetailPage({ params }) {
                   {isAr ? 'عروض البنوك والبطاقات' : 'Bank & Card Offers'}
                 </h2>
                 <span className="cd-section-count">
-                  {directPromos.length} {isAr ? 'عرض' : 'offer'}
-                  {directPromos.length !== 1 ? (isAr ? '' : 's') : ''}
+                  {taggedPromos.length} {isAr ? 'عرض' : taggedPromos.length === 1 ? 'offer' : 'offers'}
                 </span>
               </div>
               <div className="cd-promos-grid">
-                {directPromos.map(promo => (
-                  <div
-                    key={promo.id}
-                    style={{
-                      background: '#fff',
-                      border: '1.5px solid #e2e8f0',
-                      borderRadius: 14,
-                      padding: '1rem 1.25rem',
-                      display: 'flex',
-                      gap: '0.875rem',
-                      alignItems: 'flex-start',
-                    }}
-                  >
-                    {/* Logos */}
+                {taggedPromos.map(promo => (
+                  <div key={promo.id} className="cd-promo-card">
                     {(promo.storeLogo || promo.bankLogo) && (
-                      <div style={{ display: 'flex', gap: 6, flexShrink: 0, alignItems: 'center' }}>
+                      <div className="cd-promo-logos">
                         {promo.storeLogo && (
-                          <img src={promo.storeLogo} alt={promo.storeName} style={{ width: 36, height: 36, objectFit: 'contain', borderRadius: 6 }} />
+                          <img src={promo.storeLogo} alt={promo.storeName} className="cd-promo-logo" />
                         )}
                         {promo.bankLogo && (
-                          <img src={promo.bankLogo} alt={promo.bankName} style={{ width: 36, height: 36, objectFit: 'contain', borderRadius: 6 }} />
+                          <img src={promo.bankLogo} alt={promo.bankName} className="cd-promo-logo" />
                         )}
                       </div>
                     )}
-                    {/* Text */}
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontWeight: 700, fontSize: '0.9rem', color: '#0f172a', marginBottom: 3 }}>
-                        {promo.title}
-                      </div>
+                    <div className="cd-promo-body">
+                      <div className="cd-promo-title">{promo.title}</div>
                       {promo.description && (
-                        <div style={{ fontSize: '0.8rem', color: '#475569', lineHeight: 1.5, marginBottom: 6 }}>
-                          {promo.description}
-                        </div>
+                        <div className="cd-promo-desc">{promo.description}</div>
                       )}
-                      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+                      <div className="cd-promo-tags">
                         {promo.bankName && (
-                          <span style={{ fontSize: '0.7rem', fontWeight: 700, padding: '2px 8px', borderRadius: 20, background: '#dbeafe', color: '#1d4ed8' }}>
-                            🏦 {promo.bankName}
-                          </span>
+                          <span className="cd-promo-tag cd-promo-tag--bank">🏦 {promo.bankName}</span>
                         )}
                         {promo.storeName && (
-                          <span style={{ fontSize: '0.7rem', color: '#64748b' }}>{promo.storeName}</span>
+                          <span className="cd-promo-tag">{promo.storeName}</span>
                         )}
                         {promo.expiryDate && (() => {
                           const diff = Math.ceil((new Date(promo.expiryDate) - Date.now()) / 86_400_000);
                           return diff > 0 && diff <= 7 ? (
-                            <span style={{ fontSize: '0.68rem', fontWeight: 700, padding: '1px 6px', borderRadius: 4, background: '#fee2e2', color: '#b91c1c' }}>
+                            <span className="cd-promo-tag cd-promo-tag--urgent">
                               {isAr ? `ينتهي خلال ${diff} يوم` : `Expires in ${diff}d`}
                             </span>
                           ) : null;
                         })()}
                       </div>
                     </div>
-                    {/* CTA */}
                     {promo.url && (
-                      <a
-                        href={promo.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        style={{
-                          flexShrink: 0, display: 'flex', alignItems: 'center', gap: 4,
-                          padding: '0.45rem 0.9rem', borderRadius: 8,
-                          background: '#470ae2', color: '#fff',
-                          fontSize: '0.78rem', fontWeight: 700, textDecoration: 'none',
-                          whiteSpace: 'nowrap',
-                        }}
-                      >
+                      <a href={promo.url} target="_blank" rel="noopener noreferrer" className="cd-promo-cta">
                         {isAr ? 'تفعيل' : 'Activate'}
                         <span className="material-symbols-sharp" style={{ fontSize: '0.9rem' }}>
                           {isAr ? 'arrow_back' : 'arrow_forward'}
@@ -647,7 +529,7 @@ export default async function CategoryDetailPage({ params }) {
             </section>
           )}
 
-          {/* ── Featured stores ── */}
+          {/* ── 5. FEATURED STORES ── */}
           {featuredStores.length > 0 && (
             <section className="cd-section">
               <div className="cd-section-header">
@@ -655,7 +537,9 @@ export default async function CategoryDetailPage({ params }) {
                   <span className="material-symbols-sharp">star</span>
                   {isAr ? 'المتاجر المميزة' : 'Featured Stores'}
                 </h2>
-                <span className="cd-section-count">{featuredStores.length} {isAr ? 'متجر' : 'stores'}</span>
+                <span className="cd-section-count">
+                  {featuredStores.length} {isAr ? 'متجر' : featuredStores.length === 1 ? 'store' : 'stores'}
+                </span>
               </div>
               <div className="cd-stores-grid">
                 {featuredStores.map(transformStore).map(s => <StoreCard key={s.id} store={s} />)}
@@ -663,7 +547,7 @@ export default async function CategoryDetailPage({ params }) {
             </section>
           )}
 
-          {/* ── All stores ── */}
+          {/* ── 6. ALL STORES ── */}
           {regularStores.length > 0 && (
             <section className="cd-section">
               <div className="cd-section-header">
@@ -673,7 +557,9 @@ export default async function CategoryDetailPage({ params }) {
                     ? (isAr ? 'متاجر أخرى' : 'More Stores')
                     : (isAr ? `كل متاجر ${categoryName}` : `All ${categoryName} Stores`)}
                 </h2>
-                <span className="cd-section-count">{regularStores.length} {isAr ? 'متجر' : 'stores'}</span>
+                <span className="cd-section-count">
+                  {regularStores.length} {isAr ? 'متجر' : regularStores.length === 1 ? 'store' : 'stores'}
+                </span>
               </div>
               <div className="cd-stores-grid">
                 {regularStores.map(transformStore).map(s => <StoreCard key={s.id} store={s} />)}
@@ -681,21 +567,20 @@ export default async function CategoryDetailPage({ params }) {
             </section>
           )}
 
-          {/* ── Editorial ── */}
+          {/* ── 7. EDITORIAL ── */}
           <section className="cd-section">
             <div className="cd-editorial">
               <h2>
                 <span className="material-symbols-sharp">tips_and_updates</span>
                 {isAr ? `كيف توفر في تسوق ${categoryName}؟` : `How to save on ${categoryName} shopping?`}
               </h2>
-              {categoryDesc && <p>{categoryDesc}</p>}
               <p>
                 {isAr
                   ? `تحقق دائماً من صلاحية الكود قبل إتمام الشراء. بعض عروض ${categoryName} تكون حصرية للمستخدمين الجدد. يمكنك أيضاً دمج كود الخصم مع عروض البنوك للحصول على أعلى نسبة توفير.`
                   : `Always verify code validity before checkout. Some ${categoryName} offers are exclusive to new users. You can also stack discount codes with bank offers to reach the maximum possible savings.`}
               </p>
-              <Link href={`/${locale}/coupons`} className="cd-view-all">
-                {isAr ? 'تصفح كل الكوبونات' : 'Browse all coupons'}
+              <Link href={`/${locale}/stores`} className="cd-view-all">
+                {isAr ? 'تصفح كل المتاجر' : 'Browse all stores'}
                 <span className="material-symbols-sharp">{isAr ? 'arrow_back' : 'arrow_forward'}</span>
               </Link>
             </div>
