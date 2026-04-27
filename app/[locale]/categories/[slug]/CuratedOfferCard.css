@@ -138,9 +138,9 @@
 
 /* RTL: content on the right */
 [dir="rtl"] .co-content {
-  order: 2;
+  order: 1;
   padding-right: 0;
-  padding-left:auto
+  padding-left: 0.75rem;
 }
 
 .co-store-row {
