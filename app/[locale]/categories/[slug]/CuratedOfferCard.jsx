@@ -1,4 +1,3 @@
-// components/CuratedOfferCard/CuratedOfferCard.jsx
 'use client';
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
@@ -13,9 +12,7 @@ const CuratedOfferCard = ({ offer, featured = false, bestDeal = false, expired =
   const [copied, setCopied] = useState(false);
   const [mounted, setMounted] = useState(false);
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  useEffect(() => setMounted(true), []);
 
   const currentLanguage = locale.split('-')[0];
   const isRtl = currentLanguage === 'ar';
@@ -65,7 +62,6 @@ const CuratedOfferCard = ({ offer, featured = false, bestDeal = false, expired =
 
   const isExpiredByDate = voucher.expiryDate ? new Date(voucher.expiryDate) < new Date() : false;
   const isExpiredCard = expired || isExpiredByDate;
-  const isActive = !isExpiredByDate && (!voucher.startDate || new Date(voucher.startDate) <= new Date());
 
   const title = getVoucherTitle();
   const description = getVoucherDescription();
@@ -73,13 +69,9 @@ const CuratedOfferCard = ({ offer, featured = false, bestDeal = false, expired =
   const storeSlug = getStoreSlug();
   const discountText = getDiscountText();
 
-  const handleCardClick = () => {
-    if (isExpiredCard) return;
-    setModalOpen(true);
-  };
+  const handleCardClick = () => !isExpiredCard && setModalOpen(true);
   const closeModal = () => setModalOpen(false);
 
-  // Primary action (copy code or get deal)
   const handlePrimaryAction = async (e) => {
     e.stopPropagation();
     if (isExpiredCard) return;
@@ -103,7 +95,6 @@ const CuratedOfferCard = ({ offer, featured = false, bestDeal = false, expired =
         console.error('Copy failed:', err);
       }
     } else {
-      // DEAL or FREE_SHIPPING
       await fetch('/api/vouchers/track', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -119,7 +110,6 @@ const CuratedOfferCard = ({ offer, featured = false, bestDeal = false, expired =
         ? (isRtl ? 'نسخ الكود' : 'Copy Code')
         : (isRtl ? 'احصل على العرض' : 'Get Deal'));
 
-  // Ribbon text: use discount text or "BEST DEAL" if bestDeal flag
   const ribbonText = bestDeal ? (isRtl ? 'أفضل عرض' : 'BEST DEAL') : discountText;
 
   return (
@@ -135,18 +125,16 @@ const CuratedOfferCard = ({ offer, featured = false, bestDeal = false, expired =
         onClick={handleCardClick}
         role="button"
         tabIndex={isExpiredCard ? -1 : 0}
-        onKeyDown={(e) => {
-          if (!isExpiredCard && (e.key === 'Enter' || e.key === ' ')) handleCardClick();
-        }}
+        onKeyDown={(e) => { if (!isExpiredCard && (e.key === 'Enter' || e.key === ' ')) handleCardClick(); }}
         aria-label={title}
         aria-disabled={isExpiredCard}
       >
-        {/* Ribbon – on the image side, folded corner */}
+        {/* Ribbon – always on the image side */}
         <div className="co-ribbon" aria-hidden="true">
           {ribbonText}
         </div>
 
-        {/* Image side (order changes based on RTL/LTR) */}
+        {/* Image side – order changes in RTL */}
         <div className="co-image">
           <img src={getFeaturedImage()} alt={storeName} className="co-card__image" />
         </div>
@@ -159,36 +147,21 @@ const CuratedOfferCard = ({ offer, featured = false, bestDeal = false, expired =
               onClick={(e) => e.stopPropagation()}
               className="co-store-link"
             >
-              <img
-                src={store.logo || '/placeholder_store.png'}
-                alt={storeName}
-                className="co-store-logo"
-              />
+              <img src={store.logo || '/placeholder_store.png'} alt={storeName} className="co-store-logo" />
             </Link>
           </div>
 
           <h3 className="co-title">{title}</h3>
           {description && <p className="co-desc">{description}</p>}
 
-          {/* CTA button – original styling, stops propagation */}
-          <button
-            className="co-card_cta"
-            onClick={handlePrimaryAction}
-            disabled={isExpiredCard}
-          >
+          <button className="co-card_cta" onClick={handlePrimaryAction} disabled={isExpiredCard}>
             {primaryButtonText}
           </button>
         </div>
       </div>
 
       {mounted && !isExpiredCard && (
-        <VoucherModal
-          isOpen={modalOpen}
-          onClose={closeModal}
-          voucher={voucher}
-          store={store}
-          locale={locale}
-        />
+        <VoucherModal isOpen={modalOpen} onClose={closeModal} voucher={voucher} store={store} locale={locale} />
       )}
     </>
   );
