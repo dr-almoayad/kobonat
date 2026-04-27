@@ -10,7 +10,7 @@
   background: #fff;
   border-radius: 0.75rem;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.09), 0 2px 4px rgba(0, 0, 0, 0.02);
-  overflow: hidden;
+  overflow: visible;
   transition: box-shadow 0.22s ease;
   cursor: pointer;
 }
@@ -91,12 +91,13 @@
 ────────────────────────────────────────────────────────── */
 .co-image {
   flex-shrink: 0;
-  width: 110px;
+  height: 100%;
+  width: auto;
   aspect-ratio: 1 / 1;
-  margin: 0.75rem;
+  margin: 0;
   overflow: hidden;
-  border-radius: 0.5rem;
-  background: #f8fafc;
+  border-radius: 0.75rem;
+  background: none;
 }
 
 .co-card__image {
@@ -112,9 +113,7 @@
 }
 
 /* RTL: image on the left */
-[dir="rtl"] .co-image {
-  order: 1;
-}
+
 
 /* ──────────────────────────────────────────────────────────
    CONTENT SIDE – opposite of image
@@ -140,7 +139,7 @@
 [dir="rtl"] .co-content {
   order: 2;
   padding-right: 0;
-  padding-left: 0.75rem;
+  padding-left:auto
 }
 
 .co-store-row {
@@ -154,7 +153,8 @@
 }
 
 .co-store-logo {
-  height: 32px;
+  height:auto;
+  max-height: 44px;
   width: auto;
   max-width: 100px;
   object-fit: contain;
@@ -173,6 +173,7 @@
 }
 
 .co-desc {
+  display: none;
   margin: 0;
   font-size: 0.75rem;
   color: #475569;
@@ -215,11 +216,11 @@
 @media (max-width: 640px) {
   .co-card {
     max-width: 90vw;
-    min-width: 280px;
+    min-width: 320px;
   }
   .co-image {
-    width: 85px;
-    margin: 0.5rem;
+   height: 100%;
+    margin: 0;
   }
   .co-store-logo {
     height: 26px;
@@ -239,10 +240,10 @@
 
 @media (max-width: 480px) {
   .co-image {
-    width: 70px;
+    height: 100%;
   }
   .co-store-logo {
-    max-width: 60px;
+    max-width: 80px;
   }
   .co-ribbon {
     font-size: 0.6rem;
