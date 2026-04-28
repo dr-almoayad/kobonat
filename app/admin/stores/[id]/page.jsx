@@ -4,9 +4,9 @@
 
 import { use, useEffect, useState, useTransition } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { 
-  updateStore, 
-  updateStoreCountries, 
+import {
+  updateStore,
+  updateStoreCountries,
   updateStoreCategories,
   upsertFAQ,
   deleteFAQ,
@@ -21,6 +21,8 @@ import StorePaymentMethods from './StorePaymentMethods';
 import ProductsSection from './products/ProductsSection';
 import OtherPromosTab from '@/components/admin/OtherPromosTab/OtherPromosTab';
 import OfferStacksTab from '@/components/admin/OfferStacksTab/OfferStacksTab';
+import StackCategoryTagger  from '@/components/admin/StackCategoryTagger/StackCategoryTagger';
+import PromoCategoryTagger  from '@/components/admin/PromoCategoryTagger/PromoCategoryTagger';
 
 export default function StoreEditPage({ params }) {
   const { id } = use(params);
@@ -28,26 +30,20 @@ export default function StoreEditPage({ params }) {
   const searchParams = useSearchParams();
   const tab = searchParams.get('tab') || 'basic';
 
-  // Data States
   const [store,             setStore]             = useState(null);
   const [products,          setProducts]          = useState([]);
   const [allCountries,      setAllCountries]      = useState([]);
   const [allCategories,     setAllCategories]     = useState([]);
   const [allPaymentMethods, setAllPaymentMethods] = useState([]);
-  const [allBanks,          setAllBanks]          = useState([]);   // ← new
+  const [allBanks,          setAllBanks]          = useState([]);
   const [otherPromos,       setOtherPromos]       = useState([]);
   const [editingFAQ,        setEditingFAQ]        = useState(null);
   const [showFAQForm,       setShowFAQForm]       = useState(false);
-
-  // Bank/card cascade state for Other Promos form
   const [selectedBankId,    setSelectedBankId]    = useState('');
   const [bankCards,         setBankCards]         = useState([]);
-
-  // UI States
-  const [loading,    setLoading]    = useState(true);
-  const [error,      setError]      = useState('');
-  const [isPending,  startTransition] = useTransition();
-
+  const [loading,           setLoading]           = useState(true);
+  const [error,             setError]             = useState('');
+  const [isPending,         startTransition]      = useTransition();
   const [selectedCountries,  setSelectedCountries]  = useState([]);
   const [selectedCategories, setSelectedCategories] = useState([]);
 
@@ -72,7 +68,6 @@ export default function StoreEditPage({ params }) {
     return gradients[type] || gradients.OFFER;
   }
 
-  // ── Fetch all page data ─────────────────────────────────────────────────────
   useEffect(() => {
     async function fetchData() {
       try {
@@ -87,17 +82,17 @@ export default function StoreEditPage({ params }) {
             fetch('/api/admin/payment-methods?locale=en'),
             fetch(`/api/admin/stores/${id}/products?locale=en`),
             fetch(`/api/admin/stores/${id}/other-promos?locale=en`),
-            fetch('/api/admin/banks?locale=en'),              // ← new
+            fetch('/api/admin/banks?locale=en'),
           ]);
 
         if (!storeRes.ok) throw new Error(`Store fetch failed: ${storeRes.status}`);
 
-        const storeData     = await storeRes.json();
-        const countriesData = await countriesRes.json();
+        const storeData      = await storeRes.json();
+        const countriesData  = await countriesRes.json();
         const categoriesData = await categoriesRes.json();
-        const pmData        = await pmRes.json();
-        const productsData  = productsRes.ok ? await productsRes.json() : { products: [] };
-        const banksData     = banksRes.ok    ? await banksRes.json()    : [];  // ← new
+        const pmData         = await pmRes.json();
+        const productsData   = productsRes.ok ? await productsRes.json() : { products: [] };
+        const banksData      = banksRes.ok    ? await banksRes.json()    : [];
 
         if (promosRes.ok) {
           const promosData = await promosRes.json();
@@ -109,7 +104,7 @@ export default function StoreEditPage({ params }) {
         setAllCategories(categoriesData || []);
         setAllPaymentMethods(pmData.paymentMethods || []);
         setProducts(productsData.products || []);
-        setAllBanks(Array.isArray(banksData) ? banksData : []);  // ← new
+        setAllBanks(Array.isArray(banksData) ? banksData : []);
 
         setSelectedCountries(storeData.countries?.map(c => c.countryId) || []);
         setSelectedCategories(storeData.categories?.map(c => c.categoryId) || []);
@@ -123,7 +118,6 @@ export default function StoreEditPage({ params }) {
     if (id) fetchData();
   }, [id]);
 
-  // ── When bank picker changes, load that bank's cards ────────────────────────
   async function handleBankChange(bankId) {
     setSelectedBankId(bankId);
     setBankCards([]);
@@ -137,17 +131,11 @@ export default function StoreEditPage({ params }) {
     }
   }
 
-  // ── Country/Category handlers (unchanged) ───────────────────────────────────
-  const handleCategoryChange = (categoryId, isChecked) => {
-    setSelectedCategories(prev =>
-      isChecked ? [...prev, categoryId] : prev.filter(i => i !== categoryId)
-    );
-  };
-  const handleCountryChange = (countryId, isChecked) => {
-    setSelectedCountries(prev =>
-      isChecked ? [...prev, countryId] : prev.filter(i => i !== countryId)
-    );
-  };
+  const handleCategoryChange = (categoryId, isChecked) =>
+    setSelectedCategories(prev => isChecked ? [...prev, categoryId] : prev.filter(i => i !== categoryId));
+
+  const handleCountryChange = (countryId, isChecked) =>
+    setSelectedCountries(prev => isChecked ? [...prev, countryId] : prev.filter(i => i !== countryId));
 
   const handleApplyCategories = async () => {
     startTransition(async () => {
@@ -197,7 +185,7 @@ export default function StoreEditPage({ params }) {
         <button onClick={() => router.push(`/admin/stores/${id}/offers`)} className={styles.btnPrimary}>Offers</button>
       </div>
 
-      {/* ── Tabs ──────────────────────────────────────────────────────────────── */}
+      {/* ── Tabs ── */}
       <div className={styles.tabs}>
         {[
           { id: 'basic',           label: 'Basic Info' },
@@ -222,7 +210,7 @@ export default function StoreEditPage({ params }) {
         ))}
       </div>
 
-      {/* ── BASIC INFO ────────────────────────────────────────────────────────── */}
+      {/* ── BASIC INFO ── */}
       {tab === 'basic' && (
         <form action={(formData) => startTransition(async () => {
           const result = await updateStore(store.id, formData);
@@ -288,13 +276,13 @@ export default function StoreEditPage({ params }) {
               label="Show Offer Type" name="showOfferType" type="select"
               defaultValue={store.showOfferType}
               options={[
-                { value: '',             label: '-- None --' },
-                { value: 'CODE',         label: '💳 Code' },
-                { value: 'DEAL',         label: '🔥 Deal' },
-                { value: 'DISCOUNT',     label: '💰 Discount' },
-                { value: 'FREE_SHIPPING',label: '📦 Free Shipping' },
-                { value: 'CASHBACK',     label: '💵 Cashback' },
-                { value: 'OFFER',        label: '🎁 Special Offer' },
+                { value: '',              label: '-- None --' },
+                { value: 'CODE',          label: '💳 Code' },
+                { value: 'DEAL',          label: '🔥 Deal' },
+                { value: 'DISCOUNT',      label: '💰 Discount' },
+                { value: 'FREE_SHIPPING', label: '📦 Free Shipping' },
+                { value: 'CASHBACK',      label: '💵 Cashback' },
+                { value: 'OFFER',         label: '🎁 Special Offer' },
               ]}
               helpText="Badge shown on store card."
             />
@@ -315,7 +303,7 @@ export default function StoreEditPage({ params }) {
         </form>
       )}
 
-      {/* ── TRANSLATIONS ──────────────────────────────────────────────────────── */}
+      {/* ── TRANSLATIONS ── */}
       {tab === 'translations' && (
         <form action={(formData) => startTransition(async () => {
           const result = await updateStore(store.id, formData);
@@ -350,7 +338,7 @@ export default function StoreEditPage({ params }) {
         </form>
       )}
 
-      {/* ── COUNTRIES ─────────────────────────────────────────────────────────── */}
+      {/* ── COUNTRIES ── */}
       {tab === 'countries' && (
         <div className={styles.section}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
@@ -376,7 +364,7 @@ export default function StoreEditPage({ params }) {
         </div>
       )}
 
-      {/* ── CATEGORIES ────────────────────────────────────────────────────────── */}
+      {/* ── CATEGORIES ── */}
       {tab === 'categories' && (
         <div className={styles.section}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
@@ -393,7 +381,6 @@ export default function StoreEditPage({ params }) {
               <label key={cat.id} className={styles.checkboxLabel}>
                 <input type="checkbox" checked={selectedCategories.includes(cat.id)} onChange={e => handleCategoryChange(cat.id, e.target.checked)} />
                 {cat.translations[0]?.name}
-                {/* Show niche badge so admin can see which categories are bank niches */}
                 {cat.bankScoringWeights && Object.keys(cat.bankScoringWeights).length > 0 && (
                   <span style={{ marginLeft: 6, fontSize: 10, padding: '1px 5px', borderRadius: 8, background: '#dbeafe', color: '#1d4ed8', fontWeight: 600 }}>niche</span>
                 )}
@@ -406,31 +393,66 @@ export default function StoreEditPage({ params }) {
         </div>
       )}
 
-      {/* ── PRODUCTS ──────────────────────────────────────────────────────────── */}
+      {/* ── PRODUCTS ── */}
       {tab === 'products' && (
-        <ProductsSection storeId={store.id} products={products} />
-      )}
-
-      {tab === 'other-promos' && (
-        <OtherPromosTab
+        <ProductsSection
           storeId={store.id}
-          allCountries={allCountries}
-          allBanks={allBanks}
-          allPaymentMethods={allPaymentMethods}
+          products={products}
+          categories={allCategories}   {/* ← FIX: was missing, causing CategoryTagger to never render */}
         />
       )}
 
-      {/* ── OFFER STACKS ──────────────────────────────────────────────────────── */}
-      {tab === 'offer-stacks' && (
-        <OfferStacksTab storeId={store.id} />
+      {/* ── OTHER PROMOS ── */}
+      {tab === 'other-promos' && (
+        <>
+          <OtherPromosTab
+            storeId={store.id}
+            allCountries={allCountries}
+            allBanks={allBanks}
+            allPaymentMethods={allPaymentMethods}
+          />
+
+          {/* ── Category tagging for each promo ── */}
+          <div className={styles.section} style={{ marginTop: '2rem' }}>
+            <div className={styles.sectionHeader} style={{ marginBottom: '0.5rem' }}>
+              <h3>Tag Bank & Card Offers to Category Pages</h3>
+            </div>
+            <p style={{ fontSize: '0.82rem', color: '#64748b', margin: '0 0 1rem' }}>
+              Expand a promo below to tag it to one or more category pages. Tagged promos
+              appear in the "Bank & Card Offers" section on the category page. Mark as{' '}
+              <strong>Featured</strong> to prioritise its placement.
+            </p>
+            <PromoCategoryTagger storeId={store.id} categories={allCategories} />
+          </div>
+        </>
       )}
-      
-      {/* ── PAYMENT METHODS ───────────────────────────────────────────────────── */}
+
+      {/* ── OFFER STACKS ── */}
+      {tab === 'offer-stacks' && (
+        <>
+          <OfferStacksTab storeId={store.id} />
+
+          {/* ── Category tagging for each stack ── */}
+          <div className={styles.section} style={{ marginTop: '2rem' }}>
+            <div className={styles.sectionHeader} style={{ marginBottom: '0.5rem' }}>
+              <h3>Tag Offer Stacks to Category Pages</h3>
+            </div>
+            <p style={{ fontSize: '0.82rem', color: '#64748b', margin: '0 0 1rem' }}>
+              Expand a stack below to tag it to one or more category pages. Tagged stacks
+              appear in the "Stack & Save" carousel on the category page. Mark as{' '}
+              <strong>Featured</strong> to prioritise its placement.
+            </p>
+            <StackCategoryTagger storeId={store.id} categories={allCategories} />
+          </div>
+        </>
+      )}
+
+      {/* ── PAYMENT METHODS ── */}
       {tab === 'payment-methods' && (
         <StorePaymentMethods store={store} countries={allCountries} paymentMethods={allPaymentMethods} />
       )}
 
-      {/* ── FAQS ──────────────────────────────────────────────────────────────── */}
+      {/* ── FAQS ── */}
       {tab === 'faqs' && (
         <div className={styles.section}>
           <div className={styles.sectionHeader}>
