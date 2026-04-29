@@ -35,37 +35,40 @@ export async function generateMetadata({ params }) {
     const { slug, locale } = await params;
     const [language, countryCode] = locale.split('-');
     const isArabic = language === 'ar';
-
+ 
     // If slug belongs to a category, redirect – metadata not needed
     const isCategory = await getCategoryData(slug, language, countryCode);
     if (isCategory) return {};
-
+ 
     const country = await prisma.country.findUnique({
       where:   { code: countryCode, isActive: true },
       include: { translations: { where: { locale: language } } },
     });
-
+ 
     const store = await getStoreData(slug, language, countryCode);
     if (!store) return {};
-
+ 
     const storeTranslation = store.translations[0];
-
+ 
+    // ── Resolve the store name from translations (raw Prisma has no top-level .name) ──
+    const storeName = storeTranslation?.name || slug;
+ 
     const otherLocale = language === 'ar' ? 'en' : 'ar';
     const otherTranslation = await prisma.storeTranslation.findFirst({
       where:  { storeId: store.id, locale: otherLocale },
       select: { slug: true },
     });
-
+ 
     const arSlug = language === 'ar' ? slug : (otherTranslation?.slug || null);
     const enSlug = language === 'en' ? slug : (otherTranslation?.slug || null);
-
+ 
     const hreflangLanguages = {};
     if (arSlug) hreflangLanguages['ar-SA'] = `${BASE_URL}/ar-SA/stores/${arSlug}`;
     if (enSlug) hreflangLanguages['en-SA'] = `${BASE_URL}/en-SA/stores/${enSlug}`;
     hreflangLanguages['x-default'] = `${BASE_URL}/ar-SA/stores/${arSlug || slug}`;
-
+ 
+    // ── If admin has set a custom SEO title/description, use it verbatim ──
     if (storeTranslation?.seoTitle || storeTranslation?.seoDescription) {
-      const storeName = storeTranslation?.name || slug;
       return {
         metadataBase: new URL(BASE_URL),
         icons: {
@@ -94,14 +97,91 @@ export async function generateMetadata({ params }) {
         },
       };
     }
-
-    return generateEnhancedStoreMetadata({
-      store,
+ 
+    // ── Dynamic metadata: compute active voucher count + max savings ──
+    const now = new Date();
+ 
+    const [voucherCount, savingsAgg] = await Promise.all([
+      prisma.voucher.count({
+        where: {
+          storeId:   store.id,
+          countries: { some: { country: { code: countryCode } } },
+          OR: [{ expiryDate: null }, { expiryDate: { gte: now } }],
+        },
+      }),
+      prisma.voucher.findMany({
+        where: {
+          storeId:   store.id,
+          countries: { some: { country: { code: countryCode } } },
+          OR: [{ expiryDate: null }, { expiryDate: { gte: now } }],
+          OR: [
+            { verifiedAvgPercent: { not: null, gt: 0 } },
+            { discountPercent:    { not: null, gt: 0 } },
+          ],
+        },
+        select: { discountPercent: true, verifiedAvgPercent: true },
+      }),
+    ]);
+ 
+    const maxSavings = savingsAgg.reduce((max, v) => {
+      const pct = v.verifiedAvgPercent ?? v.discountPercent ?? 0;
+      return pct > max ? pct : max;
+    }, 0);
+ 
+    // ── Generate dynamic title using the new format ──
+    const { title, description: autoDescription } = generateStorePageTitle({
+      storeName,
       locale,
-      arSlug: arSlug || undefined,
-      enSlug: enSlug || undefined,
-      country: country ? { name: country.translations[0]?.name || country.code } : null,
+      codeCount:  voucherCount,
+      maxSavings,
     });
+ 
+    const description = storeTranslation?.description || autoDescription;
+ 
+    const ogImage = store.coverImage || store.logo || `${BASE_URL}/logo-512x512.png`;
+ 
+    return {
+      metadataBase: new URL(BASE_URL),
+      icons: {
+        icon:  [
+          { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+          { url: '/favicon-96x96.png', sizes: '96x96', type: 'image/png' },
+        ],
+        apple: [{ url: '/apple-touch-icon.png', sizes: '180x180' }],
+      },
+      title,
+      description,
+      alternates: {
+        canonical: `${BASE_URL}/${locale}/stores/${slug}`,
+        languages: hreflangLanguages,
+      },
+      openGraph: {
+        siteName:    isArabic ? 'كوبونات' : 'Cobonat',
+        title,
+        description,
+        type:        'website',
+        locale,
+        url:         `${BASE_URL}/${locale}/stores/${slug}`,
+        images: [{ url: ogImage, width: 1200, height: 630 }],
+      },
+      twitter: {
+        card:        'summary_large_image',
+        site:        '@cobonat',
+        title,
+        description,
+        images: [ogImage],
+      },
+      robots: {
+        index:  true,
+        follow: true,
+        googleBot: {
+          index:  true,
+          follow: true,
+          'max-image-preview': 'large',
+          'max-snippet': -1,
+        },
+      },
+    };
   } catch (error) {
     console.error('[stores/[slug] generateMetadata]', error);
     return {};
