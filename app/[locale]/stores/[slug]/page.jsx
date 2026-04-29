@@ -18,6 +18,7 @@ import { getStoreData } from '@/lib/stores';
 import { getStoreRelatedPosts } from '@/app/admin/_lib/queries';
 import { generateEnhancedStoreMetadata } from '@/lib/seo/generateStoreMetadata';
 import { getCurrentWeekIdentifier } from '@/lib/leaderboard/calculateStoreSavings';
+import { generateStorePageTitle } from '@/lib/seo/dynamicStoreTitle'
 import PromoCodesFAQ from '@/components/PromoCodesFAQ/PromoCodesFAQ';
 import HelpBox from '@/components/help/HelpBox';
 import ExpiredVouchersList from '@/components/ExpiredVouchersList/ExpiredVouchersList';
