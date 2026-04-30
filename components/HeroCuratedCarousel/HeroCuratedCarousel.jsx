@@ -1,20 +1,20 @@
 'use client';
 // components/HeroCuratedCarousel/HeroCuratedCarousel.jsx
 //
-// Premium light-themed coupon carousel.
+// Premium light‑theme coupon carousel – LOOPING version
 // Features:
+//   · Infinite loop
 //   · Centered focus slide + scaled adjacent slides
 //   · White/light gray cards, soft shadows
-//   · Clean product/brand visuals (cover/bottom/right positions)
-//   · Minimal arrow + dot controls
-//   · No heavy gradients or dark overlays
+//   · Floating side arrows over preview edges
+//   · Max width 1312px
 
 import { useState, useEffect, useCallback } from 'react';
 import useEmblaCarousel from 'embla-carousel-react';
 import Link from 'next/link';
 import './HeroCuratedCarousel.css';
 
-// ── Single card – forces light theme, removes dark overlays ─────────────────
+// Single card – forces light theme
 function SlideCard({ slide, isAr }) {
   const {
     offerImage,
@@ -31,7 +31,7 @@ function SlideCard({ slide, isAr }) {
   const isExternal = Boolean(ctaUrl && (ctaUrl.startsWith('http://') || ctaUrl.startsWith('https://')));
   const hasLink = Boolean(ctaUrl);
 
-  // Force light theme – no CMS dark colors or overlays
+  // Force light theme
   const cardStyle = {
     '--c-bg': '#FFFFFF',
     '--c-text': '#111111',
@@ -42,7 +42,7 @@ function SlideCard({ slide, isAr }) {
       className={`hcc-card hcc-card--${imagePosition}${!hasLink ? ' hcc-card--no-link' : ''}`}
       style={cardStyle}
     >
-      {/* Image layer – clean, no dark fade overlays */}
+      {/* Image layer – clean, no dark overlays */}
       {offerImage && (
         <div className="hcc-img-wrap">
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -57,7 +57,7 @@ function SlideCard({ slide, isAr }) {
         </div>
       )}
 
-      {/* Text content – on white/light background (or semi‑transparent for cover variants) */}
+      {/* Text content */}
       <div className="hcc-body">
         {showStore && storeName && (
           <div className="hcc-store">
@@ -98,13 +98,12 @@ function SlideCard({ slide, isAr }) {
   );
 }
 
-// ── Carousel – centered focus, scaling inactive slides ──────────────────────
 export default function HeroCuratedCarousel({ slides, locale }) {
   const isAr = locale?.split('-')[0] === 'ar';
 
   const [emblaRef, emblaApi] = useEmblaCarousel({
-    loop: false,
-    align: 'center',         // focus on active slide, show partial neighbors
+    loop: true,            // ✅ infinite loop
+    align: 'center',       // focus active slide, show partial neighbors
     direction: isAr ? 'rtl' : 'ltr',
     containScroll: 'trimSnaps',
     dragFree: false,
@@ -112,26 +111,25 @@ export default function HeroCuratedCarousel({ slides, locale }) {
   });
 
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const [canScrollPrev, setCanScrollPrev] = useState(false);
-  const [canScrollNext, setCanScrollNext] = useState(true);
 
-  const syncState = useCallback((api) => {
+  const syncSelected = useCallback((api) => {
     setSelectedIndex(api.selectedScrollSnap());
-    setCanScrollPrev(api.canScrollPrev());
-    setCanScrollNext(api.canScrollNext());
   }, []);
 
   useEffect(() => {
     if (!emblaApi) return;
-    syncState(emblaApi);
-    emblaApi.on('select', () => syncState(emblaApi));
-    emblaApi.on('reInit', () => syncState(emblaApi));
+    syncSelected(emblaApi);
+    emblaApi.on('select', () => syncSelected(emblaApi));
+    emblaApi.on('reInit', () => syncSelected(emblaApi));
     return () => {
-      emblaApi.off('select', () => syncState(emblaApi));
+      emblaApi.off('select', () => syncSelected(emblaApi));
     };
-  }, [emblaApi, syncState]);
+  }, [emblaApi, syncSelected]);
 
   if (!slides?.length) return null;
+
+  const scrollPrev = () => emblaApi?.scrollPrev();
+  const scrollNext = () => emblaApi?.scrollNext();
 
   return (
     <div className="hcc-root" dir={isAr ? 'rtl' : 'ltr'}>
@@ -146,44 +144,42 @@ export default function HeroCuratedCarousel({ slides, locale }) {
             </div>
           ))}
         </div>
+
+        {/* Floating arrows – overlaying the side previews */}
+        <button
+          className="hcc-arrow hcc-arrow--prev"
+          onClick={scrollPrev}
+          aria-label={isAr ? 'الشريحة السابقة' : 'Previous slide'}
+        >
+          <span className="material-symbols-sharp">
+            {isAr ? 'chevron_right' : 'chevron_left'}
+          </span>
+        </button>
+
+        <button
+          className="hcc-arrow hcc-arrow--next"
+          onClick={scrollNext}
+          aria-label={isAr ? 'الشريحة التالية' : 'Next slide'}
+        >
+          <span className="material-symbols-sharp">
+            {isAr ? 'chevron_left' : 'chevron_right'}
+          </span>
+        </button>
       </div>
 
+      {/* Dots remain (minimal indicator) */}
       {slides.length > 1 && (
-        <div className="hcc-controls">
-          <button
-            className="hcc-arrow"
-            onClick={() => emblaApi?.scrollPrev()}
-            disabled={!canScrollPrev}
-            aria-label={isAr ? 'الشريحة السابقة' : 'Previous slide'}
-          >
-            <span className="material-symbols-sharp">
-              {isAr ? 'chevron_right' : 'chevron_left'}
-            </span>
-          </button>
-
-          <div className="hcc-dots" role="tablist">
-            {slides.map((_, i) => (
-              <button
-                key={i}
-                role="tab"
-                aria-selected={i === selectedIndex}
-                aria-label={`Slide ${i + 1} of ${slides.length}`}
-                className={`hcc-dot${i === selectedIndex ? ' is-active' : ''}`}
-                onClick={() => emblaApi?.scrollTo(i)}
-              />
-            ))}
-          </div>
-
-          <button
-            className="hcc-arrow"
-            onClick={() => emblaApi?.scrollNext()}
-            disabled={!canScrollNext}
-            aria-label={isAr ? 'الشريحة التالية' : 'Next slide'}
-          >
-            <span className="material-symbols-sharp">
-              {isAr ? 'chevron_left' : 'chevron_right'}
-            </span>
-          </button>
+        <div className="hcc-dots" role="tablist">
+          {slides.map((_, i) => (
+            <button
+              key={i}
+              role="tab"
+              aria-selected={i === selectedIndex}
+              aria-label={`Slide ${i + 1} of ${slides.length}`}
+              className={`hcc-dot${i === selectedIndex ? ' is-active' : ''}`}
+              onClick={() => emblaApi?.scrollTo(i)}
+            />
+          ))}
         </div>
       )}
     </div>
