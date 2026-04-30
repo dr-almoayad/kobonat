@@ -1,22 +1,25 @@
 /* components/HeroCuratedCarousel/HeroCuratedCarousel.css
-   Premium light‑theme coupon carousel
-   Centered focus · scaled side slides · white/light gray · soft shadows
+   Premium light‑theme coupon carousel – LOOPING
+   Max width 1312px · Floating side arrows · Centered focus
 */
 
-/* ── Root ─────────────────────────────────────────────────────────────────── */
+/* ── Root – container with max width, auto margins ───────────────────────── */
 .hcc-root {
   width: 100%;
+  max-width: 1312px;
+  margin: 0 auto;
   padding: 1rem 0 1.5rem;
   --hcc-gap: 16px;
   --hcc-radius: 20px;
-  background: #fafafa; /* matches recommended light background */
+  background: #fafafa;
 }
 
-/* ── Embla viewport + track ───────────────────────────────────────────────── */
+/* ── Embla viewport – relative for arrow positioning ─────────────────────── */
 .hcc-viewport {
+  position: relative;
   overflow: hidden;
   width: 100%;
-  padding: 0; /* no extra padding – center alignment + partial side slides */
+  padding: 0;
 }
 
 .hcc-track {
@@ -26,14 +29,13 @@
   will-change: transform;
 }
 
-/* ── Slide sizing: mobile (centered, partial neighbors) ─────────────────── */
+/* ── Slide sizing + scaling effects ──────────────────────────────────────── */
 .hcc-slide {
-  flex: 0 0 85%;        /* shows previous/next slide edges */
+  flex: 0 0 85%;
   min-width: 0;
   transition: transform 0.4s ease-out, opacity 0.3s ease;
 }
 
-/* Scale inactive slides – smooth, premium feel */
 .hcc-slide.is-inactive .hcc-card {
   transform: scale(0.94);
   opacity: 0.85;
@@ -45,7 +47,7 @@
   opacity: 1;
 }
 
-/* ── Card wrapper & link ───────────────────────────────────────────────────── */
+/* ── Card styles – white, soft shadow ────────────────────────────────────── */
 .hcc-card-link {
   display: block;
   text-decoration: none;
@@ -57,7 +59,6 @@
   box-shadow: 0 0 0 3px #fff, 0 0 0 5px #0a58ca;
 }
 
-/* ── Card shell – white background, soft shadow, rounded ───────────────────── */
 .hcc-card {
   position: relative;
   height: 300px;
@@ -67,8 +68,6 @@
   color: var(--c-text, #111111);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
   transition: box-shadow 0.25s ease, transform 0.25s ease;
-  user-select: none;
-  -webkit-user-select: none;
 }
 
 .hcc-card-link:hover .hcc-card {
@@ -77,24 +76,18 @@
 }
 
 /* ══════════════════════════════════════════════════════════════
-   IMAGE LAYERS – clean, no dark overlays or heavy gradients
+   IMAGE LAYERS - clean, no dark overlays
 ══════════════════════════════════════════════════════════════ */
-
-/* ── COVER: image fills card, text on light semi‑transparent panel ───────── */
 .hcc-card--cover .hcc-img-wrap {
   position: absolute;
   inset: 0;
   z-index: 1;
 }
-
 .hcc-card--cover .hcc-img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  display: block;
 }
-
-/* Light, minimal overlay behind text for readability (no dark gradients) */
 .hcc-card--cover .hcc-body {
   background: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(2px);
@@ -105,7 +98,6 @@
   top: auto;
 }
 
-/* ── BOTTOM: image at bottom, text on solid white background ────────────── */
 .hcc-card--bottom .hcc-img-wrap {
   position: absolute;
   bottom: 0;
@@ -115,20 +107,16 @@
   height: 58%;
   z-index: 1;
 }
-
 .hcc-card--bottom .hcc-img {
   width: 100%;
   height: 100%;
   object-fit: contain;
   object-position: bottom center;
-  display: block;
 }
-
 .hcc-card--bottom .hcc-body {
   background: #ffffff;
 }
 
-/* ── RIGHT: image on end side, text on start side – clean, no fade ───────── */
 .hcc-card--right .hcc-img-wrap {
   position: absolute;
   inset-inline-end: 0;
@@ -137,41 +125,10 @@
   width: 48%;
   z-index: 1;
 }
-
 .hcc-card--right .hcc-img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  display: block;
-}
-
-/* No gradient overlay – pure image on right */
-
-/* ══════════════════════════════════════════════════════════════
-   BODY (text content) – generous spacing, dark text
-══════════════════════════════════════════════════════════════ */
-.hcc-body {
-  position: relative;
-  z-index: 10;
-  padding: 1.25rem 1.25rem 1.25rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  background: transparent; /* Overridden for cover variant */
-}
-
-/* Positioning per layout variant */
-.hcc-card--cover .hcc-body {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-}
-.hcc-card--bottom .hcc-body {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
 }
 .hcc-card--right .hcc-body {
   position: absolute;
@@ -183,13 +140,23 @@
   background: #ffffff;
 }
 
-/* ── Store badge ────────────────────────────────────────────────────────── */
+/* ══════════════════════════════════════════════════════════════
+   BODY – text styles
+══════════════════════════════════════════════════════════════ */
+.hcc-body {
+  position: relative;
+  z-index: 10;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
 .hcc-store {
   display: flex;
   align-items: center;
   gap: 6px;
 }
-
 .hcc-store-logo {
   width: 24px;
   height: 24px;
@@ -198,17 +165,14 @@
   background: #f0f0f0;
   padding: 2px;
 }
-
 .hcc-store-name {
   font-size: 0.7rem;
   font-weight: 600;
   letter-spacing: 0.05em;
   text-transform: uppercase;
   color: #4b5563;
-  font-family: var(--font-open-sans, sans-serif);
 }
 
-/* ── Title ── bold, large, dark gray ────────────────────────────────────── */
 .hcc-title {
   margin: 0;
   font-size: 1.5rem;
@@ -223,7 +187,6 @@
   overflow: hidden;
 }
 
-/* ── CTA button – pill style, black/primary, subtle hover ───────────────── */
 .hcc-cta {
   display: inline-flex;
   align-items: center;
@@ -238,76 +201,69 @@
   align-self: flex-start;
   margin-top: 0.25rem;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
-  font-family: var(--font-open-sans, sans-serif);
   white-space: nowrap;
-  border: none;
-  cursor: pointer;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
 }
-
 .hcc-card-link:hover .hcc-cta {
   transform: scale(1.03);
   box-shadow: 0 8px 18px rgba(0, 0, 0, 0.1);
   background-color: #1a1a1a;
 }
-
 .hcc-cta .material-symbols-sharp {
   font-size: 1rem;
-  flex-shrink: 0;
 }
 
 /* ══════════════════════════════════════════════════════════════
-   CONTROLS – minimal, light gray, visible always
+   FLOATING ARROWS – over the viewport sides
 ══════════════════════════════════════════════════════════════ */
-.hcc-controls {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 1rem;
-  margin-top: 1.25rem;
-  padding: 0 1rem;
-}
-
-/* Arrows – light border, subtle hover */
 .hcc-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   border: 1px solid #e2e8f0;
   background: #ffffff;
   color: #1e293b;
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  z-index: 20;
+  backdrop-filter: blur(2px);
 }
 
 .hcc-arrow .material-symbols-sharp {
   font-size: 1.25rem;
 }
 
-.hcc-arrow:disabled {
-  opacity: 0.3;
-  cursor: default;
-  pointer-events: none;
+.hcc-arrow--prev {
+  left: 8px;
 }
 
-.hcc-arrow:not(:disabled):hover {
+.hcc-arrow--next {
+  right: 8px;
+}
+
+.hcc-arrow:hover {
   border-color: #000000;
   color: #000000;
   background: #f8fafc;
-  transform: scale(1.05);
+  transform: translateY(-50%) scale(1.05);
 }
 
-/* Dots – minimal, active pill shape */
+/* ══════════════════════════════════════════════════════════════
+   DOTS – minimal indicator below carousel
+══════════════════════════════════════════════════════════════ */
 .hcc-dots {
   display: flex;
   align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
   justify-content: center;
+  gap: 8px;
+  margin-top: 1.25rem;
 }
 
 .hcc-dot {
@@ -328,7 +284,7 @@
 }
 
 /* ══════════════════════════════════════════════════════════════
-   TABLET (≥ 640px) – wider slides, taller cards
+   TABLET (≥ 640px)
 ══════════════════════════════════════════════════════════════ */
 @media (min-width: 640px) {
   .hcc-slide {
@@ -346,7 +302,7 @@
 }
 
 /* ══════════════════════════════════════════════════════════════
-   DESKTOP (≥ 1024px) – ~55% width, shows clear side slides
+   DESKTOP (≥ 1024px)
 ══════════════════════════════════════════════════════════════ */
 @media (min-width: 1024px) {
   .hcc-slide {
@@ -354,22 +310,24 @@
   }
   .hcc-card {
     height: 380px;
-    border-radius: 24px;
   }
   .hcc-title {
     font-size: 2rem;
   }
-  .hcc-card--right .hcc-body {
-    right: 48%;
+  .hcc-arrow {
+    width: 48px;
+    height: 48px;
   }
-  .hcc-card--bottom .hcc-img-wrap {
-    width: 70%;
-    height: 60%;
+  .hcc-arrow--prev {
+    left: 12px;
+  }
+  .hcc-arrow--next {
+    right: 12px;
   }
 }
 
 /* ══════════════════════════════════════════════════════════════
-   WIDE (≥ 1280px) – slight adjustment for balance
+   WIDE (≥ 1280px)
 ══════════════════════════════════════════════════════════════ */
 @media (min-width: 1280px) {
   .hcc-slide {
