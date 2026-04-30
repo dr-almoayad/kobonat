@@ -1,384 +1,282 @@
-/* components/HeroCuratedCarousel/HeroCuratedCarousel.css
-   Amazon-style promotional banner carousel
-   Mobile-first · No loop · Peek of next slide · Per-card theming via CSS vars
-*/
-
-/* ── Root ─────────────────────────────────────────────────────────────────── */
-.hcc-root {
+/* ── Root Layout ─────────────────────────────────────────────────────────── */
+.modern-carousel-root {
   width: 100%;
-  padding: 0.75rem 0 1.25rem;
-  --hcc-gap: 10px;
-  --hcc-peek: 36px; /* how much of next card shows on mobile */
-  --hcc-radius: 20px;
+  padding: 1.5rem 0;
+  --gap: 16px;
+  --peek: 40px;
 }
 
-/* ── Embla viewport + track ───────────────────────────────────────────────── */
-.hcc-viewport {
+.modern-carousel-viewport {
   overflow: hidden;
   width: 100%;
-  padding-inline-start: 16px; /* left breathing room */
+  padding-inline-start: 1rem;
   box-sizing: border-box;
 }
 
-.hcc-track {
+.modern-carousel-track {
   display: flex;
-  gap: var(--hcc-gap);
+  gap: var(--gap);
   touch-action: pan-y pinch-zoom;
-  will-change: transform;
 }
 
-/* ── Slide sizing ─────────────────────────────────────────────────────────── */
-/* Mobile: almost full width, peek = var(--hcc-peek) + gap */
-.hcc-slide {
-  flex: 0 0 calc(100% - var(--hcc-peek) - 16px); /* 16px = start padding */
+.modern-carousel-slide {
+  flex: 0 0 calc(100% - var(--peek) - 1rem);
   min-width: 0;
+  perspective: 1000px;
 }
 
-/* ── Card anchor (Link or div wrapper) ────────────────────────────────────── */
-.hcc-card-link {
+/* ── Card Shell & Interactions ───────────────────────────────────────────── */
+.modern-card-link {
   display: block;
   text-decoration: none;
-  -webkit-tap-highlight-color: transparent;
   outline: none;
-}
-.hcc-card-link:focus-visible .hcc-card {
-  box-shadow: 0 0 0 3px #fff, 0 0 0 5px #470ae2;
+  border-radius: 28px;
 }
 
-/* ── Card shell ───────────────────────────────────────────────────────────── */
-.hcc-card {
+.modern-card-link:focus-visible .modern-card {
+  outline: 3px solid var(--card-text, #fff);
+  outline-offset: 2px;
+}
+
+.modern-card {
   position: relative;
-  height: 300px;
-  border-radius: var(--hcc-radius);
+  height: 320px;
+  border-radius: 28px;
+  background-color: var(--card-bg, #1a1a2e);
+  color: var(--card-text, #ffffff);
   overflow: hidden;
-  background-color: var(--c-bg, #1a1a2e);
-  color: var(--c-text, #ffffff);
-  user-select: none;
-  -webkit-user-select: none;
+  transform: translateZ(0);
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
-/* ══════════════════════════════════════════════════════════════
-   IMAGE LAYERS  (one per imagePosition variant)
-══════════════════════════════════════════════════════════════ */
+.modern-card-link:hover .modern-card {
+  transform: translateY(-6px) scale(1.01);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+}
 
-/* ── COVER: image fills entire card ─────────────────────────────────────── */
-.hcc-card--cover .hcc-img-wrap {
+/* ── Media & Overlays ────────────────────────────────────────────────────── */
+.modern-card__media {
   position: absolute;
   inset: 0;
   z-index: 1;
+  overflow: hidden;
 }
-.hcc-card--cover .hcc-img {
+
+.modern-card__img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  display: block;
+  transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
 }
-/* Auto readability gradient (always on for cover so text is legible) */
-.hcc-card--cover::after {
-  content: '';
+
+.modern-card-link:hover .modern-card__img {
+  transform: scale(1.08);
+}
+
+.modern-card__overlay {
   position: absolute;
   inset: 0;
   z-index: 2;
-  background: linear-gradient(
-    to top,
-    rgba(0, 0, 0, 0.7) 0%,
-    rgba(0, 0, 0, 0.15) 55%,
-    rgba(0, 0, 0, 0) 100%
-  );
-  pointer-events: none;
+  mix-blend-mode: multiply;
 }
 
-/* ── BOTTOM: image at bottom-center, text on solid bg at top ─────────────── */
-.hcc-card--bottom .hcc-img-wrap {
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 90%;
-  height: 58%;
-  z-index: 1;
-}
-.hcc-card--bottom .hcc-img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  object-position: bottom center;
-  display: block;
-}
-
-/* ── RIGHT: image on end side, text on start side ────────────────────────── */
-.hcc-card--right .hcc-img-wrap {
-  position: absolute;
-  inset-inline-end: 0;
-  top: 0;
-  bottom: 0;
-  width: 48%;
-  z-index: 1;
-}
-.hcc-card--right .hcc-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
-/* Soft fade from text side to image */
-.hcc-card--right .hcc-img-wrap::before {
-  content: '';
-  position: absolute;
-  inset-block: 0;
-  inset-inline-start: 0;
-  width: 30%;
-  z-index: 2;
-  background: linear-gradient(
-    to inline-end,
-    var(--c-bg, #1a1a2e) 0%,
-    transparent 100%
-  );
-}
-
-/* ── Programmable color overlay (all modes) ────────────────────────────────── */
-.hcc-overlay {
+.modern-card__gradient {
   position: absolute;
   inset: 0;
   z-index: 3;
-  pointer-events: none;
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.85) 0%,
+    rgba(0, 0, 0, 0.3) 50%,
+    rgba(0, 0, 0, 0) 100%
+  );
 }
 
-/* ══════════════════════════════════════════════════════════════
-   BODY  (text content layer)
-══════════════════════════════════════════════════════════════ */
-.hcc-body {
-  position: absolute;
+/* ── Content Layout ──────────────────────────────────────────────────────── */
+.modern-card__content {
+  position: relative;
   z-index: 10;
-  padding: 1.375rem 1.375rem 1.25rem;
+  height: 100%;
   display: flex;
   flex-direction: column;
-  gap: 0.45rem;
+  justify-content: space-between;
+  padding: 1.5rem;
+  box-sizing: border-box;
 }
 
-/* Cover: text pinned to bottom */
-.hcc-card--cover .hcc-body {
-  bottom: 0;
-  inset-inline-start: 0;
-  inset-inline-end: 0;
-}
-/* Bottom: text pinned to top */
-.hcc-card--bottom .hcc-body {
-  top: 0;
-  inset-inline-start: 0;
-  inset-inline-end: 0;
-}
-/* Right: text on start half, vertically centered */
-.hcc-card--right .hcc-body {
-  top: 0;
-  bottom: 0;
-  inset-inline-start: 0;
-  inset-inline-end: 52%;
-  justify-content: center;
-}
-
-/* ── Store badge ────────────────────────────────────────────────────────── */
-.hcc-store {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-.hcc-store-logo {
-  width: 22px;
-  height: 22px;
-  object-fit: contain;
-  border-radius: 5px;
-  background: rgba(255,255,255,0.15);
-  padding: 2px;
-}
-.hcc-store-name {
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
-  color: var(--c-text, #fff);
-  opacity: 0.8;
-  font-family: var(--font-open-sans, sans-serif);
-}
-
-/* ── Title ──────────────────────────────────────────────────────────────── */
-.hcc-title {
-  margin: 0;
-  font-size: 1.4rem;
-  font-weight: 900;
-  line-height: 1.15;
-  color: var(--c-text, #fff);
-  font-family: var(--font-alexandria, sans-serif);
-  letter-spacing: -0.01em;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-/* ── CTA button ─────────────────────────────────────────────────────────── */
-.hcc-cta {
+/* Glassmorphism Store Badge */
+.modern-badge {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 7px 16px 7px 18px;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  padding: 6px 14px 6px 6px;
   border-radius: 100px;
-  background-color: var(--c-text, #fff);
-  color: var(--c-bg, #1a1a2e);
-  font-size: 0.78rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+[dir='rtl'] .modern-badge {
+  padding: 6px 6px 6px 14px;
+}
+
+.modern-badge__logo {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #fff;
+}
+
+.modern-badge__text {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+/* Typography */
+.modern-card__title {
+  margin: 0 0 1rem 0;
+  font-size: 1.6rem;
   font-weight: 800;
-  letter-spacing: 0.015em;
-  align-self: flex-start;
-  margin-top: 0.15rem;
-  transition: transform 0.18s, opacity 0.18s;
-  font-family: var(--font-open-sans, sans-serif);
-  white-space: nowrap;
-}
-[dir='rtl'] .hcc-cta {
-  padding: 7px 18px 7px 16px;
-}
-.hcc-cta .material-symbols-sharp {
-  font-size: 0.95rem;
-  flex-shrink: 0;
-}
-.hcc-card-link:hover .hcc-cta,
-.hcc-card:not(.hcc-card--no-link):hover .hcc-cta {
-  transform: translateX(3px);
-  opacity: 0.92;
-}
-[dir='rtl'] .hcc-card-link:hover .hcc-cta {
-  transform: translateX(-3px);
+  line-height: 1.2;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-shadow: 0 2px 10px rgba(0,0,0,0.3);
 }
 
-/* ══════════════════════════════════════════════════════════════
-   CONTROLS  (arrows + dots)
-══════════════════════════════════════════════════════════════ */
-.hcc-controls {
+/* CTA Pill */
+.modern-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--card-text, #fff);
+  color: var(--card-bg, #000);
+  padding: 10px 20px;
+  border-radius: 100px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  transition: all 0.3s ease;
+}
+
+.modern-cta__icon {
+  font-size: 1.1rem;
+  transition: transform 0.3s ease;
+}
+
+.modern-card-link:hover .modern-cta {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+}
+
+.modern-card-link:hover .modern-cta__icon {
+  transform: translateX(4px);
+}
+[dir='rtl'] .modern-card-link:hover .modern-cta__icon {
+  transform: translateX(-4px);
+}
+
+/* ── Image Position Variants ─────────────────────────────────────────────── */
+.modern-card--bottom .modern-card__media {
+  top: auto;
+  height: 65%;
+}
+.modern-card--bottom .modern-card__img {
+  object-fit: contain;
+  object-position: bottom;
+}
+.modern-card--bottom .modern-card__gradient {
+  background: linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, transparent 100%);
+}
+
+.modern-card--right .modern-card__media {
+  left: 40%;
+}
+[dir='rtl'] .modern-card--right .modern-card__media {
+  left: auto;
+  right: 40%;
+}
+.modern-card--right .modern-card__gradient {
+  background: linear-gradient(to right, rgba(0,0,0,0.8) 0%, transparent 100%);
+}
+[dir='rtl'] .modern-card--right .modern-card__gradient {
+  background: linear-gradient(to left, rgba(0,0,0,0.8) 0%, transparent 100%);
+}
+
+/* ── Controls (Arrows & Pagination) ──────────────────────────────────────── */
+.modern-carousel-controls {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.6rem;
-  margin-top: 0.85rem;
-  padding: 0 16px;
+  gap: 1.5rem;
+  margin-top: 1.5rem;
 }
 
-/* ── Arrows ─────────────────────────────────────────────────────────────── */
-.hcc-arrow {
+.modern-control-btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 30px;
-  height: 30px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
-  border: 1.5px solid #e2e8f0;
-  background: #ffffff;
-  color: #475569;
+  background: #f1f5f9;
+  border: none;
+  color: #334155;
   cursor: pointer;
-  flex-shrink: 0;
-  transition: border-color 0.2s, color 0.2s, opacity 0.2s;
-  padding: 0;
-}
-.hcc-arrow .material-symbols-sharp {
-  font-size: 1rem;
-}
-.hcc-arrow:disabled {
-  opacity: 0.25;
-  cursor: default;
-  pointer-events: none;
-}
-.hcc-arrow:not(:disabled):hover {
-  border-color: #470ae2;
-  color: #470ae2;
+  transition: all 0.2s ease;
 }
 
-/* ── Dots ────────────────────────────────────────────────────────────────── */
-.hcc-dots {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  flex: 1;
-  justify-content: center;
-  flex-wrap: wrap;
+.modern-control-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
-.hcc-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
+
+.modern-control-btn:not(:disabled):hover {
+  background: #e2e8f0;
+  transform: scale(1.05);
+}
+
+.modern-pagination {
+  display: flex;
+  gap: 8px;
+}
+
+.modern-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 100px;
+  background: #cbd5e1;
   border: none;
   padding: 0;
-  background: #cbd5e1;
   cursor: pointer;
-  transition: width 0.22s ease, border-radius 0.22s ease, background 0.22s ease;
-}
-.hcc-dot.is-active {
-  width: 18px;
-  border-radius: 3px;
-  background: #470ae2;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* ══════════════════════════════════════════════════════════════
-   TABLET  ≥ 640px
-══════════════════════════════════════════════════════════════ */
+.modern-dot.is-active {
+  width: 24px;
+  background: #3b82f6; /* Modern primary color */
+}
+
+/* ── Breakpoints ─────────────────────────────────────────────────────────── */
 @media (min-width: 640px) {
-  .hcc-root {
-    --hcc-peek: 60px;
-  }
-  .hcc-card {
-    height: 330px;
-    border-radius: 22px;
-  }
-  .hcc-title {
-    font-size: 1.6rem;
-  }
+  .modern-carousel-root { --peek: 60px; }
+  .modern-card { height: 360px; }
+  .modern-card__title { font-size: 1.8rem; }
 }
 
-/* ══════════════════════════════════════════════════════════════
-   DESKTOP  ≥ 1024px
-   Show ~2 cards + peek at once
-══════════════════════════════════════════════════════════════ */
 @media (min-width: 1024px) {
-  .hcc-root {
-    --hcc-gap: 14px;
-    --hcc-peek: 0px;
+  .modern-carousel-root {
+    --gap: 20px;
+    --peek: 0px;
   }
-  .hcc-viewport {
-    padding-inline-start: 0;
+  .modern-carousel-viewport { padding-inline-start: 0; }
+  .modern-carousel-slide {
+    flex: 0 0 calc(50% - var(--gap) / 2);
   }
-  .hcc-slide {
-    /* Show ~2.15 cards on desktop */
-    flex: 0 0 calc(50% - var(--hcc-gap) / 2 - 30px);
-  }
-  .hcc-card {
-    height: 360px;
-    border-radius: 24px;
-    transition: transform 0.25s ease, box-shadow 0.25s ease;
-  }
-  .hcc-card-link:hover .hcc-card,
-  .hcc-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.14);
-  }
-  .hcc-title {
-    font-size: 1.9rem;
-  }
-  .hcc-body {
-    padding: 1.75rem;
-  }
-  .hcc-card--bottom .hcc-img-wrap {
-    height: 60%;
-    width: 80%;
-  }
+  .modern-card { height: 400px; }
 }
-
-/* ══════════════════════════════════════════════════════════════
-   WIDE  ≥ 1280px
-══════════════════════════════════════════════════════════════ */
-@media (min-width: 1280px) {
-  .hcc-slide {
-    /* ~2.2 cards wide */
-    flex: 0 0 calc(50% - var(--hcc-gap) / 2 - 10px);
-  }
-  .hcc-card {
-    height: 380px;
-  }
-    }
