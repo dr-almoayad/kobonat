@@ -1,10 +1,20 @@
 'use client';
+// components/HeroCuratedCarousel/HeroCuratedCarousel.jsx
+//
+// Premium light-themed coupon carousel.
+// Features:
+//   · Centered focus slide + scaled adjacent slides
+//   · White/light gray cards, soft shadows
+//   · Clean product/brand visuals (cover/bottom/right positions)
+//   · Minimal arrow + dot controls
+//   · No heavy gradients or dark overlays
 
 import { useState, useEffect, useCallback } from 'react';
 import useEmblaCarousel from 'embla-carousel-react';
 import Link from 'next/link';
 import './HeroCuratedCarousel.css';
 
+// ── Single card – forces light theme, removes dark overlays ─────────────────
 function SlideCard({ slide, isAr }) {
   const {
     offerImage,
@@ -13,10 +23,6 @@ function SlideCard({ slide, isAr }) {
     ctaText,
     storeName,
     storeLogo,
-    textColor = '#ffffff',
-    bgColor = '#1a1a2e',
-    overlayColor = null,
-    overlayOpacity = 0.4,
     imagePosition = 'cover',
     showCta = true,
     showStore = true,
@@ -25,91 +31,84 @@ function SlideCard({ slide, isAr }) {
   const isExternal = Boolean(ctaUrl && (ctaUrl.startsWith('http://') || ctaUrl.startsWith('https://')));
   const hasLink = Boolean(ctaUrl);
 
+  // Force light theme – no CMS dark colors or overlays
   const cardStyle = {
-    '--card-bg': bgColor,
-    '--card-text': textColor,
+    '--c-bg': '#FFFFFF',
+    '--c-text': '#111111',
   };
 
-  const innerContent = (
-    <div className={`modern-card modern-card--${imagePosition}`} style={cardStyle}>
-      {/* Background & Image */}
-      <div className="modern-card__media">
-        {offerImage && (
+  const inner = (
+    <div
+      className={`hcc-card hcc-card--${imagePosition}${!hasLink ? ' hcc-card--no-link' : ''}`}
+      style={cardStyle}
+    >
+      {/* Image layer – clean, no dark fade overlays */}
+      {offerImage && (
+        <div className="hcc-img-wrap">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={offerImage}
             alt={title}
-            className="modern-card__img"
+            className="hcc-img"
             draggable={false}
             loading="lazy"
             decoding="async"
           />
+        </div>
+      )}
+
+      {/* Text content – on white/light background (or semi‑transparent for cover variants) */}
+      <div className="hcc-body">
+        {showStore && storeName && (
+          <div className="hcc-store">
+            {storeLogo && (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img src={storeLogo} alt={storeName} className="hcc-store-logo" />
+            )}
+            <span className="hcc-store-name">{storeName}</span>
+          </div>
         )}
-        <div 
-          className="modern-card__overlay" 
-          style={{ 
-            backgroundColor: overlayColor || '#000', 
-            opacity: overlayColor ? overlayOpacity : 0.25 
-          }} 
-        />
-        <div className="modern-card__gradient"></div>
-      </div>
 
-      {/* Content */}
-      <div className="modern-card__content">
-        <div className="modern-card__header">
-          {showStore && storeName && (
-            <div className="modern-badge">
-              {storeLogo && (
-                <img src={storeLogo} alt={storeName} className="modern-badge__logo" />
-              )}
-              <span className="modern-badge__text">{storeName}</span>
-            </div>
-          )}
-        </div>
+        <h2 className="hcc-title">{title}</h2>
 
-        <div className="modern-card__footer">
-          <h2 className="modern-card__title">{title}</h2>
-          
-          {showCta && hasLink && (
-            <div className="modern-cta">
-              <span className="modern-cta__text">
-                {ctaText || (isAr ? 'تسوق الآن' : 'Shop Now')}
-              </span>
-              <span className="material-symbols-sharp modern-cta__icon">
-                {isAr ? 'arrow_back' : 'arrow_forward'}
-              </span>
-            </div>
-          )}
-        </div>
+        {showCta && hasLink && (
+          <div className="hcc-cta">
+            <span>{ctaText || (isAr ? 'تسوق الآن' : 'Shop Now')}</span>
+            <span className="material-symbols-sharp">
+              {isAr ? 'arrow_back' : 'arrow_forward'}
+            </span>
+          </div>
+        )}
       </div>
     </div>
   );
 
-  if (!hasLink) {
-    return <div className="modern-card-wrapper">{innerContent}</div>;
-  }
+  if (!hasLink) return inner;
 
   return (
     <Link
       href={ctaUrl}
-      className="modern-card-link"
+      className="hcc-card-link"
       target={isExternal ? '_blank' : '_self'}
       rel={isExternal ? 'noopener noreferrer' : undefined}
       aria-label={title}
     >
-      {innerContent}
+      {inner}
     </Link>
   );
 }
 
+// ── Carousel – centered focus, scaling inactive slides ──────────────────────
 export default function HeroCuratedCarousel({ slides, locale }) {
   const isAr = locale?.split('-')[0] === 'ar';
 
   const [emblaRef, emblaApi] = useEmblaCarousel({
     loop: false,
-    align: 'start',
+    align: 'center',         // focus on active slide, show partial neighbors
     direction: isAr ? 'rtl' : 'ltr',
     containScroll: 'trimSnaps',
+    dragFree: false,
+    skipSnaps: false,
   });
 
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -135,11 +134,14 @@ export default function HeroCuratedCarousel({ slides, locale }) {
   if (!slides?.length) return null;
 
   return (
-    <section className="modern-carousel-root" dir={isAr ? 'rtl' : 'ltr'}>
-      <div className="modern-carousel-viewport" ref={emblaRef}>
-        <div className="modern-carousel-track">
-          {slides.map((slide) => (
-            <div key={slide.id} className="modern-carousel-slide">
+    <div className="hcc-root" dir={isAr ? 'rtl' : 'ltr'}>
+      <div className="hcc-viewport" ref={emblaRef}>
+        <div className="hcc-track">
+          {slides.map((slide, idx) => (
+            <div
+              key={slide.id}
+              className={`hcc-slide ${selectedIndex === idx ? 'is-active' : 'is-inactive'}`}
+            >
               <SlideCard slide={slide} isAr={isAr} />
             </div>
           ))}
@@ -147,43 +149,43 @@ export default function HeroCuratedCarousel({ slides, locale }) {
       </div>
 
       {slides.length > 1 && (
-        <div className="modern-carousel-controls">
+        <div className="hcc-controls">
           <button
-            className="modern-control-btn"
+            className="hcc-arrow"
             onClick={() => emblaApi?.scrollPrev()}
             disabled={!canScrollPrev}
             aria-label={isAr ? 'الشريحة السابقة' : 'Previous slide'}
           >
             <span className="material-symbols-sharp">
-              {isAr ? 'arrow_forward' : 'arrow_back'}
+              {isAr ? 'chevron_right' : 'chevron_left'}
             </span>
           </button>
 
-          <div className="modern-pagination" role="tablist">
+          <div className="hcc-dots" role="tablist">
             {slides.map((_, i) => (
               <button
                 key={i}
                 role="tab"
                 aria-selected={i === selectedIndex}
-                aria-label={`Slide ${i + 1}`}
-                className={`modern-dot ${i === selectedIndex ? 'is-active' : ''}`}
+                aria-label={`Slide ${i + 1} of ${slides.length}`}
+                className={`hcc-dot${i === selectedIndex ? ' is-active' : ''}`}
                 onClick={() => emblaApi?.scrollTo(i)}
               />
             ))}
           </div>
 
           <button
-            className="modern-control-btn"
+            className="hcc-arrow"
             onClick={() => emblaApi?.scrollNext()}
             disabled={!canScrollNext}
             aria-label={isAr ? 'الشريحة التالية' : 'Next slide'}
           >
             <span className="material-symbols-sharp">
-              {isAr ? 'arrow_back' : 'arrow_forward'}
+              {isAr ? 'chevron_left' : 'chevron_right'}
             </span>
           </button>
         </div>
       )}
-    </section>
+    </div>
   );
 }
