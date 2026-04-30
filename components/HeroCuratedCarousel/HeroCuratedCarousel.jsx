@@ -1,22 +1,9 @@
 'use client';
-// components/HeroCuratedCarousel/HeroCuratedCarousel.jsx
-//
-// Amazon-style promotional banner carousel.
-// Features:
-//   · No loop (as requested)
-//   · Variable bg color, text color per slide
-//   · Optional color overlay on image
-//   · Optional CTA button
-//   · Optional store badge
-//   · imagePosition: 'cover' | 'bottom' | 'right'
-//   · Arrow + dot controls
 
 import { useState, useEffect, useCallback } from 'react';
 import useEmblaCarousel from 'embla-carousel-react';
 import Link from 'next/link';
 import './HeroCuratedCarousel.css';
-
-// ── Single card ─────────────────────────────────────────────────────────────
 
 function SlideCard({ slide, isAr }) {
   const {
@@ -26,112 +13,108 @@ function SlideCard({ slide, isAr }) {
     ctaText,
     storeName,
     storeLogo,
-    // display config (all have safe defaults)
-    textColor     = '#ffffff',
-    bgColor       = '#1a1a2e',
-    overlayColor  = null,
-    overlayOpacity = 0.5,
+    textColor = '#ffffff',
+    bgColor = '#1a1a2e',
+    overlayColor = null,
+    overlayOpacity = 0.4,
     imagePosition = 'cover',
-    showCta       = true,
-    showStore     = true,
+    showCta = true,
+    showStore = true,
   } = slide;
 
-  const isExternal  = Boolean(ctaUrl && (ctaUrl.startsWith('http://') || ctaUrl.startsWith('https://')));
-  const hasLink     = Boolean(ctaUrl);
+  const isExternal = Boolean(ctaUrl && (ctaUrl.startsWith('http://') || ctaUrl.startsWith('https://')));
+  const hasLink = Boolean(ctaUrl);
 
   const cardStyle = {
-    '--c-bg':   bgColor,
-    '--c-text': textColor,
+    '--card-bg': bgColor,
+    '--card-text': textColor,
   };
 
-  const inner = (
-    <div
-      className={`hcc-card hcc-card--${imagePosition}${!hasLink ? ' hcc-card--no-link' : ''}`}
-      style={cardStyle}
-    >
-      {/* ── Image ── */}
-      {offerImage && (
-        <div className="hcc-img-wrap">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
+  const innerContent = (
+    <div className={`modern-card modern-card--${imagePosition}`} style={cardStyle}>
+      {/* Background & Image */}
+      <div className="modern-card__media">
+        {offerImage && (
           <img
             src={offerImage}
             alt={title}
-            className="hcc-img"
+            className="modern-card__img"
             draggable={false}
             loading="lazy"
             decoding="async"
           />
-          {/* Programmable colour overlay */}
-          {overlayColor && (
-            <div
-              className="hcc-overlay"
-              style={{ backgroundColor: overlayColor, opacity: overlayOpacity }}
-            />
+        )}
+        <div 
+          className="modern-card__overlay" 
+          style={{ 
+            backgroundColor: overlayColor || '#000', 
+            opacity: overlayColor ? overlayOpacity : 0.25 
+          }} 
+        />
+        <div className="modern-card__gradient"></div>
+      </div>
+
+      {/* Content */}
+      <div className="modern-card__content">
+        <div className="modern-card__header">
+          {showStore && storeName && (
+            <div className="modern-badge">
+              {storeLogo && (
+                <img src={storeLogo} alt={storeName} className="modern-badge__logo" />
+              )}
+              <span className="modern-badge__text">{storeName}</span>
+            </div>
           )}
         </div>
-      )}
 
-      {/* ── Text body ── */}
-      <div className="hcc-body">
-        {/* Store badge */}
-        {showStore && storeName && (
-          <div className="hcc-store">
-            {storeLogo && (
-              /* eslint-disable-next-line @next/next/no-img-element */
-              <img src={storeLogo} alt={storeName} className="hcc-store-logo" />
-            )}
-            <span className="hcc-store-name">{storeName}</span>
-          </div>
-        )}
-
-        {/* Headline */}
-        <h2 className="hcc-title">{title}</h2>
-
-        {/* CTA pill */}
-        {showCta && hasLink && (
-          <div className="hcc-cta">
-            <span>{ctaText || (isAr ? 'تسوق الآن' : 'Shop Now')}</span>
-            <span className="material-symbols-sharp">
-              {isAr ? 'arrow_back' : 'arrow_forward'}
-            </span>
-          </div>
-        )}
+        <div className="modern-card__footer">
+          <h2 className="modern-card__title">{title}</h2>
+          
+          {showCta && hasLink && (
+            <div className="modern-cta">
+              <span className="modern-cta__text">
+                {ctaText || (isAr ? 'تسوق الآن' : 'Shop Now')}
+              </span>
+              <span className="material-symbols-sharp modern-cta__icon">
+                {isAr ? 'arrow_back' : 'arrow_forward'}
+              </span>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
 
-  if (!hasLink) return inner;
+  if (!hasLink) {
+    return <div className="modern-card-wrapper">{innerContent}</div>;
+  }
 
   return (
     <Link
       href={ctaUrl}
-      className="hcc-card-link"
+      className="modern-card-link"
       target={isExternal ? '_blank' : '_self'}
       rel={isExternal ? 'noopener noreferrer' : undefined}
       aria-label={title}
     >
-      {inner}
+      {innerContent}
     </Link>
   );
 }
-
-// ── Carousel shell ──────────────────────────────────────────────────────────
 
 export default function HeroCuratedCarousel({ slides, locale }) {
   const isAr = locale?.split('-')[0] === 'ar';
 
   const [emblaRef, emblaApi] = useEmblaCarousel({
-    loop:           false,           // no loop
-    align:          'start',
-    direction:      isAr ? 'rtl' : 'ltr',
-    containScroll:  'trimSnaps',
-    dragFree:       false,
-    skipSnaps:      false,
+    loop: false,
+    align: 'start',
+    direction: isAr ? 'rtl' : 'ltr',
+    containScroll: 'trimSnaps',
   });
 
-  const [selectedIndex,   setSelectedIndex]   = useState(0);
-  const [canScrollPrev,   setCanScrollPrev]   = useState(false);
-  const [canScrollNext,   setCanScrollNext]   = useState(true);
+  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [canScrollPrev, setCanScrollPrev] = useState(false);
+  const [canScrollNext, setCanScrollNext] = useState(true);
 
   const syncState = useCallback((api) => {
     setSelectedIndex(api.selectedScrollSnap());
@@ -152,57 +135,55 @@ export default function HeroCuratedCarousel({ slides, locale }) {
   if (!slides?.length) return null;
 
   return (
-    <div className="hcc-root" dir={isAr ? 'rtl' : 'ltr'}>
-      {/* ── Slide track ── */}
-      <div className="hcc-viewport" ref={emblaRef}>
-        <div className="hcc-track">
+    <section className="modern-carousel-root" dir={isAr ? 'rtl' : 'ltr'}>
+      <div className="modern-carousel-viewport" ref={emblaRef}>
+        <div className="modern-carousel-track">
           {slides.map((slide) => (
-            <div key={slide.id} className="hcc-slide">
+            <div key={slide.id} className="modern-carousel-slide">
               <SlideCard slide={slide} isAr={isAr} />
             </div>
           ))}
         </div>
       </div>
 
-      {/* ── Controls: prev arrow · dots · next arrow ── */}
       {slides.length > 1 && (
-        <div className="hcc-controls">
+        <div className="modern-carousel-controls">
           <button
-            className="hcc-arrow"
+            className="modern-control-btn"
             onClick={() => emblaApi?.scrollPrev()}
             disabled={!canScrollPrev}
             aria-label={isAr ? 'الشريحة السابقة' : 'Previous slide'}
           >
             <span className="material-symbols-sharp">
-              {isAr ? 'chevron_right' : 'chevron_left'}
+              {isAr ? 'arrow_forward' : 'arrow_back'}
             </span>
           </button>
 
-          <div className="hcc-dots" role="tablist">
+          <div className="modern-pagination" role="tablist">
             {slides.map((_, i) => (
               <button
                 key={i}
                 role="tab"
                 aria-selected={i === selectedIndex}
-                aria-label={`Slide ${i + 1} of ${slides.length}`}
-                className={`hcc-dot${i === selectedIndex ? ' is-active' : ''}`}
+                aria-label={`Slide ${i + 1}`}
+                className={`modern-dot ${i === selectedIndex ? 'is-active' : ''}`}
                 onClick={() => emblaApi?.scrollTo(i)}
               />
             ))}
           </div>
 
           <button
-            className="hcc-arrow"
+            className="modern-control-btn"
             onClick={() => emblaApi?.scrollNext()}
             disabled={!canScrollNext}
             aria-label={isAr ? 'الشريحة التالية' : 'Next slide'}
           >
             <span className="material-symbols-sharp">
-              {isAr ? 'chevron_left' : 'chevron_right'}
+              {isAr ? 'arrow_back' : 'arrow_forward'}
             </span>
           </button>
         </div>
       )}
-    </div>
+    </section>
   );
 }
