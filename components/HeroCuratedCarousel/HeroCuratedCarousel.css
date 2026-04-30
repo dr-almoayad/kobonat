@@ -1,282 +1,381 @@
-/* ── Root Layout ─────────────────────────────────────────────────────────── */
-.modern-carousel-root {
+/* components/HeroCuratedCarousel/HeroCuratedCarousel.css
+   Premium light‑theme coupon carousel
+   Centered focus · scaled side slides · white/light gray · soft shadows
+*/
+
+/* ── Root ─────────────────────────────────────────────────────────────────── */
+.hcc-root {
   width: 100%;
-  padding: 1.5rem 0;
-  --gap: 16px;
-  --peek: 40px;
+  padding: 1rem 0 1.5rem;
+  --hcc-gap: 16px;
+  --hcc-radius: 20px;
+  background: #fafafa; /* matches recommended light background */
 }
 
-.modern-carousel-viewport {
+/* ── Embla viewport + track ───────────────────────────────────────────────── */
+.hcc-viewport {
   overflow: hidden;
   width: 100%;
-  padding-inline-start: 1rem;
-  box-sizing: border-box;
+  padding: 0; /* no extra padding – center alignment + partial side slides */
 }
 
-.modern-carousel-track {
+.hcc-track {
   display: flex;
-  gap: var(--gap);
+  gap: var(--hcc-gap);
   touch-action: pan-y pinch-zoom;
+  will-change: transform;
 }
 
-.modern-carousel-slide {
-  flex: 0 0 calc(100% - var(--peek) - 1rem);
+/* ── Slide sizing: mobile (centered, partial neighbors) ─────────────────── */
+.hcc-slide {
+  flex: 0 0 85%;        /* shows previous/next slide edges */
   min-width: 0;
-  perspective: 1000px;
+  transition: transform 0.4s ease-out, opacity 0.3s ease;
 }
 
-/* ── Card Shell & Interactions ───────────────────────────────────────────── */
-.modern-card-link {
+/* Scale inactive slides – smooth, premium feel */
+.hcc-slide.is-inactive .hcc-card {
+  transform: scale(0.94);
+  opacity: 0.85;
+  transition: transform 0.4s cubic-bezier(0.2, 0.9, 0.4, 1.1), opacity 0.3s ease;
+}
+
+.hcc-slide.is-active .hcc-card {
+  transform: scale(1);
+  opacity: 1;
+}
+
+/* ── Card wrapper & link ───────────────────────────────────────────────────── */
+.hcc-card-link {
   display: block;
   text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
   outline: none;
-  border-radius: 28px;
 }
 
-.modern-card-link:focus-visible .modern-card {
-  outline: 3px solid var(--card-text, #fff);
-  outline-offset: 2px;
+.hcc-card-link:focus-visible .hcc-card {
+  box-shadow: 0 0 0 3px #fff, 0 0 0 5px #0a58ca;
 }
 
-.modern-card {
+/* ── Card shell – white background, soft shadow, rounded ───────────────────── */
+.hcc-card {
   position: relative;
-  height: 320px;
-  border-radius: 28px;
-  background-color: var(--card-bg, #1a1a2e);
-  color: var(--card-text, #ffffff);
+  height: 300px;
+  border-radius: var(--hcc-radius);
   overflow: hidden;
-  transform: translateZ(0);
-  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s ease;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  background-color: var(--c-bg, #ffffff);
+  color: var(--c-text, #111111);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+  transition: box-shadow 0.25s ease, transform 0.25s ease;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
-.modern-card-link:hover .modern-card {
-  transform: translateY(-6px) scale(1.01);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+.hcc-card-link:hover .hcc-card {
+  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
 }
 
-/* ── Media & Overlays ────────────────────────────────────────────────────── */
-.modern-card__media {
+/* ══════════════════════════════════════════════════════════════
+   IMAGE LAYERS – clean, no dark overlays or heavy gradients
+══════════════════════════════════════════════════════════════ */
+
+/* ── COVER: image fills card, text on light semi‑transparent panel ───────── */
+.hcc-card--cover .hcc-img-wrap {
   position: absolute;
   inset: 0;
   z-index: 1;
-  overflow: hidden;
 }
 
-.modern-card__img {
+.hcc-card--cover .hcc-img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  display: block;
 }
 
-.modern-card-link:hover .modern-card__img {
-  transform: scale(1.08);
+/* Light, minimal overlay behind text for readability (no dark gradients) */
+.hcc-card--cover .hcc-body {
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(2px);
+  border-radius: 16px;
+  margin: 16px;
+  width: auto;
+  bottom: auto;
+  top: auto;
 }
 
-.modern-card__overlay {
+/* ── BOTTOM: image at bottom, text on solid white background ────────────── */
+.hcc-card--bottom .hcc-img-wrap {
   position: absolute;
-  inset: 0;
-  z-index: 2;
-  mix-blend-mode: multiply;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80%;
+  height: 58%;
+  z-index: 1;
 }
 
-.modern-card__gradient {
+.hcc-card--bottom .hcc-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: bottom center;
+  display: block;
+}
+
+.hcc-card--bottom .hcc-body {
+  background: #ffffff;
+}
+
+/* ── RIGHT: image on end side, text on start side – clean, no fade ───────── */
+.hcc-card--right .hcc-img-wrap {
   position: absolute;
-  inset: 0;
-  z-index: 3;
-  background: linear-gradient(
-    to top,
-    rgba(0, 0, 0, 0.85) 0%,
-    rgba(0, 0, 0, 0.3) 50%,
-    rgba(0, 0, 0, 0) 100%
-  );
+  inset-inline-end: 0;
+  top: 0;
+  bottom: 0;
+  width: 48%;
+  z-index: 1;
 }
 
-/* ── Content Layout ──────────────────────────────────────────────────────── */
-.modern-card__content {
+.hcc-card--right .hcc-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* No gradient overlay – pure image on right */
+
+/* ══════════════════════════════════════════════════════════════
+   BODY (text content) – generous spacing, dark text
+══════════════════════════════════════════════════════════════ */
+.hcc-body {
   position: relative;
   z-index: 10;
-  height: 100%;
+  padding: 1.25rem 1.25rem 1.25rem;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  padding: 1.5rem;
-  box-sizing: border-box;
+  gap: 0.5rem;
+  background: transparent; /* Overridden for cover variant */
 }
 
-/* Glassmorphism Store Badge */
-.modern-badge {
-  display: inline-flex;
+/* Positioning per layout variant */
+.hcc-card--cover .hcc-body {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+.hcc-card--bottom .hcc-body {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+}
+.hcc-card--right .hcc-body {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 52%;
+  justify-content: center;
+  background: #ffffff;
+}
+
+/* ── Store badge ────────────────────────────────────────────────────────── */
+.hcc-store {
+  display: flex;
   align-items: center;
-  gap: 8px;
-  background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  padding: 6px 14px 6px 6px;
-  border-radius: 100px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  gap: 6px;
 }
 
-[dir='rtl'] .modern-badge {
-  padding: 6px 6px 6px 14px;
-}
-
-.modern-badge__logo {
+.hcc-store-logo {
   width: 24px;
   height: 24px;
-  border-radius: 50%;
-  object-fit: cover;
-  background: #fff;
+  object-fit: contain;
+  border-radius: 8px;
+  background: #f0f0f0;
+  padding: 2px;
 }
 
-.modern-badge__text {
-  font-size: 0.75rem;
-  font-weight: 700;
+.hcc-store-name {
+  font-size: 0.7rem;
+  font-weight: 600;
   letter-spacing: 0.05em;
   text-transform: uppercase;
+  color: #4b5563;
+  font-family: var(--font-open-sans, sans-serif);
 }
 
-/* Typography */
-.modern-card__title {
-  margin: 0 0 1rem 0;
-  font-size: 1.6rem;
+/* ── Title ── bold, large, dark gray ────────────────────────────────────── */
+.hcc-title {
+  margin: 0;
+  font-size: 1.5rem;
   font-weight: 800;
   line-height: 1.2;
+  color: #111111;
+  font-family: var(--font-alexandria, sans-serif);
+  letter-spacing: -0.01em;
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  text-shadow: 0 2px 10px rgba(0,0,0,0.3);
 }
 
-/* CTA Pill */
-.modern-cta {
+/* ── CTA button – pill style, black/primary, subtle hover ───────────────── */
+.hcc-cta {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: var(--card-text, #fff);
-  color: var(--card-bg, #000);
-  padding: 10px 20px;
+  padding: 8px 20px;
   border-radius: 100px;
-  font-size: 0.85rem;
+  background-color: #000000;
+  color: #ffffff;
+  font-size: 0.8rem;
   font-weight: 700;
-  transition: all 0.3s ease;
-}
-
-.modern-cta__icon {
-  font-size: 1.1rem;
-  transition: transform 0.3s ease;
-}
-
-.modern-card-link:hover .modern-cta {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-}
-
-.modern-card-link:hover .modern-cta__icon {
-  transform: translateX(4px);
-}
-[dir='rtl'] .modern-card-link:hover .modern-cta__icon {
-  transform: translateX(-4px);
-}
-
-/* ── Image Position Variants ─────────────────────────────────────────────── */
-.modern-card--bottom .modern-card__media {
-  top: auto;
-  height: 65%;
-}
-.modern-card--bottom .modern-card__img {
-  object-fit: contain;
-  object-position: bottom;
-}
-.modern-card--bottom .modern-card__gradient {
-  background: linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, transparent 100%);
-}
-
-.modern-card--right .modern-card__media {
-  left: 40%;
-}
-[dir='rtl'] .modern-card--right .modern-card__media {
-  left: auto;
-  right: 40%;
-}
-.modern-card--right .modern-card__gradient {
-  background: linear-gradient(to right, rgba(0,0,0,0.8) 0%, transparent 100%);
-}
-[dir='rtl'] .modern-card--right .modern-card__gradient {
-  background: linear-gradient(to left, rgba(0,0,0,0.8) 0%, transparent 100%);
-}
-
-/* ── Controls (Arrows & Pagination) ──────────────────────────────────────── */
-.modern-carousel-controls {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 1.5rem;
-  margin-top: 1.5rem;
-}
-
-.modern-control-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: #f1f5f9;
+  letter-spacing: 0.01em;
+  align-self: flex-start;
+  margin-top: 0.25rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  font-family: var(--font-open-sans, sans-serif);
+  white-space: nowrap;
   border: none;
-  color: #334155;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.hcc-card-link:hover .hcc-cta {
+  transform: scale(1.03);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.1);
+  background-color: #1a1a1a;
+}
+
+.hcc-cta .material-symbols-sharp {
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   CONTROLS – minimal, light gray, visible always
+══════════════════════════════════════════════════════════════ */
+.hcc-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1.25rem;
+  padding: 0 1rem;
+}
+
+/* Arrows – light border, subtle hover */
+.hcc-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  color: #1e293b;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+}
+
+.hcc-arrow .material-symbols-sharp {
+  font-size: 1.25rem;
+}
+
+.hcc-arrow:disabled {
+  opacity: 0.3;
+  cursor: default;
+  pointer-events: none;
+}
+
+.hcc-arrow:not(:disabled):hover {
+  border-color: #000000;
+  color: #000000;
+  background: #f8fafc;
+  transform: scale(1.05);
+}
+
+/* Dots – minimal, active pill shape */
+.hcc-dots {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.hcc-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  border: none;
+  padding: 0;
+  background: #cbd5e1;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
-.modern-control-btn:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
+.hcc-dot.is-active {
+  width: 22px;
+  border-radius: 12px;
+  background: #000000;
 }
 
-.modern-control-btn:not(:disabled):hover {
-  background: #e2e8f0;
-  transform: scale(1.05);
-}
-
-.modern-pagination {
-  display: flex;
-  gap: 8px;
-}
-
-.modern-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 100px;
-  background: #cbd5e1;
-  border: none;
-  padding: 0;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.modern-dot.is-active {
-  width: 24px;
-  background: #3b82f6; /* Modern primary color */
-}
-
-/* ── Breakpoints ─────────────────────────────────────────────────────────── */
+/* ══════════════════════════════════════════════════════════════
+   TABLET (≥ 640px) – wider slides, taller cards
+══════════════════════════════════════════════════════════════ */
 @media (min-width: 640px) {
-  .modern-carousel-root { --peek: 60px; }
-  .modern-card { height: 360px; }
-  .modern-card__title { font-size: 1.8rem; }
+  .hcc-slide {
+    flex: 0 0 70%;
+  }
+  .hcc-card {
+    height: 340px;
+  }
+  .hcc-title {
+    font-size: 1.75rem;
+  }
+  .hcc-body {
+    padding: 1.5rem;
+  }
 }
 
+/* ══════════════════════════════════════════════════════════════
+   DESKTOP (≥ 1024px) – ~55% width, shows clear side slides
+══════════════════════════════════════════════════════════════ */
 @media (min-width: 1024px) {
-  .modern-carousel-root {
-    --gap: 20px;
-    --peek: 0px;
+  .hcc-slide {
+    flex: 0 0 55%;
   }
-  .modern-carousel-viewport { padding-inline-start: 0; }
-  .modern-carousel-slide {
-    flex: 0 0 calc(50% - var(--gap) / 2);
+  .hcc-card {
+    height: 380px;
+    border-radius: 24px;
   }
-  .modern-card { height: 400px; }
+  .hcc-title {
+    font-size: 2rem;
+  }
+  .hcc-card--right .hcc-body {
+    right: 48%;
+  }
+  .hcc-card--bottom .hcc-img-wrap {
+    width: 70%;
+    height: 60%;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   WIDE (≥ 1280px) – slight adjustment for balance
+══════════════════════════════════════════════════════════════ */
+@media (min-width: 1280px) {
+  .hcc-slide {
+    flex: 0 0 48%;
+  }
+  .hcc-card {
+    height: 400px;
+  }
 }
