@@ -125,13 +125,17 @@
 }
 
 .fpc-subtitle {
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   font-weight: 500;
   color: #767676;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   margin: 0;
   font-family: 'Open Sans', Arial, sans-serif;
+}
+
+[dir='rtl'] .fpc-subtitle {
+  font-family: "Alexandria","Inter",system-ui,sans-serif;
 }
 
 /* ── "View more" CTA ────────────────────────────────────────── */
