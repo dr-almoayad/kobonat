@@ -150,7 +150,7 @@ const FeaturedProductsCarousel = ({
         {storeName && (
           <p className="fpc-subtitle">
             {isRtl
-              ? `مقدمة من ${storeName.toUpperCase()}`
+              ? `مقدمة من ${storeName}`
               : `PRESENTED BY ${storeName.toUpperCase()}`}
           </p>
         )}
@@ -183,9 +183,6 @@ const FeaturedProductsCarousel = ({
           </a>
         )}
       </div>
-
-      {/* Divider */}
-      <div className="fpc-divider" />
 
       {/* Carousel */}
       <div className="fpc-embla">
