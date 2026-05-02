@@ -245,3 +245,44 @@
     line-height: 1;
   }
 }
+ 
+.homepage-hero-heading {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 0.5rem;
+  text-align: center;
+}
+ 
+.homepage-h1 {
+  font-size: clamp(1.5rem, 3.5vw, 2.25rem);
+  font-weight: 900;
+  color: var(--text-main, #1e293b);
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  margin: 0 0 0.5rem;
+}
+ 
+[dir='rtl'] .homepage-h1 {
+  letter-spacing: 0;
+  line-height: 1.4;
+}
+ 
+.homepage-h1-sub {
+  font-size: 1rem;
+  color: var(--text-muted, #64748b);
+  margin: 0;
+  line-height: 1.7;
+  max-width: 640px;
+  margin-inline: auto;
+}
+ 
+@media (max-width: 768px) {
+  .homepage-hero-heading {
+    padding: 1.5rem 0.75rem 0.25rem;
+  }
+ 
+  .homepage-h1 {
+    font-size: 1.5rem;
+  }
+}
+ 
