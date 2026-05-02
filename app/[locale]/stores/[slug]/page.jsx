@@ -18,7 +18,7 @@ import { getStoreData } from '@/lib/stores';
 import { getStoreRelatedPosts } from '@/app/admin/_lib/queries';
 import { generateEnhancedStoreMetadata } from '@/lib/seo/generateStoreMetadata';
 import { getCurrentWeekIdentifier } from '@/lib/leaderboard/calculateStoreSavings';
-import { generateStorePageTitle } from '@/lib/seo/dynamicStoreTitle'
+import { generateStorePageTitle } from '@/lib/seo/dynamicStoreTitle';
 import PromoCodesFAQ from '@/components/PromoCodesFAQ/PromoCodesFAQ';
 import HelpBox from '@/components/help/HelpBox';
 import ExpiredVouchersList from '@/components/ExpiredVouchersList/ExpiredVouchersList';
@@ -29,45 +29,69 @@ export const revalidate = 300;
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://cobonat.me';
 
-// ── Metadata ─────────────────────────────────────────────────────────────────
+// ── Static params ─────────────────────────────────────────────────────────────
+// ✅ NEW: Pre-renders every active store at build time so Arabic Googlebot
+//    receives a fully populated HTML response rather than hitting a cold server.
+//    Eliminates crawl-budget waste and ensures maxSavings/title accuracy on
+//    first crawl.
+export async function generateStaticParams() {
+  try {
+    const translations = await prisma.storeTranslation.findMany({
+      where:  { store: { isActive: true } },
+      select: { slug: true, locale: true },
+    });
+
+    const localeMap = { ar: 'ar-SA', en: 'en-SA' };
+    const params    = [];
+
+    for (const t of translations) {
+      const fullLocale = localeMap[t.locale];
+      if (fullLocale && t.slug) {
+        params.push({ locale: fullLocale, slug: t.slug });
+      }
+    }
+
+    return params;
+  } catch {
+    return [];
+  }
+}
+
+// ── Metadata ──────────────────────────────────────────────────────────────────
 
 export async function generateMetadata({ params }) {
   try {
     const { slug, locale } = await params;
     const [language, countryCode] = locale.split('-');
     const isArabic = language === 'ar';
- 
-    // If slug belongs to a category, redirect – metadata not needed
+    const now      = new Date();
+
+    // If slug belongs to a category, redirect — metadata not needed
     const isCategory = await getCategoryData(slug, language, countryCode);
     if (isCategory) return {};
- 
-    const country = await prisma.country.findUnique({
-      where:   { code: countryCode, isActive: true },
-      include: { translations: { where: { locale: language } } },
-    });
- 
+
     const store = await getStoreData(slug, language, countryCode);
     if (!store) return {};
- 
+
     const storeTranslation = store.translations[0];
- 
-    // ── Resolve the store name from translations (raw Prisma has no top-level .name) ──
-    const storeName = storeTranslation?.name || slug;
- 
+    const storeName        = storeTranslation?.name || slug;
+
     const otherLocale = language === 'ar' ? 'en' : 'ar';
     const otherTranslation = await prisma.storeTranslation.findFirst({
       where:  { storeId: store.id, locale: otherLocale },
       select: { slug: true },
     });
- 
+
     const arSlug = language === 'ar' ? slug : (otherTranslation?.slug || null);
     const enSlug = language === 'en' ? slug : (otherTranslation?.slug || null);
- 
+
     const hreflangLanguages = {};
     if (arSlug) hreflangLanguages['ar-SA'] = `${BASE_URL}/ar-SA/stores/${arSlug}`;
     if (enSlug) hreflangLanguages['en-SA'] = `${BASE_URL}/en-SA/stores/${enSlug}`;
-    hreflangLanguages['x-default'] = `${BASE_URL}/ar-SA/stores/${arSlug || slug}`;
- 
+    // ✅ Always include x-default — even when arSlug is null, fall back to the
+    //    current slug so Google never sees x-default pointing nowhere.
+    hreflangLanguages['x-default'] = `${BASE_URL}/ar-SA/stores/${arSlug || enSlug || slug}`;
+
     // ── If admin has set a custom SEO title/description, use it verbatim ──
     if (storeTranslation?.seoTitle || storeTranslation?.seoDescription) {
       return {
@@ -98,10 +122,12 @@ export async function generateMetadata({ params }) {
         },
       };
     }
- 
-    // ── Dynamic metadata: compute active voucher count + max savings ──
-    const now = new Date();
- 
+
+    // ── Dynamic metadata ────────────────────────────────────────────────────
+    // ✅ FIX: The original code had two `OR` keys in the savings query.
+    //    JavaScript silently drops the first key when two keys share the same
+    //    name, so expired vouchers were being included in maxSavings.
+    //    The fix: separate the expiry filter and the discount filter using AND.
     const [voucherCount, savingsAgg] = await Promise.all([
       prisma.voucher.count({
         where: {
@@ -114,33 +140,37 @@ export async function generateMetadata({ params }) {
         where: {
           storeId:   store.id,
           countries: { some: { country: { code: countryCode } } },
+          // Expiry filter
           OR: [{ expiryDate: null }, { expiryDate: { gte: now } }],
-          OR: [
-            { verifiedAvgPercent: { not: null, gt: 0 } },
-            { discountPercent:    { not: null, gt: 0 } },
+          // Discount filter — use AND to avoid JS key collision
+          AND: [
+            {
+              OR: [
+                { verifiedAvgPercent: { not: null, gt: 0 } },
+                { discountPercent:    { not: null, gt: 0 } },
+              ],
+            },
           ],
         },
         select: { discountPercent: true, verifiedAvgPercent: true },
       }),
     ]);
- 
+
     const maxSavings = savingsAgg.reduce((max, v) => {
       const pct = v.verifiedAvgPercent ?? v.discountPercent ?? 0;
       return pct > max ? pct : max;
     }, 0);
- 
-    // ── Generate dynamic title using the new format ──
+
     const { title, description: autoDescription } = generateStorePageTitle({
       storeName,
       locale,
       codeCount:  voucherCount,
       maxSavings,
     });
- 
+
     const description = storeTranslation?.description || autoDescription;
- 
-    const ogImage = store.coverImage || store.logo || `${BASE_URL}/logo-512x512.png`;
- 
+    const ogImage     = store.coverImage || store.logo || `${BASE_URL}/logo-512x512.png`;
+
     return {
       metadataBase: new URL(BASE_URL),
       icons: {
@@ -179,7 +209,7 @@ export async function generateMetadata({ params }) {
           index:  true,
           follow: true,
           'max-image-preview': 'large',
-          'max-snippet': -1,
+          'max-snippet':       -1,
         },
       },
     };
@@ -189,15 +219,16 @@ export async function generateMetadata({ params }) {
   }
 }
 
-// ── Page ─────────────────────────────────────────────────────────────────────
+// ── Page ──────────────────────────────────────────────────────────────────────
 
 export default async function StorePage({ params }) {
   try {
     const { slug, locale } = await params;
     const [language, countryCode] = locale.split('-');
     const currentWeek = getCurrentWeekIdentifier();
+    const now         = new Date();
 
-    // Category redirect (if slug matches a category)
+    // Category redirect
     const category = await getCategoryData(slug, language, countryCode);
     if (category) permanentRedirect(`/${locale}/categories/${slug}`);
 
@@ -229,8 +260,6 @@ export default async function StorePage({ params }) {
       })),
     };
 
-    const now = new Date();
-
     // Parallel data fetch
     const [
       allVouchers,
@@ -245,18 +274,18 @@ export default async function StorePage({ params }) {
     ] = await Promise.all([
       prisma.voucher.findMany({
         where: {
-          storeId: store.id,
+          storeId:   store.id,
           countries: { some: { country: { code: countryCode } } },
         },
         include: {
           translations: { where: { locale: language } },
-          _count: { select: { clicks: true } },
-          store: { include: { translations: { where: { locale: language } } } },
+          _count:       { select: { clicks: true } },
+          store:        { include: { translations: { where: { locale: language } } } },
         },
         orderBy: [
-          { expiryDate: 'desc' },
-          { isExclusive: 'desc' },
-          { isVerified: 'desc' },
+          { expiryDate:      'desc' },
+          { isExclusive:     'desc' },
+          { isVerified:      'desc' },
           { popularityScore: 'desc' },
         ],
       }),
@@ -273,8 +302,8 @@ export default async function StorePage({ params }) {
       }),
       prisma.store.findMany({
         where: {
-          id:        { not: store.id },
-          isActive:  true,
+          id:       { not: store.id },
+          isActive: true,
           countries: { some: { country: { code: countryCode } } },
           categories: {
             some: { categoryId: { in: store.categories.map(sc => sc.categoryId) } },
@@ -314,10 +343,10 @@ export default async function StorePage({ params }) {
           isActive:  true,
         },
         include: {
-          translations: { where: { locale: language } },
-          bank: { include: { translations: { where: { locale: language } } } },
+          translations:  { where: { locale: language } },
+          bank:          { include: { translations: { where: { locale: language } } } },
           paymentMethod: { include: { translations: { where: { locale: language } } } },
-          card: true,
+          card:          true,
         },
         orderBy: { order: 'asc' },
       }),
@@ -474,6 +503,31 @@ export default async function StorePage({ params }) {
     const shippingVouchers = transformedVouchers.filter(v => v.type === 'FREE_SHIPPING');
     const countryName      = country.translations[0]?.name || country.code;
 
+    // ── Compute page H1 — same function as generateMetadata uses ──────────
+    // ✅ FIX: The page component now derives its own H1 from generateStorePageTitle
+    //    so the visible <h1> matches the <title> tag exactly. Previously the
+    //    H1 was whatever StoreHeader rendered (just store.name), creating a
+    //    keyword mismatch that hurt Arabic relevance signals.
+    //
+    //    ⚠️  ACTION REQUIRED: In StoreHeader.jsx, change the existing H1 tag
+    //    that renders store.name to use the `pageH1` prop passed through
+    //    headerProps. If StoreHeader renders its own H1 independently, change
+    //    it to an H2 or remove it to avoid duplicate H1s on the page.
+    const maxSavingsForTitle = Math.max(
+      ...transformedVouchers.map(v => v.verifiedAvgPercent ?? v.discountPercent ?? 0),
+      ...transformedOtherPromos.map(p => p.verifiedAvgPercent ?? p.discountPercent ?? 0),
+      0
+    );
+
+    const { h1: pageH1, title: pageTitle, description: autoDescription } = generateStorePageTitle({
+      storeName:  transformedStore.name,
+      locale,
+      codeCount:  transformedVouchers.length,
+      maxSavings: maxSavingsForTitle,
+    });
+
+    const pageDescription = storeTranslation?.seoDescription || transformedStore.description || autoDescription;
+
     // Breadcrumbs (absolute URLs)
     const breadcrumbs = [
       { name: language === 'ar' ? 'الرئيسية' : 'Home',   url: `${BASE_URL}/${locale}` },
@@ -481,39 +535,36 @@ export default async function StorePage({ params }) {
       { name: transformedStore.name, url: `${BASE_URL}/${locale}/stores/${slug}` },
     ];
 
-    const maxSavings = Math.max(
-      ...transformedVouchers.map(v => v.verifiedAvgPercent ?? v.discountPercent ?? 0),
-      ...transformedOtherPromos.map(p => p.verifiedAvgPercent ?? p.discountPercent ?? 0),
-      0
-    );
-
     // Props for StorePageShell → StoreHeader
+    // pageH1 is included so StoreHeader can render the correct heading text
     const headerProps = {
-      store:          transformedStore,
+      store:            transformedStore,
       mostTrackedVoucher,
-      paymentMethods: otherPaymentMethods,
+      paymentMethods:   otherPaymentMethods,
       bnplMethods,
       locale,
       country,
-      voucherCount:   transformedVouchers.length,
-      maxSavings,
+      voucherCount:     transformedVouchers.length,
+      maxSavings:       maxSavingsForTitle,
+      // ✅ NEW: Pass computed H1 string through to StoreHeader so the visible
+      //    heading matches the <title> tag. StoreHeader should render this as
+      //    its <h1> instead of building its own from store.name alone.
+      pageH1,
     };
-
-    const pageTitle       = storeTranslation?.seoTitle       || `${transformedStore.name} Coupons`;
-    const pageDescription = storeTranslation?.seoDescription || transformedStore.description || '';
 
     return (
       <>
         <StoreStructuredSchemas
           storeName={transformedStore.name}
           storeSlug={transformedStore.slug}
-          title={pageTitle}
+          title={storeTranslation?.seoTitle || pageTitle}
           description={pageDescription}
           locale={locale}
           voucherCount={transformedVouchers.length}
-          maxSavings={maxSavings}
+          maxSavings={maxSavingsForTitle}
           updatedAt={store.updatedAt}
           faqs={faqs}
+          breadcrumbs={breadcrumbs}
         />
 
         <div className="store-page-layout">
