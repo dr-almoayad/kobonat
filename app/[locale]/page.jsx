@@ -34,11 +34,11 @@ export async function generateMetadata({ params }) {
   //    The previous Arabic title was ~90 chars and was consistently rewritten
   //    in SERPs, removing the primary keyword "أكواد خصم السعودية".
   const title = isArabic
-    ? 'كوبونات وأكواد خصم السعودية الموثقة | Cobonat'
+    ? 'كوبونات وأكواد خصم السعودية | Cobonat'
     : 'Verified Saudi Arabia Coupon Codes & Deals | Cobonat';
 
   const description = isArabic
-    ? 'منصتك الأولى لأكواد الخصم والعروض في السعودية 🇸🇦. كوبونات فعالة وموثقة لأشهر المتاجر العالمية والمحلية — مقاضيك، لبسك، وسفرياتك صارت أوفر!'
+    ? 'منصتك الأولى لأكواد الخصم والعروض في السعودية. كوبونات فعالة وموثقة لأشهر المتاجر العالمية والمحلية — مقاضيك، لبسك، وسفرياتك صارت أوفر!'
     : "Your #1 source for verified discount codes in Saudi 🇸🇦. Active coupons for top local and global stores — fashion, electronics, groceries and more.";
 
   return {
@@ -98,7 +98,7 @@ export default async function Home({ params }) {
   // This string must match (or closely mirror) the <title> tag above so Google
   // treats the page as highly relevant for the Arabic query cluster.
   const pageH1 = isArabic
-    ? 'كوبونات وأكواد خصم السعودية الموثقة'
+    ? 'كوبونات وأكواد خصم السعودية'
     : 'Verified Saudi Arabia Coupon Codes & Deals';
 
   // ── Sub-heading beneath H1 — adds semantic context without bloating the H1 ──
