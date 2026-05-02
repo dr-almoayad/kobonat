@@ -2,7 +2,7 @@
 import { prisma } from "@/lib/prisma";
 import { getTranslations } from 'next-intl/server';
 import "./page.css";
-import { notFound } from "next/navigation";
+import { notFound } from "next/navigation"; 
 import { allLocaleCodes } from "@/i18n/locales";
 import BrandsCarousel from "@/components/BrandsCarousel/BrandsCarousel";
 import CuratedOffersSection from '@/components/CuratedOffersSection/CuratedOffersSection';
