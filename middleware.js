@@ -14,11 +14,11 @@ const intlMiddleware = createMiddleware({
 export async function middleware(request) {
   const { pathname } = request.nextUrl;
 
-  // 1. MANUAL CHECK: Ignore static files and internal Next.js paths
+  // 1. Ignore static files and internal Next.js paths
   if (
-    pathname.startsWith('/_next') || 
-    pathname.startsWith('/api') && !pathname.startsWith('/api/admin') ||
-    pathname.includes('.') || // Catches .ico, .png, .txt, etc.
+    pathname.startsWith('/_next') ||
+    (pathname.startsWith('/api') && !pathname.startsWith('/api/admin')) ||
+    pathname.includes('.') || // .ico, .png, .txt, etc.
     pathname === '/favicon.ico' ||
     pathname === '/robots.txt' ||
     pathname === '/sitemap.xml'
@@ -28,13 +28,13 @@ export async function middleware(request) {
 
   // 2. Define admin paths
   const isAdminRoute = pathname.startsWith('/admin');
-  const isAdminApi = pathname.startsWith('/api/admin');
+  const isAdminApi   = pathname.startsWith('/api/admin');
 
-  // 3. BYPASS i18n for admin routes
+  // 3. BYPASS i18n for admin routes — handle auth directly
   if (isAdminRoute || isAdminApi) {
-    const token = await getToken({ 
-      req: request, 
-      secret: process.env.NEXTAUTH_SECRET 
+    const token = await getToken({
+      req:    request,
+      secret: process.env.NEXTAUTH_SECRET,
     });
 
     if (pathname === '/admin/login') {
@@ -49,25 +49,20 @@ export async function middleware(request) {
     return NextResponse.next();
   }
 
-  // 4. ✅ CRITICAL FIX: Check if already on a valid locale path
-  const hasValidLocale = allLocaleCodes.some(locale => pathname.startsWith(`/${locale}`));
-  
-  // If already on a valid locale path, don't redirect
-  if (hasValidLocale) {
-    return NextResponse.next();
-  }
-
-  // 5. APPLY i18n only for paths without locale
+  // 4. ✅ FIX: Always run intlMiddleware for all public paths — including those
+  //    that already carry a valid locale prefix (/ar-SA/..., /en-SA/...).
+  //    The previous `return NextResponse.next()` bypass meant locale detection,
+  //    message injection, and intl-level redirects were skipped for the entire
+  //    live site, breaking translation loading and lang-attribute accuracy.
   return intlMiddleware(request);
 }
 
 export const config = {
-  // Enhanced matcher to exclude more static patterns
   matcher: [
     // Match all paths except static files
     '/((?!_next/static|_next/image|favicon.ico|.*\\..*|robots.txt|sitemap.xml).*)',
     // Include admin routes
-    '/admin/:path*', 
-    '/api/admin/:path*'
-  ]
+    '/admin/:path*',
+    '/api/admin/:path*',
+  ],
 };
