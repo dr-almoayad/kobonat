@@ -147,13 +147,19 @@ const FeaturedProductsCarousel = ({
         <h2 className="fpc-title">
           {isRtl ? 'عروض اليوم المميزة' : "Today's Top Deals"}
         </h2>
-        {storeName && (
-          <p className="fpc-subtitle">
-            {isRtl
-              ? `مقدمة من ${storeName}`
-              : `PRESENTED BY ${storeName.toUpperCase()}`}
-          </p>
-        )}
+        {stores.length > 0 && (
+      <p className="fpc-subtitle">
+        {isRtl
+          ? (() => {
+              const names = stores.map(s => s.name || '').filter(Boolean);
+              if (names.length === 0) return '';
+              if (names.length === 1) return `من ${names[0]}`;
+              if (names.length === 2) return `من ${names[0]} و ${names[1]}`;
+              return `من ${names[0]} و ${names[1]} والمزيد`;
+            })()
+          : `FROM ${stores.map(s => (s.name || '').toUpperCase()).slice(0, 2).join(' & ')}${stores.length > 2 ? ' & MORE' : ''}`}
+      </p>
+    )}
       </div>
     </div>
   );
