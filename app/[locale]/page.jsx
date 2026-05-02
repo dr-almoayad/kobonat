@@ -21,48 +21,65 @@ import PromoCodesFAQ from '@/components/PromoCodesFAQ/PromoCodesFAQ';
 import SavingsBanner from '@/components/SavingsBanner/SavingsBanner';
 import HowItWorks from '@/components/HowItWorks/HowItWorks';
 
-
 export const revalidate = 60;
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://cobonat.me';
 
 export async function generateMetadata({ params }) {
-  const { locale } = await params;
-  const [language] = locale.split('-');
-  const isArabic = language === 'ar';
+  const { locale }  = await params;
+  const [language]  = locale.split('-');
+  const isArabic    = language === 'ar';
+
+  // ✅ FIX: Titles kept under 60 characters so Google displays them intact.
+  //    The previous Arabic title was ~90 chars and was consistently rewritten
+  //    in SERPs, removing the primary keyword "أكواد خصم السعودية".
+  const title = isArabic
+    ? 'كوبونات وأكواد خصم السعودية الموثقة | Cobonat'
+    : 'Verified Saudi Arabia Coupon Codes & Deals | Cobonat';
+
+  const description = isArabic
+    ? 'منصتك الأولى لأكواد الخصم والعروض في السعودية 🇸🇦. كوبونات فعالة وموثقة لأشهر المتاجر العالمية والمحلية — مقاضيك، لبسك، وسفرياتك صارت أوفر!'
+    : "Your #1 source for verified discount codes in Saudi 🇸🇦. Active coupons for top local and global stores — fashion, electronics, groceries and more.";
 
   return {
     metadataBase: new URL(BASE_URL),
-    title: isArabic
-      ? "Cobonat | كوبونات - أكواد خصم السعودية (محدث باستمرار) - وفر أكثر على مشترياتك ومقاضيك!"
-      : "Cobonat | Active & Verified KSA Promo Codes 2026 - Verified Daily for Smart Savings!",
-    description: isArabic
-      ? "منصتك الأولى لأكواد الخصم والعروض في السعودية 🇸🇦. وفر فلوسك مع كوبونات فعالة وموثقة لأشهر المتاجر العالمية والمحلية. مقاضيك، لبسك، وسفرياتك صارت أوفر!"
-      : "Your #1 source for verified discount codes in Saudi 🇸🇦. Save more on fashion, electronics, and groceries with verified and active coupons for top local and global stores.",
+    title,
+    description,
     alternates: {
       canonical: `${BASE_URL}/${locale}`,
       languages: {
-        'ar-SA': `${BASE_URL}/ar-SA`,
-        'en-SA': `${BASE_URL}/en-SA`,
+        'ar-SA':    `${BASE_URL}/ar-SA`,
+        'en-SA':    `${BASE_URL}/en-SA`,
         'x-default': `${BASE_URL}/ar-SA`,
-      }
+      },
     },
     openGraph: {
-      siteName: isArabic ? 'كوبونات' : 'Cobonat',
+      siteName:    isArabic ? 'كوبونات' : 'Cobonat',
+      title,
+      description,
       images: [{ url: `${BASE_URL}/logo-512x512.png`, width: 512, height: 512, alt: 'Cobonat Logo' }],
-      url: `${BASE_URL}/${locale}`,
-      locale: locale,
-      type: 'website',
-      title: isArabic
-        ? "Cobonat | كوبونات - أكواد خصم السعودية (محدث باستمرار) - وفر أكثر على مشترياتك ومقاضيك!"
-        : "Cobonat | Active & Verified KSA Promo Codes 2026 - Verified Daily for Smart Savings!",
-      description: isArabic
-        ? "منصتك الأولى لأكواد الخصم والعروض في السعودية 🇸🇦. وفر فلوسك مع كوبونات فعالة وموثقة لأشهر المتاجر العالمية والمحلية. مقاضيك، لبسك، وسفرياتك صارت أوفر!"
-        : "Your #1 source for verified discount codes in Saudi 🇸🇦. Save more on fashion, electronics, and groceries with verified and active coupons for top local and global stores.",
+      url:    `${BASE_URL}/${locale}`,
+      locale,
+      type:   'website',
+    },
+    twitter: {
+      card:        'summary_large_image',
+      site:        '@cobonat',
+      creator:     '@cobonat',
+      title,
+      description,
+      images:      [`${BASE_URL}/logo-512x512.png`],
     },
     robots: {
-      index: true, follow: true,
-      googleBot: { index: true, follow: true, 'max-video-preview': -1, 'max-image-preview': 'large', 'max-snippet': -1 },
+      index:  true,
+      follow: true,
+      googleBot: {
+        index:  true,
+        follow: true,
+        'max-video-preview': -1,
+        'max-image-preview': 'large',
+        'max-snippet':       -1,
+      },
     },
   };
 }
@@ -73,9 +90,21 @@ export default async function Home({ params }) {
   if (!allLocaleCodes.includes(locale)) notFound();
 
   const [language, countryCode] = locale.split('-');
-  const country = countryCode || 'SA';
-  const currentWeek = getCurrentWeekIdentifier();
-  const isArabic = language === 'ar';
+  const country      = countryCode || 'SA';
+  const currentWeek  = getCurrentWeekIdentifier();
+  const isArabic     = language === 'ar';
+
+  // ── Primary keyword phrase for the server-rendered H1 ──────────────────
+  // This string must match (or closely mirror) the <title> tag above so Google
+  // treats the page as highly relevant for the Arabic query cluster.
+  const pageH1 = isArabic
+    ? 'كوبونات وأكواد خصم السعودية الموثقة'
+    : 'Verified Saudi Arabia Coupon Codes & Deals';
+
+  // ── Sub-heading beneath H1 — adds semantic context without bloating the H1 ──
+  const pageSubtitle = isArabic
+    ? 'وفر أكثر مع كوبونات فعالة ومجربة من أشهر المتاجر العالمية والمحلية'
+    : 'Save more with verified, tested coupons from top local and international stores';
 
   const [
     featuredStoresWithCovers,
@@ -153,15 +182,15 @@ export default async function Home({ params }) {
         countries: { some: { country: { code: country } } },
       },
       select: {
-        id:   true,
-        logo: true,
+        id:      true,
+        logo:    true,
         bigLogo: true,
         translations: {
           where:  { locale: language },
           select: { name: true, slug: true, showOffer: true },
         },
         vouchers: {
-          where:   {
+          where: {
             OR: [{ expiryDate: null }, { expiryDate: { gte: new Date() } }],
             discountPercent: { not: null },
           },
@@ -221,79 +250,89 @@ export default async function Home({ params }) {
     };
   });
 
-const exclusiveVouchers = await prisma.voucher.findMany({
-  where: {
-    isExclusive: true,
-    OR: [{ expiryDate: null }, { expiryDate: { gte: new Date() } }],
-    countries: { some: { country: { code: country } } },
-  },
-  include: {
-    translations: { where: { locale: language } },
-    store: { select: { logo: true, bigLogo: true, coverImage: true,
-                       translations: { where: { locale: language } } } },
-  },
-  orderBy: { popularityScore: 'desc' },
-  take: 4,
-});
-
+  const exclusiveVouchers = await prisma.voucher.findMany({
+    where: {
+      isExclusive: true,
+      OR: [{ expiryDate: null }, { expiryDate: { gte: new Date() } }],
+      countries: { some: { country: { code: country } } },
+    },
+    include: {
+      translations: { where: { locale: language } },
+      store: { select: { logo: true, bigLogo: true, coverImage: true,
+                         translations: { where: { locale: language } } } },
+    },
+    orderBy: { popularityScore: 'desc' },
+    take: 4,
+  });
 
   const carouselTitle = isArabic ? 'متاجر مميزة' : 'Featured Stores with Discounts';
 
+  // ── Structured data: ItemList for homepage featured stores ──────────────
+  // Gives Google Arabic semantic anchors without relying on client-rendered JS.
+  const homepageSchema = topStores.length > 0 ? {
+    '@context':    'https://schema.org',
+    '@type':       'ItemList',
+    name:          pageH1,
+    description:   pageSubtitle,
+    numberOfItems: topStores.length,
+    itemListElement: topStores.map((s, i) => ({
+      '@type':   'ListItem',
+      position:  i + 1,
+      name:      s.name,
+      url:       `${BASE_URL}/${locale}/stores/${s.slug}`,
+    })),
+  } : null;
+
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
-    <main className="homepage-wrapper">
-
-      {/* Hero */}
-      
-      <HeroCuratedSection locale={locale} countryCode={country} />
-      <SavingsBanner locale={locale} />
-      <HeroBestOffersCarousel />
-      {/*{transformedCarouselStores.length > 0 && (
-        <HomepageHeroSection
-          stores={transformedCarouselStores}
-          leaderboard={leaderboardSnapshots}
-          locale={locale}
+    <>
+      {homepageSchema && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(homepageSchema) }}
         />
-      )}*/}
+      )}
 
-      {/* Featured Vouchers 
-      <FeaturedVouchersSection locale={locale} countryCode={country} />*/}
+      <main className="homepage-wrapper" dir={isArabic ? 'rtl' : 'ltr'}>
 
-      {/* Featured Stores */}
-      <FeaturedStoresSection locale={locale} />
+        {/*
+          ✅ FIX: Server-rendered H1 — always present in the HTML that
+          Googlebot indexes, regardless of whether client components hydrate.
+          Styled to visually match the hero section but guaranteed to be in
+          the initial HTML response.
 
-      {/* Featured Stores Carousel */}
-      {/*{topStores.length > 0 && (
-        <FeaturedStoresCarousel
-          title={carouselTitle}
-          locale={locale}
-          stores={topStores}
-        />
-      )}*/}
+          The H1 uses the same keyword string as the <title> tag so Google
+          consistently identifies this page as the authority for
+          "كوبونات السعودية" and related Arabic query clusters.
+        */}
+        <div className="homepage-hero-heading" aria-label="page heading">
+          <h1 className="homepage-h1">{pageH1}</h1>
+          <p className="homepage-h1-sub">{pageSubtitle}</p>
+        </div>
 
-      {/* Stackable Offers */}
-      <OfferStacksSection locale={locale} countryCode={country} />
+        {/* Hero */}
+        <HeroCuratedSection locale={locale} countryCode={country} />
+        <SavingsBanner locale={locale} />
+        <HeroBestOffersCarousel />
 
-      {/* Brands Ticker */}
-      {/*{transformedBrands.length > 0 && (
-        <BrandsCarousel brands={transformedBrands} />
-      )}*/}
+        {/* Featured Stores */}
+        <FeaturedStoresSection locale={locale} />
 
-      {/* Curated Offers */}
-      {/* <CuratedOffersSection locale={locale} countryCode={country} /> */}
+        {/* Stackable Offers */}
+        <OfferStacksSection locale={locale} countryCode={country} />
 
-      {/* Featured Products */}
-      <HomeFeaturedProductsSection locale={locale} countryCode={country} />
+        {/* Featured Products */}
+        <HomeFeaturedProductsSection locale={locale} countryCode={country} />
 
-      <HowItWorks locale={locale} />
+        <HowItWorks locale={locale} />
 
-      {/* Blog */}
-      <HomepageBlogSection locale={locale} count={3} />
+        {/* Blog */}
+        <HomepageBlogSection locale={locale} count={3} />
 
+        <PromoCodesFAQ />
 
-      <PromoCodesFAQ/>
-
-      <HelpBox locale={locale} />
-    </main>
+        <HelpBox locale={locale} />
+      </main>
+    </>
   );
 }
