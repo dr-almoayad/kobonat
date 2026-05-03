@@ -11,12 +11,8 @@ import "./coupons-page.css";
 export const revalidate = 60;
 
 const BASE_URL   = process.env.NEXT_PUBLIC_BASE_URL || 'https://cobonat.me';
-const PAGE_LIMIT = 60; // sensible cap — prevents Googlebot from timing out on
-                       // a single enormous HTML response with 300+ vouchers.
+const PAGE_LIMIT = 60;
 
-// =============================================================================
-// Metadata
-// =============================================================================
 export async function generateMetadata({ params }) {
   const { locale = 'ar-SA' } = await params;
   const [language] = locale.split('-');
@@ -30,9 +26,6 @@ export async function generateMetadata({ params }) {
     ? 'منصتك الأولى لأكواد الخصم والعروض في السعودية 🇸🇦. وفر فلوسك مع كوبونات فعالة وموثقة لأشهر المتاجر العالمية والمحلية. مقاضيك، لبسك، وسفرياتك صارت أوفر!'
     : 'Your #1 source for verified discount codes in Saudi 🇸🇦. Save more on fashion, electronics, and groceries with verified and active coupons for top local and global stores.';
 
-  // FIX: og-coupons.png doesn't exist on disk yet — fall back to the logo so
-  // Googlebot never encounters a 404 OG-image crawl error on this page.
-  // When you create a proper 1200×630 OG image, replace this line.
   const ogImage = `${BASE_URL}/logo-512x512.png`;
 
   return {
@@ -64,8 +57,8 @@ export async function generateMetadata({ params }) {
       apple: [{ url: '/apple-touch-icon.png', sizes: '180x180' }],
     },
 
+    // ✅ FIX: removed canonical – paginated pages will self-canonicalise
     alternates: {
-      canonical: `${BASE_URL}/${locale}/coupons`,
       languages: {
         'ar-SA':    `${BASE_URL}/ar-SA/coupons`,
         'en-SA':    `${BASE_URL}/en-SA/coupons`,
@@ -101,19 +94,8 @@ export async function generateMetadata({ params }) {
   };
 }
 
-// =============================================================================
-// Page
-// FIX: added searchParams so we can paginate.
-// Fetching ALL vouchers in a single query caused Googlebot to time out on
-// large country catalogues and produced a thin/duplicate-content signal
-// (a "coupon dump") that suppressed indexing. We now serve PAGE_LIMIT vouchers
-// per page and emit proper rel="next" / rel="prev" links so Google can crawl
-// the full catalogue incrementally.
-// =============================================================================
 const CouponsPage = async ({ params, searchParams: rawSearchParams }) => {
   const { locale = 'ar-SA' } = await params;
-
-  // Next.js 15 searchParams is a Promise in server components
   const searchParams = await rawSearchParams;
   const page = Math.max(1, parseInt(searchParams?.page || '1'));
 
@@ -126,36 +108,24 @@ const CouponsPage = async ({ params, searchParams: rawSearchParams }) => {
 
   const normalizedCountryCode = countryCode?.toUpperCase() || 'SA';
 
-  // ── Shared where clause ───────────────────────────────────────────────────
   const where = {
     store: { isActive: true },
     countries: { some: { country: { code: normalizedCountryCode } } },
     OR: [{ expiryDate: null }, { expiryDate: { gt: now } }],
   };
 
-  // ── Parallel: fetch page + total count ────────────────────────────────────
   const [vouchers, totalCount] = await Promise.all([
     prisma.voucher.findMany({
       where,
       include: {
-        translations: {
-          where:  { locale: language },
-          select: { title: true, description: true },
-        },
-        store: {
-          include: {
-            translations: {
-              where:  { locale: language },
-              select: { name: true, slug: true },
-            },
-          },
-        },
+        translations: { where: { locale: language }, select: { title: true, description: true } },
+        store: { include: { translations: { where: { locale: language }, select: { name: true, slug: true } } } },
         _count: { select: { clicks: true } },
       },
       orderBy: [
-        { isExclusive:    'desc' },
+        { isExclusive: 'desc' },
         { popularityScore: 'desc' },
-        { createdAt:       'desc' },
+        { createdAt: 'desc' },
       ],
       take: PAGE_LIMIT,
       skip: (page - 1) * PAGE_LIMIT,
@@ -165,7 +135,6 @@ const CouponsPage = async ({ params, searchParams: rawSearchParams }) => {
 
   const totalPages = Math.ceil(totalCount / PAGE_LIMIT);
 
-  // ── Transform ─────────────────────────────────────────────────────────────
   const transformVoucher = (voucher) => {
     const vt = voucher.translations?.[0] || {};
     const st = voucher.store?.translations?.[0] || {};
@@ -185,7 +154,6 @@ const CouponsPage = async ({ params, searchParams: rawSearchParams }) => {
   const exclusiveVouchers   = transformedVouchers.filter(v => v.isExclusive).length;
   const verifiedVouchers    = transformedVouchers.filter(v => v.isVerified).length;
 
-  // ── Pagination helpers ────────────────────────────────────────────────────
   const buildPageUrl = (p) =>
     `/${locale}/coupons${p > 1 ? `?page=${p}` : ''}`;
 
@@ -199,13 +167,7 @@ const CouponsPage = async ({ params, searchParams: rawSearchParams }) => {
         baseUrl={BASE_URL}
       />
 
-      {/* rel="next" / rel="prev" — helps Google understand paginated series */}
-      {page > 1 && (
-        <link rel="prev" href={`${BASE_URL}${buildPageUrl(page - 1)}`} />
-      )}
-      {page < totalPages && (
-        <link rel="next" href={`${BASE_URL}${buildPageUrl(page + 1)}`} />
-      )}
+      {/* ✅ FIX: removed <link rel="prev/next"> – they cause "outside <head>" errors */}
 
       <main className="coupons_page">
         <div className="coupons_page_header_container">
@@ -270,27 +232,19 @@ const CouponsPage = async ({ params, searchParams: rawSearchParams }) => {
           />
         </div>
 
-        {/* Pagination */}
         {totalPages > 1 && (
           <div className="coupons_pagination" style={{
-            display:        'flex',
-            alignItems:     'center',
-            justifyContent: 'center',
-            gap:            '1rem',
-            padding:        '2rem 1.5rem',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            gap: '1rem', padding: '2rem 1.5rem',
           }}>
             {page > 1 && (
               <Link
                 href={buildPageUrl(page - 1)}
                 style={{
-                  display:      'inline-flex',
-                  padding:      '0.6rem 1.5rem',
-                  background:   '#fff',
-                  border:       '1.5px solid #e0dcf5',
-                  borderRadius: '10px',
-                  color:        '#470ae2',
-                  fontWeight:   600,
-                  fontSize:     '0.875rem',
+                  display: 'inline-flex', padding: '0.6rem 1.5rem',
+                  background: '#fff', border: '1.5px solid #e0dcf5',
+                  borderRadius: '10px', color: '#470ae2',
+                  fontWeight: 600, fontSize: '0.875rem',
                   textDecoration: 'none',
                 }}
               >
@@ -299,23 +253,17 @@ const CouponsPage = async ({ params, searchParams: rawSearchParams }) => {
             )}
 
             <span style={{ fontSize: '0.875rem', color: '#64748b', fontWeight: 500 }}>
-              {isAr
-                ? `صفحة ${page} من ${totalPages}`
-                : `Page ${page} of ${totalPages}`}
+              {isAr ? `صفحة ${page} من ${totalPages}` : `Page ${page} of ${totalPages}`}
             </span>
 
             {page < totalPages && (
               <Link
                 href={buildPageUrl(page + 1)}
                 style={{
-                  display:      'inline-flex',
-                  padding:      '0.6rem 1.5rem',
-                  background:   '#fff',
-                  border:       '1.5px solid #e0dcf5',
-                  borderRadius: '10px',
-                  color:        '#470ae2',
-                  fontWeight:   600,
-                  fontSize:     '0.875rem',
+                  display: 'inline-flex', padding: '0.6rem 1.5rem',
+                  background: '#fff', border: '1.5px solid #e0dcf5',
+                  borderRadius: '10px', color: '#470ae2',
+                  fontWeight: 600, fontSize: '0.875rem',
                   textDecoration: 'none',
                 }}
               >
