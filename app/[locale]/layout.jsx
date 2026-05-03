@@ -39,9 +39,6 @@ export async function generateMetadata({ params }) {
     metadataBase:    new URL(BASE_URL),
     applicationName: isArabic ? 'كوبونات' : 'Cobonat',
 
-    // ✅ FIX: Default title kept short — individual pages override with their own
-    // specific title. The template is what every non-homepage page appends to.
-    // Previous default was ~90 chars and got rewritten by Google for Arabic SERPs.
     title: {
       default:  isArabic
         ? 'كوبونات وأكواد خصم السعودية | Cobonat'
@@ -69,13 +66,10 @@ export async function generateMetadata({ params }) {
 
     manifest: isArabic ? '/manifest-ar.webmanifest' : '/manifest-en.webmanifest',
 
+    // ✅ FIX: removed languages object – only canonical remains.
+    // This prevents duplicate hreflang entries on every page.
     alternates: {
       canonical: `${BASE_URL}/${locale}`,
-      languages: {
-        'ar-SA':    `${BASE_URL}/ar-SA`,
-        'en-SA':    `${BASE_URL}/en-SA`,
-        'x-default': `${BASE_URL}/ar-SA`,
-      },
     },
 
     openGraph: {
