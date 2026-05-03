@@ -52,7 +52,7 @@ const AR_STEPS_DEAL = (storeName) => [
 const EN_STEPS_CODE = (code, storeName) => [
   {
     title: `Copy the code: ${code}`,
-    desc:  "Press "Copy Code" above — the code is saved to your clipboard automatically.",
+    desc:  'Press "Copy Code" above — the code is saved to your clipboard automatically.',
   },
   {
     title: `Shop at ${storeName}`,
@@ -71,7 +71,7 @@ const EN_STEPS_CODE = (code, storeName) => [
 const EN_STEPS_DEAL = (storeName) => [
   {
     title: `Visit ${storeName}`,
-    desc:  "Click "Activate Deal" below — you'll be taken directly to the discounted page.",
+    desc:  "Click \"Activate Deal\" below — you'll be taken directly to the discounted page.",
   },
   {
     title: 'Discount is already applied',
