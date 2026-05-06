@@ -2,7 +2,6 @@
 
 import { Geist, Geist_Mono, Alexandria, Open_Sans } from "next/font/google";
 import "./globals.css";
-import "bootstrap-icons/font/bootstrap-icons.css";
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages, setRequestLocale } from 'next-intl/server';
 import Header from "@/components/headers/Header";
@@ -17,8 +16,6 @@ import Script from 'next/script';
 
 const alexandria = Alexandria({ subsets: ["arabic"], variable: "--font-alexandria", display: 'swap' });
 const openSans   = Open_Sans({ subsets: ["latin"], variable: "--font-open-sans", display: 'swap' });
-const geistSans  = Geist({ variable: "--font-geist-sans", subsets: ["latin"], display: 'swap' });
-const geistMono  = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"], display: 'swap' });
 
 const BASE_URL           = process.env.NEXT_PUBLIC_BASE_URL || 'https://cobonat.me';
 const GA_MEASUREMENT_ID  = 'G-EFNHSXWE0M';
