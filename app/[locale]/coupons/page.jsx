@@ -13,8 +13,11 @@ export const revalidate = 60;
 const BASE_URL   = process.env.NEXT_PUBLIC_BASE_URL || 'https://cobonat.me';
 const PAGE_LIMIT = 60;
 
-export async function generateMetadata({ params }) {
+export async function generateMetadata({ params, searchParams: rawSearchParams }) {
   const { locale = 'ar-SA' } = await params;
+  const searchParams = await rawSearchParams;
+  const page = Math.max(1, parseInt(searchParams?.page || '1'));
+
   const [language] = locale.split('-');
   const isAr = language === 'ar';
 
@@ -27,6 +30,14 @@ export async function generateMetadata({ params }) {
     : 'Your #1 source for verified discount codes in Saudi 🇸🇦. Save more on fashion, electronics, and groceries with verified and active coupons for top local and global stores.';
 
   const ogImage = `${BASE_URL}/logo-512x512.png`;
+
+  // ── Self-canonical ─────────────────────────────────────────────────────────
+  // Every paginated variant must declare its own canonical so Google indexes
+  // each page individually rather than consolidating all pages to page 1.
+  // Page 1 uses the clean URL (no ?page=1 query param) as the canonical.
+  const canonicalUrl = page === 1
+    ? `${BASE_URL}/${locale}/coupons`
+    : `${BASE_URL}/${locale}/coupons?page=${page}`;
 
   return {
     metadataBase: new URL(BASE_URL),
@@ -57,12 +68,31 @@ export async function generateMetadata({ params }) {
       apple: [{ url: '/apple-touch-icon.png', sizes: '180x180' }],
     },
 
-    // ✅ FIX: removed canonical – paginated pages will self-canonicalise
+    // ✅ FIX: Added self-canonical + hreflang for every page variant.
+    //
+    // Previously this block was absent entirely ("paginated pages will
+    // self-canonicalize" — they do not; Next.js requires an explicit
+    // declaration). Without a canonical, Googlebot may consolidate all
+    // paginated variants into a single URL, discarding their individual
+    // content from the index.
+    //
+    // Page 1: canonical = /coupons  (no page param — cleaner URL)
+    // Page N: canonical = /coupons?page=N
+    //
+    // hreflang points to the equivalent page in the other locale so Google
+    // understands the Arabic/English relationship across pagination.
     alternates: {
+      canonical: canonicalUrl,
       languages: {
-        'ar-SA':    `${BASE_URL}/ar-SA/coupons`,
-        'en-SA':    `${BASE_URL}/en-SA/coupons`,
-        'x-default': `${BASE_URL}/ar-SA/coupons`,
+        'ar-SA': page === 1
+          ? `${BASE_URL}/ar-SA/coupons`
+          : `${BASE_URL}/ar-SA/coupons?page=${page}`,
+        'en-SA': page === 1
+          ? `${BASE_URL}/en-SA/coupons`
+          : `${BASE_URL}/en-SA/coupons?page=${page}`,
+        'x-default': page === 1
+          ? `${BASE_URL}/ar-SA/coupons`
+          : `${BASE_URL}/ar-SA/coupons?page=${page}`,
       },
     },
 
@@ -70,7 +100,7 @@ export async function generateMetadata({ params }) {
       siteName:    isAr ? 'كوبونات' : 'Cobonat',
       title,
       description,
-      url:         `${BASE_URL}/${locale}/coupons`,
+      url:         canonicalUrl,
       type:        'website',
       locale,
       images: [
@@ -166,8 +196,6 @@ const CouponsPage = async ({ params, searchParams: rawSearchParams }) => {
         locale={locale}
         baseUrl={BASE_URL}
       />
-
-      {/* ✅ FIX: removed <link rel="prev/next"> – they cause "outside <head>" errors */}
 
       <main className="coupons_page">
         <div className="coupons_page_header_container">
@@ -272,7 +300,8 @@ const CouponsPage = async ({ params, searchParams: rawSearchParams }) => {
             )}
           </div>
         )}
-        <PromoCodesFAQ/>
+
+        <PromoCodesFAQ />
         <HelpBox locale={locale} />
       </main>
     </>
