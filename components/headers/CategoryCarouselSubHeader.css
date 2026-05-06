@@ -40,7 +40,7 @@
   width: 100%;
   max-width: 1312px;
   margin: 0 auto;
-  padding: 0 1.5rem;
+  padding: 0;
   box-sizing: border-box;
 }
 
@@ -63,7 +63,7 @@
 /* ── Slide shell ─────────────────────────────────────────────────────────────── */
 .ccs-slide {
   flex: 0 0 auto;
-  width: 74px;
+  width: 70px;
   min-width: 0;
 }
 
@@ -72,8 +72,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.4rem;
-  padding: 0.5rem 0.25rem;
+  gap: 0.3rem;
+  padding: 0.25rem;
   border-radius: 0;
   text-decoration: none;
   width: 100%;
@@ -190,6 +190,12 @@
    – Arrows visible, absolutely positioned to prevent layout shift
 ══════════════════════════════════════════════════════════════════════════════ */
 @media (min-width: 1024px) {
+
+   .ccs-inner {
+
+  padding: 0 1.5rem;
+
+   }
   .ccs-arrow {
     display: flex;
     position: absolute;
