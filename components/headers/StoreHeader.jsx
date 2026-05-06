@@ -15,8 +15,8 @@ const StoreHeader = ({
   locale,
   country,
   sentinelRef,
-  voucherCount = 0,      // ✅ new
-  maxSavings = 0         // ✅ new
+  voucherCount = 0,
+  maxSavings = 0
 }) => {
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
   const [isDescriptionOverflowing, setIsDescriptionOverflowing] = useState(false);
@@ -33,14 +33,12 @@ const StoreHeader = ({
   const categories = store?.categories || [];
   const websiteUrl = store?.websiteUrl;
 
-  // ✅ Generate dynamic title and H1
   const { h1, description: seoDescription } = generateStorePageTitle({
     storeName,
     locale,
     codeCount: voucherCount,
   });
 
-  // ✅ Generate hero subtitle (active codes, max savings, month/year)
   const heroSubtitle = generateStoreHeroSubtitle({
     storeName,
     codeCount: voucherCount,
@@ -48,7 +46,6 @@ const StoreHeader = ({
     locale,
   });
 
-  // Format last updated time (unchanged)
   const getLastUpdatedTime = () => {
     if (!store?.updatedAt) return null;
     const updated = new Date(store.updatedAt);
@@ -66,7 +63,6 @@ const StoreHeader = ({
   };
   const lastUpdated = getLastUpdatedTime();
 
-  // Overflow detection (unchanged)
   useLayoutEffect(() => {
     const checkOverflow = () => {
       const element = descriptionRef.current;
@@ -84,7 +80,7 @@ const StoreHeader = ({
   return (
     <header className="sh-container" dir={dir} ref={sentinelRef}>
       
-      {/* Banner (unchanged) */}
+      {/* Banner */}
       <div className="sh-banner-wrapper">
         {storeCover ? (
           <Image
@@ -126,21 +122,24 @@ const StoreHeader = ({
             </div>
             
             <div className="sh-identity-text">
-              {/* ✅ Dynamic H1 from generateStorePageTitle */}
-              <h1 className="sh-store-name">{h1}</h1>
+              {/*
+                ✅ FIX: Changed from <h1> to <h2>.
+                
+                The true page <h1> is computed in stores/[slug]/page.jsx via
+                generateStorePageTitle() and passed down as `pageH1`. That value
+                is what Google sees in the server-rendered HTML. Rendering a
+                second <h1> here (inside a client component that hydrates after
+                SSR) created a duplicate-H1 situation on every store page, which
+                dilutes the heading keyword signal and can confuse crawlers.
+                
+                <h2> is semantically correct here — it's the store identity
+                sub-heading within the hero section, subordinate to the page title.
+              */}
+              <h2 className="sh-store-name">{h1}</h2>
               
-              {/* ✅ Hero subtitle (stats) */}
               {heroSubtitle && (
                 <div className="sh-last-updated">{heroSubtitle}</div>
               )}
-              
-              {/* Last updated tag 
-              {lastUpdated && (
-                <div className="sh-last-updated">
-                  <span className="material-symbols-sharp">update</span>
-                  {lastUpdated}
-                </div>
-              )}*/}
               
               <div className="sh-meta-row">
                 {country?.name && (
@@ -153,7 +152,7 @@ const StoreHeader = ({
             </div>
           </div>
 
-          {/* Details column (unchanged) */}
+          {/* Details column */}
           <div className="sh-details-container">
             {storeDescription && (
               <div className="sh-description-wrapper">
