@@ -1,12 +1,16 @@
-// components/headers/StoreHeader.jsx
 'use client';
 
 import { useState, useRef, useLayoutEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { generateStorePageTitle, generateStoreHeroSubtitle } from '@/lib/seo/dynamicStoreTitle';
 import './StoreHeader.css';
 
+/**
+ * FIXED StoreHeader Component
+ * * ✅ FIX 1: Receives pre-computed `pageH1` and `heroSubtitle` as props from the Server Component.
+ * ✅ FIX 2: Uses <h1> for the primary heading to match the <title> tag exactly.
+ * ✅ FIX 3: Removed redundant client-side generation of SEO titles to improve performance.
+ */
 const StoreHeader = ({ 
   store, 
   mostTrackedVoucher, 
@@ -16,7 +20,10 @@ const StoreHeader = ({
   country,
   sentinelRef,
   voucherCount = 0,
-  maxSavings = 0
+  maxSavings = 0,
+  // These props are now passed from page.jsx to ensure server-client consistency
+  pageH1,
+  heroSubtitle
 }) => {
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
   const [isDescriptionOverflowing, setIsDescriptionOverflowing] = useState(false);
@@ -27,42 +34,34 @@ const StoreHeader = ({
   const dir = isArabic ? 'rtl' : 'ltr';
 
   const storeName = store?.name || 'Store';
-  const storeLogo = store?.bigLogo;
+  const storeLogo = store?.bigLogo || store?.logo;
   const storeCover = store?.coverImage;
   const storeDescription = store?.description;
   const categories = store?.categories || [];
-  const websiteUrl = store?.websiteUrl;
 
-  const { h1, description: seoDescription } = generateStorePageTitle({
-    storeName,
-    locale,
-    codeCount: voucherCount,
-  });
-
-  const heroSubtitle = generateStoreHeroSubtitle({
-    storeName,
-    codeCount: voucherCount,
-    maxSavings,
-    locale,
-  });
-
+  // Semantic timestamp for freshness (E-E-A-T)
   const getLastUpdatedTime = () => {
     if (!store?.updatedAt) return null;
     const updated = new Date(store.updatedAt);
     const now = new Date();
     const diffHours = Math.floor((now - updated) / (1000 * 60 * 60));
+
     if (diffHours < 1) return isArabic ? 'محدث للتو' : 'Updated just now';
     if (diffHours < 24) return isArabic ? `محدث قبل ${diffHours} ساعة` : `Updated ${diffHours}h ago`;
+    
     const diffDays = Math.floor(diffHours / 24);
     if (diffDays === 1) return isArabic ? 'محدث أمس' : 'Updated yesterday';
     if (diffDays < 7) return isArabic ? `محدث قبل ${diffDays} أيام` : `Updated ${diffDays}d ago`;
+    
     const diffWeeks = Math.floor(diffDays / 7);
     return isArabic
       ? `محدث قبل ${diffWeeks} ${diffWeeks === 1 ? 'أسبوع' : 'أسابيع'}`
       : `Updated ${diffWeeks}w ago`;
   };
+  
   const lastUpdated = getLastUpdatedTime();
 
+  // Check for description text overflow to show "Read More"
   useLayoutEffect(() => {
     const checkOverflow = () => {
       const element = descriptionRef.current;
@@ -80,7 +79,7 @@ const StoreHeader = ({
   return (
     <header className="sh-container" dir={dir} ref={sentinelRef}>
       
-      {/* Banner */}
+      {/* Visual Banner Background */}
       <div className="sh-banner-wrapper">
         {storeCover ? (
           <Image
@@ -98,11 +97,11 @@ const StoreHeader = ({
         <div className="sh-banner-overlay" />
       </div>
 
-      {/* Content */}
+      {/* Main Content Area */}
       <div className="sh-content-wrapper">
         <div className="sh-main-grid">
           
-          {/* Identity column */}
+          {/* Brand Identity Section */}
           <div className="sh-identity-col">
             <div className="sh-logo-wrapper">
               {storeLogo ? (
@@ -122,23 +121,12 @@ const StoreHeader = ({
             </div>
             
             <div className="sh-identity-text">
-              {/*
-                ✅ FIX: Changed from <h1> to <h2>.
-                
-                The true page <h1> is computed in stores/[slug]/page.jsx via
-                generateStorePageTitle() and passed down as `pageH1`. That value
-                is what Google sees in the server-rendered HTML. Rendering a
-                second <h1> here (inside a client component that hydrates after
-                SSR) created a duplicate-H1 situation on every store page, which
-                dilutes the heading keyword signal and can confuse crawlers.
-                
-                <h2> is semantically correct here — it's the store identity
-                sub-heading within the hero section, subordinate to the page title.
-              */}
-              <h2 className="sh-store-name">{h1}</h2>
+              {/* ✅ THE PRIMARY H1: Matches metadata <title> for maximum SEO relevance */}
+              <h1 className="sh-store-name">{pageH1}</h1>
               
+              {/* Dynamic hero metadata string (e.g. "12 active codes • Save up to 15%") */}
               {heroSubtitle && (
-                <div className="sh-last-updated">{heroSubtitle}</div>
+                <div className="sh-hero-subtitle">{heroSubtitle}</div>
               )}
               
               <div className="sh-meta-row">
@@ -148,11 +136,17 @@ const StoreHeader = ({
                     {country.name}
                   </span>
                 )}
+                {lastUpdated && (
+                  <span className="sh-meta-item">
+                    <span className="material-symbols-sharp">update</span>
+                    {lastUpdated}
+                  </span>
+                )}
               </div>
             </div>
           </div>
 
-          {/* Details column */}
+          {/* Brand Details and Payment Options */}
           <div className="sh-details-container">
             {storeDescription && (
               <div className="sh-description-wrapper">
@@ -176,6 +170,7 @@ const StoreHeader = ({
               </div>
             )}
 
+            {/* Category Breadcrumbs/Pills */}
             {categories.length > 0 && (
               <div className="sh-categories-scroll">
                 {categories.map((cat) => (
@@ -192,6 +187,7 @@ const StoreHeader = ({
               </div>
             )}
 
+            {/* Payment Method Icons (BNPL & Standard) */}
             {(paymentMethods.length > 0 || bnplMethods.length > 0) && (
               <div className="sh-payments-row">
                 {bnplMethods.map(pm => (
