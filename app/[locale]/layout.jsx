@@ -66,11 +66,16 @@ export async function generateMetadata({ params }) {
 
     manifest: isArabic ? '/manifest-ar.webmanifest' : '/manifest-en.webmanifest',
 
-    // ✅ FIX: removed languages object – only canonical remains.
-    // This prevents duplicate hreflang entries on every page.
-    alternates: {
-      canonical: `${BASE_URL}/${locale}`,
-    },
+    // ✅ FIX: Removed the `alternates` block that was present here.
+    //
+    // Previously this layout emitted:
+    //   alternates: { canonical: `${BASE_URL}/${locale}` }
+    //
+    // Because Next.js shallow-merges layout metadata with page metadata,
+    // that layout-level canonical was overriding the correct per-page
+    // canonical set in every store, category, blog, and coupons page —
+    // effectively telling Google that every page on the site canonicalizes
+    // to the homepage. Each page now owns its own canonical declaration.
 
     openGraph: {
       type:     'website',
