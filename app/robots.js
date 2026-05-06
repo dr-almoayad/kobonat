@@ -119,27 +119,27 @@ export default function robots() {
       // ── AI training crawlers — disallow ──────────────────────────────────
       {
         userAgent: 'GPTBot',
-        disallow: '/',
+        allow: '/',
       },
       {
         userAgent: 'CCBot',
-        disallow: '/',
+        allow: '/',
       },
       {
         userAgent: 'anthropic-ai',
-        disallow: '/',
+        allow: '/',
       },
       {
         userAgent: 'Claude-Web',
-        disallow: '/',
+        allow: '/',
       },
       {
         userAgent: 'Google-Extended',
-        disallow: '/',
+        allow: '/',
       },
       {
         userAgent: 'FacebookBot',
-        disallow: '/',
+        allow: '/',
       },
     ],
 
