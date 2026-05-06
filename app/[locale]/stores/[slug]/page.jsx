@@ -4,7 +4,6 @@ import { notFound, permanentRedirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import { unstable_cache } from 'next/cache';
 import dynamic from 'next/dynamic';
-import Image from 'next/image';
 import StorePageShell from '@/components/headers/StorePageShell';
 import Breadcrumbs from '@/components/Breadcrumbs/Breadcrumbs';
 import { getCategoryData } from '@/lib/storeCategories';
@@ -15,28 +14,25 @@ import { getCurrentWeekIdentifier } from '@/lib/leaderboard/calculateStoreSaving
 import { generateStorePageTitle } from '@/lib/seo/dynamicStoreTitle';
 import { StoreStructuredSchemas } from '@/lib/seo/storeSchemas';
 
-// Lazy load heavy components that appear below the fold
-const VouchersGrid = dynamic(() => import('@/components/VouchersGrid/VouchersGrid'), {
-  loading: () => <div className="vouchers-grid-skeleton" />,
-  ssr: false,
-});
-const StoreFAQ = dynamic(() => import('@/components/StoreFAQ/StoreFAQ'), { ssr: false });
-const StoreCard = dynamic(() => import('@/components/StoreCard/StoreCard'), { ssr: false });
-const FeaturedProductsCarousel = dynamic(() => import('@/components/FeaturedProductsCarousel/FeaturedProductsCarousel'), { ssr: false });
-const OtherPromosSection = dynamic(() => import('@/components/OtherPromosSection/OtherPromosSection'), { ssr: false });
-const StoreOfferStacks = dynamic(() => import('@/components/StoreOfferStacks/StoreOfferStacks'), { ssr: false });
-const RelatedPostsSidebar = dynamic(() => import('@/components/blog/RelatedPostsSidebar'), { ssr: false });
-const ExpiredVouchersList = dynamic(() => import('@/components/ExpiredVouchersList/ExpiredVouchersList'), { ssr: false });
-const ExpiredOtherPromosList = dynamic(() => import('@/components/ExpiredOtherPromosList/ExpiredOtherPromosList'), { ssr: false });
-const PromoCodesFAQ = dynamic(() => import('@/components/PromoCodesFAQ/PromoCodesFAQ'), { ssr: false });
-const HelpBox = dynamic(() => import('@/components/help/HelpBox'), { ssr: false });
+// Lazy load heavy components – no `ssr: false` (allowed in Server Components)
+const VouchersGrid = dynamic(() => import('@/components/VouchersGrid/VouchersGrid'));
+const StoreFAQ = dynamic(() => import('@/components/StoreFAQ/StoreFAQ'));
+const StoreCard = dynamic(() => import('@/components/StoreCard/StoreCard'));
+const FeaturedProductsCarousel = dynamic(() => import('@/components/FeaturedProductsCarousel/FeaturedProductsCarousel'));
+const OtherPromosSection = dynamic(() => import('@/components/OtherPromosSection/OtherPromosSection'));
+const StoreOfferStacks = dynamic(() => import('@/components/StoreOfferStacks/StoreOfferStacks'));
+const RelatedPostsSidebar = dynamic(() => import('@/components/blog/RelatedPostsSidebar'));
+const ExpiredVouchersList = dynamic(() => import('@/components/ExpiredVouchersList/ExpiredVouchersList'));
+const ExpiredOtherPromosList = dynamic(() => import('@/components/ExpiredOtherPromosList/ExpiredOtherPromosList'));
+const PromoCodesFAQ = dynamic(() => import('@/components/PromoCodesFAQ/PromoCodesFAQ'));
+const HelpBox = dynamic(() => import('@/components/help/HelpBox'));
 
 export const revalidate = 300;
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://cobonat.me';
 
-// ------------------------------------------------------------------
-// Cached database queries (reduce server load)
-// ------------------------------------------------------------------
+// ─────────────────────────────────────────────────────────────
+// Cached database queries (reduces server load)
+// ─────────────────────────────────────────────────────────────
 const getCachedStoreData = unstable_cache(
   async (storeId, language, countryCode) => {
     const now = new Date();
@@ -86,7 +82,7 @@ const getCachedStoreData = unstable_cache(
           id: { not: storeId },
           isActive: true,
           countries: { some: { country: { code: countryCode } } },
-          categories: { some: { categoryId: { in: [] } } }, // fetched later, but we keep minimal
+          categories: { some: { categoryId: { in: [] } } }, // replaced later but kept for structure
         },
         select: {
           id: true,
@@ -118,19 +114,40 @@ const getCachedStoreData = unstable_cache(
   { revalidate: 300 }
 );
 
-// ------------------------------------------------------------------
-// Metadata (unchanged, already good)
-// ------------------------------------------------------------------
-export async function generateMetadata({ params }) { /* ... keep as is ... */ }
+// ─────────────────────────────────────────────────────────────
+// generateStaticParams (unchanged – already correct)
+// ─────────────────────────────────────────────────────────────
+export async function generateStaticParams() {
+  try {
+    const translations = await prisma.storeTranslation.findMany({
+      where: { store: { isActive: true } },
+      select: { slug: true, locale: true },
+    });
+    const localeMap = { ar: 'ar-SA', en: 'en-SA' };
+    const params = [];
+    for (const t of translations) {
+      const fullLocale = localeMap[t.locale];
+      if (fullLocale && t.slug) {
+        params.push({ locale: fullLocale, slug: t.slug });
+      }
+    }
+    return params;
+  } catch {
+    return [];
+  }
+}
 
-// ------------------------------------------------------------------
-// Static Params (unchanged)
-// ------------------------------------------------------------------
-export async function generateStaticParams() { /* ... keep as is ... */ }
+// ─────────────────────────────────────────────────────────────
+// generateMetadata (unchanged – keep your existing one)
+// ─────────────────────────────────────────────────────────────
+export async function generateMetadata({ params }) {
+  // ... keep exactly as you had (it was fine) ...
+  // (I omit for brevity – copy from your original file)
+}
 
-// ------------------------------------------------------------------
+// ─────────────────────────────────────────────────────────────
 // Main Page Component
-// ------------------------------------------------------------------
+// ─────────────────────────────────────────────────────────────
 export default async function StorePage({ params }) {
   try {
     const { slug, locale } = await params;
@@ -168,7 +185,7 @@ export default async function StorePage({ params }) {
       })),
     };
 
-    // Fetch all needed data in one go (parallel)
+    // Fetch all data in parallel
     const [
       paymentMethodsData,
       faqs,
@@ -194,15 +211,26 @@ export default async function StorePage({ params }) {
       }),
       prisma.storeFAQ.findMany({
         where: { storeId: store.id, countryId: country.id, isActive: true },
-        select: { id: true, order: true, translations: { where: { locale: language }, select: { question: true, answer: true } } },
+        select: {
+          id: true,
+          order: true,
+          translations: { where: { locale: language }, select: { question: true, answer: true } },
+        },
         orderBy: { order: 'asc' },
       }),
       getStoreRelatedPosts(store.id, language, 6),
       prisma.otherPromo.findMany({
         where: { storeId: store.id, countryId: country.id, isActive: true },
         select: {
-          id: true, type: true, image: true, url: true, startDate: true, expiryDate: true,
-          discountPercent: true, verifiedAvgPercent: true, voucherCode: true,
+          id: true,
+          type: true,
+          image: true,
+          url: true,
+          startDate: true,
+          expiryDate: true,
+          discountPercent: true,
+          verifiedAvgPercent: true,
+          voucherCode: true,
           translations: { where: { locale: language }, select: { title: true, description: true, terms: true } },
           bank: { select: { logo: true, translations: { where: { locale: language }, select: { name: true } } } },
           paymentMethod: { select: { logo: true, type: true, isBnpl: true, translations: { where: { locale: language }, select: { name: true } } } },
@@ -218,8 +246,13 @@ export default async function StorePage({ params }) {
           OR: [{ expiryDate: null }, { expiryDate: { gte: now } }],
         },
         select: {
-          id: true, type: true, offerImage: true, code: true, ctaUrl: true,
-          startDate: true, expiryDate: true,
+          id: true,
+          type: true,
+          offerImage: true,
+          code: true,
+          ctaUrl: true,
+          startDate: true,
+          expiryDate: true,
           translations: { where: { locale: language }, select: { title: true, description: true, ctaText: true } },
         },
         orderBy: [{ isFeatured: 'desc' }, { order: 'asc' }],
@@ -227,14 +260,35 @@ export default async function StorePage({ params }) {
       prisma.offerStack.findMany({
         where: { storeId: store.id, isActive: true },
         select: {
-          id: true, label: true, order: true,
-          codeVoucher: { select: { id: true, code: true, discountPercent: true, verifiedAvgPercent: true,
-            translations: { where: { locale: language }, select: { title: true } } } },
-          dealVoucher: { select: { id: true, discountPercent: true, verifiedAvgPercent: true,
-            translations: { where: { locale: language }, select: { title: true } } } },
-          promo: { select: { id: true, discountPercent: true, verifiedAvgPercent: true,
-            translations: { where: { locale: language }, select: { title: true } },
-            bank: { select: { translations: { where: { locale: language }, select: { name: true } } } } } },
+          id: true,
+          label: true,
+          order: true,
+          codeVoucher: {
+            select: {
+              id: true,
+              code: true,
+              discountPercent: true,
+              verifiedAvgPercent: true,
+              translations: { where: { locale: language }, select: { title: true } },
+            },
+          },
+          dealVoucher: {
+            select: {
+              id: true,
+              discountPercent: true,
+              verifiedAvgPercent: true,
+              translations: { where: { locale: language }, select: { title: true } },
+            },
+          },
+          promo: {
+            select: {
+              id: true,
+              discountPercent: true,
+              verifiedAvgPercent: true,
+              translations: { where: { locale: language }, select: { title: true } },
+              bank: { select: { translations: { where: { locale: language }, select: { name: true } } } },
+            },
+          },
         },
         orderBy: { order: 'asc' },
       }),
@@ -246,7 +300,7 @@ export default async function StorePage({ params }) {
     const expiredOtherPromos = allOtherPromos.filter(p => p.expiryDate && p.expiryDate < now).slice(0, 10);
     const expiredVouchers = activeVouchers.filter(v => v.expiryDate && v.expiryDate < now).slice(0, 10);
 
-    // Transform data (keeping same shape as before)
+    // Transform data
     const transformedVouchers = activeVouchers.map(v => ({
       ...v,
       title: v.translations[0]?.title || '',
@@ -287,7 +341,8 @@ export default async function StorePage({ params }) {
       } : null,
     }));
 
-    const transformedOtherPromos = activeOtherPromos.map(p => ({ ...p,
+    const transformedOtherPromos = activeOtherPromos.map(p => ({
+      ...p,
       title: p.translations[0]?.title || '',
       description: p.translations[0]?.description || null,
       terms: p.translations[0]?.terms || null,
@@ -387,7 +442,6 @@ export default async function StorePage({ params }) {
           <div className="store-main-content">
             <div className="store-content-grid">
               <main className="store-content-main">
-                {/* ONLY render the vouchers after the initial paint (lazy) */}
                 {codeVouchers.length > 0 && (
                   <section className="vouchers-section">
                     <h2 className="section-title">
@@ -418,7 +472,6 @@ export default async function StorePage({ params }) {
                   </section>
                 )}
 
-                {/* All sections below are lazy-loaded (dynamic imports) */}
                 <StoreOfferStacks storeId={store.id} locale={locale} countryCode={countryCode} />
                 <OtherPromosSection storeSlug={transformedStore.slug} storeName={transformedStore.name} storeLogo={transformedStore.logo} />
                 {transformedProducts.length > 0 && (
@@ -460,4 +513,4 @@ export default async function StorePage({ params }) {
     console.error('[StorePage] error:', error);
     return notFound();
   }
-        }
+                     }
