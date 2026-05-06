@@ -41,7 +41,7 @@ export async function generateMetadata({ params, searchParams: rawSearchParams }
 
   return {
     metadataBase: new URL(BASE_URL),
-    applicationName: isAr ? 'كوبونات' : 'Cobonat',
+    applicationName: 'كوبونات',
     title,
     description,
     keywords: isAr
@@ -97,7 +97,7 @@ export async function generateMetadata({ params, searchParams: rawSearchParams }
     },
 
     openGraph: {
-      siteName:    isAr ? 'كوبونات' : 'Cobonat',
+      siteName: 'كوبونات',
       title,
       description,
       url:         canonicalUrl,
@@ -205,8 +205,8 @@ const CouponsPage = async ({ params, searchParams: rawSearchParams }) => {
                 <h1>{t('pageTitle')}</h1>
                 <p className="subtitle">
                   {isAr
-                    ? `${activeVouchers} كوبون نشط متاح في ${normalizedCountryCode}`
-                    : `${activeVouchers} active coupons available in ${normalizedCountryCode}`}
+                    ? `${activeVouchers} كوبون نشط متاح في السعودية`
+                    : `${activeVouchers} active coupons available in Saudi Arabia`}
                 </p>
               </div>
 
@@ -254,8 +254,8 @@ const CouponsPage = async ({ params, searchParams: rawSearchParams }) => {
             vouchers={transformedVouchers}
             emptyMessage={
               isAr
-                ? `لا توجد كوبونات متاحة حالياً في ${normalizedCountryCode}`
-                : `No coupons available at the moment in ${normalizedCountryCode}`
+                ? `لا توجد كوبونات متاحة حالياً في السعودية`
+                : `No coupons available at the moment in Saudi Arabia`
             }
           />
         </div>
