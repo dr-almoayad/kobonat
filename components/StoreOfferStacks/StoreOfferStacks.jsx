@@ -16,7 +16,7 @@ export default async function StoreOfferStacks({ storeId, locale, countryCode = 
       storeId,
       countryCode,
       language: lang,
-      limit:    4, // at most 4 stacks per store
+      limit:    20, // at most 4 stacks per store
     });
   } catch (err) {
     console.error('[StoreOfferStacks] build error:', err?.message);
