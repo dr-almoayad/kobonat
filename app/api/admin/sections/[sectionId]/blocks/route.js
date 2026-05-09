@@ -1,11 +1,6 @@
 // app/api/admin/sections/[sectionId]/blocks/route.js
-//
-// Standalone section blocks route — does NOT require postId in the URL.
-// This lets SectionBlocksEditor call /api/admin/sections/[sectionId]/blocks
-// directly without knowing the parent postId.
-//
 // GET  — list blocks for a section
-// POST — create a block
+// POST — create a block (now supports VOUCHER and PROMO types)
 
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
@@ -41,7 +36,25 @@ const BLOCK_INCLUDE = {
   product: { include: { translations: { where: { locale: 'en' } } } },
   store:   { include: { translations: { where: { locale: 'en' } } } },
   bank:    { include: { translations: { where: { locale: 'en' } } } },
-  card:    { include: { translations: { where: { locale: 'en' }, bank: { include: { translations: { where: { locale: 'en' } } } } } } },
+  card:    {
+    include: {
+      translations: { where: { locale: 'en' } },
+      bank: { include: { translations: { where: { locale: 'en' } } } },
+    },
+  },
+  voucher: {
+    include: {
+      translations: { where: { locale: 'en' } },
+      store: { include: { translations: { where: { locale: 'en' } } } },
+    },
+  },
+  promo: {
+    include: {
+      translations: { where: { locale: 'en' } },
+      store: { include: { translations: { where: { locale: 'en' } } } },
+      bank:  { include: { translations: { where: { locale: 'en' } } } },
+    },
+  },
 };
 
 export async function GET(req, { params }) {
@@ -60,13 +73,18 @@ export async function POST(req, { params }) {
   if (!await requireAdmin()) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   const { sectionId } = await params;
   const body = await req.json();
-  const { type, order = 0, textEn, textAr, postId, tableId, productId, storeId, bankId, cardId } = body;
+  const {
+    type, order = 0,
+    textEn, textAr,
+    postId, tableId, productId, storeId, bankId, cardId,
+    voucherId, promoId,   // NEW
+  } = body;
 
   if (!type) return NextResponse.json({ error: 'type is required' }, { status: 400 });
 
   const block = await prisma.sectionBlock.create({
     data: {
-      sectionId: parseInt(sectionId),
+      sectionId:  parseInt(sectionId),
       type,
       order,
       textEn:    textEn    || null,
@@ -77,6 +95,8 @@ export async function POST(req, { params }) {
       storeId:   storeId   ? parseInt(storeId)   : null,
       bankId:    bankId    ? parseInt(bankId)    : null,
       cardId:    cardId    ? parseInt(cardId)    : null,
+      voucherId: voucherId ? parseInt(voucherId) : null,   // NEW
+      promoId:   promoId   ? parseInt(promoId)   : null,   // NEW
     },
     include: BLOCK_INCLUDE,
   });
