@@ -1,6 +1,5 @@
 // app/api/admin/sections/[sectionId]/blocks/[blockId]/route.js
-//
-// PATCH  — update a block (text, entity link, order)
+// PATCH  — update a block
 // DELETE — delete a block
 
 import { NextResponse } from 'next/server';
@@ -15,18 +14,41 @@ async function requireAdmin() {
 
 const BLOCK_INCLUDE = {
   post:    { include: { translations: { where: { locale: 'en' } } } },
-  table:   { include: { translations: true, columns: { include: { translations: true } }, rows: { include: { translations: true } } } },
+  table:   {
+    include: {
+      translations: true,
+      columns: { include: { translations: true } },
+      rows:    { include: { translations: true } },
+    },
+  },
   product: { include: { translations: { where: { locale: 'en' } } } },
   store:   { include: { translations: { where: { locale: 'en' } } } },
   bank:    { include: { translations: { where: { locale: 'en' } } } },
   card:    { include: { translations: { where: { locale: 'en' } } } },
+  voucher: {
+    include: {
+      translations: { where: { locale: 'en' } },
+      store: { include: { translations: { where: { locale: 'en' } } } },
+    },
+  },
+  promo: {
+    include: {
+      translations: { where: { locale: 'en' } },
+      store: { include: { translations: { where: { locale: 'en' } } } },
+      bank:  { include: { translations: { where: { locale: 'en' } } } },
+    },
+  },
 };
 
 export async function PATCH(req, { params }) {
   if (!await requireAdmin()) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   const { blockId } = await params;
   const body = await req.json();
-  const { order, textEn, textAr, postId, tableId, productId, storeId, bankId, cardId } = body;
+  const {
+    order, textEn, textAr,
+    postId, tableId, productId, storeId, bankId, cardId,
+    voucherId, promoId,   // NEW
+  } = body;
 
   const data = {};
   if (order     !== undefined) data.order     = parseInt(order);
@@ -38,6 +60,8 @@ export async function PATCH(req, { params }) {
   if (storeId   !== undefined) data.storeId   = storeId   ? parseInt(storeId)   : null;
   if (bankId    !== undefined) data.bankId    = bankId    ? parseInt(bankId)    : null;
   if (cardId    !== undefined) data.cardId    = cardId    ? parseInt(cardId)    : null;
+  if (voucherId !== undefined) data.voucherId = voucherId ? parseInt(voucherId) : null;  // NEW
+  if (promoId   !== undefined) data.promoId   = promoId   ? parseInt(promoId)   : null;  // NEW
 
   const block = await prisma.sectionBlock.update({
     where:   { id: parseInt(blockId) },
