@@ -172,6 +172,8 @@ enum SectionBlockType {
   STORE
   BANK
   CARD
+  VOUCHER   // NEW
+  PROMO     // NEW
 }
 
 // ============================================================================
@@ -406,6 +408,9 @@ model Voucher {
   // STEP 1 — ADDED BACK-RELATION
   directCategories VoucherCategory[]
 
+  // STEP 2 — Section block embeds (NEW)
+  embeddedInSectionBlocks SectionBlock[] @relation("SectionEmbeddedVouchers")
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -556,6 +561,9 @@ model OtherPromo {
 
   // STEP 1 — ADDED BACK-RELATION
   directCategories OtherPromoCategory[]
+
+  // STEP 2 — Section block embeds (NEW)
+  embeddedInSectionBlocks SectionBlock[] @relation("SectionEmbeddedPromos")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1523,7 +1531,7 @@ model ComparisonTableCell {
 }
 
 // ============================================================================
-// SECTION BLOCKS
+// SECTION BLOCKS — UPDATED with Voucher & Promo support
 // ============================================================================
 
 model SectionBlock {
@@ -1543,6 +1551,8 @@ model SectionBlock {
   storeId   Int?
   bankId    Int?
   cardId    Int?
+  voucherId Int?   // NEW — for VOUCHER type
+  promoId   Int?   // NEW — for PROMO type
 
   section BlogPostSection  @relation(fields: [sectionId], references: [id], onDelete: Cascade)
   post    BlogPost?        @relation("SectionEmbeddedPosts",    fields: [postId],    references: [id], onDelete: SetNull)
@@ -1551,6 +1561,8 @@ model SectionBlock {
   store   Store?           @relation("SectionEmbeddedStores",   fields: [storeId],   references: [id], onDelete: SetNull)
   bank    Bank?            @relation("SectionEmbeddedBanks",    fields: [bankId],    references: [id], onDelete: SetNull)
   card    BankCard?        @relation("SectionEmbeddedCards",    fields: [cardId],    references: [id], onDelete: SetNull)
+  voucher Voucher?         @relation("SectionEmbeddedVouchers", fields: [voucherId], references: [id], onDelete: SetNull)  // NEW
+  promo   OtherPromo?      @relation("SectionEmbeddedPromos",   fields: [promoId],   references: [id], onDelete: SetNull)  // NEW
 
   @@index([sectionId, order])
   @@index([type])
@@ -1679,16 +1691,8 @@ model SeasonalPageBlogPost {
 }
 
 // ============================================================================
-// STEP 2 — DIRECT CATEGORY JUNCTION MODELS
+// DIRECT CATEGORY JUNCTION MODELS
 // ============================================================================
-
-// Direct item → Category tagging.
-// Allows featuring specific Vouchers, OfferStacks, StoreProducts, and OtherPromos
-// on Category pages independently of their store's category membership.
-//
-// isFeatured — controls whether the item appears in the "Featured" strip at the
-//              top of the category page (vs. appearing in the general pool).
-// order      — sort priority within the category page section (lower = first).
 
 model VoucherCategory {
   voucherId  Int
