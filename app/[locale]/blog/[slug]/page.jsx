@@ -1,9 +1,13 @@
 // app/[locale]/blog/[slug]/page.jsx
-// Renders blog post content as an ordered list of blocks:
-//   SECTION  → text + optional image + products + store chips
-//   TABLE    → ComparisonTable component
-//   EMBED    → EmbeddedPostCard component
-// Blocks without a blockLayout entry are appended in creation order (back-compat).
+// Renders blog post content as an ordered list of sections.
+// Each section may contain:
+//   - rich text (HTML)
+//   - image
+//   - legacy product/store lists (deprecated)
+//   - rich embeddable blocks (SectionBlock) of any type (TEXT, VOUCHER, PROMO, STORE, PRODUCT, POST, TABLE, BANK, CARD)
+//
+// The order of blocks inside a section is determined by the `order` field on SectionBlock.
+// No cross‑section block layout is applied – each section's blocks are rendered in order within that section.
 
 import { prisma } from '@/lib/prisma';
 import { notFound } from 'next/navigation';
@@ -12,8 +16,6 @@ import Link from 'next/link';
 import BlogPostStructuredData from '@/components/StructuredData/BlogPostStructuredData';
 import RelatedPostsSidebar from '@/components/blog/RelatedPostsSidebar';
 import StoreCard from '@/components/StoreCard/StoreCard';
-import ComparisonTable from '@/components/blog/ComparisonTable/ComparisonTable';
-import EmbeddedPostCard from '@/components/blog/EmbeddedPostCard/EmbeddedPostCard';
 import SectionBlockRenderer from '@/components/blog/SectionBlockRenderer/SectionBlockRenderer';
 import './BlogPost.css';
 
@@ -79,7 +81,7 @@ export async function generateMetadata({ params }) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Data fetch
+// Data fetch – includes all relations needed for rich blocks
 // ─────────────────────────────────────────────────────────────────────────────
 async function getPost(slug, lang) {
   return prisma.blogPost.findUnique({
@@ -93,11 +95,12 @@ async function getPost(slug, lang) {
       },
       tags: { include: { tag: { include: { translations: { where: { locale: lang } } } } } },
 
-      // Sections
+      // Sections – each section can have its own rich blocks
       sections: {
         orderBy: { order: 'asc' },
         include: {
           translations: { where: { locale: lang } },
+          // Legacy product/store lists (deprecated, but kept for backward compatibility)
           products: {
             orderBy: { order: 'asc' },
             include: {
@@ -114,10 +117,11 @@ async function getPost(slug, lang) {
               },
             },
           },
-          // Rich embeddable blocks with ordering
+          // New rich embeddable blocks (ordered within section)
           sectionBlocks: {
             orderBy: { order: 'asc' },
             include: {
+              // Post embed
               post: {
                 include: {
                   translations:  { where: { locale: lang } },
@@ -125,50 +129,61 @@ async function getPost(slug, lang) {
                   category:      { include: { translations: { where: { locale: lang } } } },
                 },
               },
+              // Comparison table embed
               table: {
                 include: {
-                  translations: { where: { locale: lang } }, // Fix
+                  translations: { where: { locale: lang } },
                   columns: {
                     orderBy: { order: 'asc' },
                     include: {
-                      translations: { where: { locale: lang } }, // Fix
+                      translations: { where: { locale: lang } },
                       cells: true,
-                      store:    { include: { translations: { where: { locale: lang } } } }, // Fix
-                      bank:     { include: { translations: { where: { locale: lang } } } }, // Fix
-                      bankCard: { include: { translations: { where: { locale: lang } } } }, // Fix
+                      store:    { include: { translations: { where: { locale: lang } } } },
+                      bank:     { include: { translations: { where: { locale: lang } } } },
+                      bankCard: { include: { translations: { where: { locale: lang } } } },
                     },
                   },
                   rows: {
                     orderBy: { order: 'asc' },
-                    include: { 
-                      translations: { where: { locale: lang } }, // Fix
-                      cells: true 
+                    include: {
+                      translations: { where: { locale: lang } },
+                      cells: true,
                     },
                   },
                 },
               },
+              // Product embed
               product: { include: { translations: { where: { locale: lang } } } },
-              store:   { include: { translations: { where: { locale: lang } } } }, // Fix
-              bank:    { include: { translations: { where: { locale: lang } } } }, // Fix
+              // Store embed
+              store:   { include: { translations: { where: { locale: lang } } } },
+              // Bank embed
+              bank:    { include: { translations: { where: { locale: lang } } } },
+              // Credit card embed
               card:    {
                 include: {
-                  translations: { where: { locale: lang } }, // Fix
-                  bank: { include: { translations: { where: { locale: lang } } } }, // Fix
+                  translations: { where: { locale: lang } },
+                  bank: { include: { translations: { where: { locale: lang } } } },
+                },
+              },
+              // Voucher embed (coupon / deal)
+              voucher: {
+                include: {
+                  translations: { where: { locale: lang } },
+                  store: { include: { translations: { where: { locale: lang } } } },
+                },
+              },
+              // Bank/payment promo embed
+              promo: {
+                include: {
+                  translations: { where: { locale: lang } },
+                  store: { include: { translations: { where: { locale: lang } } } },
+                  bank:  { include: { translations: { where: { locale: lang } } } },
                 },
               },
             },
           },
         },
       },
-
-      // Comparison tables
-      comparisonTables: {
-        include: { translations: true }, // load all locales — ComparisonTable picks the right one
-        orderBy: { id: 'asc' },
-      },
-
-      // Embedded post cards
-      
 
       // Sidebar: linked stores
       linkedStores: {
@@ -188,7 +203,7 @@ async function getPost(slug, lang) {
         },
       },
 
-      // Sidebar: related posts
+      // Sidebar: related posts (explicitly linked)
       relatedPosts: {
         orderBy: { order: 'asc' },
         take:    4,
@@ -207,67 +222,7 @@ async function getPost(slug, lang) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Block ordering
-// Merges blockLayout (if present) with all known blocks.
-// Blocks missing from the layout are appended at the end.
-// ─────────────────────────────────────────────────────────────────────────────
-function buildOrderedBlocks(post) {
-  const allSections = post.sections   || [];
-  const allTables   = post.comparisonTables || [];
-  const allEmbeds   = post.embeddedCards    || [];
-
-  let layout = [];
-  if (post.blockLayout) {
-    try { layout = JSON.parse(post.blockLayout); } catch {}
-  }
-
-  if (!layout.length) {
-    // No layout — original order: sections → tables → embeds
-    return [
-      ...allSections.map(s => ({ type: 'SECTION', id: s.id, data: s })),
-      ...allTables.map(t => ({ type: 'TABLE',   id: t.id, data: t })),
-      ...allEmbeds.map(e => ({ type: 'EMBED',   id: e.id, data: e })),
-    ];
-  }
-
-  // Map all items by type+id for quick lookup
-  const sectionMap = Object.fromEntries(allSections.map(s => [s.id, s]));
-  const tableMap   = Object.fromEntries(allTables.map(t => [t.id, t]));
-  const embedMap   = Object.fromEntries(allEmbeds.map(e => [e.id, e]));
-
-  const used = { SECTION: new Set(), TABLE: new Set(), EMBED: new Set() };
-  const ordered = [];
-
-  for (const block of layout) {
-    const { type, id } = block;
-    if (type === 'SECTION' && sectionMap[id]) {
-      ordered.push({ type, id, data: sectionMap[id] });
-      used.SECTION.add(id);
-    } else if (type === 'TABLE' && tableMap[id]) {
-      ordered.push({ type, id, data: tableMap[id] });
-      used.TABLE.add(id);
-    } else if (type === 'EMBED' && embedMap[id]) {
-      ordered.push({ type, id, data: embedMap[id] });
-      used.EMBED.add(id);
-    }
-  }
-
-  // Append anything not referenced in the layout
-  allSections.filter(s => !used.SECTION.has(s.id)).forEach(s =>
-    ordered.push({ type: 'SECTION', id: s.id, data: s })
-  );
-  allTables.filter(t => !used.TABLE.has(t.id)).forEach(t =>
-    ordered.push({ type: 'TABLE', id: t.id, data: t })
-  );
-  allEmbeds.filter(e => !used.EMBED.has(e.id)).forEach(e =>
-    ordered.push({ type: 'EMBED', id: e.id, data: e })
-  );
-
-  return ordered;
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Store card transform
+// Store card transformer for sidebar
 // ─────────────────────────────────────────────────────────────────────────────
 function transformStore(ls) {
   const st = ls.store;
@@ -283,14 +238,14 @@ function transformStore(ls) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Section renderer (extracted to keep JSX clean)
+// Section renderer – displays the section's content (text, image, legacy items)
+// and then the rich blocks (ordered)
 // ─────────────────────────────────────────────────────────────────────────────
 function SectionBlock({ section, locale }) {
   const lang = locale.split('-')[0];
   const st   = section.translations?.[0] || {};
 
-  // Check if the section has rich blocks
-  const hasBlocks = section.sectionBlocks?.length > 0;
+  const hasRichBlocks = section.sectionBlocks?.length > 0;
 
   return (
     <section className="bp-section">
@@ -307,20 +262,20 @@ function SectionBlock({ section, locale }) {
         </div>
       )}
 
-      {/* ── Always render the main content if it exists ── */}
+      {/* Primary HTML content (rich text) */}
       {st.content && (
         <div className="blog-content" dangerouslySetInnerHTML={{ __html: st.content }} />
       )}
 
-      {hasBlocks ? (
-        /* ── Rich block content ── */
+      {hasRichBlocks ? (
+        /* ── New block‑based content (vouchers, promos, stores, etc.) ── */
         <div className="bp-section-blocks">
           {section.sectionBlocks.map(block => (
             <SectionBlockRenderer key={block.id} block={block} locale={locale} />
           ))}
         </div>
       ) : (
-        /* ── Legacy fallback items (products/stores) if no blocks exist ── */
+        /* ── Legacy fallback: product grid + store chips (deprecated) ── */
         <>
           {section.products?.length > 0 && (
             <div className="bp-product-grid">
@@ -377,7 +332,7 @@ function SectionBlock({ section, locale }) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Page
+// Page component
 // ─────────────────────────────────────────────────────────────────────────────
 export default async function BlogPostPage({ params }) {
   const { locale, slug } = await params;
@@ -396,7 +351,7 @@ export default async function BlogPostPage({ params }) {
     ? new Intl.DateTimeFormat(locale, { year: 'numeric', month: 'long', day: 'numeric' }).format(new Date(post.publishedAt))
     : '';
 
-  // ── Related posts fallback ──────────────────────────────────────────────
+  // ── Related posts (explicit + fallback) ─────────────────────────────────
   const explicitRelated = (post.relatedPosts || [])
     .filter(rp => rp.relatedPost?.status === 'PUBLISHED')
     .map(rp => {
@@ -464,9 +419,6 @@ export default async function BlogPostPage({ params }) {
   if (post.faqJson) {
     try { faqItems = JSON.parse(post.faqJson); } catch {}
   }
-
-  // ── Ordered blocks ───────────────────────────────────────────────────────
-  const blocks = buildOrderedBlocks(post);
 
   const hasLinkedStores = post.linkedStores?.length > 0;
   const hasRelated      = relatedPosts.filter(p => p.title).length > 0;
@@ -557,44 +509,21 @@ export default async function BlogPostPage({ params }) {
             {/* Lead excerpt */}
             {t.excerpt && <p className="bp-excerpt">{t.excerpt}</p>}
 
-            {/* Main body */}
+            {/* Main body (first HTML block – legacy) */}
             {t.content && (
               <div className="blog-content" dangerouslySetInnerHTML={{ __html: t.content }} />
             )}
 
-            {/* ── Ordered content blocks ── */}
-            {blocks.length > 0 && (
+            {/* ── Sections with their embedded blocks ── */}
+            {post.sections?.length > 0 && (
               <div className="bp-sections">
-                {blocks.map(block => {
-                  if (block.type === 'SECTION') {
-                    return (
-                      <SectionBlock
-                        key={`section-${block.id}`}
-                        section={block.data}
-                        locale={locale}
-                      />
-                    );
-                  }
-                  if (block.type === 'TABLE') {
-                    return (
-                      <ComparisonTable
-                        key={`table-${block.id}`}
-                        table={block.data}
-                        locale={locale}
-                      />
-                    );
-                  }
-                  if (block.type === 'EMBED') {
-                    return (
-                      <EmbeddedPostCard
-                        key={`embed-${block.id}`}
-                        embed={block.data}
-                        locale={locale}
-                      />
-                    );
-                  }
-                  return null;
-                })}
+                {post.sections.map(section => (
+                  <SectionBlock
+                    key={section.id}
+                    section={section}
+                    locale={locale}
+                  />
+                ))}
               </div>
             )}
 
@@ -631,7 +560,7 @@ export default async function BlogPostPage({ params }) {
               </div>
             )}
 
-            {/* Author */}
+            {/* Author bio */}
             {post.author && authorBio && (
               <div className="bp-author">
                 {post.author.avatar && (
