@@ -1,109 +1,126 @@
 // app/api/homepage/route.js
+// Returns top vouchers and stores for the homepage.
+// Uses the translation-based schema (StoreTranslation / VoucherTranslation).
+// The previous version referenced name_en, name_ar, title_en, etc. which do
+// not exist in the Prisma schema, causing runtime errors.
+
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
-    const locale = searchParams.get('locale') || 'en';
+    const locale   = searchParams.get('locale') || 'ar';
+    const language = locale.split('-')[0]; // 'ar-SA' → 'ar'
 
-    // Get top 25 vouchers (most used, active, and relevant)
+    // ── Top 25 vouchers ───────────────────────────────────────────────────────
     const topVouchers = await prisma.voucher.findMany({
       where: {
-        isActive: true,
-        expiryDate: {
-          gte: new Date()
-        }
+        store:    { isActive: true },
+        OR: [{ expiryDate: null }, { expiryDate: { gte: new Date() } }],
       },
       include: {
+        translations: {
+          where:  { locale: language },
+          select: { title: true, description: true },
+        },
         store: {
           select: {
-            id: true,
-            name_en: true,
-            name_ar: true,
-            slug: true,
+            id:   true,
             logo: true,
-            websiteUrl: true
-          }
+            websiteUrl: true,
+            translations: {
+              where:  { locale: language },
+              select: { name: true, slug: true },
+            },
+          },
         },
-        _count: {
-          select: {
-            clicks: true
-          }
-        }
+        _count: { select: { clicks: true } },
       },
       orderBy: [
-        { _count: { clicks: 'desc' } },
-        { createdAt: 'desc' }
+        { popularityScore: 'desc' },
+        { createdAt:       'desc' },
       ],
-      take: 25
+      take: 25,
     });
 
-    // Get top 10 stores (most vouchers, active)
+    // ── Top 10 stores ─────────────────────────────────────────────────────────
     const topStores = await prisma.store.findMany({
-      where: {
-        isActive: true
-      },
+      where: { isActive: true },
       include: {
+        translations: {
+          where:  { locale: language },
+          select: { name: true, slug: true, description: true, showOffer: true },
+        },
         _count: {
           select: {
             vouchers: {
               where: {
-                isActive: true,
-                expiryDate: {
-                  gte: new Date()
-                }
-              }
-            }
-          }
-        }
+                OR: [{ expiryDate: null }, { expiryDate: { gte: new Date() } }],
+              },
+            },
+          },
+        },
       },
       orderBy: [
-        { _count: { vouchers: 'desc' } },
-        { name_en: 'asc' }
+        { isFeatured: 'desc' },
+        { id:         'asc'  },
       ],
-      take: 10
+      take: 10,
     });
 
-    // Format the data for the frontend
-    const formattedVouchers = topVouchers.map(voucher => ({
-      id: voucher.id,
-      title: locale === 'ar' ? voucher.title_ar : voucher.title_en,
-      description: locale === 'ar' ? voucher.description_ar : voucher.description_en,
-      code: voucher.code,
-      discount: voucher.discount,
-      discountType: voucher.discountType,
-      type: voucher.type,
-      expiryDate: voucher.expiryDate,
-      minPurchase: voucher.minPurchase,
-      landingUrl: voucher.landingUrl,
-      store: voucher.store,
-      clicks: voucher._count.clicks,
-      isVerified: voucher.isVerified,
-      isFeatured: voucher.isFeatured
-    }));
+    // ── Transform ─────────────────────────────────────────────────────────────
+    const formattedVouchers = topVouchers.map(voucher => {
+      const vt = voucher.translations[0] || {};
+      const st = voucher.store?.translations[0] || {};
+      return {
+        id:           voucher.id,
+        title:        vt.title       || '',
+        description:  vt.description || null,
+        code:         voucher.code,
+        discount:     voucher.discount,
+        discountType: voucher.discountType ?? null,
+        type:         voucher.type,
+        expiryDate:   voucher.expiryDate,
+        landingUrl:   voucher.landingUrl,
+        isVerified:   voucher.isVerified,
+        isExclusive:  voucher.isExclusive,
+        clicks:       voucher._count.clicks,
+        store: voucher.store ? {
+          id:         voucher.store.id,
+          name:       st.name || '',
+          slug:       st.slug || '',
+          logo:       voucher.store.logo,
+          websiteUrl: voucher.store.websiteUrl,
+        } : null,
+      };
+    });
 
-    const formattedStores = topStores.map(store => ({
-      id: store.id,
-      name: locale === 'ar' ? store.name_ar : store.name_en,
-      slug: store.slug,
-      logo: store.logo,
-      websiteUrl: store.websiteUrl,
-      description: locale === 'ar' ? store.description_ar : store.description_en,
-      voucherCount: store._count.vouchers,
-      isVerified: store.isVerified,
-      isFeatured: store.isFeatured
-    }));
+    const formattedStores = topStores.map(store => {
+      const t = store.translations[0] || {};
+      return {
+        id:           store.id,
+        name:         t.name        || '',
+        slug:         t.slug        || '',
+        description:  t.description || null,
+        showOffer:    t.showOffer   || null,
+        logo:         store.logo,
+        websiteUrl:   store.websiteUrl,
+        isVerified:   store.isVerified  ?? false,
+        isFeatured:   store.isFeatured,
+        voucherCount: store._count.vouchers,
+      };
+    });
 
     return NextResponse.json({
-      vouchers: formattedVouchers,
-      stores: formattedStores,
+      vouchers:      formattedVouchers,
+      stores:        formattedStores,
       totalVouchers: formattedVouchers.length,
-      totalStores: formattedStores.length
+      totalStores:   formattedStores.length,
     });
 
   } catch (error) {
-    console.error('Homepage data fetch error:', error);
+    console.error('[/api/homepage] error:', error);
     return NextResponse.json(
       { error: 'Failed to fetch homepage data' },
       { status: 500 }
