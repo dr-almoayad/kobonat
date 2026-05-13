@@ -3,21 +3,20 @@ import { defineRouting } from 'next-intl/routing';
 import { allLocaleCodes } from './locales';
 
 export const routing = defineRouting({
-  locales: allLocaleCodes,
+  locales: allLocaleCodes, // only ar-SA, en-SA
   defaultLocale: 'ar-SA',
   localePrefix: 'always',
   localeDetection: false,
-
   pathnames: {
     '/': '/',
     '/coupons': '/coupons',
     '/stores': '/stores',
     '/stores/[slug]': '/stores/[slug]',
-
-    // ← NEW: dedicated category routes
     '/categories': '/categories',
     '/categories/[slug]': '/categories/[slug]',
-
+    '/stacks': '/stacks',                           // ✅ added
+    '/bank-and-payment-offers': '/bank-and-payment-offers', // ✅ added
+    '/seasonal/[slug]': '/seasonal/[slug]',         // ✅ added
     '/search': '/search',
     '/blog': '/blog',
     '/blog/[slug]': '/blog/[slug]',
