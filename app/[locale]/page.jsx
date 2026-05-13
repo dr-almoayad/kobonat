@@ -316,7 +316,7 @@ export default async function Home({ params }) {
         <HeroBestOffersCarousel />
 
         {/* Featured Stores */}
-        <FeaturedStoresSection locale={locale} />
+        <FeaturedStoresCarousel locale={locale} />
 
         {/* Stackable Offers */}
         <OfferStacksSection locale={locale} countryCode={country} />
