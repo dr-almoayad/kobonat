@@ -22,6 +22,11 @@ const geistMono  = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"
 const BASE_URL           = process.env.NEXT_PUBLIC_BASE_URL || 'https://cobonat.me';
 const GA_MEASUREMENT_ID  = 'G-EFNHSXWE0M';
 
+// ── Material Symbols ──────────────────────────────────────────────────────────
+// Loaded as a synchronous stylesheet so icons are available on first paint.
+// Previously this was deferred via a JS script, which caused icons to render
+// as raw text (e.g. "storefront", "local_offer") until JavaScript ran —
+// producing a Cumulative Layout Shift that hurt Core Web Vitals rankings.
 const MATERIAL_SYMBOLS_URL =
   'https://fonts.googleapis.com/css2?family=Material+Symbols+Sharp:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap';
 
@@ -64,17 +69,6 @@ export async function generateMetadata({ params }) {
     },
 
     manifest: isArabic ? '/manifest-ar.webmanifest' : '/manifest-en.webmanifest',
-
-    // ✅ FIX: Removed the `alternates` block that was present here.
-    //
-    // Previously this layout emitted:
-    //   alternates: { canonical: `${BASE_URL}/${locale}` }
-    //
-    // Because Next.js shallow-merges layout metadata with page metadata,
-    // that layout-level canonical was overriding the correct per-page
-    // canonical set in every store, category, blog, and coupons page —
-    // effectively telling Google that every page on the site canonicalizes
-    // to the homepage. Each page now owns its own canonical declaration.
 
     openGraph: {
       type:     'website',
@@ -141,11 +135,20 @@ export default async function LocaleLayout({ children, params }) {
   return (
     <html lang={locale} dir={isArabic ? 'rtl' : 'ltr'}>
       <head>
+        {/* Preconnect to Google Fonts servers for faster resolution */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+
+        {/*
+          Material Symbols — loaded as a blocking stylesheet so icons are
+          available on the very first paint. The previous approach deferred
+          this via a JS script (strategy="afterInteractive"), which caused
+          icons to render as raw text until JS executed, producing layout
+          shift and failing Core Web Vitals. Loading it here is the correct
+          pattern recommended by Google Fonts for icon fonts.
+        */}
         <link
-          rel="preload"
-          as="style"
+          rel="stylesheet"
           href={MATERIAL_SYMBOLS_URL}
           crossOrigin="anonymous"
         />
@@ -182,23 +185,7 @@ export default async function LocaleLayout({ children, params }) {
           </SessionProviderWrapper>
         </NextIntlClientProvider>
 
-        <Script id="material-symbols-activate" strategy="afterInteractive">
-          {`
-            (function () {
-              var preload = document.querySelector('link[rel="preload"][href*="Material+Symbols"]');
-              if (preload) {
-                preload.rel = 'stylesheet';
-              } else {
-                var link = document.createElement('link');
-                link.rel = 'stylesheet';
-                link.href = '${MATERIAL_SYMBOLS_URL}';
-                link.crossOrigin = 'anonymous';
-                document.head.appendChild(link);
-              }
-            })();
-          `}
-        </Script>
-
+        {/* Google Analytics */}
         <Script
           src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
           strategy="lazyOnload"
@@ -211,6 +198,8 @@ export default async function LocaleLayout({ children, params }) {
             gtag('config', '${GA_MEASUREMENT_ID}');
           `}
         </Script>
+
+        {/* Trustpilot widget bootstrap */}
         <Script
           src="https://widget.trustpilot.com/bootstrap/v5/tp.widget.bootstrap.min.js"
           strategy="lazyOnload"
