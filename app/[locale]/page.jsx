@@ -91,7 +91,6 @@ export default async function Home({ params }) {
   const currentWeek  = getCurrentWeekIdentifier();
   const isArabic     = language === 'ar';
 
-  // ── Primary keyword phrase for the server-rendered H1 ──────────────────
   const pageH1 = isArabic
     ? 'كوبونات وأكواد خصم السعودية'
     : 'Verified Saudi Arabia Coupon Codes & Deals';
@@ -106,7 +105,6 @@ export default async function Home({ params }) {
     leaderboardSnapshots,
     rawTopStores,
   ] = await Promise.all([
-
     // 1. Hero stores (color slots 1–5)
     prisma.store.findMany({
       where: {
@@ -129,7 +127,6 @@ export default async function Home({ params }) {
       orderBy: { color: 'asc' },
       take: 5,
     }),
-
     // 2. Brands carousel
     prisma.store.findMany({
       where: {
@@ -148,8 +145,7 @@ export default async function Home({ params }) {
       orderBy: [{ isFeatured: 'desc' }, { id: 'asc' }],
       take: 20,
     }),
-
-    // 3. Leaderboard — global top 10 for current ISO week
+    // 3. Leaderboard (unused in UI, kept for potential future use)
     prisma.storeSavingsSnapshot.findMany({
       where:   { weekIdentifier: currentWeek, categoryId: null },
       orderBy: { rank: 'asc' },
@@ -168,8 +164,7 @@ export default async function Home({ params }) {
         },
       },
     }),
-
-    // 4. Featured stores carousel — up to 27 stores
+    // 4. Featured stores for carousel
     prisma.store.findMany({
       where: {
         isActive:  true,
@@ -198,8 +193,36 @@ export default async function Home({ params }) {
     }),
   ]);
 
-  // ── Transforms ─────────────────────────────────────────────────────────────
+  // Transform featured stores for carousel (rawTopStores) into StoreCard-compatible shape
+  const topStores = rawTopStores.map(store => {
+    const translation = store.translations?.[0] || {};
+    const topDiscount = store.vouchers?.[0]?.discountPercent;
+    const discountText = translation.showOffer
+      || (topDiscount
+          ? (isArabic ? `خصم يصل إلى ${Math.round(topDiscount)}%` : `Up to ${Math.round(topDiscount)}% off`)
+          : (isArabic ? 'عروض متاحة' : 'Deals available'));
 
+    return {
+      id: store.id,
+      name: translation.name || '',
+      slug: translation.slug || '',
+      logo: store.logo,
+      bigLogo: store.bigLogo,
+      discount: discountText,
+      showOffer: discountText,
+      showOfferType: 'OFFER', // fallback for StoreCard
+      translations: [{
+        locale: language,
+        name: translation.name || '',
+        slug: translation.slug || '',
+        showOffer: discountText,
+      }],
+    };
+  });
+
+  const carouselTitle = isArabic ? 'متاجر مميزة' : 'Featured Stores with Discounts';
+
+  // Other transforms (keep original)
   const transformStore = (store) => {
     const t = store.translations?.[0] || {};
     return {
@@ -214,7 +237,6 @@ export default async function Home({ params }) {
   };
 
   const transformedCarouselStores = featuredStoresWithCovers.map(transformStore);
-
   const transformedBrands = allActiveBrands.map(b => ({
     id:                  b.id,
     name:                b.translations?.[0]?.name || '',
@@ -223,52 +245,7 @@ export default async function Home({ params }) {
     activeVouchersCount: b._count?.vouchers || 0,
   }));
 
-  // ── Transform rawTopStores into format for StoreCard (via FeaturedStoresCarousel) ──
-  const topStores = rawTopStores.map(s => {
-    const translation = s.store.translations?.[0] || {};
-    const topDiscount = s.store.vouchers?.[0]?.discountPercent;
-    const discountText = translation.showOffer
-      || (topDiscount
-          ? (isArabic ? `خصم يصل إلى ${Math.round(topDiscount)}%` : `Up to ${Math.round(topDiscount)}% off`)
-          : (isArabic ? 'عروض متاحة' : 'Deals available'));
-
-    return {
-      id:               s.store.id,
-      name:             translation.name || '',
-      slug:             translation.slug || '',
-      logo:             s.store.logo,
-      bigLogo:          s.store.bigLogo,
-      discount:         discountText,
-      showOffer:        discountText,       // used by StoreCard
-      showOfferType:    'OFFER',            // fallback
-      translations: [{
-        locale: language,
-        name: translation.name || '',
-        slug: translation.slug || '',
-        showOffer: discountText,
-      }],
-    };
-  });
-
-  // Carousel title
-  const carouselTitle = isArabic ? 'متاجر مميزة' : 'Featured Stores with Discounts';
-
-  const exclusiveVouchers = await prisma.voucher.findMany({
-    where: {
-      isExclusive: true,
-      OR: [{ expiryDate: null }, { expiryDate: { gte: new Date() } }],
-      countries: { some: { country: { code: country } } },
-    },
-    include: {
-      translations: { where: { locale: language } },
-      store: { select: { logo: true, bigLogo: true, coverImage: true,
-                         translations: { where: { locale: language } } } },
-    },
-    orderBy: { popularityScore: 'desc' },
-    take: 4,
-  });
-
-  // ── Structured data: ItemList for homepage featured stores ──────────────
+  // Structured data
   const homepageSchema = topStores.length > 0 ? {
     '@context':    'https://schema.org',
     '@type':       'ItemList',
@@ -283,7 +260,6 @@ export default async function Home({ params }) {
     })),
   } : null;
 
-  // ── Render ─────────────────────────────────────────────────────────────────
   return (
     <>
       {homepageSchema && (
@@ -294,13 +270,11 @@ export default async function Home({ params }) {
       )}
 
       <main className="homepage-wrapper" dir={isArabic ? 'rtl' : 'ltr'}>
-
         <div className="homepage-hero-heading" aria-label="page heading">
           <h1 className="homepage-h1">{pageH1}</h1>
           <p className="homepage-h1-sub">{pageSubtitle}</p>
         </div>
 
-        {/* Hero sections */}
         <HeroCuratedSection locale={locale} countryCode={country} />
         <SavingsBanner locale={locale} />
         <HeroBestOffersCarousel />
@@ -312,17 +286,10 @@ export default async function Home({ params }) {
           locale={locale}
         />
 
-        {/* Stackable Offers */}
         <OfferStacksSection locale={locale} countryCode={country} />
-
-        {/* Featured Products */}
         <HomeFeaturedProductsSection locale={locale} countryCode={country} />
-
         <HowItWorks locale={locale} />
-
-        {/* Blog */}
         <HomepageBlogSection locale={locale} count={3} />
-
         <PromoCodesFAQ />
         <HelpBox locale={locale} />
       </main>
