@@ -1,4 +1,6 @@
 // i18n/locales.js
+// Saudi Arabia only – no other countries are active.
+
 export const LOCALES = {
   // Saudi Arabia
   'ar-SA': {
@@ -9,7 +11,7 @@ export const LOCALES = {
     region: 'SA',
     flag: '🇸🇦',
     currency: 'SAR',
-    direction: 'rtl'
+    direction: 'rtl',
   },
   'en-SA': {
     code: 'en-SA',
@@ -19,8 +21,8 @@ export const LOCALES = {
     region: 'SA',
     flag: '🇸🇦',
     currency: 'SAR',
-    direction: 'ltr'
-  }
+    direction: 'ltr',
+  },
 };
 
 // Get locale info
@@ -28,52 +30,42 @@ export function getLocaleInfo(localeCode) {
   return LOCALES[localeCode] || LOCALES['ar-SA'];
 }
 
-// Get available languages for a region
+// Get available languages for a region (only SA exists)
 export function getAvailableLanguages(region) {
-  return [...new Set(
-    Object.values(LOCALES)
-      .filter(locale => locale.region === region)
-      .map(locale => locale.language)
-  )];
+  if (region !== 'SA') return [];
+  return ['ar', 'en'];
 }
 
-// Get available regions for a language
+// Get available regions for a language (only SA exists)
 export function getAvailableRegions(language) {
-  return [...new Set(
-    Object.values(LOCALES)
-      .filter(locale => locale.language === language)
-      .map(locale => locale.region)
-  )];
+  if (language !== 'ar' && language !== 'en') return [];
+  return ['SA'];
 }
 
-// Get default locale for a region
+// Get default locale for a region (always ar-SA for SA)
 export function getDefaultLocaleForRegion(region) {
-  // Prefer Arabic for Middle Eastern regions
-  const arLocale = Object.values(LOCALES).find(
-    locale => locale.region === region && locale.language === 'ar'
-  );
-  return arLocale ? arLocale.code : Object.values(LOCALES).find(
-    locale => locale.region === region
-  )?.code;
+  if (region !== 'SA') return null;
+  return 'ar-SA';
 }
 
-// Get all regions with their default locales
+// Get all regions with their default locales (only SA)
 export function getRegionsWithDefaultLocales() {
-  const regions = [...new Set(Object.values(LOCALES).map(l => l.region))];
-  return regions.map(region => ({
-    region,
-    defaultLocale: getDefaultLocaleForRegion(region),
-    ...getLocaleInfo(getDefaultLocaleForRegion(region))
-  }));
+  return [
+    {
+      region: 'SA',
+      defaultLocale: 'ar-SA',
+      ...LOCALES['ar-SA'],
+    },
+  ];
 }
 
-// List of all locale codes
-export const allLocaleCodes = Object.keys(LOCALES);
+// List of all locale codes (only SA)
+export const allLocaleCodes = Object.keys(LOCALES); // ['ar-SA', 'en-SA']
 
-// List of all language codes
+// List of all language codes (ar, en)
 export const allLanguageCodes = [...new Set(Object.values(LOCALES).map(l => l.language))];
 
-// List of all region codes
+// List of all region codes (only 'SA')
 export const allRegionCodes = [...new Set(Object.values(LOCALES).map(l => l.region))];
 
 // Helper: Get display name for locale in current language
@@ -87,22 +79,21 @@ export function isValidLocale(language, region) {
   return LOCALES[`${language}-${region}`] !== undefined;
 }
 
-// Helper: Create locale from language and region
+// Helper: Create locale from language and region (falls back to ar-SA)
 export function createLocale(language, region) {
   const localeCode = `${language}-${region}`;
   return LOCALES[localeCode] ? localeCode : 'ar-SA';
 }
 
-// Helper: Get all locales for a specific region
+// Helper: Get all locales for a specific region (only SA)
 export function getLocalesForRegion(region) {
-  return Object.values(LOCALES)
-    .filter(locale => locale.region === region)
-    .map(locale => locale.code);
+  if (region !== 'SA') return [];
+  return ['ar-SA', 'en-SA'];
 }
 
 // Helper: Get all locales for a specific language
 export function getLocalesForLanguage(language) {
-  return Object.values(LOCALES)
-    .filter(locale => locale.language === language)
-    .map(locale => locale.code);
+  if (language === 'ar') return ['ar-SA'];
+  if (language === 'en') return ['en-SA'];
+  return [];
 }
