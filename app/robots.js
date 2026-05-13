@@ -2,12 +2,23 @@
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://cobonat.me';
 
+// Shared list of public API endpoints that both Googlebot and Bingbot need for proper rendering
+const publicApiPaths = [
+  '/api/countries',
+  '/api/seasonal',
+  '/api/stores/*',
+  '/api/vouchers/*',
+  '/api/categories/*',
+  '/api/other-promos/*',
+  '/api/offer-stacks/*',
+];
+
 export default function robots() {
   return {
     rules: [
-      // ── Default: allow everything except sensitive routes ────────────────
+      // ── GOOGLEBOT (specific allowances) ─────────────────────────────────
       {
-        userAgent: '*',
+        userAgent: 'Googlebot',
         allow: [
           '/',
           '/*/coupons',
@@ -25,33 +36,65 @@ export default function robots() {
           '/*/terms',
           '/*/help',
           '/*/seasonal/*',
-          '/*/bank-and-payment-offers', // <-- added new route
+          '/*/bank-and-payment-offers',
+          ...publicApiPaths,
         ],
         disallow: [
           '/admin/',
           '/api/admin/',
-          '/api/',
-          '/*/auth/',
+          '/api/auth/',
+          '/api/_log',
+          '/api/session',
+          '/api/track',
+          '/api/feedback',
           '/*/search',
           '/*/search?*',
-          '/*/blog?page=6',
-          '/*/blog?page=7',
-          '/*/blog?page=8',
-          '/*/blog?page=9',
-          '/*/coupons?page=1[0-9]',
-          '/*/coupons?page=[2-9][0-9]',
-          '/*/stacks?page=1[0-9]',
-          '/*/stacks?page=[2-9][0-9]',
-          '/*?ref=*',
-          '/*?utm_*',
-          '/*?source=*',
-          '/*?fbclid=*',
+          '/*/auth/',
         ],
+        crawlDelay: 0,
       },
 
-      // ── Googlebot: explicit permissions, no crawl delay ─────────────────
+      // ── BINGBOT (same allowances as Googlebot) ──────────────────────────
       {
-        userAgent: 'Googlebot',
+        userAgent: 'Bingbot',
+        allow: [
+          '/',
+          '/*/coupons',
+          '/*/stores',
+          '/*/stores/*',
+          '/*/categories',
+          '/*/categories/*',
+          '/*/stacks',
+          '/*/blog',
+          '/*/blog/*',
+          '/*/about',
+          '/*/contact',
+          '/*/privacy',
+          '/*/cookies',
+          '/*/terms',
+          '/*/help',
+          '/*/seasonal/*',
+          '/*/bank-and-payment-offers',
+          ...publicApiPaths,
+        ],
+        disallow: [
+          '/admin/',
+          '/api/admin/',
+          '/api/auth/',
+          '/api/_log',
+          '/api/session',
+          '/api/track',
+          '/api/feedback',
+          '/*/search',
+          '/*/search?*',
+          '/*/auth/',
+        ],
+        crawlDelay: 1,
+      },
+
+      // ── DEFAULT FOR ALL OTHER BOTS ─────────────────────────────────────
+      {
+        userAgent: '*',
         allow: [
           '/',
           '/*/coupons',
@@ -73,77 +116,34 @@ export default function robots() {
         ],
         disallow: [
           '/admin/',
+          '/api/admin/',
           '/api/',
-          '/*/search',
-          '/*/search?*',
           '/*/auth/',
-        ],
-        crawlDelay: 0,
-      },
-
-      // ── Bingbot ──────────────────────────────────────────────────────────
-      {
-        userAgent: 'Bingbot',
-        allow: '/',
-        disallow: [
-          '/admin/',
-          '/api/',
           '/*/search',
           '/*/search?*',
+          '/*?ref=*',
+          '/*?utm_*',
+          '/*?source=*',
+          '/*?fbclid=*',
         ],
-        crawlDelay: 1,
       },
 
-      // ── SEO crawlers — slow them down to protect server ──────────────────
-      {
-        userAgent: 'AhrefsBot',
-        allow: '/',
-        disallow: ['/admin/', '/api/', '/*/search'],
-        crawlDelay: 10,
-      },
-      {
-        userAgent: 'SemrushBot',
-        allow: '/',
-        disallow: ['/admin/', '/api/', '/*/search'],
-        crawlDelay: 10,
-      },
-      {
-        userAgent: 'MJ12bot',
-        disallow: '/',
-      },
-      {
-        userAgent: 'DotBot',
-        disallow: '/',
-      },
+      // ── AGGRESSIVE CRAWLERS – slow them down ───────────────────────────
+      { userAgent: 'AhrefsBot', allow: '/', disallow: ['/admin/', '/api/', '/*/search'], crawlDelay: 10 },
+      { userAgent: 'SemrushBot', allow: '/', disallow: ['/admin/', '/api/', '/*/search'], crawlDelay: 10 },
+      { userAgent: 'MJ12bot', disallow: '/' },
+      { userAgent: 'DotBot', disallow: '/' },
 
-      // ── AI training crawlers — disallow ──────────────────────────────────
-      {
-        userAgent: 'GPTBot',
-        allow: '/',
-      },
-      {
-        userAgent: 'CCBot',
-        allow: '/',
-      },
-      {
-        userAgent: 'anthropic-ai',
-        allow: '/',
-      },
-      {
-        userAgent: 'Claude-Web',
-        allow: '/',
-      },
-      {
-        userAgent: 'Google-Extended',
-        allow: '/',
-      },
-      {
-        userAgent: 'FacebookBot',
-        allow: '/',
-      },
+      // ── AI TRAINING CRAWLERS – allowed (no sensitive pages) ─────────────
+      { userAgent: 'GPTBot', allow: '/' },
+      { userAgent: 'CCBot', allow: '/' },
+      { userAgent: 'anthropic-ai', allow: '/' },
+      { userAgent: 'Claude-Web', allow: '/' },
+      { userAgent: 'Google-Extended', allow: '/' },
+      { userAgent: 'FacebookBot', allow: '/' },
     ],
 
-    sitemap: `${BASE_URL}/sitemap.xml`, // <-- explicit sitemap location
+    sitemap: `${BASE_URL}/sitemap.xml`,
     host: BASE_URL,
   };
 }
