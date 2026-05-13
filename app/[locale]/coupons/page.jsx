@@ -6,12 +6,15 @@ import VouchersGrid from "@/components/VouchersGrid/VouchersGrid";
 import PromoCodesFAQ from "@/components/PromoCodesFAQ/PromoCodesFAQ";
 import HelpBox from "@/components/help/HelpBox";
 import CouponsStructuredData from "@/components/StructuredData/CouponsStructuredData";
+import Breadcrumbs from '@/components/Breadcrumbs/Breadcrumbs';
 import "./coupons-page.css";
 
 export const revalidate = 60;
 
-const BASE_URL   = process.env.NEXT_PUBLIC_BASE_URL || 'https://cobonat.me';
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://cobonat.me';
 const PAGE_LIMIT = 60;
+
+// ── Metadata ─────────────────────────────────────────────────────────────────
 
 export async function generateMetadata({ params, searchParams: rawSearchParams }) {
   const { locale = 'ar-SA' } = await params;
@@ -30,18 +33,13 @@ export async function generateMetadata({ params, searchParams: rawSearchParams }
     : 'Your #1 source for verified discount codes in Saudi 🇸🇦. Save more on fashion, electronics, and groceries with verified and active coupons for top local and global stores.';
 
   const ogImage = `${BASE_URL}/logo-512x512.png`;
-
-  // ── Self-canonical ─────────────────────────────────────────────────────────
-  // Every paginated variant must declare its own canonical so Google indexes
-  // each page individually rather than consolidating all pages to page 1.
-  // Page 1 uses the clean URL (no ?page=1 query param) as the canonical.
   const canonicalUrl = page === 1
     ? `${BASE_URL}/${locale}/coupons`
     : `${BASE_URL}/${locale}/coupons?page=${page}`;
 
   return {
     metadataBase: new URL(BASE_URL),
-    applicationName: 'كوبونات',
+    applicationName: isAr ? 'كوبونات' : 'Cobonat',
     title,
     description,
     keywords: isAr
@@ -49,38 +47,25 @@ export async function generateMetadata({ params, searchParams: rawSearchParams }
       : 'coupons, promo codes, Saudi Arabia deals, discount codes, savings, verified coupons',
 
     robots: {
-      index:  true,
+      index: true,
       follow: true,
       googleBot: {
-        index:  true,
+        index: true,
         follow: true,
         'max-video-preview': -1,
         'max-image-preview': 'large',
-        'max-snippet':       -1,
+        'max-snippet': -1,
       },
     },
 
     icons: {
-      icon:  [
+      icon: [
         { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
         { url: '/favicon-96x96.png', sizes: '96x96', type: 'image/png' },
       ],
       apple: [{ url: '/apple-touch-icon.png', sizes: '180x180' }],
     },
 
-    // ✅ FIX: Added self-canonical + hreflang for every page variant.
-    //
-    // Previously this block was absent entirely ("paginated pages will
-    // self-canonicalize" — they do not; Next.js requires an explicit
-    // declaration). Without a canonical, Googlebot may consolidate all
-    // paginated variants into a single URL, discarding their individual
-    // content from the index.
-    //
-    // Page 1: canonical = /coupons  (no page param — cleaner URL)
-    // Page N: canonical = /coupons?page=N
-    //
-    // hreflang points to the equivalent page in the other locale so Google
-    // understands the Arabic/English relationship across pagination.
     alternates: {
       canonical: canonicalUrl,
       languages: {
@@ -97,26 +82,19 @@ export async function generateMetadata({ params, searchParams: rawSearchParams }
     },
 
     openGraph: {
-      siteName: 'كوبونات',
+      siteName: isAr ? 'كوبونات' : 'Cobonat',
       title,
       description,
-      url:         canonicalUrl,
-      type:        'website',
+      url: canonicalUrl,
+      type: 'website',
       locale,
-      images: [
-        {
-          url:    ogImage,
-          width:  512,
-          height: 512,
-          alt:    title,
-        },
-      ],
+      images: [{ url: ogImage, width: 512, height: 512, alt: title }],
     },
 
     twitter: {
-      card:        'summary_large_image',
-      site:        '@cobonat',
-      creator:     '@cobonat',
+      card: 'summary_large_image',
+      site: '@cobonat',
+      creator: '@cobonat',
       title,
       description,
       images: [ogImage],
@@ -124,12 +102,14 @@ export async function generateMetadata({ params, searchParams: rawSearchParams }
   };
 }
 
+// ── Page ─────────────────────────────────────────────────────────────────────
+
 const CouponsPage = async ({ params, searchParams: rawSearchParams }) => {
   const { locale = 'ar-SA' } = await params;
   const searchParams = await rawSearchParams;
   const page = Math.max(1, parseInt(searchParams?.page || '1'));
 
-  const t   = await getTranslations('CouponsPage');
+  const t = await getTranslations('CouponsPage');
   const now = new Date();
 
   const [language, countryCode] = locale.includes('-')
@@ -148,8 +128,18 @@ const CouponsPage = async ({ params, searchParams: rawSearchParams }) => {
     prisma.voucher.findMany({
       where,
       include: {
-        translations: { where: { locale: language }, select: { title: true, description: true } },
-        store: { include: { translations: { where: { locale: language }, select: { name: true, slug: true } } } },
+        translations: {
+          where: { locale: language },
+          select: { title: true, description: true },
+        },
+        store: {
+          include: {
+            translations: {
+              where: { locale: language },
+              select: { name: true, slug: true },
+            },
+          },
+        },
         _count: { select: { clicks: true } },
       },
       orderBy: [
@@ -170,7 +160,7 @@ const CouponsPage = async ({ params, searchParams: rawSearchParams }) => {
     const st = voucher.store?.translations?.[0] || {};
     return {
       ...voucher,
-      title:       vt.title       || 'Special Offer',
+      title: vt.title || 'Special Offer',
       description: vt.description || null,
       store: voucher.store
         ? { ...voucher.store, name: st.name || '', slug: st.slug || '', translations: undefined }
@@ -180,14 +170,21 @@ const CouponsPage = async ({ params, searchParams: rawSearchParams }) => {
   };
 
   const transformedVouchers = vouchers.map(transformVoucher);
-  const activeVouchers      = totalCount;
-  const exclusiveVouchers   = transformedVouchers.filter(v => v.isExclusive).length;
-  const verifiedVouchers    = transformedVouchers.filter(v => v.isVerified).length;
-
-  const buildPageUrl = (p) =>
-    `/${locale}/coupons${p > 1 ? `?page=${p}` : ''}`;
+  const activeVouchers = totalCount;
+  const exclusiveVouchers = transformedVouchers.filter(v => v.isExclusive).length;
+  const verifiedVouchers = transformedVouchers.filter(v => v.isVerified).length;
 
   const isAr = language === 'ar';
+  const buildPageUrl = (p) => `/${locale}/coupons${p > 1 ? `?page=${p}` : ''}`;
+
+  // Breadcrumb items
+  const breadcrumbItems = [
+    { name: isAr ? 'الرئيسية' : 'Home', url: `/${locale}` },
+    {
+      name: isAr ? 'كل الكوبونات' : 'All Coupons',
+      url: page === 1 ? `/${locale}/coupons` : `/${locale}/coupons?page=${page}`,
+    },
+  ];
 
   return (
     <>
@@ -198,6 +195,11 @@ const CouponsPage = async ({ params, searchParams: rawSearchParams }) => {
       />
 
       <main className="coupons_page">
+        {/* Breadcrumbs - visible + schema */}
+        <div style={{ maxWidth: '1312px', margin: '0 auto', padding: '1rem 1.5rem 0' }}>
+          <Breadcrumbs items={breadcrumbItems} locale={locale} />
+        </div>
+
         <div className="coupons_page_header_container">
           <div className="coupons_page_content">
             <div className="coupons_title_section">
@@ -254,8 +256,8 @@ const CouponsPage = async ({ params, searchParams: rawSearchParams }) => {
             vouchers={transformedVouchers}
             emptyMessage={
               isAr
-                ? `لا توجد كوبونات متاحة حالياً في السعودية`
-                : `No coupons available at the moment in Saudi Arabia`
+                ? 'لا توجد كوبونات متاحة حالياً في السعودية'
+                : 'No coupons available at the moment in Saudi Arabia'
             }
           />
         </div>
@@ -301,7 +303,8 @@ const CouponsPage = async ({ params, searchParams: rawSearchParams }) => {
           </div>
         )}
 
-        <PromoCodesFAQ />
+        {/* Global FAQ with structured data (no conflict on this page) */}
+        <PromoCodesFAQ includeStructuredData={true} />
         <HelpBox locale={locale} />
       </main>
     </>
