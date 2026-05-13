@@ -1,15 +1,16 @@
 // app/[locale]/categories/page.jsx
 // Lists all categories available in the current country.
-// Fully server-rendered — no client JS required.
+// Fully server-rendered — ISR 1 hour.
 
 import { prisma } from '@/lib/prisma';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { allLocaleCodes } from '@/i18n/locales';
 import HelpBox from '@/components/help/HelpBox';
+import Breadcrumbs from '@/components/Breadcrumbs/Breadcrumbs';
 import './page.css';
 
-export const revalidate = 3600; // Rebuild at most once per hour
+export const revalidate = 3600;
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://cobonat.me';
 
@@ -85,6 +86,13 @@ export async function generateMetadata({ params }) {
       locale,
       images: [{ url: `${BASE_URL}/logo-512x512.png`, width: 512, height: 512 }],
     },
+    twitter: {
+      card:        'summary_large_image',
+      site:        '@cobonat',
+      title,
+      description,
+      images:      [`${BASE_URL}/logo-512x512.png`],
+    },
     robots: { index: true, follow: true },
   };
 }
@@ -135,12 +143,12 @@ async function getCategories(language, countryCode) {
       const voucherCount = cat.stores.reduce((sum, sc) => sum + (sc.store._count?.vouchers ?? 0), 0);
 
       return {
-        id:          cat.id,
-        name:        translation.name,
-        slug:        translation.slug,
-        description: translation.description || null,
-        icon:        cat.icon,
-        color:       cat.color,
+        id:           cat.id,
+        name:         translation.name,
+        slug:         translation.slug,
+        description:  translation.description || null,
+        icon:         cat.icon,
+        color:        cat.color,
         storeCount,
         voucherCount,
       };
@@ -161,14 +169,23 @@ export default async function CategoriesPage({ params }) {
 
   const categories = await getCategories(language, countryCode || 'SA');
 
-  const totalStores   = [...new Set(categories.flatMap(c => c.storeCount))].reduce((a, b) => a + b, 0);
+  const totalStores   = categories.reduce((sum, c) => sum + c.storeCount, 0);
   const totalVouchers = categories.reduce((sum, c) => sum + c.voucherCount, 0);
 
-  // Structured data — ItemList for Google rich results
+  // Breadcrumb items
+  const breadcrumbItems = [
+    { name: isAr ? 'الرئيسية' : 'Home', url: `/${locale}` },
+    { name: isAr ? 'الفئات' : 'Categories', url: `/${locale}/categories` },
+  ];
+
+  // Structured data: ItemList for categories
   const itemListSchema = {
     '@context': 'https://schema.org',
     '@type':    'ItemList',
     name:       isAr ? 'فئات التسوق' : 'Shopping Categories',
+    description: isAr
+      ? `قائمة بجميع فئات الكوبونات والعروض في السعودية`
+      : `List of all coupon and deal categories in Saudi Arabia`,
     numberOfItems: categories.length,
     itemListElement: categories.map((cat, i) => ({
       '@type':    'ListItem',
@@ -187,7 +204,12 @@ export default async function CategoriesPage({ params }) {
 
       <div className="categories-page" dir={isAr ? 'rtl' : 'ltr'}>
 
-        {/* ── Header ── */}
+        {/* Breadcrumbs - visible + schema */}
+        <div style={{ maxWidth: '1312px', margin: '0 auto', padding: '1rem 1.5rem 0' }}>
+          <Breadcrumbs items={breadcrumbItems} locale={locale} />
+        </div>
+
+        {/* Header */}
         <header className="categories-header">
           <div className="categories-header-inner">
             <p className="categories-eyebrow">
@@ -229,7 +251,7 @@ export default async function CategoriesPage({ params }) {
           </div>
         </header>
 
-        {/* ── Grid ── */}
+        {/* Grid */}
         <section className="categories-grid-section">
           {categories.length === 0 ? (
             <div className="categories-empty">
