@@ -7,11 +7,12 @@
 .fsc-inner {
   max-width: 1312px;
   margin: 0 auto;
-  padding: 0 1.5rem;
+  padding: 0;
 }
 
 .fsc-title {
   font-size: 1.5rem;
+  padding: 1.5rem;
   font-weight: 700;
   color: #0f172a;
   margin: 0 0 1.25rem 0;
@@ -130,7 +131,15 @@
 /* Responsive adjustments */
 @media (max-width: 768px) {
   .fsc-inner {
-    padding: 0 1rem;
+    padding: 0;
+  }
+
+  .fsc .ec-container{
+    padding-inline-start: 0.5rem;
+  }
+
+  .fsc-title {
+    padding: 0.5rem;
   }
 
   .fsc-controls {
