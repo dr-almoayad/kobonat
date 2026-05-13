@@ -30,9 +30,6 @@ export async function generateMetadata({ params }) {
   const [language]  = locale.split('-');
   const isArabic    = language === 'ar';
 
-  // ✅ FIX: Titles kept under 60 characters so Google displays them intact.
-  //    The previous Arabic title was ~90 chars and was consistently rewritten
-  //    in SERPs, removing the primary keyword "أكواد خصم السعودية".
   const title = isArabic
     ? 'كوبونات وأكواد خصم السعودية | Cobonat'
     : 'Verified Saudi Arabia Coupon Codes & Deals | Cobonat';
@@ -95,13 +92,10 @@ export default async function Home({ params }) {
   const isArabic     = language === 'ar';
 
   // ── Primary keyword phrase for the server-rendered H1 ──────────────────
-  // This string must match (or closely mirror) the <title> tag above so Google
-  // treats the page as highly relevant for the Arabic query cluster.
   const pageH1 = isArabic
     ? 'كوبونات وأكواد خصم السعودية'
     : 'Verified Saudi Arabia Coupon Codes & Deals';
 
-  // ── Sub-heading beneath H1 — adds semantic context without bloating the H1 ──
   const pageSubtitle = isArabic
     ? 'وفر أكثر مع كوبونات فعالة ومجربة من أشهر المتاجر العالمية والمحلية'
     : 'Save more with verified, tested coupons from top local and international stores';
@@ -175,7 +169,7 @@ export default async function Home({ params }) {
       },
     }),
 
-    // 4. Featured stores carousel — up to 27 stores (3 pages × 9)
+    // 4. Featured stores carousel — up to 27 stores
     prisma.store.findMany({
       where: {
         isActive:  true,
@@ -229,26 +223,35 @@ export default async function Home({ params }) {
     activeVouchersCount: b._count?.vouchers || 0,
   }));
 
+  // ── Transform rawTopStores into format for StoreCard (via FeaturedStoresCarousel) ──
   const topStores = rawTopStores.map(s => {
-    const translation = s.translations?.[0] || {};
-    const topDiscount = s.vouchers?.[0]?.discountPercent;
+    const translation = s.store.translations?.[0] || {};
+    const topDiscount = s.store.vouchers?.[0]?.discountPercent;
     const discountText = translation.showOffer
       || (topDiscount
           ? (isArabic ? `خصم يصل إلى ${Math.round(topDiscount)}%` : `Up to ${Math.round(topDiscount)}% off`)
           : (isArabic ? 'عروض متاحة' : 'Deals available'));
 
     return {
-      id:               s.id,
+      id:               s.store.id,
       name:             translation.name || '',
       slug:             translation.slug || '',
-      logo:             s.logo,
-      bigLogo:          s.bigLogo,
-      ctaUrl:           null,
+      logo:             s.store.logo,
+      bigLogo:          s.store.bigLogo,
       discount:         discountText,
-      previousDiscount: null,
-      isPersonalized:   false,
+      showOffer:        discountText,       // used by StoreCard
+      showOfferType:    'OFFER',            // fallback
+      translations: [{
+        locale: language,
+        name: translation.name || '',
+        slug: translation.slug || '',
+        showOffer: discountText,
+      }],
     };
   });
+
+  // Carousel title
+  const carouselTitle = isArabic ? 'متاجر مميزة' : 'Featured Stores with Discounts';
 
   const exclusiveVouchers = await prisma.voucher.findMany({
     where: {
@@ -265,10 +268,7 @@ export default async function Home({ params }) {
     take: 4,
   });
 
-  const carouselTitle = isArabic ? 'متاجر مميزة' : 'Featured Stores with Discounts';
-
   // ── Structured data: ItemList for homepage featured stores ──────────────
-  // Gives Google Arabic semantic anchors without relying on client-rendered JS.
   const homepageSchema = topStores.length > 0 ? {
     '@context':    'https://schema.org',
     '@type':       'ItemList',
@@ -295,28 +295,22 @@ export default async function Home({ params }) {
 
       <main className="homepage-wrapper" dir={isArabic ? 'rtl' : 'ltr'}>
 
-        {/*
-          ✅ FIX: Server-rendered H1 — always present in the HTML that
-          Googlebot indexes, regardless of whether client components hydrate.
-          Styled to visually match the hero section but guaranteed to be in
-          the initial HTML response.
-
-          The H1 uses the same keyword string as the <title> tag so Google
-          consistently identifies this page as the authority for
-          "كوبونات السعودية" and related Arabic query clusters.
-        */}
         <div className="homepage-hero-heading" aria-label="page heading">
           <h1 className="homepage-h1">{pageH1}</h1>
           <p className="homepage-h1-sub">{pageSubtitle}</p>
         </div>
 
-        {/* Hero */}
+        {/* Hero sections */}
         <HeroCuratedSection locale={locale} countryCode={country} />
         <SavingsBanner locale={locale} />
         <HeroBestOffersCarousel />
 
-        {/* Featured Stores */}
-        <FeaturedStoresCarousel locale={locale} />
+        {/* ✅ Featured Stores Carousel – now receives stores + title */}
+        <FeaturedStoresCarousel
+          title={carouselTitle}
+          stores={topStores}
+          locale={locale}
+        />
 
         {/* Stackable Offers */}
         <OfferStacksSection locale={locale} countryCode={country} />
@@ -330,7 +324,6 @@ export default async function Home({ params }) {
         <HomepageBlogSection locale={locale} count={3} />
 
         <PromoCodesFAQ />
-
         <HelpBox locale={locale} />
       </main>
     </>
