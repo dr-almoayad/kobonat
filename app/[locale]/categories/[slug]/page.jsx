@@ -1,21 +1,14 @@
 // app/[locale]/categories/[slug]/page.jsx
-// Individual category page — fully server-rendered.
-// Sections:
-//   1. Tagged Vouchers        → CuratedOfferCard carousel (max 3, most recent)
-//   2. Tagged Products        → StoreProductCard carousel (max 6, most recent)
-//   3. Featured Offer Stacks  → OfferStackBox carousel
-//   4. Bank & Card Highlights → promo cards
-//   5. Stores grid
-
-import { prisma }        from '@/lib/prisma';
-import { notFound }       from 'next/navigation';
-import Link               from 'next/link';
-import StoreCard          from '@/components/StoreCard/StoreCard';
-import HelpBox            from '@/components/help/HelpBox';
-import OfferStackBox      from '@/components/OfferStackBox/OfferStackBox';
-import StoreProductCard   from '@/components/StoreProductCard/StoreProductCard';
-import EmblaCarousel      from '@/components/EmblaCarousel/EmblaCarousel';
-import CuratedOfferCard   from './CuratedOfferCard';
+import { prisma } from '@/lib/prisma';
+import { notFound } from 'next/navigation';
+import Link from 'next/link';
+import StoreCard from '@/components/StoreCard/StoreCard';
+import HelpBox from '@/components/help/HelpBox';
+import OfferStackBox from '@/components/OfferStackBox/OfferStackBox';
+import StoreProductCard from '@/components/StoreProductCard/StoreProductCard';
+import EmblaCarousel from '@/components/EmblaCarousel/EmblaCarousel';
+import CuratedOfferCard from './CuratedOfferCard';
+import Breadcrumbs from '@/components/Breadcrumbs/Breadcrumbs';
 import { serializeStack } from '@/lib/offerStacks';
 import './category-page.css';
 
@@ -52,7 +45,7 @@ async function getCategoryStores(categoryId, language, countryCode) {
     where: {
       isActive: true,
       categories: { some: { categoryId } },
-      countries:  { some: { country: { code: countryCode } } },
+      countries: { some: { country: { code: countryCode } } },
     },
     include: {
       translations: { where: { locale: language } },
@@ -71,10 +64,6 @@ async function getCategoryStores(categoryId, language, countryCode) {
   });
 }
 
-/**
- * Tagged vouchers only — max 3, sorted by updatedAt desc (most recent first).
- * Active only, available in requested country.
- */
 async function getTaggedVouchers(categoryId, language, countryCode) {
   const rows = await prisma.voucherCategory.findMany({
     where: { categoryId },
@@ -93,7 +82,6 @@ async function getTaggedVouchers(categoryId, language, countryCode) {
   });
 
   const now = new Date();
-
   return rows
     .filter(r =>
       r.voucher &&
@@ -102,7 +90,7 @@ async function getTaggedVouchers(categoryId, language, countryCode) {
     )
     .map(r => ({
       ...r.voucher,
-      title:       r.voucher.translations?.[0]?.title       || '',
+      title: r.voucher.translations?.[0]?.title || '',
       description: r.voucher.translations?.[0]?.description || null,
       store: r.voucher.store
         ? {
@@ -116,9 +104,6 @@ async function getTaggedVouchers(categoryId, language, countryCode) {
     .slice(0, 3);
 }
 
-/**
- * Tagged products only — max 6, sorted by updatedAt desc (most recent first).
- */
 async function getTaggedProducts(categoryId, language) {
   const rows = await prisma.storeProductCategory.findMany({
     where: { categoryId },
@@ -131,12 +116,11 @@ async function getTaggedProducts(categoryId, language) {
       },
     },
   });
-
   return rows
     .filter(r => r.product)
     .map(r => ({
       ...r.product,
-      title:     r.product.translations?.[0]?.title     || '',
+      title: r.product.translations?.[0]?.title || '',
       storeName: r.product.store?.translations?.[0]?.name || '',
       storeLogo: r.product.store?.logo || null,
     }))
@@ -180,9 +164,9 @@ async function getTaggedStacks(categoryId, language, countryCode) {
   for (const row of rows) {
     const s = row.stack;
     if (!s || !s.isActive) continue;
-    const codeOk  = !s.codeVoucher || s.codeVoucher.countries.some(vc => vc.country.code === countryCode);
-    const dealOk  = !s.dealVoucher || s.dealVoucher.countries.some(vc => vc.country.code === countryCode);
-    const promoOk = !s.promo       || s.promo.country?.code === countryCode;
+    const codeOk = !s.codeVoucher || s.codeVoucher.countries.some(vc => vc.country.code === countryCode);
+    const dealOk = !s.dealVoucher || s.dealVoucher.countries.some(vc => vc.country.code === countryCode);
+    const promoOk = !s.promo || s.promo.country?.code === countryCode;
     if (codeOk && dealOk && promoOk) {
       const serialized = serializeStack({ store: s.store, codeVoucher: s.codeVoucher, dealVoucher: s.dealVoucher, promo: s.promo, language });
       if (serialized) valid.push(serialized);
@@ -199,7 +183,7 @@ async function getTaggedPromos(categoryId, language, countryCode) {
         include: {
           translations: { where: { locale: language } },
           store: { include: { translations: { where: { locale: language } } } },
-          bank:  { include: { translations: { where: { locale: language } } } },
+          bank: { include: { translations: { where: { locale: language } } } },
         },
       },
     },
@@ -216,12 +200,12 @@ async function getTaggedPromos(categoryId, language, countryCode) {
     )
     .map(r => ({
       ...r.promo,
-      title:       r.promo.translations?.[0]?.title       || '',
+      title: r.promo.translations?.[0]?.title || '',
       description: r.promo.translations?.[0]?.description || '',
-      storeName:   r.promo.store?.translations?.[0]?.name || '',
-      storeLogo:   r.promo.store?.logo || null,
-      bankName:    r.promo.bank?.translations?.[0]?.name  || '',
-      bankLogo:    r.promo.bank?.logo || null,
+      storeName: r.promo.store?.translations?.[0]?.name || '',
+      storeLogo: r.promo.store?.logo || null,
+      bankName: r.promo.bank?.translations?.[0]?.name || '',
+      bankLogo: r.promo.bank?.logo || null,
     }));
 }
 
@@ -250,13 +234,13 @@ export async function generateMetadata({ params }) {
     const isAr = language === 'ar';
     const catTranslation = await getCategoryBySlug(slug, language);
     if (!catTranslation) return {};
-    const cat  = catTranslation.category;
+    const cat = catTranslation.category;
     const name = catTranslation.name;
     const year = new Date().getFullYear();
     const otherLang = language === 'ar' ? 'en' : 'ar';
     const otherSlug = cat.translations.find(t => t.locale === otherLang)?.slug || null;
-    const arSlug    = language === 'ar' ? slug : otherSlug;
-    const enSlug    = language === 'en' ? slug : otherSlug;
+    const arSlug = language === 'ar' ? slug : otherSlug;
+    const enSlug = language === 'en' ? slug : otherSlug;
     const storeCount = await prisma.storeCategory.count({
       where: { categoryId: cat.id, store: { isActive: true, countries: { some: { country: { code: countryCode } } } } },
     });
@@ -290,28 +274,21 @@ export default async function CategoryDetailPage({ params }) {
   const { locale, slug } = await params;
   const [language, countryCode] = locale.split('-');
   const isAr = language === 'ar';
-  const cc   = countryCode || 'SA';
+  const cc = countryCode || 'SA';
 
   const catTranslation = await getCategoryBySlug(slug, language);
   if (!catTranslation) return notFound();
 
-  const category      = catTranslation.category;
-  const categoryName  = catTranslation.name;
-  const categoryDesc  = catTranslation.description || null;
-  const categoryIcon  = getCategoryIcon(category.icon, slug);
+  const category = catTranslation.category;
+  const categoryName = catTranslation.name;
+  const categoryDesc = catTranslation.description || null;
+  const categoryIcon = getCategoryIcon(category.icon, slug);
   const categoryColor = category.color || '#470ae2';
 
-  const [
-    stores,
-    country,
-    taggedVouchers,
-    taggedProducts,
-    taggedStacks,
-    taggedPromos,
-  ] = await Promise.all([
+  const [stores, country, taggedVouchers, taggedProducts, taggedStacks, taggedPromos] = await Promise.all([
     getCategoryStores(category.id, language, cc),
     prisma.country.findUnique({
-      where:   { code: cc },
+      where: { code: cc },
       include: { translations: { where: { locale: language } } },
     }),
     getTaggedVouchers(category.id, language, cc),
@@ -320,52 +297,51 @@ export default async function CategoryDetailPage({ params }) {
     getTaggedPromos(category.id, language, cc),
   ]);
 
-  const hasContent =
-    stores.length > 0 ||
-    taggedVouchers.length > 0 ||
-    taggedProducts.length > 0 ||
-    taggedStacks.length > 0;
-
+  const hasContent = stores.length > 0 || taggedVouchers.length > 0 || taggedProducts.length > 0 || taggedStacks.length > 0;
   if (!hasContent) return notFound();
 
-  const countryName    = country?.translations[0]?.name || (isAr ? 'السعودية' : 'Saudi Arabia');
+  const countryName = country?.translations[0]?.name || (isAr ? 'السعودية' : 'Saudi Arabia');
   const featuredStores = stores.filter(s => s.isFeatured);
-  const regularStores  = stores.filter(s => !s.isFeatured);
+  const regularStores = stores.filter(s => !s.isFeatured);
 
   const transformStore = (s) => ({
     ...s,
-    name:        s.translations[0]?.name        || '',
-    slug:        s.translations[0]?.slug        || '',
+    name: s.translations[0]?.name || '',
+    slug: s.translations[0]?.slug || '',
     description: s.translations[0]?.description || null,
-    showOffer:   s.translations[0]?.showOffer   || '',
+    showOffer: s.translations[0]?.showOffer || '',
   });
 
-  const breadcrumbSchema = {
+  // Breadcrumb items
+  const breadcrumbItems = [
+    { name: isAr ? 'الرئيسية' : 'Home', url: `/${locale}` },
+    { name: isAr ? 'الفئات' : 'Categories', url: `/${locale}/categories` },
+    { name: categoryName, url: `/${locale}/categories/${slug}` },
+  ];
+
+  // Structured data: BreadcrumbList (already covered by Breadcrumbs component) + ItemList for stores?
+  const storeItemListSchema = {
     '@context': 'https://schema.org',
-    '@type':    'BreadcrumbList',
-    itemListElement: [
-      { '@type': 'ListItem', position: 1, name: isAr ? 'الرئيسية' : 'Home',       item: `${BASE_URL}/${locale}` },
-      { '@type': 'ListItem', position: 2, name: isAr ? 'الفئات'   : 'Categories', item: `${BASE_URL}/${locale}/categories` },
-      { '@type': 'ListItem', position: 3, name: categoryName,                      item: `${BASE_URL}/${locale}/categories/${slug}` },
-    ],
+    '@type': 'ItemList',
+    name: isAr ? `متاجر ${categoryName}` : `${categoryName} Stores`,
+    numberOfItems: stores.length,
+    itemListElement: stores.slice(0, 10).map((s, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      name: s.translations[0]?.name || '',
+      url: `${BASE_URL}/${locale}/stores/${s.translations[0]?.slug || s.id}`,
+    })),
   };
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
-
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(storeItemListSchema) }}
+      />
       <div className="category-detail-page" dir={isAr ? 'rtl' : 'ltr'}>
+        <Breadcrumbs items={breadcrumbItems} locale={locale} />
 
-        {/* ── Breadcrumb ── */}
-        <nav className="cd-breadcrumb" aria-label="breadcrumb">
-          <Link href={`/${locale}`}>{isAr ? 'الرئيسية' : 'Home'}</Link>
-          <span className="cd-breadcrumb-sep">/</span>
-          <Link href={`/${locale}/categories`}>{isAr ? 'الفئات' : 'Categories'}</Link>
-          <span className="cd-breadcrumb-sep">/</span>
-          <span className="cd-breadcrumb-current">{categoryName}</span>
-        </nav>
-
-        {/* ── Hero ── */}
         <header className="cd-hero">
           <div className="cd-hero-stripe" style={{ background: categoryColor }} />
           <div className="cd-hero-inner">
@@ -402,8 +378,6 @@ export default async function CategoryDetailPage({ params }) {
         </header>
 
         <main className="cd-main">
-
-          {/* ── 1. TAGGED VOUCHERS CAROUSEL — max 3, most recent ── */}
           {taggedVouchers.length > 0 && (
             <section className="cd-section">
               <div className="cd-section-header">
@@ -423,7 +397,6 @@ export default async function CategoryDetailPage({ params }) {
             </section>
           )}
 
-          {/* ── 2. TAGGED PRODUCTS CAROUSEL — max 6, most recent ── */}
           {taggedProducts.length > 0 && (
             <section className="cd-section">
               <div className="cd-section-header">
@@ -448,7 +421,6 @@ export default async function CategoryDetailPage({ params }) {
             </section>
           )}
 
-          {/* ── 3. OFFER STACKS CAROUSEL ── */}
           {taggedStacks.length > 0 && (
             <section className="cd-section">
               <div className="cd-section-header">
@@ -468,7 +440,6 @@ export default async function CategoryDetailPage({ params }) {
             </section>
           )}
 
-          {/* ── 4. BANK & CARD OFFERS ── */}
           {taggedPromos.length > 0 && (
             <section className="cd-section">
               <div className="cd-section-header">
@@ -485,26 +456,16 @@ export default async function CategoryDetailPage({ params }) {
                   <div key={promo.id} className="cd-promo-card">
                     {(promo.storeLogo || promo.bankLogo) && (
                       <div className="cd-promo-logos">
-                        {promo.storeLogo && (
-                          <img src={promo.storeLogo} alt={promo.storeName} className="cd-promo-logo" />
-                        )}
-                        {promo.bankLogo && (
-                          <img src={promo.bankLogo} alt={promo.bankName} className="cd-promo-logo" />
-                        )}
+                        {promo.storeLogo && <img src={promo.storeLogo} alt={promo.storeName} className="cd-promo-logo" />}
+                        {promo.bankLogo && <img src={promo.bankLogo} alt={promo.bankName} className="cd-promo-logo" />}
                       </div>
                     )}
                     <div className="cd-promo-body">
                       <div className="cd-promo-title">{promo.title}</div>
-                      {promo.description && (
-                        <div className="cd-promo-desc">{promo.description}</div>
-                      )}
+                      {promo.description && <div className="cd-promo-desc">{promo.description}</div>}
                       <div className="cd-promo-tags">
-                        {promo.bankName && (
-                          <span className="cd-promo-tag cd-promo-tag--bank">🏦 {promo.bankName}</span>
-                        )}
-                        {promo.storeName && (
-                          <span className="cd-promo-tag">{promo.storeName}</span>
-                        )}
+                        {promo.bankName && <span className="cd-promo-tag cd-promo-tag--bank">🏦 {promo.bankName}</span>}
+                        {promo.storeName && <span className="cd-promo-tag">{promo.storeName}</span>}
                         {promo.expiryDate && (() => {
                           const diff = Math.ceil((new Date(promo.expiryDate) - Date.now()) / 86_400_000);
                           return diff > 0 && diff <= 7 ? (
@@ -529,7 +490,6 @@ export default async function CategoryDetailPage({ params }) {
             </section>
           )}
 
-          {/* ── 5. FEATURED STORES ── */}
           {featuredStores.length > 0 && (
             <section className="cd-section">
               <div className="cd-section-header">
@@ -547,15 +507,12 @@ export default async function CategoryDetailPage({ params }) {
             </section>
           )}
 
-          {/* ── 6. ALL STORES ── */}
           {regularStores.length > 0 && (
             <section className="cd-section">
               <div className="cd-section-header">
                 <h2 className="cd-section-title">
                   <span className="material-symbols-sharp">storefront</span>
-                  {featuredStores.length > 0
-                    ? (isAr ? 'متاجر أخرى' : 'More Stores')
-                    : (isAr ? `كل متاجر ${categoryName}` : `All ${categoryName} Stores`)}
+                  {featuredStores.length > 0 ? (isAr ? 'متاجر أخرى' : 'More Stores') : (isAr ? `كل متاجر ${categoryName}` : `All ${categoryName} Stores`)}
                 </h2>
                 <span className="cd-section-count">
                   {regularStores.length} {isAr ? 'متجر' : regularStores.length === 1 ? 'store' : 'stores'}
@@ -567,12 +524,11 @@ export default async function CategoryDetailPage({ params }) {
             </section>
           )}
 
-          {/* ── 7. EDITORIAL ── */}
           <section className="cd-section">
             <div className="cd-editorial">
               <h2>
                 <span className="material-symbols-sharp">tips_and_updates</span>
-                {isAr ? `كيف توفر في تسوق ${categoryName}؟` : `How to save on ${categoryName} shopping?`}
+                {isAr ? `كيف توفر في ${categoryName}؟` : `How to save on ${categoryName} shopping?`}
               </h2>
               <p>
                 {isAr
@@ -585,11 +541,10 @@ export default async function CategoryDetailPage({ params }) {
               </Link>
             </div>
           </section>
-
         </main>
 
         <HelpBox locale={locale} />
       </div>
     </>
   );
-}
+                  }
