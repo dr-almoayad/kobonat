@@ -3,24 +3,24 @@ import { getToken } from 'next-auth/jwt';
 import { NextResponse } from 'next/server';
 import createMiddleware from 'next-intl/middleware';
 
-// Only SA locales are allowed
-const SUPPORTED_LOCALES = ['ar-SA', 'en-SA'];
+// ✅ TEMPORARILY only ar-SA (en-SA removed due to thin content)
+const SUPPORTED_LOCALES = ['ar-SA'];
 const DEFAULT_LOCALE = 'ar-SA';
 
-// ✅ List of dead locale patterns that should return 404 (not redirect)
-// These are locale+country combos that were previously supported or are being blocked
+// ✅ List of dead locale patterns (including en-SA temporarily)
 const DEAD_LOCALE_PATTERNS = [
+  /^\/en-SA\//,  // ← TEMPORARILY BLOCK ENGLISH
   /^\/ar-KW\//,
   /^\/en-AE\//,
   /^\/ar-AE\//,
   /^\/en-KW\//,
-  /^\/ar-EG\//, // Egypt
+  /^\/ar-EG\//,
   /^\/en-EG\//,
-  /^\/ar-BH\//, // Bahrain
+  /^\/ar-BH\//,
   /^\/en-BH\//,
-  /^\/ar-OM\//, // Oman
+  /^\/ar-OM\//,
   /^\/en-OM\//,
-  /^\/ar-QA\//, // Qatar
+  /^\/ar-QA\//,
   /^\/en-QA\//,
   /^\/ar-JO\//,
   /^\/en-JO\//,
@@ -28,21 +28,19 @@ const DEAD_LOCALE_PATTERNS = [
   /^\/en-LB\//,
 ];
 
-// ✅ Helper to check if a path is a static asset that should never be crawled
+// Helper to check if a path is a static asset
 const isStaticAsset = (pathname) => {
   const staticPatterns = [
     '/_next/',
-    '/store-covers/',      // AVIF images
-    '/public/stores/',     // Store logo images
+    '/store-covers/',
+    '/public/stores/',
     '/favicon.ico',
     '/robots.txt',
     '/sitemap.xml',
-    // File extensions that should never be treated as pages
     /\.(avif|webp|png|jpg|jpeg|gif|svg|ico)$/i,
     /\.(woff2?|ttf|eot|otf)$/i,
     /\.(json|xml|txt)$/i,
   ];
-
   return staticPatterns.some(pattern => {
     if (pattern instanceof RegExp) return pattern.test(pathname);
     return pathname.startsWith(pattern);
@@ -59,15 +57,12 @@ const intlMiddleware = createMiddleware({
 export async function middleware(request) {
   const { pathname } = request.nextUrl;
 
-  // ──────────────────────────────────────────────────────────────────────────
-  // 1. IGNORE STATIC ASSETS COMPLETELY (return 404 for direct access)
-  // ──────────────────────────────────────────────────────────────────────────
+  // Block static assets
   if (isStaticAsset(pathname)) {
-    // Return 404 for direct access to images, fonts, and asset directories
     return new NextResponse(null, { status: 404, statusText: 'Not Found' });
   }
 
-  // Ignore static files and internal Next.js paths (already handled by isStaticAsset, but keep for safety)
+  // Ignore internal Next.js paths
   if (
     pathname.startsWith('/_next') ||
     (pathname.startsWith('/api') && !pathname.startsWith('/api/admin')) ||
@@ -78,9 +73,7 @@ export async function middleware(request) {
     return NextResponse.next();
   }
 
-  // ──────────────────────────────────────────────────────────────────────────
-  // 2. ADMIN ROUTES (unchanged)
-  // ──────────────────────────────────────────────────────────────────────────
+  // Admin routes (unchanged)
   const isAdminRoute = pathname.startsWith('/admin');
   const isAdminApi = pathname.startsWith('/api/admin');
 
@@ -102,21 +95,14 @@ export async function middleware(request) {
     return NextResponse.next();
   }
 
-  // ──────────────────────────────────────────────────────────────────────────
-  // 3. RETURN 404 FOR DEAD LOCALE PATTERNS
-  // ──────────────────────────────────────────────────────────────────────────
+  // ✅ Return 404 for dead locale patterns (including en-SA)
   for (const pattern of DEAD_LOCALE_PATTERNS) {
     if (pattern.test(pathname)) {
-      return new NextResponse(null, {
-        status: 404,
-        statusText: 'Not Found',
-      });
+      return new NextResponse(null, { status: 404, statusText: 'Not Found' });
     }
   }
 
-  // ──────────────────────────────────────────────────────────────────────────
-  // 4. REDIRECT UNSUPPORTED LOCALES TO DEFAULT_LOCALE
-  // ──────────────────────────────────────────────────────────────────────────
+  // Redirect any other unsupported locale to ar-SA
   const match = pathname.match(/^\/([a-z]{2}-[A-Z]{2})\b/);
   if (match) {
     const localeFromUrl = match[1];
@@ -128,9 +114,6 @@ export async function middleware(request) {
     }
   }
 
-  // ──────────────────────────────────────────────────────────────────────────
-  // 5. RUN NEXT-INTL MIDDLEWARE FOR ALL OTHER PUBLIC PATHS
-  // ──────────────────────────────────────────────────────────────────────────
   return intlMiddleware(request);
 }
 
