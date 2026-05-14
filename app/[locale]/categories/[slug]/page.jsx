@@ -304,12 +304,15 @@ export default async function CategoryDetailPage({ params }) {
   const featuredStores = stores.filter(s => s.isFeatured);
   const regularStores = stores.filter(s => !s.isFeatured);
 
+  // ✅ FIXED transformStore: preserve _count and vouchers for StoreCard
   const transformStore = (s) => ({
     ...s,
     name: s.translations[0]?.name || '',
     slug: s.translations[0]?.slug || '',
     description: s.translations[0]?.description || null,
     showOffer: s.translations[0]?.showOffer || '',
+    _count: s._count,       // keep active vouchers count
+    vouchers: s.vouchers,   // keep vouchers array (if any)
   });
 
   // Breadcrumb items
@@ -319,7 +322,7 @@ export default async function CategoryDetailPage({ params }) {
     { name: categoryName, url: `/${locale}/categories/${slug}` },
   ];
 
-  // Structured data: BreadcrumbList (already covered by Breadcrumbs component) + ItemList for stores?
+  // Structured data: BreadcrumbList (already covered by Breadcrumbs component) + ItemList for stores
   const storeItemListSchema = {
     '@context': 'https://schema.org',
     '@type': 'ItemList',
@@ -547,4 +550,4 @@ export default async function CategoryDetailPage({ params }) {
       </div>
     </>
   );
-                  }
+}
