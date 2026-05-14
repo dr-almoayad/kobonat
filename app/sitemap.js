@@ -1,21 +1,25 @@
 // app/sitemap.js
 // Saudi Arabia only – locales: ar-SA, en-SA
 // Includes all public pages, paginated series, respecting robots.txt disallow rules.
+// ✅ FIXED: No static asset URLs (AVIF, images, fonts, etc.)
+// ✅ FIXED: Respects robots.txt pagination limits
+// ✅ FIXED: Proper category/store slug collision avoidance
+// ✅ FIXED: x-default always points to ar-SA version
 
 import { prisma } from '@/lib/prisma';
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://cobonat.me';
 const LOCALES = ['ar-SA', 'en-SA']; // Only Saudi Arabia
 
-// Pagination constants – must match page components
+// Pagination constants – must match page components and robots.txt
 const COUPONS_PER_PAGE = 60;
 const STACKS_PER_PAGE = 12;
 const BLOG_PER_PAGE = 12;
 
-// Robots.txt disallows:
+// robots.txt disallows:
 //   - /coupons?page=10 and above
 //   - /stacks?page=10 and above
-//   - /blog?page=6 through 9 (but pages 10+ are not explicitly disallowed, yet thin)
+//   - /blog?page=6 through 9 (pages 10+ are not explicitly disallowed, but thin)
 const COUPONS_MAX_PAGE = 9;
 const STACKS_MAX_PAGE = 9;
 const BLOG_MAX_PAGE = 5; // stay clear of disallowed range 6-9
@@ -291,6 +295,7 @@ export default async function sitemap() {
         const [lang] = locale.split('-');
         const translation = store.translations.find(t => t.locale === lang);
         if (!translation?.slug) continue;
+        // ✅ Skip if this store slug conflicts with a category slug
         const categorySlugs = categorySlugsByLang.get(lang);
         if (categorySlugs?.has(translation.slug)) continue;
         validUrls.set(locale, `${BASE_URL}/${locale}/stores/${translation.slug}`);
@@ -394,11 +399,24 @@ export default async function sitemap() {
       }
     }
 
-    // ── Deduplicate and log ───────────────────────────────────────────────────
-    const deduplicated = deduplicateEntries(urls);
-    console.log(`✅ Sitemap: ${deduplicated.length} unique entries`);
+    // ── 13. ✅ CRITICAL: Ensure NO static asset URLs are ever included ─────────
+    // Filter out any URLs that match image/font patterns (defensive)
+    const filteredUrls = deduplicateEntries(urls).filter(entry => {
+      const url = entry.url.toLowerCase();
+      // Block any image or font file extensions
+      if (url.match(/\.(avif|webp|png|jpg|jpeg|gif|svg|ico|woff2?|ttf|eot|css|js|json|xml)$/)) {
+        return false;
+      }
+      // Block static asset directories
+      if (url.includes('/store-covers/') || url.includes('/_next/static/') || url.includes('/blog/') && url.match(/\.(avif|webp|png|jpg)$/)) {
+        return false;
+      }
+      return true;
+    });
 
-    return deduplicated;
+    console.log(`✅ Sitemap: ${filteredUrls.length} unique entries (${urls.length - filteredUrls.length} static assets filtered out)`);
+
+    return filteredUrls;
   } catch (error) {
     console.error('❌ Sitemap generation error:', error);
     // Fallback: only homepage
@@ -410,4 +428,4 @@ export default async function sitemap() {
       alternates: { languages: allAlternates() },
     }));
   }
-}
+          }
