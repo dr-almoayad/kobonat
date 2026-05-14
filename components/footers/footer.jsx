@@ -203,7 +203,7 @@ const Footer = () => {
       {/* Bottom bar */}
       <div className="footer_bottom">
         <div className="footer_bottom_container">
-          <p className="footer_copyright">{t('copyright') || `© ${new Date().getFullYear()} Cobonat. All rights reserved.`}</p>
+          <p className="footer_copyright">{`© ${new Date().getFullYear()} Cobonat. All rights reserved.`}</p>
         </div>
       </div>
     </footer>
