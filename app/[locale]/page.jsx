@@ -164,7 +164,7 @@ export default async function Home({ params }) {
         },
       },
     }),
-    // 4. Featured stores for carousel
+    // 4. Featured stores for carousel – ADDED _count.vouchers
     prisma.store.findMany({
       where: {
         isActive:  true,
@@ -186,6 +186,16 @@ export default async function Home({ params }) {
           orderBy: { discountPercent: 'desc' },
           take:    1,
           select:  { discountPercent: true },
+        },
+        // ✅ NEW: Add total active vouchers count for StoreCard
+        _count: {
+          select: {
+            vouchers: {
+              where: {
+                OR: [{ expiryDate: null }, { expiryDate: { gte: new Date() } }],
+              },
+            },
+          },
         },
       },
       orderBy: [{ isFeatured: 'desc' }, { id: 'asc' }],
@@ -217,6 +227,9 @@ export default async function Home({ params }) {
         slug: translation.slug || '',
         showOffer: discountText,
       }],
+      // ✅ NEW: pass the count and the voucher data for StoreCard logic
+      _count: store._count,
+      vouchers: store.vouchers,
     };
   });
 
@@ -279,7 +292,7 @@ export default async function Home({ params }) {
         <SavingsBanner locale={locale} />
         <HeroBestOffersCarousel />
 
-        {/* ✅ Featured Stores Carousel – now receives stores + title */}
+        {/* ✅ Featured Stores Carousel – now receives full store data including _count and vouchers */}
         <FeaturedStoresCarousel
           title={carouselTitle}
           stores={topStores}
