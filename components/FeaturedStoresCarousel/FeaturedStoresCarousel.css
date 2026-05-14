@@ -41,9 +41,9 @@
 }
 
 .fsc .ec-slide {
-  flex: 0 0 144px;
-  margin-inline-start: 0;
-  margin-inline-end: 0;
+  flex: 0 0 144px !important;
+  margin-inline-start: 0 !important;
+  margin-inline-end: 0 !important;
 }
 
 /* Column that holds up to two cards stacked vertically */
