@@ -50,6 +50,11 @@
     padding-top: 1.5rem;
     padding-bottom: 1rem;
   }
+
+  .offer-stacks-inner .ec-container {
+    padding-inline-start: 0.5rem;
+  }
+  
   .offer-stacks-header {
     padding-left: var(--section-px);
     padding-right: var(--section-px);
