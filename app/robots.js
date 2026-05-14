@@ -1,22 +1,12 @@
 // app/robots.js
-
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://cobonat.me';
-
-// Shared list of public API endpoints that both Googlebot and Bingbot need for proper rendering
-const publicApiPaths = [
-  '/api/countries',
-  '/api/seasonal',
-  '/api/stores/*',
-  '/api/vouchers/*',
-  '/api/categories/*',
-  '/api/other-promos/*',
-  '/api/offer-stacks/*',
-];
 
 export default function robots() {
   return {
     rules: [
-      // ── GOOGLEBOT (specific allowances) ─────────────────────────────────
+      // ──────────────────────────────────────────────────────────────────────
+      // 1. GOOGLEBOT (primary crawler)
+      // ──────────────────────────────────────────────────────────────────────
       {
         userAgent: 'Googlebot',
         allow: [
@@ -37,25 +27,44 @@ export default function robots() {
           '/*/help',
           '/*/seasonal/*',
           '/*/bank-and-payment-offers',
-          ...publicApiPaths,
         ],
         disallow: [
           // Admin & API
           '/admin/',
+          '/api/',
           '/api/admin/',
           '/api/auth/',
-          '/api/_log',
-          '/api/session',
-          '/api/track',
-          '/api/feedback',
-          // Search
+          '/*/auth/',
+          
+          // Search – never index search results
           '/*/search',
           '/*/search?*',
-          '/*/auth/',
-          // ✅ NEW: Block static asset directories and file types
-          '/store-covers/',
+          
+          // Static asset directories
+          '/_next/',
           '/_next/static/',
-          '/_next/static/media/',
+          '/store-covers/',
+          '/public/stores/',
+          '/favicon.ico',
+          
+          // Dead locales – return 404, but block crawling
+          '/ar-KW/',
+          '/en-AE/',
+          '/ar-AE/',
+          '/en-KW/',
+          '/ar-EG/',
+          '/en-EG/',
+          '/ar-BH/',
+          '/en-BH/',
+          '/ar-OM/',
+          '/en-OM/',
+          '/ar-QA/',
+          '/en-QA/',
+          
+          // File extensions – never index raw files
+          '/*.json$',
+          '/*.js$',
+          '/*.css$',
           '/*.avif$',
           '/*.webp$',
           '/*.png$',
@@ -63,24 +72,41 @@ export default function robots() {
           '/*.jpeg$',
           '/*.gif$',
           '/*.svg$',
-          '/*.woff2$',
+          '/*.ico$',
           '/*.woff$',
+          '/*.woff2$',
           '/*.ttf$',
           '/*.eot$',
-          '/*.css$',
-          '/*.js$',
-          '/*.json$',
+          '/*.otf$',
           '/*.xml$',
-          // Prevent crawling of blog images as standalone pages
-          '/blog/*.avif',
-          '/blog/*.webp',
-          '/blog/*.png',
-          '/blog/*.jpg',
+          '/*.txt$',
+          
+          // Query parameters that create duplicate content
+          '/*?ref=*',
+          '/*?utm_*',
+          '/*?source=*',
+          '/*?fbclid=*',
+          '/*?gclid=*',
         ],
         crawlDelay: 0,
       },
 
-      // ── BINGBOT (same allowances as Googlebot) ──────────────────────────
+      // ──────────────────────────────────────────────────────────────────────
+      // 2. GOOGLEBOT-IMAGE (prevent standalone image crawling)
+      // ──────────────────────────────────────────────────────────────────────
+      {
+        userAgent: 'Googlebot-Image',
+        disallow: [
+          '/',
+          '/store-covers/',
+          '/public/stores/',
+          '/_next/static/',
+        ],
+      },
+
+      // ──────────────────────────────────────────────────────────────────────
+      // 3. BINGBOT
+      // ──────────────────────────────────────────────────────────────────────
       {
         userAgent: 'Bingbot',
         allow: [
@@ -101,33 +127,28 @@ export default function robots() {
           '/*/help',
           '/*/seasonal/*',
           '/*/bank-and-payment-offers',
-          ...publicApiPaths,
         ],
         disallow: [
           '/admin/',
-          '/api/admin/',
-          '/api/auth/',
-          '/api/_log',
-          '/api/session',
-          '/api/track',
-          '/api/feedback',
+          '/api/',
           '/*/search',
           '/*/search?*',
-          '/*/auth/',
-          // ✅ NEW: Block static assets for Bing too
+          '/_next/',
           '/store-covers/',
-          '/_next/static/',
-          '/*.avif$',
-          '/*.webp$',
-          '/*.png$',
-          '/*.jpg$',
-          '/*.woff2$',
-          '/*.woff$',
+          '/public/stores/',
+          '/ar-KW/', '/en-AE/', '/ar-AE/', '/en-KW/',
+          '/ar-EG/', '/en-EG/', '/ar-BH/', '/en-BH/',
+          '/ar-OM/', '/en-OM/', '/ar-QA/', '/en-QA/',
+          '/*.json$', '/*.js$', '/*.css$',
+          '/*.avif$', '/*.webp$', '/*.png$', '/*.jpg$', '/*.jpeg$',
+          '/*.woff$', '/*.woff2$',
         ],
-        crawlDelay: 1,
+        crawlDelay: 0,
       },
 
-      // ── DEFAULT FOR ALL OTHER BOTS ─────────────────────────────────────
+      // ──────────────────────────────────────────────────────────────────────
+      // 4. DEFAULT FOR ALL OTHER BOTS
+      // ──────────────────────────────────────────────────────────────────────
       {
         userAgent: '*',
         allow: [
@@ -151,41 +172,105 @@ export default function robots() {
         ],
         disallow: [
           '/admin/',
-          '/api/admin/',
           '/api/',
           '/*/auth/',
           '/*/search',
           '/*/search?*',
-          '/*?ref=*',
-          '/*?utm_*',
-          '/*?source=*',
-          '/*?fbclid=*',
-          // ✅ NEW: Block static assets for all bots
+          '/_next/',
           '/store-covers/',
-          '/_next/static/',
-          '/*.avif$',
-          '/*.webp$',
-          '/*.png$',
-          '/*.jpg$',
-          '/*.jpeg$',
-          '/*.woff2$',
-          '/*.woff$',
+          '/public/stores/',
+          '/ar-KW/', '/en-AE/', '/ar-AE/', '/en-KW/',
+          '/ar-EG/', '/en-EG/', '/ar-BH/', '/en-BH/',
+          '/ar-OM/', '/en-OM/', '/ar-QA/', '/en-QA/',
+          '/*?ref=*', '/*?utm_*', '/*?source=*', '/*?fbclid=*',
+          '/*.json$', '/*.js$', '/*.css$',
+          '/*.avif$', '/*.webp$', '/*.png$', '/*.jpg$', '/*.jpeg$',
+          '/*.woff$', '/*.woff2$', '/*.ttf$',
         ],
       },
 
-      // ── AGGRESSIVE CRAWLERS – slow them down ───────────────────────────
-      { userAgent: 'AhrefsBot', allow: '/', disallow: ['/admin/', '/api/', '/*/search', '/store-covers/', '/_next/static/'], crawlDelay: 10 },
-      { userAgent: 'SemrushBot', allow: '/', disallow: ['/admin/', '/api/', '/*/search', '/store-covers/', '/_next/static/'], crawlDelay: 10 },
-      { userAgent: 'MJ12bot', disallow: '/' },
-      { userAgent: 'DotBot', disallow: '/' },
+      // ──────────────────────────────────────────────────────────────────────
+      // 5. AGGRESSIVE CRAWLERS – slow them down
+      // ──────────────────────────────────────────────────────────────────────
+      {
+        userAgent: 'AhrefsBot',
+        disallow: [
+          '/',
+          '/admin/',
+          '/api/',
+          '/_next/',
+          '/store-covers/',
+          '/public/stores/',
+        ],
+        crawlDelay: 10,
+      },
+      {
+        userAgent: 'SemrushBot',
+        disallow: [
+          '/',
+          '/admin/',
+          '/api/',
+          '/_next/',
+          '/store-covers/',
+          '/public/stores/',
+        ],
+        crawlDelay: 10,
+      },
+      {
+        userAgent: 'MJ12bot',
+        disallow: '/',
+      },
+      {
+        userAgent: 'DotBot',
+        disallow: '/',
+      },
+      {
+        userAgent: 'YandexBot',
+        disallow: '/',
+      },
+      {
+        userAgent: 'Baiduspider',
+        disallow: '/',
+      },
 
-      // ── AI TRAINING CRAWLERS – allowed (no sensitive pages) ─────────────
-      { userAgent: 'GPTBot', allow: '/' },
-      { userAgent: 'CCBot', allow: '/' },
-      { userAgent: 'anthropic-ai', allow: '/' },
-      { userAgent: 'Claude-Web', allow: '/' },
-      { userAgent: 'Google-Extended', allow: '/' },
-      { userAgent: 'FacebookBot', allow: '/' },
+      // ──────────────────────────────────────────────────────────────────────
+      // 6. AI TRAINING CRAWLERS – allowed (no sensitive pages)
+      // ──────────────────────────────────────────────────────────────────────
+      {
+        userAgent: 'GPTBot',
+        allow: '/',
+        disallow: ['/admin/', '/api/'],
+      },
+      {
+        userAgent: 'CCBot',
+        allow: '/',
+        disallow: ['/admin/', '/api/'],
+      },
+      {
+        userAgent: 'anthropic-ai',
+        allow: '/',
+        disallow: ['/admin/', '/api/'],
+      },
+      {
+        userAgent: 'Claude-Web',
+        allow: '/',
+        disallow: ['/admin/', '/api/'],
+      },
+      {
+        userAgent: 'Google-Extended',
+        allow: '/',
+        disallow: ['/admin/', '/api/'],
+      },
+      {
+        userAgent: 'FacebookBot',
+        allow: '/',
+        disallow: ['/admin/', '/api/'],
+      },
+      {
+        userAgent: 'Twitterbot',
+        allow: '/',
+        disallow: ['/admin/', '/api/'],
+      },
     ],
 
     sitemap: `${BASE_URL}/sitemap.xml`,
