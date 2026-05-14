@@ -8,22 +8,46 @@ const SUPPORTED_LOCALES = ['ar-SA', 'en-SA'];
 const DEFAULT_LOCALE = 'ar-SA';
 
 // ✅ List of dead locale patterns that should return 404 (not redirect)
-// These are locale+country combos that were previously supported but are now completely removed
-// Google still has them in index – returning 404 will make Google drop them faster
+// These are locale+country combos that were previously supported or are being blocked
 const DEAD_LOCALE_PATTERNS = [
   /^\/ar-KW\//,
   /^\/en-AE\//,
   /^\/ar-AE\//,
   /^\/en-KW\//,
-  /^\/ar-EG\//,
+  /^\/ar-EG\//, // Egypt
   /^\/en-EG\//,
-  /^\/ar-BH\//,
+  /^\/ar-BH\//, // Bahrain
   /^\/en-BH\//,
-  /^\/ar-OM\//,
+  /^\/ar-OM\//, // Oman
   /^\/en-OM\//,
-  /^\/ar-QA\//,
+  /^\/ar-QA\//, // Qatar
   /^\/en-QA\//,
+  /^\/ar-JO\//,
+  /^\/en-JO\//,
+  /^\/ar-LB\//,
+  /^\/en-LB\//,
 ];
+
+// ✅ Helper to check if a path is a static asset that should never be crawled
+const isStaticAsset = (pathname) => {
+  const staticPatterns = [
+    '/_next/',
+    '/store-covers/',      // AVIF images
+    '/public/stores/',     // Store logo images
+    '/favicon.ico',
+    '/robots.txt',
+    '/sitemap.xml',
+    // File extensions that should never be treated as pages
+    /\.(avif|webp|png|jpg|jpeg|gif|svg|ico)$/i,
+    /\.(woff2?|ttf|eot|otf)$/i,
+    /\.(json|xml|txt)$/i,
+  ];
+
+  return staticPatterns.some(pattern => {
+    if (pattern instanceof RegExp) return pattern.test(pathname);
+    return pathname.startsWith(pattern);
+  });
+};
 
 const intlMiddleware = createMiddleware({
   locales: SUPPORTED_LOCALES,
@@ -35,11 +59,18 @@ const intlMiddleware = createMiddleware({
 export async function middleware(request) {
   const { pathname } = request.nextUrl;
 
-  // Ignore static files and internal paths
+  // ──────────────────────────────────────────────────────────────────────────
+  // 1. IGNORE STATIC ASSETS COMPLETELY (return 404 for direct access)
+  // ──────────────────────────────────────────────────────────────────────────
+  if (isStaticAsset(pathname)) {
+    // Return 404 for direct access to images, fonts, and asset directories
+    return new NextResponse(null, { status: 404, statusText: 'Not Found' });
+  }
+
+  // Ignore static files and internal Next.js paths (already handled by isStaticAsset, but keep for safety)
   if (
     pathname.startsWith('/_next') ||
     (pathname.startsWith('/api') && !pathname.startsWith('/api/admin')) ||
-    pathname.includes('.') ||
     pathname === '/favicon.ico' ||
     pathname === '/robots.txt' ||
     pathname === '/sitemap.xml'
@@ -47,7 +78,9 @@ export async function middleware(request) {
     return NextResponse.next();
   }
 
-  // Admin routes (unchanged)
+  // ──────────────────────────────────────────────────────────────────────────
+  // 2. ADMIN ROUTES (unchanged)
+  // ──────────────────────────────────────────────────────────────────────────
   const isAdminRoute = pathname.startsWith('/admin');
   const isAdminApi = pathname.startsWith('/api/admin');
 
@@ -70,36 +103,34 @@ export async function middleware(request) {
   }
 
   // ──────────────────────────────────────────────────────────────────────────
-  // ✅ FIX 1: Return 404 for dead locale patterns (ar-KW, en-AE, etc.)
-  // Google will drop these URLs from index faster with a 404 than a 301 redirect
+  // 3. RETURN 404 FOR DEAD LOCALE PATTERNS
   // ──────────────────────────────────────────────────────────────────────────
   for (const pattern of DEAD_LOCALE_PATTERNS) {
     if (pattern.test(pathname)) {
-      return new NextResponse(null, { 
-        status: 404, 
-        statusText: 'Not Found' 
+      return new NextResponse(null, {
+        status: 404,
+        statusText: 'Not Found',
       });
     }
   }
 
   // ──────────────────────────────────────────────────────────────────────────
-  // ✅ FIX 2: Redirect unsupported locales to DEFAULT_LOCALE
-  // For example, /fr-SA/about → 301 redirect to /ar-SA/about
+  // 4. REDIRECT UNSUPPORTED LOCALES TO DEFAULT_LOCALE
   // ──────────────────────────────────────────────────────────────────────────
   const match = pathname.match(/^\/([a-z]{2}-[A-Z]{2})\b/);
   if (match) {
     const localeFromUrl = match[1];
     if (!SUPPORTED_LOCALES.includes(localeFromUrl)) {
-      // Replace unsupported locale with default
       const newPathname = pathname.replace(`/${localeFromUrl}`, `/${DEFAULT_LOCALE}`);
       const url = request.nextUrl.clone();
       url.pathname = newPathname;
-      // Use 301 permanent redirect – these will never come back
       return NextResponse.redirect(url, 301);
     }
   }
 
-  // Run next-intl middleware for all other public paths
+  // ──────────────────────────────────────────────────────────────────────────
+  // 5. RUN NEXT-INTL MIDDLEWARE FOR ALL OTHER PUBLIC PATHS
+  // ──────────────────────────────────────────────────────────────────────────
   return intlMiddleware(request);
 }
 
