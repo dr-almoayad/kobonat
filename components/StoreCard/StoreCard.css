@@ -10,12 +10,10 @@
   background: none;
   border-radius: 0;
   overflow: hidden;
-  transition: box-shadow 0.18s ease, border-color 0.18s ease;
   cursor: pointer;
   border-radius: 8px;
   margin: 0.2rem;
-  padding: 0.25rem;
-  transition: 0.2s ease;
+  padding: 0.425rem;
 }
 
 .sc-root:hover {
@@ -34,23 +32,15 @@
   max-width: 136px;
   aspect-ratio: 1;
   background: none;
-  border-bottom: 1px solid #ebebeb;
+  border: none;
+  border-radius: 26px;
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, .1), 0 4px 6px -4px rgba(0, 0, 0, .1);
   overflow: hidden;
-}
-
-.sc-logo-wrap:hover {
-  box-shadow: 0 6px 24px rgba(71, 10, 226, 0.09);
 }
 
 .sc-logo-img {
   object-fit: cover;
   padding: 0;          /* breathing room so logo never touches edges */
-  transition: transform 0.2s ease;
-  transform: scale(1.25);
-}
-
-.sc-root:hover .sc-logo-img {
   transform: scale(1.25);
 }
 
@@ -69,17 +59,18 @@
 
 /* ── Info area ────────────────────────────────────────────────────────────── */
 .sc-info {
-  padding: 0 1.25rem;
+  padding: 0 .2rem;
   display: flex;
   height: fit-content;
   flex-direction: column;
+  gap: 0.2rem;
 }
 
 /* Store name */
 .sc-name {
   display: block;
   margin-top: 0.5rem;
-  font-size: .875rem;
+  font-size: .85rem;
   line-height: 1.1rem;
   font-weight: 400;
   letter-spacing: .02em;
@@ -108,7 +99,7 @@
 
 .sc-offer-text {
   font-size: 0.75rem;
-  font-weight: 500;
+  font-weight: 400;
   color: #43e19a;
   white-space: nowrap;
   overflow: hidden;
@@ -126,18 +117,6 @@
 [dir='rtl'] .sc-name,
 [dir='rtl'] .sc-offer-text {
   font-family: var(--font-alexandria), 'Noto Sans Arabic', sans-serif;
-}
-
-/* ── Reduced motion ───────────────────────────────────────────────────────── */
-@media (prefers-reduced-motion: reduce) {
-  .sc-root,
-  .sc-logo-img {
-    transition: none;
-  }
-
-  .sc-root:hover .sc-logo-img {
-    transform: none;
-  }
 }
 
 /* ── Loading shimmer ──────────────────────────────────────────────────────── */
