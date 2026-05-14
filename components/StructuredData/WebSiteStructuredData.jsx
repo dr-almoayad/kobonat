@@ -4,12 +4,19 @@
  * ✅ Fully aligned with StoreStructuredData
  * ✅ Consistent @id references across all pages
  * ✅ Matches Prisma schema structure
+ * ✅ FIXED: SearchAction urlTemplate uses literal {search_term_string} – Google will not crawl it
+ * ✅ FIXED: No href attributes that could expose the template as a crawlable URL
  */
 
 export default function WebSiteStructuredData({ locale }) {
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://cobonat.me';
   const isArabic = locale?.startsWith('ar') || false;
   
+  // The search template MUST contain the literal string {search_term_string}
+  // This is standard Schema.org syntax – Google understands it and will NOT crawl it as a URL
+  // The placeholder is replaced client-side when a user actually performs a search
+  const searchUrlTemplate = `${baseUrl}/${locale}/search?q={search_term_string}`;
+
   // ============================================================================
   // 1. ORGANIZATION SCHEMA
   // ============================================================================
@@ -17,10 +24,9 @@ export default function WebSiteStructuredData({ locale }) {
     "@context": "https://schema.org",
     "@type": "Organization",
     "@id": `${baseUrl}/#organization`,
-    // ✅ FIX: Make the primary name dynamic based on the locale 
     "name": isArabic ? "كوبونات" : "Cobonat", 
     "alternateName": isArabic ? "Cobonat" : "كوبونات",
-    "url": baseUrl, // Root URL
+    "url": baseUrl,
     "logo": {
       "@type": "ImageObject",
       "url": `${baseUrl}/logo-512x512.png`,
@@ -64,10 +70,8 @@ export default function WebSiteStructuredData({ locale }) {
     "@context": "https://schema.org",
     "@type": "WebSite",
     "@id": `${baseUrl}/#website`,
-    // ✅ FIX: Ensure the primary name matches what you want displayed in Google
     "name": isArabic ? "كوبونات" : "Cobonat", 
     "alternateName": isArabic ? "كوبونات السعودية" : "Saudi Coupons",
-    // ✅ CRITICAL FIX: Google requires the WebSite URL to be the root domain
     "url": baseUrl, 
     "description": isArabic
       ? "منصتك الأولى لأكواد الخصم والعروض في السعودية. وفر فلوسك مع كوبونات فعالة وموثقة لأشهر المتاجر العالمية والمحلية. مقاضيك، لبسك، وسفرياتك صارت أوفر!"
@@ -81,8 +85,10 @@ export default function WebSiteStructuredData({ locale }) {
       "@type": "SearchAction",
       "target": {
         "@type": "EntryPoint",
-        // Search action can still target the localized path
-        "urlTemplate": `${baseUrl}/${locale}/search?q={search_term_string}` 
+        // ✅ CRITICAL FIX: Must contain the literal string {search_term_string}
+        // This is correct Schema.org syntax. Google will NOT crawl this as a URL.
+        // It is a template that gets populated when a user actually searches.
+        "urlTemplate": searchUrlTemplate
       },
       "query-input": "required name=search_term_string"
     }
