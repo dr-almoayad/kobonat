@@ -9,23 +9,23 @@ const DEFAULT_LOCALE = 'ar-SA';
 
 // ✅ List of dead locale patterns (including en-SA temporarily)
 const DEAD_LOCALE_PATTERNS = [
-  /^\/en-SA\//,  // ← TEMPORARILY BLOCK ENGLISH
-  /^\/ar-KW\//,
-  /^\/en-AE\//,
-  /^\/ar-AE\//,
-  /^\/en-KW\//,
-  /^\/ar-EG\//,
-  /^\/en-EG\//,
-  /^\/ar-BH\//,
-  /^\/en-BH\//,
-  /^\/ar-OM\//,
-  /^\/en-OM\//,
-  /^\/ar-QA\//,
-  /^\/en-QA\//,
-  /^\/ar-JO\//,
-  /^\/en-JO\//,
-  /^\/ar-LB\//,
-  /^\/en-LB\//,
+  /^\/en-SA(\/|$)/,  // ← FIXED: catches exact /en-SA as well as /en-SA/
+  /^\/ar-KW(\/|$)/,
+  /^\/en-AE(\/|$)/,
+  /^\/ar-AE(\/|$)/,
+  /^\/en-KW(\/|$)/,
+  /^\/ar-EG(\/|$)/,
+  /^\/en-EG(\/|$)/,
+  /^\/ar-BH(\/|$)/,
+  /^\/en-BH(\/|$)/,
+  /^\/ar-OM(\/|$)/,
+  /^\/en-OM(\/|$)/,
+  /^\/ar-QA(\/|$)/,
+  /^\/en-QA(\/|$)/,
+  /^\/ar-JO(\/|$)/,
+  /^\/en-JO(\/|$)/,
+  /^\/ar-LB(\/|$)/,
+  /^\/en-LB(\/|$)/,
 ];
 
 // Helper to check if a path is a static asset
@@ -57,9 +57,9 @@ const intlMiddleware = createMiddleware({
 export async function middleware(request) {
   const { pathname } = request.nextUrl;
 
-  // Block static assets
+  // ✅ FIXED: Return NextResponse.next() to allow Next.js to serve the static assets natively
   if (isStaticAsset(pathname)) {
-    return new NextResponse(null, { status: 404, statusText: 'Not Found' });
+    return NextResponse.next();
   }
 
   // Ignore internal Next.js paths
@@ -95,7 +95,7 @@ export async function middleware(request) {
     return NextResponse.next();
   }
 
-  // ✅ Return 404 for dead locale patterns (including en-SA)
+  // Return 404 for dead locale patterns (including en-SA)
   for (const pattern of DEAD_LOCALE_PATTERNS) {
     if (pattern.test(pathname)) {
       return new NextResponse(null, { status: 404, statusText: 'Not Found' });
