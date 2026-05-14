@@ -6,22 +6,62 @@ import Link from 'next/link';
 import { useLocale } from 'next-intl';
 import './StoreCard.css';
 
-// Icon + color per offer type
+// Icon config (kept for fallback, but dynamic now)
 const OFFER_TYPE_CONFIG = {
   CODE:          { icon: 'confirmation_number', color: '#7c3aed' },
   DEAL:          { icon: 'local_fire_department', color: '#ef4444' },
   DISCOUNT:      { icon: 'sell',                 color: '#3b82f6' },
-  FREE_DELIVERY: { icon: 'local_shipping',        color: '#10b981' },
-  FREE_SHIPPING: { icon: 'local_shipping',        color: '#10b981' },
-  CASHBACK:      { icon: 'bolt',                  color: '#0ea5e9' },
-  OFFER:         { icon: 'redeem',                color: '#f59e0b' },
+  FREE_DELIVERY: { icon: 'local_shipping',       color: '#10b981' },
+  FREE_SHIPPING: { icon: 'local_shipping',       color: '#10b981' },
+  CASHBACK:      { icon: 'bolt',                 color: '#0ea5e9' },
+  OFFER:         { icon: 'redeem',               color: '#470ae2' },
 };
 
-export default function StoreCard({ store }) {
-  const locale    = useLocale();
-  const lang      = locale.split('-')[0];
+function getBestOffer(store, lang) {
+  const isAr = lang === 'ar';
+  let maxSavings = 0;
+  let activeDealsCount = 0;
 
-  // ── Helpers ────────────────────────────────────────────────────────────────
+  // Extract max discount percentage
+  if (store.vouchers && Array.isArray(store.vouchers)) {
+    maxSavings = Math.max(
+      ...store.vouchers.map(v => v.discountPercent || 0),
+      0
+    );
+  } else if (store.vouchers?.[0]?.discountPercent) {
+    maxSavings = store.vouchers[0].discountPercent;
+  }
+
+  // Extract active deals count
+  if (store._count?.vouchers !== undefined) {
+    activeDealsCount = store._count.vouchers;
+  } else if (store.vouchers && Array.isArray(store.vouchers)) {
+    activeDealsCount = store.vouchers.length;
+  } else if (store.activeVouchersCount !== undefined) {
+    activeDealsCount = store.activeVouchersCount;
+  }
+
+  const hasGoodSavings = maxSavings >= 15;
+  const hasManyDeals = activeDealsCount >= 5;
+
+  if (hasGoodSavings) {
+    const savingsText = isAr ? `وفّر ${Math.round(maxSavings)}%` : `Save ${Math.round(maxSavings)}%`;
+    return { text: savingsText, icon: 'percent', color: '#f59e0b' };
+  }
+  if (hasManyDeals) {
+    const dealsText = isAr
+      ? `${activeDealsCount}+ عرض نشط`
+      : `${activeDealsCount}+ Active deals`;
+    return { text: dealsText, icon: 'local_offer', color: '#10b981' };
+  }
+  const fallbackText = isAr ? 'اكتشف العروض' : 'See deals';
+  return { text: fallbackText, icon: 'redeem', color: '#470ae2' };
+}
+
+export default function StoreCard({ store }) {
+  const locale = useLocale();
+  const lang = locale.split('-')[0];
+
   const name = store.translations?.find(t => t.locale === lang)?.name
     || store.translations?.[0]?.name
     || store.name
@@ -32,34 +72,10 @@ export default function StoreCard({ store }) {
     || store.slug
     || 'store';
 
-  const logo  = store.bigLogo || store.logo || null;
-  const color = store.color   || '#470ae2';
+  const logo = store.bigLogo || store.logo || null;
+  const color = store.color || '#470ae2';
+  const bestOffer = getBestOffer(store, lang);
 
-  const showOffer = (() => {
-    // Prefer locale-matched translation
-    const matched = store.translations?.find(t => t.locale === lang)?.showOffer;
-    if (matched?.trim()) return matched;
-    // Any translation with a value
-    const any = store.translations?.find(t => t.showOffer?.trim())?.showOffer;
-    if (any) return any;
-    // Legacy field
-    if (store.showOffer) return store.showOffer;
-    // Derive from vouchers
-    if (store.vouchers?.length) {
-      const max = Math.max(
-        ...store.vouchers
-          .map(v => { const m = String(v.discount || '').match(/(\d+)/); return m ? +m[1] : 0; })
-          .filter(Boolean)
-      );
-      if (max > 0) return lang === 'ar' ? `خصم حتى ${max}%` : `Up to ${max}% off`;
-    }
-    return lang === 'ar' ? 'اكتشف العروض' : 'See deals';
-  })();
-
-  const offerKey    = store.showOfferType?.toUpperCase();
-  const offerConfig = OFFER_TYPE_CONFIG[offerKey] || OFFER_TYPE_CONFIG.OFFER;
-
-  // Initials fallback when no logo
   const initials = name
     .split(' ')
     .slice(0, 2)
@@ -71,9 +87,8 @@ export default function StoreCard({ store }) {
     <Link
       href={`/${locale}/stores/${slug}`}
       className="sc-root"
-      aria-label={`${name} — ${showOffer}`}
+      aria-label={`${name} — ${bestOffer.text}`}
     >
-      {/* ── Logo area ───────────────────────────────────────────────────── */}
       <div className="sc-logo-wrap">
         {logo ? (
           <Image
@@ -84,26 +99,27 @@ export default function StoreCard({ store }) {
             className="sc-logo-img"
           />
         ) : (
-          <div
-            className="sc-logo-initials"
-            style={{ background: color }}
-          >
+          <div className="sc-logo-initials" style={{ background: color }}>
             {initials}
           </div>
         )}
       </div>
 
-      {/* ── Info area ───────────────────────────────────────────────────── */}
       <div className="sc-info">
         <p className="sc-name">{name}</p>
         <p className="sc-offer">
           <span
             className="sc-offer-icon material-symbols-sharp"
-            style={{ color: offerConfig.color }}
+            style={{ color: bestOffer.color }}
           >
-            {offerConfig.icon}
+            {bestOffer.icon}
           </span>
-          <span className="sc-offer-text">{showOffer}</span>
+          <span
+            className="sc-offer-text"
+            style={{ color: bestOffer.color }}
+          >
+            {bestOffer.text}
+          </span>
         </p>
       </div>
     </Link>
