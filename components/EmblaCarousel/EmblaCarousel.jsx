@@ -9,7 +9,7 @@ export default function EmblaCarousel({
   slideWidth = '300px',
   slideGap   = '1rem',
   className  = '',
-  freeScroll = false,   // optional: if true, no snap points (continuous drag)
+  freeScroll = false,   // if true, continuous drag (no snap)
 }) {
   const isAr = locale?.split('-')[0] === 'ar';
 
@@ -18,14 +18,13 @@ export default function EmblaCarousel({
     align:         'start',
     dragFree:      freeScroll,
     loop:          false,
-    containScroll: false,
+    containScroll: 'trimSnaps',   // prevents overscroll beyond last slide
   });
 
   const [canPrev, setCanPrev] = useState(false);
   const [canNext, setCanNext] = useState(false);
-  const [isDesktop, setIsDesktop] = useState(false); // only show arrows on desktop
+  const [isDesktop, setIsDesktop] = useState(false);
 
-  // Detect desktop width (≥1024px)
   useEffect(() => {
     const checkDesktop = () => setIsDesktop(window.innerWidth >= 1024);
     checkDesktop();
@@ -51,6 +50,10 @@ export default function EmblaCarousel({
   const slides = Array.isArray(children) ? children : [children];
   const showArrows = isDesktop && (canPrev || canNext);
 
+  // Arrow icons – RTL aware (no CSS flipping)
+  const prevIcon = isAr ? 'chevron_right' : 'chevron_left';
+  const nextIcon = isAr ? 'chevron_left' : 'chevron_right';
+
   return (
     <div className={`ec-root${className ? ` ${className}` : ''}`} dir={isAr ? 'rtl' : 'ltr'}>
       <div className="ec-carousel-row">
@@ -60,9 +63,7 @@ export default function EmblaCarousel({
             onClick={scrollPrev}
             aria-label={isAr ? 'السابق' : 'Previous'}
           >
-            <span className="material-symbols-sharp">
-              {isAr ? 'chevron_right' : 'chevron_left'}
-            </span>
+            <span className="material-symbols-sharp">{prevIcon}</span>
           </button>
         )}
 
@@ -90,13 +91,10 @@ export default function EmblaCarousel({
             onClick={scrollNext}
             aria-label={isAr ? 'التالي' : 'Next'}
           >
-            <span className="material-symbols-sharp">
-              {isAr ? 'chevron_left' : 'chevron_right'}
-            </span>
+            <span className="material-symbols-sharp">{nextIcon}</span>
           </button>
         )}
       </div>
-
       {/* Dots removed */}
     </div>
   );
