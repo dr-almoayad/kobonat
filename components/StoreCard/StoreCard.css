@@ -20,11 +20,6 @@
   background: #f1f2f3;
 }
 
-.sc-root:focus-visible {
-  outline: 3px solid #470ae2;
-  outline-offset: 3px;
-}
-
 /* ── Logo area ────────────────────────────────────────────────────────────── */
 .sc-logo-wrap {
   position: relative;
@@ -109,7 +104,7 @@
 /* ── Responsive ───────────────────────────────────────────────────────────── */
 @media (max-width: 767px) {
   .sc-root {
-    border-radius: 32px;
+    border-radius: 8px;
   }
 }
 
