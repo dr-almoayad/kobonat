@@ -7,30 +7,29 @@
   width: 100%;
 }
 
-/* Row with arrows + viewport */
 .ec-carousel-row {
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  position: relative;
 }
 
-/* Viewport – fills remaining space */
+/* Viewport – adds spacing from screen edges */
 .ec-viewport {
   flex: 1;
   overflow: hidden;
   transform: translateZ(0);
+  padding-inline: 1rem; /* space between slide and screen edge */
 }
 
-/* Track – no gap, margins on slides */
 .ec-container {
   display: flex;
   touch-action: pan-y pinch-zoom;
   will-change: transform;
   backface-visibility: hidden;
-  padding: 0.5rem 0.2rem;
+  padding: 0; /* no extra padding – margins on slides control gaps */
 }
 
-/* Slide */
 .ec-slide {
   min-width: 0;
   display: flex;
@@ -42,24 +41,21 @@
   flex: 1;
 }
 
-/* Shared arrow styles */
+/* ── Arrows (44px, round, only visible when needed, desktop only) ── */
 .ec-arrow {
-  display: none;
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 10;
-  width: 36px;
-  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   border: 1px solid #d5d9d9;
   background: #fff;
   color: #333;
-  align-items: center;
-  justify-content: center;
   cursor: pointer;
   box-shadow: 0 2px 6px rgba(0,0,0,0.12);
-  transition: background 0.15s, box-shadow 0.15s;
+  transition: background 0.15s, box-shadow 0.15s, opacity 0.2s;
+  flex-shrink: 0;
 }
 
 .ec-arrow .material-symbols-sharp {
@@ -78,48 +74,38 @@
   pointer-events: none;
 }
 
-.ec-arrow--prev { inset-inline-start: 0.25rem; }
-.ec-arrow--next { inset-inline-end: 0.25rem; }
-
-/* Dots */
-.ec-dots {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-}
-.ec-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  border: none;
-  background: #cbd5e1;
-  cursor: pointer;
-  padding: 0;
-  transition: background 0.2s, width 0.2s, border-radius 0.2s;
-}
-.ec-dot--active {
-  background: #470ae2;
-  width: 22px;
-  border-radius: 4px;
-}
-
-/* Full‑bleed mobile (used by OfferStacksSection) */
-@media (max-width: 768px) {
-  .ec-full-bleed {
-    margin-left:  calc(-1 * var(--section-px, 1rem));
-    margin-right: calc(-1 * var(--section-px, 1rem));
-    width: calc(100% + 2 * var(--section-px, 1rem));
-  }
-  .ec-full-bleed .ec-viewport {
-    padding-inline-start: var(--section-px, 1rem);
-    box-sizing: border-box;
-  }
-  .ec-full-bleed .ec-slide:last-child {
-    margin-inline-end: var(--section-px, 1rem) !important;
-  }
-  .ec-full-bleed .ec-arrow,
-  .ec-full-bleed .ec-dots {
+/* Hide arrows on mobile (≤1023px) */
+@media (max-width: 1023px) {
+  .ec-arrow {
     display: none;
   }
+}
+
+/* ── Full‑bleed variant (used by OfferStacksSection) ── */
+.ec-full-bleed {
+  margin-left:  calc(-1 * var(--section-px, 1rem));
+  margin-right: calc(-1 * var(--section-px, 1rem));
+  width: calc(100% + 2 * var(--section-px, 1rem));
+}
+
+.ec-full-bleed .ec-viewport {
+  padding-inline-start: var(--section-px, 1rem);
+  /* keep other padding unchanged */
+}
+
+.ec-full-bleed .ec-slide:last-child {
+  margin-inline-end: var(--section-px, 1rem) !important;
+}
+
+/* Remove extra container padding on full‑bleed */
+.ec-full-bleed .ec-container {
+  padding: 0;
+}
+
+/* RTL adjustments for arrows (if needed) */
+[dir='rtl'] .ec-arrow--prev .material-symbols-sharp {
+  transform: scaleX(-1);
+}
+[dir='rtl'] .ec-arrow--next .material-symbols-sharp {
+  transform: scaleX(-1);
 }
