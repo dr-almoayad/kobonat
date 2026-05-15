@@ -9,27 +9,33 @@ export default function EmblaCarousel({
   slideWidth = '300px',
   slideGap   = '1rem',
   className  = '',
+  freeScroll = false,   // optional: if true, no snap points (continuous drag)
 }) {
   const isAr = locale?.split('-')[0] === 'ar';
 
   const [emblaRef, emblaApi] = useEmblaCarousel({
     direction:     isAr ? 'rtl' : 'ltr',
     align:         'start',
-    dragFree:      false,
+    dragFree:      freeScroll,
     loop:          false,
     containScroll: false,
   });
 
   const [canPrev, setCanPrev] = useState(false);
   const [canNext, setCanNext] = useState(false);
-  const [selectedIdx, setSelectedIdx] = useState(0);
-  const [snapCount, setSnapCount] = useState(0);
+  const [isDesktop, setIsDesktop] = useState(false); // only show arrows on desktop
+
+  // Detect desktop width (≥1024px)
+  useEffect(() => {
+    const checkDesktop = () => setIsDesktop(window.innerWidth >= 1024);
+    checkDesktop();
+    window.addEventListener('resize', checkDesktop);
+    return () => window.removeEventListener('resize', checkDesktop);
+  }, []);
 
   const sync = useCallback((api) => {
     setCanPrev(api.canScrollPrev());
     setCanNext(api.canScrollNext());
-    setSelectedIdx(api.selectedScrollSnap());
-    setSnapCount(api.scrollSnapList().length);
   }, []);
 
   useEffect(() => {
@@ -41,23 +47,24 @@ export default function EmblaCarousel({
 
   const scrollPrev = useCallback(() => emblaApi?.scrollPrev(), [emblaApi]);
   const scrollNext = useCallback(() => emblaApi?.scrollNext(), [emblaApi]);
-  const scrollTo   = useCallback((i) => emblaApi?.scrollTo(i), [emblaApi]);
 
   const slides = Array.isArray(children) ? children : [children];
+  const showArrows = isDesktop && (canPrev || canNext);
 
   return (
     <div className={`ec-root${className ? ` ${className}` : ''}`} dir={isAr ? 'rtl' : 'ltr'}>
       <div className="ec-carousel-row">
-        <button
-          className="ec-arrow"
-          onClick={isAr ? scrollNext : scrollPrev}
-          disabled={isAr ? !canNext : !canPrev}
-          aria-label={isAr ? 'السابق' : 'Previous'}
-        >
-          <span className="material-symbols-sharp">
-            {isAr ? 'chevron_right' : 'chevron_left'}
-          </span>
-        </button>
+        {showArrows && canPrev && (
+          <button
+            className="ec-arrow ec-arrow--prev"
+            onClick={scrollPrev}
+            aria-label={isAr ? 'السابق' : 'Previous'}
+          >
+            <span className="material-symbols-sharp">
+              {isAr ? 'chevron_right' : 'chevron_left'}
+            </span>
+          </button>
+        )}
 
         <div className="ec-viewport" ref={emblaRef}>
           <div className="ec-container">
@@ -77,32 +84,20 @@ export default function EmblaCarousel({
           </div>
         </div>
 
-        <button
-          className="ec-arrow"
-          onClick={isAr ? scrollPrev : scrollNext}
-          disabled={isAr ? !canPrev : !canNext}
-          aria-label={isAr ? 'التالي' : 'Next'}
-        >
-          <span className="material-symbols-sharp">
-            {isAr ? 'chevron_left' : 'chevron_right'}
-          </span>
-        </button>
+        {showArrows && canNext && (
+          <button
+            className="ec-arrow ec-arrow--next"
+            onClick={scrollNext}
+            aria-label={isAr ? 'التالي' : 'Next'}
+          >
+            <span className="material-symbols-sharp">
+              {isAr ? 'chevron_left' : 'chevron_right'}
+            </span>
+          </button>
+        )}
       </div>
 
-      {snapCount > 1 && (
-        <div className="ec-dots" role="tablist">
-          {Array.from({ length: snapCount }).map((_, i) => (
-            <button
-              key={i}
-              className={`ec-dot${i === selectedIdx ? ' ec-dot--active' : ''}`}
-              onClick={() => scrollTo(i)}
-              role="tab"
-              aria-selected={i === selectedIdx}
-              aria-label={`Slide ${i + 1}`}
-            />
-          ))}
-        </div>
-      )}
+      {/* Dots removed */}
     </div>
   );
 }
