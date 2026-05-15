@@ -1,5 +1,5 @@
 // components/FeaturedStoresCarousel/FeaturedStoresCarousel.jsx
-'use client';
+'use client'; 
 
 import EmblaCarousel from '@/components/EmblaCarousel/EmblaCarousel';
 import StoreCard from '@/components/StoreCard/StoreCard';
