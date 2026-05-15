@@ -1,5 +1,5 @@
 // components/FeaturedStoresCarousel/FeaturedStoresCarousel.jsx
-'use client'; 
+'use client';
 
 import EmblaCarousel from '@/components/EmblaCarousel/EmblaCarousel';
 import StoreCard from '@/components/StoreCard/StoreCard';
@@ -24,8 +24,9 @@ export default function FeaturedStoresCarousel({ title, stores = [], locale = 'e
         <EmblaCarousel
           locale={locale}
           slideWidth="144px"
-          slideGap="1rem"
+          slideGap="1px"
           className="fsc-embla"
+          // freeScroll={true}  ← remove or set to false
         >
           {limitedStores.map((store) => (
             <StoreCard key={store.id} store={store} />
