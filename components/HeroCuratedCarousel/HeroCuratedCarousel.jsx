@@ -1,37 +1,50 @@
-// components/HeroCuratedCarousel/HeroCuratedCarousel.jsx
 'use client';
 import { useState } from 'react';
 import Link from 'next/link';
 import EmblaCarousel from '@/components/EmblaCarousel/EmblaCarousel';
 import './HeroCuratedCarousel.css';
 
-function SlideCard({ slide, isAr }) {
+function SlideCard({ slide }) {
   const {
-    offerImage,
-    offerImageFallback,
+    id,
+    mainImage,
+    mainImageFallback,
     ctaUrl,
     title,
-    ctaText,
-    storeName,
-    storeLogo,
-    imagePosition = 'cover',
-    showCta = true,
-    showStore = true,
+    subtitle,
+    appIcon,
+    appName,
+    developer,
+    rating,
+    ctaText = "Install on Windows",
+    ctaSubtext = "In-app purchases",
+    badgeText = "Spotlight"
   } = slide;
 
   const isExternal = Boolean(ctaUrl && (ctaUrl.startsWith('http://') || ctaUrl.startsWith('https://')));
   const hasLink = Boolean(ctaUrl);
-  const [imgSrc, setImgSrc] = useState(offerImage);
+  const [imgSrc, setImgSrc] = useState(mainImage);
 
   const handleImageError = () => {
-    if (offerImageFallback && imgSrc !== offerImageFallback) {
-      setImgSrc(offerImageFallback);
+    if (mainImageFallback && imgSrc !== mainImageFallback) {
+      setImgSrc(mainImageFallback);
     }
   };
 
   const inner = (
-    <div className={`hcc-card hcc-card--${imagePosition}${!hasLink ? ' hcc-card--no-link' : ''}`}>
-      {offerImage && (
+    <div className={`hcc-card ${!hasLink ? 'hcc-card--no-link' : ''}`}>
+      {/* Top Header: Badge & Play Icon */}
+      <div className="hcc-card-header">
+        <span className="hcc-badge">{badgeText}</span>
+        <svg className="hcc-play-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          {/* Placeholder for the Google Play Games PC logo */}
+          <path d="M6 3L20 12L6 21V3Z" fill="#25E87C"/>
+          <circle cx="16" cy="16" r="3" fill="#111"/>
+        </svg>
+      </div>
+
+      {/* Main Image with 3D/Glow effect */}
+      {mainImage && (
         <div className="hcc-img-wrap">
           <img
             src={imgSrc}
@@ -45,26 +58,26 @@ function SlideCard({ slide, isAr }) {
         </div>
       )}
 
+      {/* Main Text Content */}
       <div className="hcc-body">
-        {showStore && storeName && (
-          <div className="hcc-store">
-            {storeLogo && (
-              <img src={storeLogo} alt={storeName} className="hcc-store-logo" />
-            )}
-            <span className="hcc-store-name">{storeName}</span>
-          </div>
-        )}
-
         <h2 className="hcc-title">{title}</h2>
+        {subtitle && <p className="hcc-subtitle">{subtitle}</p>}
+      </div>
 
-        {showCta && hasLink && (
-          <div className="hcc-cta">
-            <span>{ctaText || (isAr ? 'تسوق الآن' : 'Shop Now')}</span>
-            <span className="material-symbols-sharp">
-              {isAr ? 'arrow_back' : 'arrow_forward'}
-            </span>
+      {/* Footer: App Info & Button */}
+      <div className="hcc-footer">
+        <div className="hcc-app-info">
+          {appIcon && <img src={appIcon} alt={appName} className="hcc-app-icon" />}
+          <div className="hcc-app-meta-wrap">
+            <span className="hcc-app-name">{appName}</span>
+            <span className="hcc-app-meta">{developer} • {rating}</span>
           </div>
-        )}
+        </div>
+
+        <div className="hcc-cta-wrap">
+          <button className="hcc-cta">{ctaText}</button>
+          <span className="hcc-cta-subtext">{ctaSubtext}</span>
+        </div>
       </div>
     </div>
   );
@@ -92,14 +105,14 @@ export default function HeroCuratedCarousel({ slides, locale }) {
     <div className="hcc-root" dir={isAr ? 'rtl' : 'ltr'}>
       <EmblaCarousel
         locale={locale}
-        slideWidth="auto"        // let CSS control slide width
-        slideGap="12px"          // gap between slides (EmblaCarousel will respect)
-        freeScroll={true}        // enable free dragging / no snap
-        loop={false}             // no infinite loop
+        slideWidth="auto"
+        slideGap="16px"
+        freeScroll={true}
+        loop={false}
         className="hcc-embla"
       >
         {slides.map((slide) => (
-          <SlideCard key={slide.id} slide={slide} isAr={isAr} />
+          <SlideCard key={slide.id} slide={slide} />
         ))}
       </EmblaCarousel>
     </div>
