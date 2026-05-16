@@ -5,7 +5,7 @@ import createMiddleware from 'next-intl/middleware';
 
 // ✅ Support both Arabic and English
 const SUPPORTED_LOCALES = ['ar-SA', 'en-SA'];
-const DEFAULT_LOCALE = 'ar-SA';
+const DEFAULT_LOCALE = 'ar-SA'; 
 
 // ✅ Remove /^\/en-SA(\/|$)/ from dead patterns – English is now allowed
 const DEAD_LOCALE_PATTERNS = [
