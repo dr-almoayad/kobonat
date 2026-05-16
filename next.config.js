@@ -1,4 +1,4 @@
-// next.config.js - FINAL CORRECTED VERSION (single locale: ar-SA)
+// next.config.js - FINAL CORRECTED VERSION
 import createNextIntlPlugin from 'next-intl/plugin';
 
 const withNextIntl = createNextIntlPlugin('./i18n/request.js');
@@ -47,114 +47,36 @@ const nextConfig = {
           },
           {
             key: 'Referrer-Policy',
-            value: 'strict-origin-when-cross-origin'
+            value: 'origin-when-cross-origin'
           },
         ],
-      },
-      // ✅ Add robots noindex for old locale paths (defensive)
-      {
-        source: '/en-SA/:path*',
-        headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }],
-      },
-      {
-        source: '/en/:path*',
-        headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }],
-      },
-      {
-        source: '/ar-KW/:path*',
-        headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }],
-      },
-      {
-        source: '/en-AE/:path*',
-        headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }],
       },
     ];
   },
   
-  // ✅ Redirect all non‑Arabic locales to ar-SA (301 permanent)
+  // ✅ ADDED: Only redirects for old locale formats (if Google has them indexed)
+  // These HELP SEO by preventing 404s on legacy URLs
   async redirects() {
     return [
-      // Redirect /en-SA and /en to ar-SA
+      // Handle old 2-letter locale format (if you ever used /ar or /en)
       {
-        source: '/en-SA/:path*',
-        destination: '/ar-SA/:path*',
-        permanent: true,
-      },
-      {
-        source: '/en/:path*',
-        destination: '/ar-SA/:path*',
-        permanent: true,
-      },
-      // Redirect other dead locale patterns
-      {
-        source: '/ar-KW/:path*',
-        destination: '/ar-SA/:path*',
-        permanent: true,
-      },
-      {
-        source: '/en-AE/:path*',
-        destination: '/ar-SA/:path*',
-        permanent: true,
-      },
-      {
-        source: '/ar-AE/:path*',
-        destination: '/ar-SA/:path*',
-        permanent: true,
-      },
-      {
-        source: '/en-KW/:path*',
-        destination: '/ar-SA/:path*',
-        permanent: true,
-      },
-      {
-        source: '/ar-EG/:path*',
-        destination: '/ar-SA/:path*',
-        permanent: true,
-      },
-      {
-        source: '/en-EG/:path*',
-        destination: '/ar-SA/:path*',
-        permanent: true,
-      },
-      {
-        source: '/ar-BH/:path*',
-        destination: '/ar-SA/:path*',
-        permanent: true,
-      },
-      {
-        source: '/en-BH/:path*',
-        destination: '/ar-SA/:path*',
-        permanent: true,
-      },
-      {
-        source: '/ar-OM/:path*',
-        destination: '/ar-SA/:path*',
-        permanent: true,
-      },
-      {
-        source: '/en-OM/:path*',
-        destination: '/ar-SA/:path*',
-        permanent: true,
-      },
-      {
-        source: '/ar-QA/:path*',
-        destination: '/ar-SA/:path*',
-        permanent: true,
-      },
-      {
-        source: '/en-QA/:path*',
-        destination: '/ar-SA/:path*',
-        permanent: true,
-      },
-      // Also redirect root /en (no path) and /en-SA (no path)
-      {
-        source: '/en-SA',
+        source: '/ar',
         destination: '/ar-SA',
+        permanent: true,  // 301 redirect
+      },
+      {
+        source: '/ar/:path*',
+        destination: '/ar-SA/:path*',
         permanent: true,
       },
       {
         source: '/en',
-        destination: '/ar-SA',
+        destination: '/en-SA',
+        permanent: true,
+      },
+      {
+        source: '/en/:path*',
+        destination: '/en-SA/:path*',
         permanent: true,
       },
     ];
@@ -176,7 +98,10 @@ const nextConfig = {
   
   productionBrowserSourceMaps: false,
   
+  // ✅ CRITICAL: Consistent trailing slash behavior
   trailingSlash: false,
+  
+  // ✅ Skip trailing slash redirect to avoid redirect chains
   skipTrailingSlashRedirect: true,
 };
 
