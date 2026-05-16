@@ -1,122 +1,199 @@
 /* components/HeroCuratedCarousel/HeroCuratedCarousel.css */
 
-/* Base root – no background, full width */
+/* Base root */
 .hcc-root {
   width: 100%;
-  max-width: 1312px;
+  max-width: 1440px;
   margin: 0 auto;
   background: none;
 }
 
-/* Override EmblaCarousel slide styles */
+/* Embla Carousel Slides overrides */
 .ec-slide {
-  flex: 0 0 auto !important;        /* allow CSS width */
-  width: 85% !important;            /* default mobile width */
-  padding: 12px !important;         /* 12px padding around each slide */
+  flex: 0 0 auto !important;
+  width: 85% !important;
+  padding: 8px !important;
   transition: none !important;
   transform: none !important;
   opacity: 1 !important;
 }
 
-/* Responsive slide widths */
-@media (min-width: 640px) {
-  .ec-slide {
-    width: 70% !important;
-  }
+@media (min-width: 768px) {
+  .ec-slide { width: 60% !important; }
 }
 @media (min-width: 1024px) {
-  .ec-slide {
-    width: 55% !important;
-  }
+  .ec-slide { width: 45% !important; }
 }
 @media (min-width: 1280px) {
-  .ec-slide {
-    width: 48% !important;
-  }
+  .ec-slide { width: 33.333% !important; }
 }
 
-/* Remove any active/inactive scaling (from possible parent classes) */
-.hcc-root .ec-slide.is-active .hcc-card,
-.hcc-root .ec-slide.is-inactive .hcc-card {
-  transform: none !important;
-  opacity: 1 !important;
-  transition: none !important;
+/* Remove Link text formatting */
+.hcc-card-link {
+  text-decoration: none;
+  display: block;
 }
 
-/* Card styles – transparent background, 8px radius, no transition on hover */
+/* ============================
+   Card Container
+============================ */
 .hcc-card {
-  position: relative;
-  border-radius: 8px;
-  overflow: hidden;
-  background-color: transparent;
-  color: #111;
-  transition: none;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
-}
-
-/* Hover effect – background color change, no transition */
-.hcc-card-link:hover .hcc-card {
-  background-color: #f1f2f3;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
-}
-
-/* Image inside card – also 8px radius (overflow hidden ensures it) */
-.hcc-img {
-  border-radius: 8px;
-  width: 100%;
+  display: flex;
+  flex-direction: column;
+  background-color: #000000;
+  color: #ffffff;
+  border-radius: 6px;
+  padding: 24px;
   height: 100%;
+  border: 1px solid #1a1a1a;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.hcc-card-link:hover .hcc-card {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.4);
+}
+
+/* ============================
+   Header (Badge & Icon)
+============================ */
+.hcc-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.hcc-badge {
+  background-color: #1a1a1a;
+  color: #ffffff;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 6px 10px;
+  border-radius: 4px;
+}
+
+.hcc-play-icon {
+  width: 28px;
+  height: 28px;
+}
+
+/* ============================
+   Main Image & Glow Effect
+============================ */
+.hcc-img-wrap {
+  position: relative;
+  width: 90%;
+  margin: 0 auto 32px auto;
+  border-radius: 4px;
+  /* Glowing cyan border effect from design */
+  border: 2px solid #5eead4;
+  box-shadow: 0 0 24px rgba(94, 234, 212, 0.2);
+  /* Subtle 3D perspective to match the visual */
+  transform: perspective(1000px) rotateY(-5deg) rotateX(2deg);
+  overflow: hidden;
+  background-color: #111;
+}
+
+.hcc-img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16/9;
   object-fit: cover;
+  transform: scale(1.02); /* Removes edge bleed */
 }
 
-/* Typography – smaller, lighter weight */
+/* ============================
+   Main Text (Title & Subtitle)
+============================ */
 .hcc-body {
-  padding: 1rem;
-}
-
-.hcc-store-name {
-  font-size: 0.7rem;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: #6b7280;
+  margin-bottom: 24px;
 }
 
 .hcc-title {
-  font-size: 1.1rem;
+  font-size: 1.35rem;
+  font-weight: 700;
+  line-height: 1.2;
+  margin: 0 0 8px 0;
+  color: #ffffff;
+}
+
+.hcc-subtitle {
+  font-size: 1rem;
+  color: #d1d5db;
+  margin: 0;
+}
+
+/* ============================
+   Footer (App Info & CTA)
+============================ */
+.hcc-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: auto;
+  gap: 12px;
+}
+
+/* App Info Left Side */
+.hcc-app-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.hcc-app-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  object-fit: cover;
+  background-color: #222;
+}
+
+.hcc-app-meta-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.hcc-app-name {
+  font-size: 0.95rem;
   font-weight: 600;
-  line-height: 1.3;
-  margin: 0.25rem 0;
-  color: #111;
+  color: #ffffff;
+}
+
+.hcc-app-meta {
+  font-size: 0.75rem;
+  color: #9ca3af;
+}
+
+/* CTA Right Side */
+.hcc-cta-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
 }
 
 .hcc-cta {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 16px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  background-color: #000;
-  color: #fff;
-  border-radius: 20px;
-  white-space: nowrap;
+  background-color: #25E87C;
+  color: #000000;
+  font-size: 0.85rem;
+  font-weight: 700;
+  padding: 10px 20px;
+  border-radius: 24px;
   border: none;
   cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.2s ease;
 }
 
-/* Slightly larger titles on bigger screens */
-@media (min-width: 640px) {
-  .hcc-title {
-    font-size: 1.25rem;
-  }
-}
-@media (min-width: 1024px) {
-  .hcc-title {
-    font-size: 1.4rem;
-  }
+.hcc-card-link:hover .hcc-cta {
+  background-color: #1fd66f;
 }
 
-/* RTL adjustments for arrows (EmblaCarousel already handles direction) */
-[dir='rtl'] .hcc-cta .material-symbols-sharp {
-  transform: scaleX(-1);
+.hcc-cta-subtext {
+  font-size: 0.65rem;
+  color: #9ca3af;
+  font-weight: 500;
 }
