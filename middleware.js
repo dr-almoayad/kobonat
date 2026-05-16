@@ -3,32 +3,30 @@ import { getToken } from 'next-auth/jwt';
 import { NextResponse } from 'next/server';
 import createMiddleware from 'next-intl/middleware';
 
-// ✅ TEMPORARILY only ar-SA (en-SA removed due to thin content)
-const SUPPORTED_LOCALES = ['ar-SA'];
+// ✅ Support both Arabic and English
+const SUPPORTED_LOCALES = ['ar-SA', 'en-SA'];
 const DEFAULT_LOCALE = 'ar-SA';
 
-// ✅ List of dead locale patterns (including en-SA temporarily)
+// ✅ Remove /^\/en-SA(\/|$)/ from dead patterns – English is now allowed
 const DEAD_LOCALE_PATTERNS = [
-  /^\/en-SA(\/|$)/,  // ← FIXED: catches exact /en-SA as well as /en-SA/
-  /^\/ar-KW(\/|$)/,
-  /^\/en-AE(\/|$)/,
-  /^\/ar-AE(\/|$)/,
-  /^\/en-KW(\/|$)/,
-  /^\/ar-EG(\/|$)/,
-  /^\/en-EG(\/|$)/,
-  /^\/ar-BH(\/|$)/,
-  /^\/en-BH(\/|$)/,
-  /^\/ar-OM(\/|$)/,
-  /^\/en-OM(\/|$)/,
-  /^\/ar-QA(\/|$)/,
-  /^\/en-QA(\/|$)/,
-  /^\/ar-JO(\/|$)/,
-  /^\/en-JO(\/|$)/,
-  /^\/ar-LB(\/|$)/,
-  /^\/en-LB(\/|$)/,
+  /^\/ar-KW\//,
+  /^\/en-AE\//,
+  /^\/ar-AE\//,
+  /^\/en-KW\//,
+  /^\/ar-EG\//,
+  /^\/en-EG\//,
+  /^\/ar-BH\//,
+  /^\/en-BH\//,
+  /^\/ar-OM\//,
+  /^\/en-OM\//,
+  /^\/ar-QA\//,
+  /^\/en-QA\//,
+  /^\/ar-JO\//,
+  /^\/en-JO\//,
+  /^\/ar-LB\//,
+  /^\/en-LB\//,
 ];
 
-// Helper to check if a path is a static asset
 const isStaticAsset = (pathname) => {
   const staticPatterns = [
     '/_next/',
@@ -57,12 +55,10 @@ const intlMiddleware = createMiddleware({
 export async function middleware(request) {
   const { pathname } = request.nextUrl;
 
-  // ✅ FIXED: Return NextResponse.next() to allow Next.js to serve the static assets natively
   if (isStaticAsset(pathname)) {
-    return NextResponse.next();
+    return new NextResponse(null, { status: 404, statusText: 'Not Found' });
   }
 
-  // Ignore internal Next.js paths
   if (
     pathname.startsWith('/_next') ||
     (pathname.startsWith('/api') && !pathname.startsWith('/api/admin')) ||
@@ -73,7 +69,6 @@ export async function middleware(request) {
     return NextResponse.next();
   }
 
-  // Admin routes (unchanged)
   const isAdminRoute = pathname.startsWith('/admin');
   const isAdminApi = pathname.startsWith('/api/admin');
 
@@ -95,14 +90,14 @@ export async function middleware(request) {
     return NextResponse.next();
   }
 
-  // Return 404 for dead locale patterns (including en-SA)
+  // Block dead locales (excluding en-SA)
   for (const pattern of DEAD_LOCALE_PATTERNS) {
     if (pattern.test(pathname)) {
       return new NextResponse(null, { status: 404, statusText: 'Not Found' });
     }
   }
 
-  // Redirect any other unsupported locale to ar-SA
+  // Redirect any other unsupported locale to ar-SA (safety)
   const match = pathname.match(/^\/([a-z]{2}-[A-Z]{2})\b/);
   if (match) {
     const localeFromUrl = match[1];
