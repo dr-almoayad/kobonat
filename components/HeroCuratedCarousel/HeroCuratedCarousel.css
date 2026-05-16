@@ -1,339 +1,122 @@
-/* components/HeroCuratedCarousel/HeroCuratedCarousel.css
-   Premium light‑theme coupon carousel – LOOPING
-   Max width 1312px · Floating side arrows · Centered focus
-*/
+/* components/HeroCuratedCarousel/HeroCuratedCarousel.css */
 
-/* ── Root – container with max width, auto margins ───────────────────────── */
+/* Base root – no background, full width */
 .hcc-root {
   width: 100%;
   max-width: 1312px;
   margin: 0 auto;
-  padding: 1rem 0 1.5rem;
-  --hcc-gap: 16px;
-  --hcc-radius: 20px;
-  background: #fafafa;
+  background: none;
 }
 
-/* ── Embla viewport – relative for arrow positioning ─────────────────────── */
-.hcc-viewport {
-  position: relative;
-  overflow: hidden;
-  width: 100%;
-  padding: 0;
+/* Override EmblaCarousel slide styles */
+.ec-slide {
+  flex: 0 0 auto !important;        /* allow CSS width */
+  width: 85% !important;            /* default mobile width */
+  padding: 12px !important;         /* 12px padding around each slide */
+  transition: none !important;
+  transform: none !important;
+  opacity: 1 !important;
 }
 
-.hcc-track {
-  display: flex;
-  gap: var(--hcc-gap);
-  touch-action: pan-y pinch-zoom;
-  will-change: transform;
+/* Responsive slide widths */
+@media (min-width: 640px) {
+  .ec-slide {
+    width: 70% !important;
+  }
+}
+@media (min-width: 1024px) {
+  .ec-slide {
+    width: 55% !important;
+  }
+}
+@media (min-width: 1280px) {
+  .ec-slide {
+    width: 48% !important;
+  }
 }
 
-/* ── Slide sizing + scaling effects ──────────────────────────────────────── */
-.hcc-slide {
-  flex: 0 0 85%;
-  min-width: 0;
-  transition: transform 0.4s ease-out, opacity 0.3s ease;
+/* Remove any active/inactive scaling (from possible parent classes) */
+.hcc-root .ec-slide.is-active .hcc-card,
+.hcc-root .ec-slide.is-inactive .hcc-card {
+  transform: none !important;
+  opacity: 1 !important;
+  transition: none !important;
 }
 
-.hcc-slide.is-inactive .hcc-card {
-  transform: scale(0.94);
-  opacity: 0.85;
-  transition: transform 0.4s cubic-bezier(0.2, 0.9, 0.4, 1.1), opacity 0.3s ease;
-}
-
-.hcc-slide.is-active .hcc-card {
-  transform: scale(1);
-  opacity: 1;
-}
-
-/* ── Card styles – white, soft shadow ────────────────────────────────────── */
-.hcc-card-link {
-  display: block;
-  text-decoration: none;
-  -webkit-tap-highlight-color: transparent;
-  outline: none;
-}
-
-.hcc-card-link:focus-visible .hcc-card {
-  box-shadow: 0 0 0 3px #fff, 0 0 0 5px #0a58ca;
-}
-
+/* Card styles – transparent background, 8px radius, no transition on hover */
 .hcc-card {
   position: relative;
-  height: 300px;
-  border-radius: var(--hcc-radius);
-  overflow: hidden;
-  background-color: var(--c-bg, #ffffff);
-  color: var(--c-text, #111111);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
-  transition: box-shadow 0.25s ease, transform 0.25s ease;
-}
-
-.hcc-card-link:hover .hcc-card {
-  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.1);
-  transform: translateY(-2px);
-}
-
-/* ══════════════════════════════════════════════════════════════
-   IMAGE LAYERS - clean, no dark overlays
-══════════════════════════════════════════════════════════════ */
-.hcc-card--cover .hcc-img-wrap {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-}
-.hcc-card--cover .hcc-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-.hcc-card--cover .hcc-body {
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(2px);
-  border-radius: 16px;
-  margin: 16px;
-  width: auto;
-  bottom: auto;
-  top: auto;
-}
-
-.hcc-card--bottom .hcc-img-wrap {
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 80%;
-  height: 58%;
-  z-index: 1;
-}
-.hcc-card--bottom .hcc-img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  object-position: bottom center;
-}
-.hcc-card--bottom .hcc-body {
-  background: #ffffff;
-}
-
-.hcc-card--right .hcc-img-wrap {
-  position: absolute;
-  inset-inline-end: 0;
-  top: 0;
-  bottom: 0;
-  width: 48%;
-  z-index: 1;
-}
-.hcc-card--right .hcc-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-.hcc-card--right .hcc-body {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 52%;
-  justify-content: center;
-  background: #ffffff;
-}
-
-/* ══════════════════════════════════════════════════════════════
-   BODY – text styles
-══════════════════════════════════════════════════════════════ */
-.hcc-body {
-  position: relative;
-  z-index: 10;
-  padding: 1.25rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.hcc-store {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-.hcc-store-logo {
-  width: 24px;
-  height: 24px;
-  object-fit: contain;
   border-radius: 8px;
-  background: #f0f0f0;
-  padding: 2px;
+  overflow: hidden;
+  background-color: transparent;
+  color: #111;
+  transition: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
 }
+
+/* Hover effect – background color change, no transition */
+.hcc-card-link:hover .hcc-card {
+  background-color: #f1f2f3;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+}
+
+/* Image inside card – also 8px radius (overflow hidden ensures it) */
+.hcc-img {
+  border-radius: 8px;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Typography – smaller, lighter weight */
+.hcc-body {
+  padding: 1rem;
+}
+
 .hcc-store-name {
   font-size: 0.7rem;
-  font-weight: 600;
-  letter-spacing: 0.05em;
+  font-weight: 500;
   text-transform: uppercase;
-  color: #4b5563;
+  letter-spacing: 0.04em;
+  color: #6b7280;
 }
 
 .hcc-title {
-  margin: 0;
-  font-size: 1.5rem;
-  font-weight: 800;
-  line-height: 1.2;
-  color: #111111;
-  font-family: var(--font-alexandria, sans-serif);
-  letter-spacing: -0.01em;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+  font-size: 1.1rem;
+  font-weight: 600;
+  line-height: 1.3;
+  margin: 0.25rem 0;
+  color: #111;
 }
 
 .hcc-cta {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 20px;
-  border-radius: 100px;
-  background-color: #000000;
-  color: #ffffff;
-  font-size: 0.8rem;
-  font-weight: 700;
-  letter-spacing: 0.01em;
-  align-self: flex-start;
-  margin-top: 0.25rem;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  padding: 6px 16px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background-color: #000;
+  color: #fff;
+  border-radius: 20px;
   white-space: nowrap;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-}
-.hcc-card-link:hover .hcc-cta {
-  transform: scale(1.03);
-  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.1);
-  background-color: #1a1a1a;
-}
-.hcc-cta .material-symbols-sharp {
-  font-size: 1rem;
-}
-
-/* ══════════════════════════════════════════════════════════════
-   FLOATING ARROWS – over the viewport sides
-══════════════════════════════════════════════════════════════ */
-.hcc-arrow {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  border: 1px solid #e2e8f0;
-  background: #ffffff;
-  color: #1e293b;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  z-index: 20;
-  backdrop-filter: blur(2px);
-}
-
-.hcc-arrow .material-symbols-sharp {
-  font-size: 1.25rem;
-}
-
-.hcc-arrow--prev {
-  left: 8px;
-}
-
-.hcc-arrow--next {
-  right: 8px;
-}
-
-.hcc-arrow:hover {
-  border-color: #000000;
-  color: #000000;
-  background: #f8fafc;
-  transform: translateY(-50%) scale(1.05);
-}
-
-/* ══════════════════════════════════════════════════════════════
-   DOTS – minimal indicator below carousel
-══════════════════════════════════════════════════════════════ */
-.hcc-dots {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  margin-top: 1.25rem;
-}
-
-.hcc-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
   border: none;
-  padding: 0;
-  background: #cbd5e1;
   cursor: pointer;
-  transition: all 0.2s ease;
 }
 
-.hcc-dot.is-active {
-  width: 22px;
-  border-radius: 12px;
-  background: #000000;
-}
-
-/* ══════════════════════════════════════════════════════════════
-   TABLET (≥ 640px)
-══════════════════════════════════════════════════════════════ */
+/* Slightly larger titles on bigger screens */
 @media (min-width: 640px) {
-  .hcc-slide {
-    flex: 0 0 70%;
-  }
-  .hcc-card {
-    height: 340px;
-  }
   .hcc-title {
-    font-size: 1.75rem;
-  }
-  .hcc-body {
-    padding: 1.5rem;
+    font-size: 1.25rem;
   }
 }
-
-/* ══════════════════════════════════════════════════════════════
-   DESKTOP (≥ 1024px)
-══════════════════════════════════════════════════════════════ */
 @media (min-width: 1024px) {
-  .hcc-slide {
-    flex: 0 0 55%;
-  }
-  .hcc-card {
-    height: 380px;
-  }
   .hcc-title {
-    font-size: 2rem;
-  }
-  .hcc-arrow {
-    width: 48px;
-    height: 48px;
-  }
-  .hcc-arrow--prev {
-    left: 12px;
-  }
-  .hcc-arrow--next {
-    right: 12px;
+    font-size: 1.4rem;
   }
 }
 
-/* ══════════════════════════════════════════════════════════════
-   WIDE (≥ 1280px)
-══════════════════════════════════════════════════════════════ */
-@media (min-width: 1280px) {
-  .hcc-slide {
-    flex: 0 0 48%;
-  }
-  .hcc-card {
-    height: 400px;
-  }
+/* RTL adjustments for arrows (EmblaCarousel already handles direction) */
+[dir='rtl'] .hcc-cta .material-symbols-sharp {
+  transform: scaleX(-1);
 }
