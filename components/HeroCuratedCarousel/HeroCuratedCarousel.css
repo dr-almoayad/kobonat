@@ -1,145 +1,150 @@
 /* components/HeroCuratedCarousel/HeroCuratedCarousel.css */
 
-/* Base root */
-.hcc-root {
+.hcc-carousel-wrapper {
+  position: relative;
   width: 100%;
   max-width: 1440px;
   margin: 0 auto;
-  background: none;
 }
 
-/* Embla Carousel Slides overrides */
+/* Base Carousel Setup */
+.hcc-root {
+  width: 100%;
+  overflow: hidden;
+}
+
+/* Responsive Slide Sizing Constraints */
 .ec-slide {
   flex: 0 0 auto !important;
   width: 85% !important;
-  padding: 8px !important;
+  max-width: 550px !important; /* Forces strict ceiling layout boundary */
+  padding: 4px !important;
   transition: none !important;
   transform: none !important;
   opacity: 1 !important;
 }
 
-@media (min-width: 768px) {
-  .ec-slide { width: 60% !important; }
-}
-@media (min-width: 1024px) {
-  .ec-slide { width: 45% !important; }
-}
-@media (min-width: 1280px) {
-  .ec-slide { width: 33.333% !important; }
+@media (min-width: 640px) {
+  .ec-slide {
+    width: 65% !important;
+  }
 }
 
-/* Remove Link text formatting */
+@media (min-width: 1024px) {
+  .ec-slide {
+    width: 45% !important;
+  }
+}
+
 .hcc-card-link {
   text-decoration: none;
   display: block;
+  height: 100%;
 }
 
 /* ============================
-   Card Container
+   Card Frame Layout
 ============================ */
 .hcc-card {
   display: flex;
   flex-direction: column;
-  background-color: #000000;
-  color: #ffffff;
-  border-radius: 6px;
-  padding: 24px;
-  height: 100%;
-  border: 1px solid #1a1a1a;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.hcc-card-link:hover .hcc-card {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.4);
-}
-
-/* ============================
-   Header (Badge & Icon)
-============================ */
-.hcc-card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24px;
-}
-
-.hcc-badge {
-  background-color: #1a1a1a;
-  color: #ffffff;
-  font-size: 0.75rem;
-  font-weight: 600;
-  padding: 6px 10px;
-  border-radius: 4px;
-}
-
-.hcc-play-icon {
-  width: 28px;
-  height: 28px;
-}
-
-/* ============================
-   Main Image & Glow Effect
-============================ */
-.hcc-img-wrap {
-  position: relative;
-  width: 90%;
-  margin: 0 auto 32px auto;
-  border-radius: 4px;
-  /* Glowing cyan border effect from design */
-  border: 2px solid #5eead4;
-  box-shadow: 0 0 24px rgba(94, 234, 212, 0.2);
-  /* Subtle 3D perspective to match the visual */
-  transform: perspective(1000px) rotateY(-5deg) rotateX(2deg);
+  background-color: var(--card-bg);
+  color: var(--card-text);
+  border-radius: 14px;
   overflow: hidden;
-  background-color: #111;
+  height: 100%;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  transition: box-shadow 0.2s ease;
+}
+
+/* ============================
+   Top Full-Bleed Image Handling
+============================ */
+.hcc-img-container {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
 }
 
 .hcc-img {
-  display: block;
   width: 100%;
-  aspect-ratio: 16/9;
+  height: 100%;
   object-fit: cover;
-  transform: scale(1.02); /* Removes edge bleed */
+  display: block;
+}
+
+/* Bottom gradient blend transition into background color */
+.hcc-img-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 45%;
+  background: linear-gradient(to bottom, transparent 0%, var(--card-bg) 100%);
+  pointer-events: none;
+}
+
+/* Info Badges (Coming Soon, Expires in X, etc.) */
+.hcc-badge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 2;
+  background-color: var(--badge-bg);
+  color: var(--badge-text);
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 4px;
+  backdrop-filter: blur(4px);
 }
 
 /* ============================
-   Main Text (Title & Subtitle)
+   Card Typography & Content
 ============================ */
+.hcc-card-details {
+  padding: 20px 24px 24px 24px;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
 .hcc-body {
   margin-bottom: 24px;
 }
 
 .hcc-title {
-  font-size: 1.35rem;
+  font-size: 1.4rem;
   font-weight: 700;
-  line-height: 1.2;
-  margin: 0 0 8px 0;
-  color: #ffffff;
+  line-height: 1.25;
+  margin: 0 0 6px 0;
+  color: var(--card-text);
 }
 
 .hcc-subtitle {
-  font-size: 1rem;
-  color: #d1d5db;
+  font-size: 0.95rem;
+  opacity: 0.85;
   margin: 0;
+  color: var(--card-text);
 }
 
 /* ============================
-   Footer (App Info & CTA)
+   Footer Metadata Elements
 ============================ */
 .hcc-footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-top: auto;
-  gap: 12px;
+  gap: 16px;
 }
 
-/* App Info Left Side */
 .hcc-app-info {
   display: flex;
   align-items: center;
   gap: 12px;
+  min-width: 0; /* Protect flex texts from overflowing */
 }
 
 .hcc-app-icon {
@@ -147,53 +152,115 @@
   height: 44px;
   border-radius: 10px;
   object-fit: cover;
-  background-color: #222;
+  flex-shrink: 0;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.08);
 }
 
 .hcc-app-meta-wrap {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  min-width: 0;
 }
 
 .hcc-app-name {
   font-size: 0.95rem;
   font-weight: 600;
-  color: #ffffff;
+  color: var(--card-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .hcc-app-meta {
-  font-size: 0.75rem;
-  color: #9ca3af;
+  font-size: 0.8rem;
+  opacity: 0.7;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--card-text);
 }
 
-/* CTA Right Side */
+/* Action Button Formatting */
 .hcc-cta-wrap {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
+  flex-shrink: 0;
 }
 
 .hcc-cta {
-  background-color: #25E87C;
-  color: #000000;
+  background-color: var(--btn-bg);
+  color: var(--btn-text);
   font-size: 0.85rem;
   font-weight: 700;
-  padding: 10px 20px;
-  border-radius: 24px;
+  padding: 8px 18px;
+  border-radius: 20px;
   border: none;
   cursor: pointer;
   white-space: nowrap;
-  transition: background-color 0.2s ease;
+  transition: opacity 0.15s ease;
 }
 
 .hcc-card-link:hover .hcc-cta {
-  background-color: #1fd66f;
+  opacity: 0.8;
 }
 
 .hcc-cta-subtext {
   font-size: 0.65rem;
-  color: #9ca3af;
+  opacity: 0.65;
   font-weight: 500;
+  color: var(--card-text);
+}
+
+/* ============================
+   Floating Carousel Navigation Controls
+============================ */
+.hcc-nav-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background-color: #ffffff;
+  border: none;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  color: #333333;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.hcc-nav-arrow:hover {
+  transform: translateY(-50%) scale(1.05);
+}
+
+.hcc-nav-arrow svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* Standardized configuration targeting right visual edge offset */
+.hcc-nav-next {
+  right: -24px;
+}
+
+[dir="rtl"] .hcc-nav-next {
+  right: auto;
+  left: -24px;
+  transform: translateY(-50%) scaleX(-1);
+}
+[dir="rtl"] .hcc-nav-next:hover {
+  transform: translateY(-50%) scaleX(-1) scale(1.05);
+}
+
+/* Hide floating arrows on compact/touch displays */
+@media (max-width: 768px) {
+  .hcc-nav-arrow {
+    display: none;
+  }
 }
