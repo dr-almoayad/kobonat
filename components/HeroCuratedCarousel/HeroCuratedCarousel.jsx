@@ -1,23 +1,14 @@
 'use client';
 // components/HeroCuratedCarousel/HeroCuratedCarousel.jsx
-//
-// Premium light‑theme coupon carousel – LOOPING version
-// Features:
-//   · Infinite loop
-//   · Centered focus slide + scaled adjacent slides
-//   · White/light gray cards, soft shadows
-//   · Floating side arrows over preview edges
-//   · Max width 1312px
-
 import { useState, useEffect, useCallback } from 'react';
 import useEmblaCarousel from 'embla-carousel-react';
 import Link from 'next/link';
 import './HeroCuratedCarousel.css';
 
-// Single card – forces light theme
 function SlideCard({ slide, isAr }) {
   const {
     offerImage,
+    offerImageFallback,
     ctaUrl,
     title,
     ctaText,
@@ -30,8 +21,14 @@ function SlideCard({ slide, isAr }) {
 
   const isExternal = Boolean(ctaUrl && (ctaUrl.startsWith('http://') || ctaUrl.startsWith('https://')));
   const hasLink = Boolean(ctaUrl);
+  const [imgSrc, setImgSrc] = useState(offerImage);
 
-  // Force light theme
+  const handleImageError = () => {
+    if (offerImageFallback && imgSrc !== offerImageFallback) {
+      setImgSrc(offerImageFallback);
+    }
+  };
+
   const cardStyle = {
     '--c-bg': '#FFFFFF',
     '--c-text': '#111111',
@@ -42,27 +39,24 @@ function SlideCard({ slide, isAr }) {
       className={`hcc-card hcc-card--${imagePosition}${!hasLink ? ' hcc-card--no-link' : ''}`}
       style={cardStyle}
     >
-      {/* Image layer – clean, no dark overlays */}
       {offerImage && (
         <div className="hcc-img-wrap">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src={offerImage}
+            src={imgSrc}
             alt={title}
             className="hcc-img"
             draggable={false}
             loading="lazy"
             decoding="async"
+            onError={handleImageError}
           />
         </div>
       )}
 
-      {/* Text content */}
       <div className="hcc-body">
         {showStore && storeName && (
           <div className="hcc-store">
             {storeLogo && (
-              /* eslint-disable-next-line @next/next/no-img-element */
               <img src={storeLogo} alt={storeName} className="hcc-store-logo" />
             )}
             <span className="hcc-store-name">{storeName}</span>
@@ -102,8 +96,8 @@ export default function HeroCuratedCarousel({ slides, locale }) {
   const isAr = locale?.split('-')[0] === 'ar';
 
   const [emblaRef, emblaApi] = useEmblaCarousel({
-    loop: true,            // ✅ infinite loop
-    align: 'center',       // focus active slide, show partial neighbors
+    loop: true,
+    align: 'center',
     direction: isAr ? 'rtl' : 'ltr',
     containScroll: 'trimSnaps',
     dragFree: false,
@@ -145,7 +139,6 @@ export default function HeroCuratedCarousel({ slides, locale }) {
           ))}
         </div>
 
-        {/* Floating arrows – overlaying the side previews */}
         <button
           className="hcc-arrow hcc-arrow--prev"
           onClick={scrollPrev}
@@ -167,7 +160,6 @@ export default function HeroCuratedCarousel({ slides, locale }) {
         </button>
       </div>
 
-      {/* Dots remain (minimal indicator) */}
       {slides.length > 1 && (
         <div className="hcc-dots" role="tablist">
           {slides.map((_, i) => (
