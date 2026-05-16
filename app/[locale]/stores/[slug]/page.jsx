@@ -9,7 +9,7 @@ import StoreCard from '@/components/StoreCard/StoreCard';
 import FeaturedProductsCarousel from '@/components/FeaturedProductsCarousel/FeaturedProductsCarousel';
 import OtherPromosSection from '@/components/OtherPromosSection/OtherPromosSection';
 import { StoreStructuredSchemas } from '@/lib/seo/storeSchemas';
-import Breadcrumbs from '@/components/Breadcrumbs/Breadcrumbs';
+import Breadcrumbs from '@/components/Breadcrumbs/Breadcrumbs'; 
 import RelatedPostsSidebar from '@/components/blog/RelatedPostsSidebar';
 import StoreOfferStacks from '@/components/StoreOfferStacks/StoreOfferStacks';
 import { getCategoryData } from '@/lib/storeCategories';
