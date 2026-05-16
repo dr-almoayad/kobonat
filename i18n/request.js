@@ -5,28 +5,18 @@ import { routing } from './routing';
 export default getRequestConfig(async ({ requestLocale }) => {
   let locale = await requestLocale;
   
-  // Validate locale
+  // ✅ Only ar-SA is supported; fallback always to ar-SA
   if (!locale || !routing.locales.includes(locale)) {
-    locale = routing.defaultLocale; // Default to 'ar-SA'
+    locale = routing.defaultLocale; // 'ar-SA'
   }
   
-  // Extract language code (e.g., 'ar-SA' -> 'ar')
-  const languageCode = locale.split('-')[0];
-  
+  // Load messages – only ar-SA.json exists
   let messages;
-  
   try {
-    // Try to load locale-specific messages
     messages = (await import(`../messages/${locale}.json`)).default;
   } catch (error) {
-    try {
-      // Fallback to language-specific messages
-      messages = (await import(`../messages/${languageCode}.json`)).default;
-    } catch (error2) {
-      // Final fallback to default locale messages
-      const defaultLanguageCode = routing.defaultLocale.split('-')[0];
-      messages = (await import(`../messages/${defaultLanguageCode}.json`)).default;
-    }
+    // Ultimate fallback (should not happen if messages/ar-SA.json exists)
+    messages = {};
   }
   
   return {
