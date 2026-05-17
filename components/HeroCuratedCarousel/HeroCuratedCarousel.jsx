@@ -129,24 +129,6 @@ export default function HeroCuratedCarousel({ slides, locale }) {
           ))}
         </EmblaCarousel>
       </div>
-
-      {/* Floating Next Navigation Arrow Button */}
-      <button 
-        className="hcc-nav-arrow hcc-nav-next" 
-        aria-label="Next slide"
-        onClick={() => {
-          // Internal fallback trigger logic assuming your Embla wrapper captures global/parent actions
-          const emblaNode = document.querySelector('.hcc-embla');
-          if (emblaNode) {
-            const nextBtn = emblaNode.querySelector('.embla__button--next');
-            if (nextBtn) nextBtn.click();
-          }
-        }}
-      >
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-          <path d="M9 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round"/>
-        </svg>
-      </button>
     </div>
   );
 }
