@@ -43,6 +43,7 @@
 
 /* ── Arrows (44px, round, only visible when needed, desktop only) ── */
 .ec-arrow {
+  position: absolute;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -102,10 +103,3 @@
   padding: 0;
 }
 
-/* RTL adjustments for arrows (if needed) */
-[dir='rtl'] .ec-arrow--prev .material-symbols-sharp {
-  transform: scaleX(-1);
-}
-[dir='rtl'] .ec-arrow--next .material-symbols-sharp {
-  transform: scaleX(-1);
-}
