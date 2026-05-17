@@ -53,7 +53,7 @@ function SlideCard({ slide }) {
       
       {/* Top Banner Area with Badge */}
       <div className="hcc-img-container">
-        {badgeText && <span className="hcc-badge">{badgeText}</span>}
+        {/*{badgeText && <span className="hcc-badge">{badgeText}</span>}*/}
         {mainImage && (
           <>
             <img
@@ -83,14 +83,12 @@ function SlideCard({ slide }) {
             {appIcon && <img src={appIcon} alt={appName} className="hcc-app-icon" />}
             <div className="hcc-app-meta-wrap">
               <span className="hcc-app-name">{appName}</span>
-              <span className="hcc-app-meta">{developer} • {rating}</span>
             </div>
           </div>
 
-          <div className="hcc-cta-wrap">
+          {/*<div className="hcc-cta-wrap">
             <button className="hcc-cta">{ctaText}</button>
-            {ctaSubtext && <span className="hcc-cta-subtext">{ctaSubtext}</span>}
-          </div>
+          </div>*/}
         </div>
       </div>
     </div>
@@ -121,7 +119,7 @@ export default function HeroCuratedCarousel({ slides, locale }) {
         <EmblaCarousel
           locale={locale}
           slideWidth="auto"
-          slideGap="16px"
+          slideGap="5px"
           freeScroll={true}
           loop={false}
           className="hcc-embla"
