@@ -3,7 +3,7 @@
 .hcc-carousel-wrapper {
   position: relative;
   width: 100%;
-  max-width: 1440px;
+  max-width: 1312px;
   margin: 0 auto;
 }
 
@@ -14,10 +14,10 @@
 }
 
 /* Responsive Slide Sizing Constraints */
-.ec-slide {
+.hcc-carousel-wrapper .ec-slide {
   flex: 0 0 auto !important;
   width: 85% !important;
-  max-width: 550px !important; /* Forces strict ceiling layout boundary */
+  max-width: 500px !important; /* Forces strict ceiling layout boundary */
   padding: 4px !important;
   transition: none !important;
   transform: none !important;
@@ -25,13 +25,13 @@
 }
 
 @media (min-width: 640px) {
-  .ec-slide {
+ .hcc-carousel-wrapper .ec-slide {
     width: 65% !important;
   }
 }
 
 @media (min-width: 1024px) {
-  .ec-slide {
+.hcc-carousel-wrapper  .ec-slide {
     width: 45% !important;
   }
 }
@@ -50,7 +50,7 @@
   flex-direction: column;
   background-color: var(--card-bg);
   color: var(--card-text);
-  border-radius: 14px;
+  border-radius: 8px;
   overflow: hidden;
   height: 100%;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
@@ -63,7 +63,7 @@
 .hcc-img-container {
   position: relative;
   width: 100%;
-  aspect-ratio: 16 / 9;
+  aspect-ratio: 16 / 11;
   overflow: hidden;
 }
 
@@ -80,7 +80,7 @@
   bottom: 0;
   left: 0;
   right: 0;
-  height: 45%;
+  height: 35%;
   background: linear-gradient(to bottom, transparent 0%, var(--card-bg) 100%);
   pointer-events: none;
 }
@@ -111,19 +111,19 @@
 }
 
 .hcc-body {
-  margin-bottom: 24px;
+  margin-bottom: 18px;
 }
 
 .hcc-title {
-  font-size: 1.4rem;
-  font-weight: 700;
+  font-size: 1.2rem;
+  font-weight: 500;
   line-height: 1.25;
   margin: 0 0 6px 0;
   color: var(--card-text);
 }
 
 .hcc-subtitle {
-  font-size: 0.95rem;
+  font-size: 0.85rem;
   opacity: 0.85;
   margin: 0;
   color: var(--card-text);
@@ -148,9 +148,9 @@
 }
 
 .hcc-app-icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 10px;
+  width: 54px;
+  height: 54px;
+  border-radius: 16px;
   object-fit: cover;
   flex-shrink: 0;
   box-shadow: 0 2px 4px rgba(0,0,0,0.08);
