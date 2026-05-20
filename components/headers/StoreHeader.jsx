@@ -176,7 +176,7 @@ const StoreHeader = ({
                 {categories.map((cat) => (
                   <Link 
                     key={cat.id} 
-                    href={`/${locale}/stores/${cat.slug}`}
+                    href={`/${locale}/categories/${cat.slug}`}
                     className="sh-cat-pill"
                     style={{ '--hover-color': cat.color || '#6366f1' }}
                   >
