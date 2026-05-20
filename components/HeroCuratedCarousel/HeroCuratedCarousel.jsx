@@ -1,95 +1,75 @@
+// components/HeroCuratedCarousel/HeroCuratedCarousel.jsx
 'use client';
-import { useState, useEffect, useCallback } from 'react';
+
+import { useState } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import EmblaCarousel from '@/components/EmblaCarousel/EmblaCarousel';
 import './HeroCuratedCarousel.css';
 
-function SlideCard({ slide }) {
+function SlideCard({ slide, index, isAr }) {
   const {
-    id,
-    mainImage,
-    mainImageFallback,
+    offerImage,
+    offerImageFallback,
     ctaUrl,
     title,
-    subtitle,
-    appIcon,
-    appName,
-    developer,
-    rating,
-    ctaText = "Install",
-    ctaSubtext = "In-app purchases",
-    badgeText = "Update available",
-    // Color configurations defaulting to a light theme variant
-    bgColor = "#f3e8ee", 
-    textColor = "#1f2937",
-    badgeBg = "rgba(255, 255, 255, 0.6)",
-    badgeColor = "#111111",
-    btnBg = "rgba(0, 0, 0, 0.05)",
-    btnColor = "#111111"
+    ctaText,
+    storeName,
+    storeLogo,
+    imagePosition = 'cover',
+    showCta = true,
+    showStore = true,
   } = slide;
 
   const isExternal = Boolean(ctaUrl && (ctaUrl.startsWith('http://') || ctaUrl.startsWith('https://')));
   const hasLink = Boolean(ctaUrl);
-  const [imgSrc, setImgSrc] = useState(mainImage);
+  const [imgSrc, setImgSrc] = useState(offerImage);
+  const isFirstSlide = index === 0; // ✅ critical for LCP preload
 
   const handleImageError = () => {
-    if (mainImageFallback && imgSrc !== mainImageFallback) {
-      setImgSrc(mainImageFallback);
+    if (offerImageFallback && imgSrc !== offerImageFallback) {
+      setImgSrc(offerImageFallback);
     }
   };
 
-  // Inline CSS variables keep colors perfectly isolated per card
-  const cardStyles = {
-    '--card-bg': bgColor,
-    '--card-text': textColor,
-    '--badge-bg': badgeBg,
-    '--badge-text': badgeColor,
-    '--btn-bg': btnBg,
-    '--btn-text': btnColor,
-  };
-
   const inner = (
-    <div className={`hcc-card ${!hasLink ? 'hcc-card--no-link' : ''}`} style={cardStyles}>
-      
-      {/* Top Banner Area with Badge */}
-      <div className="hcc-img-container">
-        {/*{badgeText && <span className="hcc-badge">{badgeText}</span>}*/}
-        {mainImage && (
-          <>
-            <img
-              src={imgSrc}
-              alt={title}
-              className="hcc-img"
-              draggable={false}
-              loading="lazy"
-              decoding="async"
-              onError={handleImageError}
-            />
-            {/* Creates the smooth visual blend from image to solid color below */}
-            <div className="hcc-img-overlay" />
-          </>
-        )}
-      </div>
-
-      {/* Card Content Details */}
-      <div className="hcc-card-details">
-        <div className="hcc-body">
-          <h2 className="hcc-title">{title}</h2>
-          {subtitle && <p className="hcc-subtitle">{subtitle}</p>}
+    <div className={`hcc-card hcc-card--${imagePosition}${!hasLink ? ' hcc-card--no-link' : ''}`}>
+      {offerImage && (
+        <div className="hcc-img-wrap">
+          <Image
+            src={imgSrc}
+            alt={title || (isAr ? 'عرض مميز' : 'Special offer')}
+            fill
+            priority={isFirstSlide}
+            loading={isFirstSlide ? 'eager' : 'lazy'}
+            sizes="(max-width: 640px) 85vw, (max-width: 1024px) 70vw, 55vw"
+            className="hcc-img"
+            quality={isFirstSlide ? 85 : 75}
+            onError={handleImageError}
+          />
         </div>
+      )}
 
-        <div className="hcc-footer">
-          <div className="hcc-app-info">
-            {appIcon && <img src={appIcon} alt={appName} className="hcc-app-icon" />}
-            <div className="hcc-app-meta-wrap">
-              <span className="hcc-app-name">{appName}</span>
-            </div>
+      <div className="hcc-body">
+        {showStore && storeName && (
+          <div className="hcc-store">
+            {storeLogo && (
+              <img src={storeLogo} alt={storeName} className="hcc-store-logo" />
+            )}
+            <span className="hcc-store-name">{storeName}</span>
           </div>
+        )}
 
-          {/*<div className="hcc-cta-wrap">
-            <button className="hcc-cta">{ctaText}</button>
-          </div>*/}
-        </div>
+        <h2 className="hcc-title">{title}</h2>
+
+        {showCta && hasLink && (
+          <div className="hcc-cta">
+            <span>{ctaText || (isAr ? 'تسوق الآن' : 'Shop Now')}</span>
+            <span className="material-symbols-sharp">
+              {isAr ? 'arrow_back' : 'arrow_forward'}
+            </span>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -102,6 +82,7 @@ function SlideCard({ slide }) {
       className="hcc-card-link"
       target={isExternal ? '_blank' : '_self'}
       rel={isExternal ? 'noopener noreferrer' : undefined}
+      prefetch={!isExternal ? false : undefined}
       aria-label={title}
     >
       {inner}
@@ -114,21 +95,19 @@ export default function HeroCuratedCarousel({ slides, locale }) {
   if (!slides?.length) return null;
 
   return (
-    <div className="hcc-carousel-wrapper" dir={isAr ? 'rtl' : 'ltr'}>
-      <div className="hcc-root">
-        <EmblaCarousel
-          locale={locale}
-          slideWidth="auto"
-          slideGap="5px"
-          freeScroll={true}
-          loop={false}
-          className="hcc-embla"
-        >
-          {slides.map((slide) => (
-            <SlideCard key={slide.id} slide={slide} />
-          ))}
-        </EmblaCarousel>
-      </div>
+    <div className="hcc-root" dir={isAr ? 'rtl' : 'ltr'}>
+      <EmblaCarousel
+        locale={locale}
+        slideWidth="auto"
+        slideGap="5px"
+        freeScroll={true}
+        loop={false}
+        className="hcc-embla"
+      >
+        {slides.map((slide, idx) => (
+          <SlideCard key={slide.id} slide={slide} index={idx} isAr={isAr} />
+        ))}
+      </EmblaCarousel>
     </div>
   );
 }
