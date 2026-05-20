@@ -4,7 +4,9 @@
  
 import React, { useState, useEffect } from 'react';
 import './footer.css';
-import coubonatLogo from '../../public/cobonat.webp';
+import coubonatLogo from '../../public/cobonat_logo.webp';
+import coubonatLogoArabic from '../../public/cobonat_logo_arabic.webp';
+import coubonatCompactLogo from '../../public/cobonat_logo_compact.webp';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useTranslations, useLocale } from 'next-intl';
@@ -179,10 +181,16 @@ const Footer = () => {
             </ul>
           </div>
 
-          {/* ── Brand / Logo – will be pushed to bottom on mobile (via CSS) ── */}
+          {/* ── Brand / Logo – conditional Arabic/English logo ── */}
           <div className="footer_section footer_section--brand">
             <Link href={`/${locale}`} aria-label="Cobonat home">
-              <Image className="footer_logo" src={coubonatLogo} width={200} height={48} alt="Cobonat" priority />
+              <Image 
+                className="footer_logo" 
+                src={isAr ? coubonatLogoArabic : coubonatLogo} 
+                width={200} 
+                height={48} 
+                alt={isAr ? 'كوبونات' : 'Cobonat'} 
+              />
             </Link>
             <p className="footer_tagline">
               {isAr
