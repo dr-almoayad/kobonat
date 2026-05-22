@@ -263,38 +263,45 @@ export async function updateStoreCategories(id, formData) {
 
 export async function createStoreProduct(formData) {
   try {
-    const storeId = parseInt(formData.get('storeId'));
+    const storeId       = parseInt(formData.get('storeId'));
     const discountValue = formData.get('discountValue') ? parseFloat(formData.get('discountValue')) : null;
-    const discountType = formData.get('discountType') || 'PERCENTAGE';
-
-    const isFeatured = formData.get('isFeatured') === 'on';
-
+    const discountType  = formData.get('discountType') || 'PERCENTAGE';
+    const isFeatured    = formData.get('isFeatured') === 'on';
+ 
+    // Promo ribbon links (optional)
+    const rawVoucherId = formData.get('linkedVoucherId');
+    const rawPromoId   = formData.get('linkedPromoId');
+    const linkedVoucherId = rawVoucherId ? parseInt(rawVoucherId) : null;
+    const linkedPromoId   = rawPromoId   ? parseInt(rawPromoId)   : null;
+ 
     const product = await prisma.storeProduct.create({
       data: {
         storeId,
-        image: formData.get('image'),
+        image:      formData.get('image'),
         discountValue,
         discountType,
         productUrl: formData.get('productUrl'),
-        isFeatured: isFeatured,
-        order: parseInt(formData.get('order') || '0'),
+        isFeatured,
+        order:      parseInt(formData.get('order') || '0'),
+        linkedVoucherId,
+        linkedPromoId,
         translations: {
           create: [
             {
-              locale: 'en',
-              title: formData.get('title_en'),
-              description: formData.get('description_en')
+              locale:      'en',
+              title:       formData.get('title_en'),
+              description: formData.get('description_en'),
             },
             {
-              locale: 'ar',
-              title: formData.get('title_ar'),
-              description: formData.get('description_ar')
-            }
-          ]
-        }
-      }
+              locale:      'ar',
+              title:       formData.get('title_ar'),
+              description: formData.get('description_ar'),
+            },
+          ],
+        },
+      },
     });
-
+ 
     revalidatePath(`/admin/stores/${storeId}`);
     return { success: true, id: product.id };
   } catch (error) {
@@ -302,48 +309,50 @@ export async function createStoreProduct(formData) {
     return { error: error.message };
   }
 }
-
+ 
 export async function updateStoreProduct(id, formData) {
   try {
     const discountValue = formData.get('discountValue') ? parseFloat(formData.get('discountValue')) : null;
-    const discountType = formData.get('discountType') || 'PERCENTAGE';
-
-    const isFeatured = formData.get('isFeatured') === 'on';
-    
+    const discountType  = formData.get('discountType') || 'PERCENTAGE';
+    const isFeatured    = formData.get('isFeatured') === 'on';
+ 
+    // Promo ribbon links — empty string means "clear the link"
+    const rawVoucherId = formData.get('linkedVoucherId');
+    const rawPromoId   = formData.get('linkedPromoId');
+    const linkedVoucherId = rawVoucherId ? parseInt(rawVoucherId) : null;
+    const linkedPromoId   = rawPromoId   ? parseInt(rawPromoId)   : null;
+ 
     const updatedProduct = await prisma.storeProduct.update({
       where: { id: parseInt(id) },
       data: {
-        image: formData.get('image'),
+        image:      formData.get('image'),
         discountValue,
         discountType,
         productUrl: formData.get('productUrl'),
-        isFeatured: isFeatured,
-        order: parseInt(formData.get('order') || '0')
-      }
+        isFeatured,
+        order:      parseInt(formData.get('order') || '0'),
+        linkedVoucherId,
+        linkedPromoId,
+      },
     });
-
-    // Update translations
+ 
+    // Translations
     for (const locale of ['en', 'ar']) {
       await prisma.storeProductTranslation.upsert({
-        where: {
-          productId_locale: {
-            productId: parseInt(id),
-            locale
-          }
-        },
+        where:  { productId_locale: { productId: parseInt(id), locale } },
         create: {
-          productId: parseInt(id),
+          productId:   parseInt(id),
           locale,
-          title: formData.get(`title_${locale}`),
-          description: formData.get(`description_${locale}`)
+          title:       formData.get(`title_${locale}`),
+          description: formData.get(`description_${locale}`),
         },
         update: {
-          title: formData.get(`title_${locale}`),
-          description: formData.get(`description_${locale}`)
-        }
+          title:       formData.get(`title_${locale}`),
+          description: formData.get(`description_${locale}`),
+        },
       });
     }
-
+ 
     revalidatePath(`/admin/stores/${updatedProduct.storeId}`);
     return { success: true };
   } catch (error) {
