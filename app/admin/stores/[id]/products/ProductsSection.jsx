@@ -8,7 +8,7 @@ import styles from '../../../admin.module.css';
 
 // ─── tiny helpers ─────────────────────────────────────────────────────────────
 
-function voucherLabel(v) {
+function voucherLabel(v) { 
   const title    = v.translations?.[0]?.title || '';
   const code     = v.code     ? ` · ${v.code}`         : '';
   const discount = v.discount ? ` · ${v.discount}`      : '';
