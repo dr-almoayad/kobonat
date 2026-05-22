@@ -130,9 +130,9 @@ export default async function HomeFeaturedProductsSection({ locale, countryCode 
         // Store identity (multi-store header mode)
         storeName:     store.translations[0]?.name || '',
         storeLogo:     store.bigLogo || store.logo || null,
-        // Promo ribbon data — forwarded straight to StoreProductCard
-        linkedVoucher: p.linkedVoucher || null,
-        linkedPromo:   p.linkedPromo   || null,
+        // ✅ FIX: map linked fields to the prop names StoreProductCard expects
+        voucher:       p.linkedVoucher || null,
+        otherPromo:    p.linkedPromo   || null,
       });
       added++;
       anyAdded = true;
