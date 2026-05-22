@@ -148,18 +148,18 @@ const FeaturedProductsCarousel = ({
           {isRtl ? 'عروض اليوم المميزة' : "Today's Top Deals"}
         </h2>
         {stores.length > 0 && (
-      <p className="fpc-subtitle">
-        {isRtl
-          ? (() => {
-              const names = stores.map(s => s.name || '').filter(Boolean);
-              if (names.length === 0) return '';
-              if (names.length === 1) return `من ${names[0]}`;
-              if (names.length === 2) return `من ${names[0]} و ${names[1]}`;
-              return `من ${names[0]} و ${names[1]} والمزيد`;
-            })()
-          : `FROM ${stores.map(s => (s.name || '').toUpperCase()).slice(0, 2).join(' & ')}${stores.length > 2 ? ' & MORE' : ''}`}
-      </p>
-    )}
+          <p className="fpc-subtitle">
+            {isRtl
+              ? (() => {
+                  const names = stores.map(s => s.name || '').filter(Boolean);
+                  if (names.length === 0) return '';
+                  if (names.length === 1) return `من ${names[0]}`;
+                  if (names.length === 2) return `من ${names[0]} و ${names[1]}`;
+                  return `من ${names[0]} و ${names[1]} والمزيد`;
+                })()
+              : `FROM ${stores.map(s => (s.name || '').toUpperCase()).slice(0, 2).join(' & ')}${stores.length > 2 ? ' & MORE' : ''}`}
+          </p>
+        )}
       </div>
     </div>
   );
@@ -198,6 +198,8 @@ const FeaturedProductsCarousel = ({
               <div key={product.id} className="fpc-embla__slide">
                 <StoreProductCard
                   product={product}
+                  voucher={product.voucher}           // ✅ Pass linked voucher
+                  otherPromo={product.otherPromo}     // ✅ Pass linked promo
                   storeName={multiStore ? product.storeName : storeName}
                   storeLogo={multiStore ? product.storeLogo : undefined}
                 />
