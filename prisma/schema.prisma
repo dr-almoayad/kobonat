@@ -411,6 +411,9 @@ model Voucher {
   // STEP 2 — Section block embeds (NEW)
   embeddedInSectionBlocks SectionBlock[] @relation("SectionEmbeddedVouchers")
 
+  // NEW: Products that link to this voucher
+  linkedProducts StoreProduct[] @relation("ProductLinkedVoucher")
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -471,6 +474,12 @@ model StoreProduct {
 
   // STEP 1 — ADDED BACK-RELATION
   directCategories StoreProductCategory[]
+
+  // NEW: Direct link to a voucher (coupon/deal) or bank/payment promo
+  linkedVoucherId Int?
+  linkedPromoId   Int?
+  linkedVoucher   Voucher?    @relation("ProductLinkedVoucher", fields: [linkedVoucherId], references: [id], onDelete: SetNull)
+  linkedPromo     OtherPromo? @relation("ProductLinkedPromo",   fields: [linkedPromoId],   references: [id], onDelete: SetNull)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -564,6 +573,9 @@ model OtherPromo {
 
   // STEP 2 — Section block embeds (NEW)
   embeddedInSectionBlocks SectionBlock[] @relation("SectionEmbeddedPromos")
+
+  // NEW: Products that link to this promo
+  linkedProducts StoreProduct[] @relation("ProductLinkedPromo")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
