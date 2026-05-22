@@ -9,31 +9,24 @@ import FeaturedProductsCarousel from '@/components/FeaturedProductsCarousel/Feat
 export default async function HomeFeaturedProductsSection({ locale, countryCode = 'SA' }) {
   const lang = locale?.split('-')[0] || 'ar';
 
-  // Fetch stores that have featured products available in this country
   const storesWithProducts = await prisma.store.findMany({
     where: {
       isActive: true,
       countries: { some: { country: { code: countryCode } } },
       products: {
-        some: {
-          isFeatured: true,
-          
-        },
+        some: { isFeatured: true },
       },
     },
     select: {
-      id: true,
-      logo: true,
+      id:     true,
+      logo:   true,
       bigLogo: true,
       translations: {
         where:  { locale: lang },
         select: { name: true, slug: true },
       },
       products: {
-        where: {
-          isFeatured: true,
-          
-        },
+        where: { isFeatured: true },
         select: {
           id:            true,
           image:         true,
@@ -46,9 +39,56 @@ export default async function HomeFeaturedProductsSection({ locale, countryCode 
             where:  { locale: lang },
             select: { title: true },
           },
+
+          // ── Promo ribbon: linked voucher ──────────────────────────
+          linkedVoucher: {
+            select: {
+              id:              true,
+              code:            true,
+              type:            true,
+              discount:        true,
+              discountPercent: true,
+              translations: {
+                where:  { locale: lang },
+                select: { title: true },
+              },
+            },
+          },
+
+          // ── Promo ribbon: linked bank / payment offer ─────────────
+          linkedPromo: {
+            select: {
+              id:              true,
+              type:            true,
+              discountPercent: true,
+              translations: {
+                where:  { locale: lang },
+                select: { title: true },
+              },
+              bank: {
+                select: {
+                  logo: true,
+                  translations: {
+                    where:  { locale: lang },
+                    select: { name: true },
+                  },
+                },
+              },
+              paymentMethod: {
+                select: {
+                  logo:   true,
+                  isBnpl: true,
+                  translations: {
+                    where:  { locale: lang },
+                    select: { name: true },
+                  },
+                },
+              },
+            },
+          },
         },
         orderBy: [{ order: 'asc' }, { clickCount: 'desc' }],
-        take: 8, // cap per store
+        take: 8,
       },
     },
   });
@@ -64,17 +104,16 @@ export default async function HomeFeaturedProductsSection({ locale, countryCode 
     return nameA.localeCompare(nameB);
   });
 
-  // Build flat product list (up to 20 total), preserving store metadata
+  // Build flat product list (up to 20 total) via round-robin across stores
   const allProducts = [];
   const MAX_PRODUCTS = 20;
 
-  // Round-robin across sorted stores so we don't over-represent one store
-  let added = 0;
   const storeQueues = sortedStores.map(store => ({
     store,
     queue: [...store.products],
   }));
 
+  let added = 0;
   while (added < MAX_PRODUCTS) {
     let anyAdded = false;
     for (const { store, queue } of storeQueues) {
@@ -88,9 +127,12 @@ export default async function HomeFeaturedProductsSection({ locale, countryCode 
         productUrl:    p.productUrl,
         clickCount:    p.clickCount,
         title:         p.translations[0]?.title || '',
-        // Attach store info for multi-store mode
+        // Store identity (multi-store header mode)
         storeName:     store.translations[0]?.name || '',
-        storeLogo:     store.bigLogo || null,
+        storeLogo:     store.bigLogo || store.logo || null,
+        // Promo ribbon data — forwarded straight to StoreProductCard
+        linkedVoucher: p.linkedVoucher || null,
+        linkedPromo:   p.linkedPromo   || null,
       });
       added++;
       anyAdded = true;
@@ -101,11 +143,11 @@ export default async function HomeFeaturedProductsSection({ locale, countryCode 
 
   if (!allProducts.length) return null;
 
-  // Build the stores array for stacked avatars
+  // Stores metadata for the stacked avatar header
   const storesMeta = sortedStores.map(store => ({
     id:           store.id,
     name:         store.translations[0]?.name || '',
-    logo:         store.bigLogo || null,
+    logo:         store.bigLogo || store.logo || null,
     featuredCount: store.products.length,
   }));
 
