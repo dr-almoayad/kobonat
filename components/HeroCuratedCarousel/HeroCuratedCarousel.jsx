@@ -119,7 +119,7 @@ export default function HeroCuratedCarousel({ slides, locale }) {
         <EmblaCarousel
           locale={locale}
           slideWidth="auto"
-          slideGap="5px"
+          slideGap="0"
           freeScroll={true}
           loop={false}
           className="hcc-embla"
