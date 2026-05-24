@@ -13,7 +13,7 @@
 
 /* Header styling – modern, minimal, professional */
 .fsc-header {
-  margin-bottom: 1.75rem;
+  margin-bottom: 1rem;
   position: relative;
 }
 
@@ -38,10 +38,14 @@
 /* Responsive */
 @media (max-width: 768px) {
   .fsc {
-    padding: 1.5rem 0;
+    padding: 1rem 0;
   }
   .fsc-inner {
-    padding: 0 0.5rem;
+    padding: 0;
+  }
+  .fsc-header {
+    margin-bottom: 0.5rem;
+    padding: 0 0.7rem;
   }
   .fsc-title {
     font-size: 1.25rem;
