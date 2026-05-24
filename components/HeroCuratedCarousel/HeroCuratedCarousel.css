@@ -4,7 +4,7 @@
   position: relative;
   width: 100%;
   max-width: 1312px;
-  padding: 0 1rem;
+  padding: 1rem;
   margin: 0 auto;
 }
 
@@ -16,6 +16,7 @@
 .hcc-carousel-wrapper .ec-viewport {
     flex: 1 1;
     overflow: hidden;
+    padding: 0;
     transform: translateZ(0);
 }
 
@@ -276,5 +277,13 @@
 @media (max-width: 768px) {
   .hcc-nav-arrow {
     display: none;
+  }
+
+  .hcc-carousel-wrapper {
+    padding: 0.5rem 0;
+  }
+
+  .hcc-carousel-wrapper .ec-viewport {
+    padding: 0 0.6rem;
   }
 }
