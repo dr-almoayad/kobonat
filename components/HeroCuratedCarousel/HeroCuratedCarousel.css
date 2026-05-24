@@ -4,32 +4,38 @@
   position: relative;
   width: 100%;
   max-width: 1312px;
+  padding: 0 1rem;
   margin: 0 auto;
 }
 
 /* Base Carousel Setup */
 .hcc-root {
   width: 100%;
-  overflow: hidden;
 }
 
 .hcc-carousel-wrapper .ec-viewport {
     flex: 1 1;
     overflow: hidden;
     transform: translateZ(0);
-    padding-inline: 0.5rem;
 }
+
 
 /* Responsive Slide Sizing Constraints */
 .hcc-carousel-wrapper .ec-slide {
   flex: 0 0 auto !important;
   width: 85% !important;
-  max-width: 550px !important; /* Forces strict ceiling layout boundary */
-  max-height: 420px;
-  padding: 4px !important;
+  max-width: 500px !important; /* Forces strict ceiling layout boundary */
+  max-height: 550px;
+  background: none;
+  border-radius: 8px;
+  padding: 8px !important;
   transition: none !important;
   transform: none !important;
   opacity: 1 !important;
+}
+
+.hcc-carousel-wrapper .ec-slide:hover {
+  background: #f1f2f3;
 }
 
 @media (min-width: 640px) {
