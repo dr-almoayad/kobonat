@@ -1,25 +1,23 @@
 /* components/EmblaCarousel/EmblaCarousel.css */
 
 .ec-root {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
+  /* Dynamic gap passed from React inline-styles */
+  --ec-gap-fallback: 1rem;
+  position: relative;
   width: 100%;
 }
 
 .ec-carousel-row {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
   position: relative;
 }
 
-/* Viewport – adds spacing from screen edges */
+/* ── Viewport & Layout (Mobile First) ── */
 .ec-viewport {
-  flex: 1;
   overflow: hidden;
-  transform: translateZ(0);
-  padding-inline: 1rem; /* space between slide and screen edge */
+  width: 100%;
+  transform: translateZ(0); /* Hardware acceleration */
 }
 
 .ec-container {
@@ -27,79 +25,72 @@
   touch-action: pan-y pinch-zoom;
   will-change: transform;
   backface-visibility: hidden;
-  padding: 0; /* no extra padding – margins on slides control gaps */
+  /* Embla's official method for slide gaps */
+  margin-inline-start: calc(var(--ec-gap, var(--ec-gap-fallback)) * -1);
 }
 
 .ec-slide {
   min-width: 0;
-  display: flex;
-  flex-direction: column;
+  flex: 0 0 auto;
+  padding-inline-start: var(--ec-gap, var(--ec-gap-fallback));
   transform: translateZ(0);
   backface-visibility: hidden;
 }
-.ec-slide > * {
-  flex: 1;
-}
 
-/* ── Arrows (44px, round, only visible when needed, desktop only) ── */
+/* ── Arrows (Hidden on Mobile) ── */
 .ec-arrow {
-  position: absolute;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  border: 1px solid #d5d9d9;
-  background: #fff;
-  color: #333;
-  cursor: pointer;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.12);
-  transition: background 0.15s, box-shadow 0.15s, opacity 0.2s;
-  flex-shrink: 0;
+  display: none; 
 }
 
-.ec-arrow .material-symbols-sharp {
-  font-size: 1.25rem;
-  line-height: 1;
-}
-
-.ec-arrow:hover:not(:disabled) {
-  background: #f5f5f5;
-  box-shadow: 0 3px 10px rgba(0,0,0,0.18);
-}
-
-.ec-arrow:disabled {
-  opacity: 0.3;
-  cursor: default;
-  pointer-events: none;
-}
-
-/* Hide arrows on mobile (≤1023px) */
-@media (max-width: 1023px) {
+/* ── Desktop Overrides (≥ 1024px) ── */
+@media (min-width: 1024px) {
+  
+  /* Google Play Style Arrow Elements */
   .ec-arrow {
+    display: flex;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 10;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: #ffffff;
+    color: #5f6368;
+    border: 1px solid #dadce0;
+    box-shadow: 0 1px 2px 0 rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15);
+    cursor: pointer;
+    transition: background-color 0.2s, box-shadow 0.2s;
+    flex-shrink: 0;
+  }
+
+  .ec-arrow:hover {
+    background: #f8f9fa;
+    box-shadow: 0 1px 3px 0 rgba(60,64,67,0.3), 0 4px 8px 3px rgba(60,64,67,0.15);
+  }
+
+  /* Disappears smoothly when there is no content to scroll to */
+  .ec-arrow:disabled {
     display: none;
+    pointer-events: none;
+  }
+
+  .ec-arrow .material-symbols-sharp {
+    font-size: 1.5rem;
+    line-height: 1;
+  }
+
+  /* 
+    Logical properties automate RTL and LTR positioning. 
+    Negative value pushes them slightly outside/overlapping the edge.
+  */
+  .ec-arrow--prev {
+    inset-inline-start: -22px; 
+  }
+
+  .ec-arrow--next {
+    inset-inline-end: -22px;
   }
 }
-
-/* ── Full‑bleed variant (used by OfferStacksSection) ── */
-.ec-full-bleed {
-  margin-left:  calc(-1 * var(--section-px, 1rem));
-  margin-right: calc(-1 * var(--section-px, 1rem));
-  width: calc(100% + 2 * var(--section-px, 1rem));
-}
-
-.ec-full-bleed .ec-viewport {
-  padding-inline-start: var(--section-px, 1rem);
-  /* keep other padding unchanged */
-}
-
-.ec-full-bleed .ec-slide:last-child {
-  margin-inline-end: var(--section-px, 1rem) !important;
-}
-
-/* Remove extra container padding on full‑bleed */
-.ec-full-bleed .ec-container {
-  padding: 0;
-}
-
