@@ -1,4 +1,3 @@
-// app/api/stacks/route.js
 import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
 
@@ -93,9 +92,11 @@ function toStackShape(ds, isAr, now) {
 
   if (items.length < 2) return null;
 
-  // Only count non-expired items toward combined savings
+  // STRICT RULE: If any item in the stack is expired, the whole stack is dropped.
+  const isExpired = items.some(i => i.isExpired);
+  if (isExpired) return null; 
+
   const activePercents = items
-    .filter(i => !i.isExpired)
     .map(i => (i.discountPercent || 0) / 100)
     .filter(p => p > 0);
 
@@ -105,9 +106,6 @@ function toStackShape(ds, isAr, now) {
       : activePercents.length === 1
       ? Math.round(activePercents[0] * 100)
       : null;
-
-  // A stack is expired if ANY of its items has expired
-  const isExpired = items.some(i => i.isExpired);
 
   const st = ds.store?.translations?.[0] || {};
   return {
@@ -120,7 +118,7 @@ function toStackShape(ds, isAr, now) {
     },
     items,
     combinedSavingsPercent,
-    isExpired,
+    isExpired: false, 
   };
 }
 
@@ -133,12 +131,11 @@ export async function GET(request) {
     const isAr = language === 'ar';
     const now = new Date();
 
-    // Fetch all active stacks with a generous cap — sorting happens in memory
-    // so expired stacks always land after active ones regardless of DB ordering.
+    // Fetch active stacks from DB (buffer to account for post-query filtering)
     const rows = await prisma.offerStack.findMany({
       where: { isActive: true },
       orderBy: [{ order: 'asc' }, { createdAt: 'desc' }],
-      take: 500,
+      take: 500, 
       include: {
         store: {
           select: {
@@ -156,18 +153,14 @@ export async function GET(request) {
       },
     });
 
-    // Transform → filter nulls → stable sort: active first, expired last
-    const allStacks = rows
+    // Map and explicitly filter out nulls (which now represent expired/invalid stacks)
+    const activeStacksOnly = rows
       .map(ds => toStackShape(ds, isAr, now))
-      .filter(Boolean)
-      .sort((a, b) => {
-        if (a.isExpired === b.isExpired) return 0;
-        return a.isExpired ? 1 : -1;
-      });
+      .filter(Boolean); 
 
-    const total = allStacks.length;
+    const total = activeStacksOnly.length;
     const skip = (page - 1) * PER_PAGE;
-    const stacks = allStacks.slice(skip, skip + PER_PAGE);
+    const stacks = activeStacksOnly.slice(skip, skip + PER_PAGE);
     const hasMore = skip + PER_PAGE < total;
 
     return NextResponse.json({ stacks, total, hasMore, page });
