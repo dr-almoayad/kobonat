@@ -2,7 +2,7 @@
 import { prisma } from '@/lib/prisma';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { allLocaleCodes } from '@/i18n/locales';
+import { allLocaleCodes } from '@/i18n/locales'; 
 import OfferStackBox from '@/components/OfferStackBox/OfferStackBox';
 import StacksInfiniteGrid from './StacksInfiniteGrid';
 import './stacks-page.css';
