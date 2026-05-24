@@ -1,18 +1,14 @@
 /* CategoryCarouselSubHeader.css
-   Mobile-First · Border‑free · Minimalistic · Sales‑focused
-   Max width: 1312px (whole component, arrows included)
-   RTL‑compatible · Embla‑powered
-   ─────────────────────────────────────────────────────────────────────────── */
+   Sticky bar, slide sizes, and hover effects.
+   Arrows are now handled by the global EmblaCarousel component.
+*/
 
-/* ── Sticky bar ─────────────────────────────────────────────────────────────── */
 .ccs-wrapper {
   position: sticky;
   top: var(--header-height, 64px);
   z-index: 100;
   width: 100%;
   background: rgba(255, 255, 255, 0.96);
-  border-bottom: 1px solid #e2e8f0;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, .04);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   opacity: 0;
@@ -31,9 +27,8 @@
   pointer-events: none;
 }
 
-/* ── Inner container: exactly 1312px max, centered ─────────────────────────── */
 .ccs-inner {
-  position: relative; /* Anchor for absolute arrows */
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -44,30 +39,12 @@
   box-sizing: border-box;
 }
 
-/* ── Embla viewport ────────────────────────────────────────────────────────── */
-.ccs-viewport {
-  overflow: hidden;
-  flex: 1;
-  min-width: 0;
-}
-
-/* ── Embla track ────────────────────────────────────────────────────────────── */
-.ccs-track {
-  display: flex;
-  touch-action: pan-y pinch-zoom;
-  will-change: transform;
-  backface-visibility: hidden;
-  gap: 0.2rem;
-}
-
-/* ── Slide shell ─────────────────────────────────────────────────────────────── */
+/* Slide sizes (mobile first) */
 .ccs-slide {
   flex: 0 0 auto;
   width: 70px;
-  min-width: 0;
 }
 
-/* ── Category link ──────────────────────────────────────────────────────────── */
 .ccs-item {
   display: flex;
   flex-direction: column;
@@ -92,7 +69,6 @@
   border-radius: 16px;
 }
 
-/* ── Icon wrapper ───────────────────────────────────────────────────────────── */
 .ccs-icon-wrap {
   width: 56px;
   height: 56px;
@@ -126,7 +102,6 @@
   transform: scale(1.02);
 }
 
-/* ── Category label ─────────────────────────────────────────────────────────── */
 .ccs-name {
   font-family: 'Alexandria', 'Open Sans', system-ui, sans-serif;
   font-size: 0.65rem;
@@ -147,35 +122,7 @@
   color: #470ae2;
 }
 
-/* ── Arrows – Base (Hidden on Mobile/Tablet) ───────────────────────────────── */
-.ccs-arrow {
-    display: none;
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    z-index: 10;
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    border: 1px solid #d5d9d9;
-    background: #fff;
-    color: #333;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, .12);
-    transition: background .15s, box-shadow .15s;
-}
-
-.ccs-arrow .material-symbols-sharp {
-  font-size: 1.3rem;
-  line-height: 1;
-  display: block;
-}
-
-/* ══════════════════════════════════════════════════════════════════════════════
-   TABLET  ≥ 640px
-══════════════════════════════════════════════════════════════════════════════ */
+/* Tablet: slightly larger slides */
 @media (min-width: 640px) {
   .ccs-slide {
     width: 74px;
@@ -185,78 +132,37 @@
   }
 }
 
-/* ══════════════════════════════════════════════════════════════════════════════
-   DESKTOP  ≥ 1024px
-   – Arrows visible, absolutely positioned to prevent layout shift
-══════════════════════════════════════════════════════════════════════════════ */
+/* Desktop: same width, but add hover background */
 @media (min-width: 1024px) {
-
-   .ccs-inner {
-
-  padding: 0 1.5rem;
-
-   }
-  .ccs-arrow {
-    display: flex;
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
+  .ccs-inner {
+    padding: 0 1.5rem;
   }
-
-  .ccs-arrow:hover {
-    background: #f5f5f5;
-    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.18);
-  }
-
-  /* Logical CSS ensures proper RTL mapping out of the box */
-  .ccs-arrow-prev {
-    inset-inline-start: .25rem;
-  }
-  
-  .ccs-arrow-next {
-    inset-inline-end: .25rem;
-  }
-
   .ccs-slide {
     width: 74px;
   }
-
   .ccs-name {
     font-size: 0.7rem;
   }
-
   .ccs-item {
     padding: 0.5rem 0.25rem;
     border-radius: 18px;
   }
-
   .ccs-item:hover {
     background: rgba(71, 10, 226, 0.04);
     transform: translateY(-2px);
   }
-
-  .ccs-item:hover .ccs-img,
-  .ccs-item:hover .ccs-icon {
-    transform: scale(1.02);
-  }
 }
 
-/* ══════════════════════════════════════════════════════════════════════════════
-   LARGE SCREENS
-══════════════════════════════════════════════════════════════════════════════ */
+/* Large screens: ensure inner container respects max width */
 @media (min-width: 1312px) {
   .ccs-inner {
     padding: 0 1rem;
   }
 }
 
-/* ══════════════════════════════════════════════════════════════════════════════
-   REDUCED MOTION
-══════════════════════════════════════════════════════════════════════════════ */
 @media (prefers-reduced-motion: reduce) {
   .ccs-wrapper,
   .ccs-item,
-  .ccs-arrow,
   .ccs-img,
   .ccs-icon {
     transition: none !important;
