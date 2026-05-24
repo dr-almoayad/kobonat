@@ -15,9 +15,10 @@
 
 /* ── Viewport & Layout (Mobile First) ── */
 .ec-viewport {
-  overflow: hidden;
-  width: 100%;
-  transform: translateZ(0); /* Hardware acceleration */
+    overflow: hidden;
+    width: 100%;
+    transform: translateZ(0);
+    padding: 0 0.5rem;
 }
 
 .ec-container {
