@@ -6,17 +6,18 @@ import './EmblaCarousel.css';
 export default function EmblaCarousel({
   children,
   locale,
-  slideWidth = '85%', // Defaulting to 85% to tease the next card on mobile
-  slideGap   = '1rem',
-  className  = '',
-  freeScroll = true,  // Defaulted to true for continuous drag
+  slideWidth = '85%',
+  slideGap = '1rem',
+  className = '',
+  freeScroll = true,
+  scrollSlides = 1, // NEW: number of slides to scroll per arrow click
 }) {
   const isAr = locale?.split('-')[0] === 'ar';
 
   const [emblaRef, emblaApi] = useEmblaCarousel({
-    direction:     isAr ? 'rtl' : 'ltr',
-    align:         'start',
-    dragFree:      freeScroll,
+    direction: isAr ? 'rtl' : 'ltr',
+    align: 'start',
+    dragFree: freeScroll,
     containScroll: 'trimSnaps',
   });
 
@@ -35,24 +36,36 @@ export default function EmblaCarousel({
     emblaApi.on('reInit', () => sync(emblaApi));
   }, [emblaApi, sync]);
 
-  const scrollPrev = useCallback(() => emblaApi?.scrollPrev(), [emblaApi]);
-  const scrollNext = useCallback(() => emblaApi?.scrollNext(), [emblaApi]);
+  // Scroll by multiple slides
+  const scrollPrev = useCallback(() => {
+    if (!emblaApi) return;
+    const currentIndex = emblaApi.selectedScrollSnap();
+    const targetIndex = Math.max(0, currentIndex - scrollSlides);
+    emblaApi.scrollTo(targetIndex);
+  }, [emblaApi, scrollSlides]);
+
+  const scrollNext = useCallback(() => {
+    if (!emblaApi) return;
+    const currentIndex = emblaApi.selectedScrollSnap();
+    const maxIndex = emblaApi.scrollSnapList().length - 1;
+    const targetIndex = Math.min(maxIndex, currentIndex + scrollSlides);
+    emblaApi.scrollTo(targetIndex);
+  }, [emblaApi, scrollSlides]);
 
   const slides = Array.isArray(children) ? children : [children];
 
-  // Logical icons based on direction (No CSS flipping required)
   const prevIcon = isAr ? 'chevron_right' : 'chevron_left';
   const nextIcon = isAr ? 'chevron_left' : 'chevron_right';
 
+  const isAuto = slideWidth === 'auto';
+
   return (
-    <div 
-      className={`ec-root${className ? ` ${className}` : ''}`} 
+    <div
+      className={`ec-root${className ? ` ${className}` : ''}`}
       dir={isAr ? 'rtl' : 'ltr'}
       style={{ '--ec-gap': slideGap }}
     >
       <div className="ec-carousel-row">
-        
-        {/* Previous Arrow */}
         <button
           className="ec-arrow ec-arrow--prev"
           onClick={scrollPrev}
@@ -62,14 +75,13 @@ export default function EmblaCarousel({
           <span className="material-symbols-sharp">{prevIcon}</span>
         </button>
 
-        {/* Viewport & Container */}
         <div className="ec-viewport" ref={emblaRef}>
           <div className="ec-container">
             {slides.map((slide, i) => (
               <div
                 key={i}
                 className="ec-slide"
-                style={{ flex: `0 0 ${slideWidth}` }}
+                style={isAuto ? {} : { flex: `0 0 ${slideWidth}` }}
               >
                 {slide}
               </div>
@@ -77,7 +89,6 @@ export default function EmblaCarousel({
           </div>
         </div>
 
-        {/* Next Arrow */}
         <button
           className="ec-arrow ec-arrow--next"
           onClick={scrollNext}
@@ -86,7 +97,6 @@ export default function EmblaCarousel({
         >
           <span className="material-symbols-sharp">{nextIcon}</span>
         </button>
-        
       </div>
     </div>
   );
