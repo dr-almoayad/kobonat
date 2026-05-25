@@ -14,7 +14,6 @@ const CategoryCarouselSubHeader = () => {
   const [isVisible, setIsVisible] = useState(true);
   const lastScrollYRef = useRef(0);
 
-  // Fetch categories
   useEffect(() => {
     const fetchCategories = async () => {
       try {
@@ -34,7 +33,6 @@ const CategoryCarouselSubHeader = () => {
     fetchCategories();
   }, [locale]);
 
-  // Scroll visibility (hide when scrolling down, show when up)
   useEffect(() => {
     let ticking = false;
     const handleScroll = () => {
@@ -59,9 +57,10 @@ const CategoryCarouselSubHeader = () => {
       <div className="ccs-inner">
         <EmblaCarousel
           locale={locale}
-          slideWidth="auto"        // Let CSS control slide width
-          slideGap="0.2rem"        // Same as original gap
+          slideWidth="auto"
+          slideGap="0.2rem"
           freeScroll={true}
+          scrollSlides={7}        // ✅ scroll 7 slides per click
           className="ccs-embla"
         >
           {categories.map((category) => (
