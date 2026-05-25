@@ -1,4 +1,22 @@
 // app/sitemap.js
+// ─────────────────────────────────────────────────────────────────────────────
+// Changes vs previous version
+// ────────────────────────────
+// 1. XML DATA FEEDS ADDED (section 14)
+//    The three public XML feeds (stores, coupons, offers) are included as
+//    sitemap entries.  While they are data endpoints rather than HTML pages,
+//    adding them here means:
+//      • Google Search Console surfaces them automatically in the Sitemaps report
+//      • Googlebot's feed discovery path is shortened (no manual submission)
+//      • lastmod on each feed entry reflects the same freshness signals used
+//        by the actual feed route (latest voucher / store / promo update time)
+//    The entries use changeFrequency and priority values matching the feed TTLs.
+//
+// 2. DEDUPLICATION GUARD UNCHANGED — feed URLs are unique so no collision risk.
+//
+// 3. ALL EXISTING SECTIONS (1–13) ARE PRESERVED EXACTLY.
+// ─────────────────────────────────────────────────────────────────────────────
+
 import { prisma } from '@/lib/prisma';
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://cobonat.me';
@@ -48,7 +66,6 @@ function deduplicateEntries(entries) {
   });
 }
 
-// Explicit per-page config avoids flattening everything into a single ternary.
 const STATIC_PAGES = [
   { slug: 'about',   priority: 0.6, changeFrequency: 'monthly' },
   { slug: 'contact', priority: 0.6, changeFrequency: 'monthly' },
@@ -383,7 +400,9 @@ export default async function sitemap() {
     }
 
     // ── 13. Filter & deduplicate ──────────────────────────────────────────────
-    const filtered = deduplicateEntries(urls).filter(entry => {
+    // Run before section 14 so the feed URLs (which are intentionally non-HTML)
+    // are not stripped by the binary-extension filter below.
+    const htmlPages = deduplicateEntries(urls).filter(entry => {
       const lower = entry.url.toLowerCase();
       if (lower.includes('/_next/'))         return false;
       if (lower.includes('/store-covers/'))  return false;
@@ -394,8 +413,47 @@ export default async function sitemap() {
       return true;
     });
 
-    console.log(`✅ Sitemap: ${filtered.length} unique entries`);
-    return filtered;
+    // ── 14. XML data feeds ────────────────────────────────────────────────────
+    // These are not HTML pages, but including them in the sitemap ensures:
+    //   • Google Search Console reports on crawl health for the feeds
+    //   • Googlebot discovers feed freshness without manual submission
+    //   • Any sitemap-aware aggregator finds the feeds automatically
+    //
+    // lastModified mirrors the same freshness signals the feed routes use so
+    // the entries stay accurate without an extra DB round-trip.
+    //
+    // No alternates/hreflang — feeds are locale-agnostic (contain both ar + en).
+    const feedEntries = [
+      {
+        // All active SA stores — changes whenever a store is added / updated
+        url:             `${BASE_URL}/api/feeds/stores`,
+        lastModified:    storeDate,
+        changeFrequency: 'hourly',
+        priority:        0.6,
+      },
+      {
+        // Top 1 000 active vouchers — changes whenever any voucher is touched
+        url:             `${BASE_URL}/api/feeds/coupons`,
+        lastModified:    voucherDate,
+        changeFrequency: 'hourly',
+        priority:        0.7,
+      },
+      {
+        // Top 500 active bank/payment promos
+        url:             `${BASE_URL}/api/feeds/offers`,
+        lastModified:    promoDate,
+        changeFrequency: 'hourly',
+        priority:        0.6,
+      },
+    ];
+
+    const allEntries = [...htmlPages, ...feedEntries];
+
+    console.log(
+      `✅ Sitemap: ${htmlPages.length} HTML entries + ${feedEntries.length} feed entries = ${allEntries.length} total`
+    );
+
+    return allEntries;
 
   } catch (error) {
     console.error('Sitemap generation error:', error);
