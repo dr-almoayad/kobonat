@@ -164,7 +164,7 @@ export default async function Home({ params }) {
         },
       },
     }),
-    // 4. Featured stores for carousel – ADDED _count.vouchers
+    // 4. Featured stores for carousel – includes _count.vouchers for StoreCard
     prisma.store.findMany({
       where: {
         isActive:  true,
@@ -187,7 +187,6 @@ export default async function Home({ params }) {
           take:    1,
           select:  { discountPercent: true },
         },
-        // ✅ NEW: Add total active vouchers count for StoreCard
         _count: {
           select: {
             vouchers: {
@@ -220,14 +219,13 @@ export default async function Home({ params }) {
       bigLogo: store.bigLogo,
       discount: discountText,
       showOffer: discountText,
-      showOfferType: 'OFFER', // fallback for StoreCard
+      showOfferType: 'OFFER',
       translations: [{
         locale: language,
         name: translation.name || '',
         slug: translation.slug || '',
         showOffer: discountText,
       }],
-      // ✅ NEW: pass the count and the voucher data for StoreCard logic
       _count: store._count,
       vouchers: store.vouchers,
     };
@@ -235,7 +233,7 @@ export default async function Home({ params }) {
 
   const carouselTitle = isArabic ? 'متاجر مميزة' : 'Featured Stores with Discounts';
 
-  // Other transforms (keep original)
+  // Transform for other sections (unchanged)
   const transformStore = (store) => {
     const t = store.translations?.[0] || {};
     return {
@@ -292,7 +290,7 @@ export default async function Home({ params }) {
         <SavingsBanner locale={locale} />
         <HeroBestOffersCarousel />
 
-        {/* ✅ Featured Stores Carousel – now receives full store data including _count and vouchers */}
+        {/* Featured Stores Carousel – uses StoreCard which now receives _count.vouchers */}
         <FeaturedStoresCarousel
           title={carouselTitle}
           stores={topStores}
