@@ -2,6 +2,7 @@
 // Server component — fetches featured products across all stores,
 // sorts stores by featured product count (desc) then alphabetically,
 // and passes them to FeaturedProductsCarousel for the stacked avatar header.
+// ✅ Updated: added originalPrice, currentPrice, and full linkedPromo details (installmentMonths, card)
 
 import { prisma } from '@/lib/prisma';
 import FeaturedProductsCarousel from '@/components/FeaturedProductsCarousel/FeaturedProductsCarousel';
@@ -30,6 +31,8 @@ export default async function HomeFeaturedProductsSection({ locale, countryCode 
         select: {
           id:            true,
           image:         true,
+          originalPrice: true,    // ✅ NEW
+          currentPrice:  true,    // ✅ NEW
           discountValue: true,
           discountType:  true,
           productUrl:    true,
@@ -48,6 +51,7 @@ export default async function HomeFeaturedProductsSection({ locale, countryCode 
               type:            true,
               discount:        true,
               discountPercent: true,
+              verifiedAvgPercent: true,
               translations: {
                 where:  { locale: lang },
                 select: { title: true },
@@ -56,11 +60,15 @@ export default async function HomeFeaturedProductsSection({ locale, countryCode 
           },
 
           // ── Promo ribbon: linked bank / payment offer ─────────────
+          // ✅ Added installmentMonths and card relation for BNPL
           linkedPromo: {
             select: {
               id:              true,
               type:            true,
               discountPercent: true,
+              verifiedAvgPercent: true,
+              installmentMonths: true,    // ✅ for BNPL
+              url:             true,
               translations: {
                 where:  { locale: lang },
                 select: { title: true },
@@ -83,6 +91,9 @@ export default async function HomeFeaturedProductsSection({ locale, countryCode 
                     select: { name: true },
                   },
                 },
+              },
+              card: {                       // ✅ for max installment months
+                select: { maxInstallmentMonths: true },
               },
             },
           },
@@ -122,15 +133,15 @@ export default async function HomeFeaturedProductsSection({ locale, countryCode 
       allProducts.push({
         id:            p.id,
         image:         p.image,
+        originalPrice: p.originalPrice,    // ✅ pass through
+        currentPrice:  p.currentPrice,     // ✅ pass through
         discountValue: p.discountValue,
         discountType:  p.discountType,
         productUrl:    p.productUrl,
         clickCount:    p.clickCount,
         title:         p.translations[0]?.title || '',
-        // Store identity (multi-store header mode)
         storeName:     store.translations[0]?.name || '',
         storeLogo:     store.bigLogo || store.logo || null,
-        // ✅ FIX: map linked fields to the prop names StoreProductCard expects
         voucher:       p.linkedVoucher || null,
         otherPromo:    p.linkedPromo   || null,
       });
