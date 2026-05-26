@@ -263,26 +263,38 @@ export async function updateStoreCategories(id, formData) {
 
 export async function createStoreProduct(formData) {
   try {
-    const storeId       = parseInt(formData.get('storeId'));
-    const discountValue = formData.get('discountValue') ? parseFloat(formData.get('discountValue')) : null;
-    const discountType  = formData.get('discountType') || 'PERCENTAGE';
-    const isFeatured    = formData.get('isFeatured') === 'on';
+    const storeId     = parseInt(formData.get('storeId'));
  
-    // Promo ribbon links (optional)
-    const rawVoucherId = formData.get('linkedVoucherId');
-    const rawPromoId   = formData.get('linkedPromoId');
+    // ── Prices (new) ──────────────────────────────────────────────────────────
+    const rawCurrent  = formData.get('currentPrice');
+    const rawOriginal = formData.get('originalPrice');
+    const currentPrice  = rawCurrent  && rawCurrent  !== '' ? parseFloat(rawCurrent)  : null;
+    const originalPrice = rawOriginal && rawOriginal !== '' ? parseFloat(rawOriginal) : null;
+ 
+    // ── Legacy discount badge ─────────────────────────────────────────────────
+    const rawDiscountValue = formData.get('discountValue');
+    const discountValue = rawDiscountValue && rawDiscountValue !== '' ? parseFloat(rawDiscountValue) : null;
+    const discountType  = formData.get('discountType') || 'PERCENTAGE';
+ 
+    const isFeatured = formData.get('isFeatured') === 'on';
+ 
+    // ── Promo ribbon links (optional) ─────────────────────────────────────────
+    const rawVoucherId    = formData.get('linkedVoucherId');
+    const rawPromoId      = formData.get('linkedPromoId');
     const linkedVoucherId = rawVoucherId ? parseInt(rawVoucherId) : null;
     const linkedPromoId   = rawPromoId   ? parseInt(rawPromoId)   : null;
  
     const product = await prisma.storeProduct.create({
       data: {
         storeId,
-        image:      formData.get('image'),
+        image:          formData.get('image'),
+        originalPrice,           // ← NEW
+        currentPrice,            // ← NEW
         discountValue,
         discountType,
-        productUrl: formData.get('productUrl'),
+        productUrl:     formData.get('productUrl'),
         isFeatured,
-        order:      parseInt(formData.get('order') || '0'),
+        order:          parseInt(formData.get('order') || '0'),
         linkedVoucherId,
         linkedPromoId,
         translations: {
@@ -312,25 +324,36 @@ export async function createStoreProduct(formData) {
  
 export async function updateStoreProduct(id, formData) {
   try {
-    const discountValue = formData.get('discountValue') ? parseFloat(formData.get('discountValue')) : null;
-    const discountType  = formData.get('discountType') || 'PERCENTAGE';
-    const isFeatured    = formData.get('isFeatured') === 'on';
+    // ── Prices (new) ──────────────────────────────────────────────────────────
+    const rawCurrent  = formData.get('currentPrice');
+    const rawOriginal = formData.get('originalPrice');
+    const currentPrice  = rawCurrent  && rawCurrent  !== '' ? parseFloat(rawCurrent)  : null;
+    const originalPrice = rawOriginal && rawOriginal !== '' ? parseFloat(rawOriginal) : null;
  
-    // Promo ribbon links — empty string means "clear the link"
-    const rawVoucherId = formData.get('linkedVoucherId');
-    const rawPromoId   = formData.get('linkedPromoId');
+    // ── Legacy discount badge ─────────────────────────────────────────────────
+    const rawDiscountValue = formData.get('discountValue');
+    const discountValue = rawDiscountValue && rawDiscountValue !== '' ? parseFloat(rawDiscountValue) : null;
+    const discountType  = formData.get('discountType') || 'PERCENTAGE';
+ 
+    const isFeatured = formData.get('isFeatured') === 'on';
+ 
+    // ── Promo ribbon links ────────────────────────────────────────────────────
+    const rawVoucherId    = formData.get('linkedVoucherId');
+    const rawPromoId      = formData.get('linkedPromoId');
     const linkedVoucherId = rawVoucherId ? parseInt(rawVoucherId) : null;
     const linkedPromoId   = rawPromoId   ? parseInt(rawPromoId)   : null;
  
     const updatedProduct = await prisma.storeProduct.update({
       where: { id: parseInt(id) },
       data: {
-        image:      formData.get('image'),
+        image:         formData.get('image'),
+        originalPrice,           // ← NEW
+        currentPrice,            // ← NEW
         discountValue,
         discountType,
-        productUrl: formData.get('productUrl'),
+        productUrl:    formData.get('productUrl'),
         isFeatured,
-        order:      parseInt(formData.get('order') || '0'),
+        order:         parseInt(formData.get('order') || '0'),
         linkedVoucherId,
         linkedPromoId,
       },
