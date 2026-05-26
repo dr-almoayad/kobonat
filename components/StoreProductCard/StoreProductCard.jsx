@@ -289,4 +289,4 @@ const StoreProductCard = ({
   );
 };
 
-export default StoreProductCard;
+export default StoreProductCard; 
