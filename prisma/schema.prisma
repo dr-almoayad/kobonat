@@ -448,7 +448,9 @@ model StoreProduct {
   id      Int @id @default(autoincrement())
   storeId Int
 
-  image        String
+  image         String
+  originalPrice Float?        // ← NEW: the "was" / struck-through price
+  currentPrice  Float?        // ← NEW: the live selling price (bold, prominent)
   discountValue Float?
   discountType  DiscountType @default(PERCENTAGE)
 
