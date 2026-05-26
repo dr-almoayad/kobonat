@@ -152,7 +152,7 @@ const FeaturedProductsCarousel = ({
       {/* Shared EmblaCarousel */}
       <EmblaCarousel
         locale={locale}
-        slideWidth="auto"
+        slideWidth="280px"
         slideGap="0.75rem"
         freeScroll={false}
         scrollSlides={1}
