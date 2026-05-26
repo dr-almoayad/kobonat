@@ -154,8 +154,8 @@ const FeaturedProductsCarousel = ({
         locale={locale}
         slideWidth="280px"
         slideGap="0.75rem"
-        freeScroll={false}
-        scrollSlides={1}
+        freeScroll={true}
+        scrollSlides={3}
         className="fpc-embla"
       >
         {products.map((product) => (
