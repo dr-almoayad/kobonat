@@ -1,7 +1,7 @@
 "use client";
-import React, { useCallback, useEffect, useState } from "react";
-import useEmblaCarousel from 'embla-carousel-react';
-import StoreProductCard from '../StoreProductCard/StoreProductCard';
+import React from "react";
+import EmblaCarousel from "@/components/EmblaCarousel/EmblaCarousel";
+import StoreProductCard from "../StoreProductCard/StoreProductCard";
 import { useTranslations, useLocale } from 'next-intl';
 import Image from 'next/image';
 import "./featured-products-carousel.css";
@@ -64,60 +64,21 @@ const FeaturedProductsCarousel = ({
   lastUpdated,
   // Multi-store mode
   multiStore = false,
-  stores = [],   // [{ id, name, logo, featuredCount }]
+  stores = [],
 }) => {
-  const t      = useTranslations('FeaturedProducts');
+  const t = useTranslations('FeaturedProducts');
   const locale = useLocale();
-  const isRtl  = locale?.startsWith('ar') ?? false;
-
-  const [emblaRef, emblaApi] = useEmblaCarousel({
-    align:          'start',
-    containScroll:  'trimSnaps',
-    dragFree:       false,
-    slidesToScroll: 1,
-    direction:      isRtl ? 'rtl' : 'ltr',
-  });
-
-  const [canScrollPrev, setCanScrollPrev] = useState(false);
-  const [canScrollNext, setCanScrollNext] = useState(false);
-  const [selectedIndex, setSelectedIndex] = useState(0);
-  const [scrollSnaps, setScrollSnaps]     = useState([]);
-
-  const scrollPrev = useCallback(() => emblaApi?.scrollPrev(), [emblaApi]);
-  const scrollNext = useCallback(() => emblaApi?.scrollNext(), [emblaApi]);
-  const scrollTo   = useCallback((i) => emblaApi?.scrollTo(i), [emblaApi]);
-
-  const onSelect = useCallback(() => {
-    if (!emblaApi) return;
-    setSelectedIndex(emblaApi.selectedScrollSnap());
-    setCanScrollPrev(emblaApi.canScrollPrev());
-    setCanScrollNext(emblaApi.canScrollNext());
-  }, [emblaApi]);
-
-  useEffect(() => {
-    if (!emblaApi) return;
-    onSelect();
-    setScrollSnaps(emblaApi.scrollSnapList());
-    emblaApi.on('select', onSelect);
-    emblaApi.on('reInit', onSelect);
-    return () => {
-      emblaApi.off('select', onSelect);
-      emblaApi.off('reInit', onSelect);
-    };
-  }, [emblaApi, onSelect]);
+  const isRtl = locale?.startsWith('ar') ?? false;
 
   if (!products?.length) return null;
 
-  // ── Header ──────────────────────────────────────────────────────────────
+  // Header content
   const headerLeft = multiStore ? (
-    /* Multi-store: stacked avatars + generic title */
     <div className="fpc-header-left">
       <StackedStoreAvatars stores={stores} max={4} />
       <div className="fpc-title-block">
         <h2 className="fpc-title">
-          {isRtl
-            ? 'منتجات مميزة اليوم'
-            : "Today's Top Deals"}
+          {isRtl ? 'منتجات مميزة اليوم' : "Today's Top Deals"}
         </h2>
         {stores.length > 0 && (
           <p className="fpc-subtitle">
@@ -129,9 +90,8 @@ const FeaturedProductsCarousel = ({
       </div>
     </div>
   ) : (
-    /* Single-store: one logo + store name */
     <div className="fpc-header-left">
-      {storeLogo ? (
+      {storeLogo && (
         <div className="fpc-single-logo-wrap">
           <Image
             src={storeLogo}
@@ -142,7 +102,7 @@ const FeaturedProductsCarousel = ({
             unoptimized
           />
         </div>
-      ) : null}
+      )}
       <div className="fpc-title-block">
         <h2 className="fpc-title">
           {isRtl ? 'عروض اليوم المميزة' : "Today's Top Deals"}
@@ -164,10 +124,10 @@ const FeaturedProductsCarousel = ({
     </div>
   );
 
-  const ctaHref = multiStore
-    ? null
-    : (storeWebsiteUrl || null);
+  const ctaHref = multiStore ? null : storeWebsiteUrl;
 
+  // Slide width: responsive via CSS (using `.fpc-embla__slide` class)
+  // We'll pass slideWidth="auto" and let CSS define the slide width.
   return (
     <section
       className="fpc-section"
@@ -177,7 +137,6 @@ const FeaturedProductsCarousel = ({
       {/* Header row */}
       <div className="fpc-header">
         {headerLeft}
-
         {ctaHref && (
           <a
             href={ctaHref}
@@ -190,62 +149,27 @@ const FeaturedProductsCarousel = ({
         )}
       </div>
 
-      {/* Carousel */}
-      <div className="fpc-embla">
-        <div className="fpc-embla__viewport" ref={emblaRef}>
-          <div className="fpc-embla__container">
-            {products.map((product) => (
-              <div key={product.id} className="fpc-embla__slide">
-                <StoreProductCard
-                  product={product}
-                  voucher={product.voucher}           // ✅ Pass linked voucher
-                  otherPromo={product.otherPromo}     // ✅ Pass linked promo
-                  storeName={multiStore ? product.storeName : storeName}
-                  storeLogo={multiStore ? product.storeLogo : undefined}
-                />
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <button
-          className="fpc-arrow fpc-arrow--prev"
-          onClick={scrollPrev}
-          disabled={!canScrollPrev}
-          aria-label={isRtl ? 'التالي' : 'Previous'}
-        >
-          <span className="material-symbols-sharp">
-            {isRtl ? 'chevron_right' : 'chevron_left'}
-          </span>
-        </button>
-
-        <button
-          className="fpc-arrow fpc-arrow--next"
-          onClick={scrollNext}
-          disabled={!canScrollNext}
-          aria-label={isRtl ? 'السابق' : 'Next'}
-        >
-          <span className="material-symbols-sharp">
-            {isRtl ? 'chevron_left' : 'chevron_right'}
-          </span>
-        </button>
-      </div>
-
-      {/* Dots */}
-      {scrollSnaps.length > 1 && (
-        <div className="fpc-dots" role="tablist" aria-label="Slides">
-          {scrollSnaps.map((_, i) => (
-            <button
-              key={i}
-              role="tab"
-              aria-selected={i === selectedIndex}
-              className={`fpc-dot${i === selectedIndex ? ' fpc-dot--active' : ''}`}
-              onClick={() => scrollTo(i)}
-              aria-label={`Slide ${i + 1}`}
+      {/* Shared EmblaCarousel */}
+      <EmblaCarousel
+        locale={locale}
+        slideWidth="auto"
+        slideGap="0.75rem"
+        freeScroll={false}
+        scrollSlides={1}
+        className="fpc-embla"
+      >
+        {products.map((product) => (
+          <div key={product.id} className="fpc-embla__slide">
+            <StoreProductCard
+              product={product}
+              voucher={product.voucher}
+              otherPromo={product.otherPromo}
+              storeName={multiStore ? product.storeName : storeName}
+              storeLogo={multiStore ? product.storeLogo : undefined}
             />
-          ))}
-        </div>
-      )}
+          </div>
+        ))}
+      </EmblaCarousel>
     </section>
   );
 };
