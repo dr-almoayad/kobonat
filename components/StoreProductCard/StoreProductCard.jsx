@@ -8,8 +8,14 @@ import './StoreProductCard.css';
  *
  * Props:
  *   product     — StoreProduct object (required)
+ *                 Expects: originalPrice?, currentPrice?, discountValue?, discountType?,
+ *                          image, title, description, productUrl, id
  *   voucher     — optional Voucher object { code, type, discount, discountPercent }
- *   otherPromo  — optional OtherPromo object { discountPercent, bank, paymentMethod, type }
+ *   otherPromo  — optional OtherPromo object {
+ *                   discountPercent, bank, paymentMethod, type,
+ *                   installmentMonths?,   // months for BNPL (e.g. 4)
+ *                   card?: { maxInstallmentMonths? }
+ *                 }
  *   storeName   — override store display name
  *   storeLogo   — override store logo URL
  */
@@ -24,30 +30,77 @@ const StoreProductCard = ({
   const locale = useLocale();
   const isRtl  = locale.startsWith('ar');
 
-  const [isClicked,       setIsClicked]       = useState(false);
-  const [discountDisplay, setDiscountDisplay] = useState(null);
+  const [isClicked, setIsClicked] = useState(false);
 
   const storeName = storeNameProp ?? product?.storeName ?? '';
 
+  // ── Price helpers ─────────────────────────────────────────────────────────
+  const currentPrice  = product?.currentPrice  ?? null;
+  const originalPrice = product?.originalPrice ?? null;
+
+  // Only show original price when it's strictly higher than current
+  const hasValidPrices = currentPrice != null && currentPrice > 0;
+  const hasOriginal    = originalPrice != null && originalPrice > currentPrice;
+
+  const savingsPct = hasValidPrices && hasOriginal
+    ? Math.round(((originalPrice - currentPrice) / originalPrice) * 100)
+    : null;
+
+  /** Format a SAR price — Arabic locale uses Eastern Arabic numerals natively */
+  function formatSAR(amount) {
+    if (amount == null) return '';
+    const formatted = amount.toLocaleString(isRtl ? 'ar-SA' : 'en-SA', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+    return isRtl ? `${formatted} ر.س` : `SAR ${formatted}`;
+  }
+
+  // ── BNPL calculation ───────────────────────────────────────────────────────
+  // Prefer explicit installmentMonths on the promo, fall back to card's max
+  const bnplMonths =
+    otherPromo?.installmentMonths ||
+    otherPromo?.card?.maxInstallmentMonths ||
+    null;
+
+  const isBnplPromo = otherPromo?.paymentMethod?.isBnpl || false;
+  const showBnpl    = bnplMonths && bnplMonths > 1 && hasValidPrices;
+  const monthlyAmt  = showBnpl ? currentPrice / bnplMonths : null;
+
+  // BNPL provider identity for logo / name
+  const bnplLogo  = otherPromo?.paymentMethod?.logo || otherPromo?.bank?.logo || null;
+  const bnplName  = otherPromo?.paymentMethod?.name || otherPromo?.bank?.name || null;
+
+  // ── Discount badge (legacy — shown when no explicit prices) ───────────────
+  const [discountDisplay, setDiscountDisplay] = useState(null);
+
+  useEffect(() => {
+    // Only use the old discountValue badge when explicit prices are absent
+    if (hasValidPrices) { setDiscountDisplay(null); return; }
+    if (!product)       { setDiscountDisplay(null); return; }
+    const { discountValue, discountType } = product;
+    if (!discountValue || discountValue <= 0) { setDiscountDisplay(null); return; }
+    const v = Math.round(discountValue);
+    setDiscountDisplay(
+      discountType === 'PERCENTAGE' ? `${v}%`    :
+      discountType === 'ABSOLUTE'   ? `${v} SAR` : `${v}`
+    );
+  }, [product, hasValidPrices]);
+
   // ── Ribbon logic ──────────────────────────────────────────────────────────
-  const bankLogo     = otherPromo?.bank?.logo          || null;
-  const bankName     = otherPromo?.bank?.name          || null;
-  const paymentLogo  = otherPromo?.paymentMethod?.logo || null;
-  const paymentName  = otherPromo?.paymentMethod?.name || null;
-  const hasCode      = !!(voucher?.code);
-  const isDeal       = voucher?.type === 'DEAL';
-  const isFreeShip   = voucher?.type === 'FREE_SHIPPING';
+  const bankLogo    = otherPromo?.bank?.logo          || null;
+  const bankName    = otherPromo?.bank?.name          || null;
+  const paymentLogo = otherPromo?.paymentMethod?.logo || null;
+  const paymentName = otherPromo?.paymentMethod?.name || null;
+  const hasCode     = !!(voucher?.code);
+  const isDeal      = voucher?.type === 'DEAL';
+  const isFreeShip  = voucher?.type === 'FREE_SHIPPING';
 
-  // Promo discount label (e.g. "15% OFF", "Buy 2 Get 1")
-  const promoPercent = otherPromo?.discountPercent
-    ?? voucher?.discountPercent
-    ?? null;
-
-  const promoLabel = promoPercent
+  const promoPercent = otherPromo?.discountPercent ?? voucher?.discountPercent ?? null;
+  const promoLabel   = promoPercent
     ? `${Math.round(promoPercent)}% ${t('off', { default: 'OFF' })}`
     : (voucher?.discount || null);
 
-  // Chip label shown in card body
   const chipLabel = bankName
     || paymentName
     || (hasCode ? voucher.code : null)
@@ -56,24 +109,11 @@ const StoreProductCard = ({
 
   const hasRibbon = !!(otherPromo || voucher);
 
-  // Ribbon icon when no logo present
-  const ribbonIcon = hasCode       ? 'confirmation_number'
-                   : isFreeShip    ? 'local_shipping'
-                   : isDeal        ? 'local_fire_department'
-                   : otherPromo    ? 'account_balance'
-                   :                 'sell';
-
-  // ── Product discount badge ────────────────────────────────────────────────
-  useEffect(() => {
-    if (!product) { setDiscountDisplay(null); return; }
-    const { discountValue, discountType } = product;
-    if (!discountValue || discountValue <= 0) { setDiscountDisplay(null); return; }
-    const v = Math.round(discountValue);
-    setDiscountDisplay(
-      discountType === 'PERCENTAGE' ? `${v}%`       :
-      discountType === 'ABSOLUTE'   ? `${v} SAR`    : `${v}`
-    );
-  }, [product]);
+  const ribbonIcon = hasCode    ? 'confirmation_number'
+    : isFreeShip               ? 'local_shipping'
+    : isDeal                   ? 'local_fire_department'
+    : otherPromo               ? 'account_balance'
+    :                            'sell';
 
   // ── Click handler ─────────────────────────────────────────────────────────
   const handleClick = async (e) => {
@@ -111,8 +151,16 @@ const StoreProductCard = ({
       {/* ── Image area ──────────────────────────────────────────────────── */}
       <div className="spc-image-wrap">
 
-        {/* Product discount badge (top corner) */}
-        {discountDisplay && (
+        {/* Savings % badge — derived from prices (preferred) */}
+        {savingsPct != null && savingsPct > 0 && (
+          <div className="spc-discount-badge">
+            <span className="spc-discount-badge__flame" aria-hidden="true">🔥</span>
+            {isRtl ? `${savingsPct}٪ خصم` : `-${savingsPct}% OFF`}
+          </div>
+        )}
+
+        {/* Legacy discount badge — shown only when no explicit prices */}
+        {!hasValidPrices && discountDisplay && (
           <div className="spc-discount-badge">
             <span className="spc-discount-badge__flame" aria-hidden="true">🔥</span>
             {discountDisplay} {t('off', { default: 'OFF' })}
@@ -150,7 +198,6 @@ const StoreProductCard = ({
                   {ribbonIcon}
                 </span>
               )}
-
               {promoLabel && (
                 <span className="spc-ribbon__label">{promoLabel}</span>
               )}
@@ -161,9 +208,63 @@ const StoreProductCard = ({
 
       {/* ── Body ────────────────────────────────────────────────────────── */}
       <div className="spc-body">
+
+        {/* Title */}
         <p className="spc-title">
           {product.title || t('untitled', { default: 'Product' })}
         </p>
+
+        {/* ── Price block ─────────────────────────────────────────────── */}
+        {hasValidPrices && (
+          <div className="spc-prices" aria-label={`Price: ${formatSAR(currentPrice)}${hasOriginal ? `, was ${formatSAR(originalPrice)}` : ''}`}>
+            <span className="spc-price-current">
+              {formatSAR(currentPrice)}
+            </span>
+            {hasOriginal && (
+              <span className="spc-price-original" aria-label={`Was ${formatSAR(originalPrice)}`}>
+                {formatSAR(originalPrice)}
+              </span>
+            )}
+            {savingsPct != null && savingsPct > 0 && (
+              <span className="spc-price-savings" aria-hidden="true">
+                {isRtl ? `${savingsPct}٪-` : `-${savingsPct}%`}
+              </span>
+            )}
+          </div>
+        )}
+
+        {/* ── BNPL installment line ────────────────────────────────────── */}
+        {showBnpl && monthlyAmt != null && (
+          <div className="spc-bnpl" role="note" aria-label={`Pay in installments`}>
+            {bnplLogo ? (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img
+                src={bnplLogo}
+                alt={bnplName || 'BNPL'}
+                className="spc-bnpl__logo"
+              />
+            ) : (
+              <span className="material-symbols-sharp spc-bnpl__icon">
+                credit_score
+              </span>
+            )}
+            <span className="spc-bnpl__text">
+              {isRtl ? (
+                <>
+                  أو ادفع{' '}
+                  <strong>{formatSAR(monthlyAmt)}/شهر</strong>
+                  {` × ${bnplMonths} بدون فوائد`}
+                </>
+              ) : (
+                <>
+                  {'Or pay '}
+                  <strong>{formatSAR(monthlyAmt)}/month</strong>
+                  {` × ${bnplMonths} at 0% interest`}
+                </>
+              )}
+            </span>
+          </div>
+        )}
 
         {/* Bank / promo chip */}
         {hasRibbon && (
@@ -182,6 +283,7 @@ const StoreProductCard = ({
             <span className="spc-promo-chip__text">{chipLabel}</span>
           </div>
         )}
+
       </div>
     </article>
   );
