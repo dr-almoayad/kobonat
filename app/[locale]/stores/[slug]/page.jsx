@@ -307,13 +307,61 @@ export default async function StorePage({ params }) {
         take: 6,
         orderBy: { isFeatured: 'desc' },
       }),
+      // ✅ UPDATED product query: include original/current prices and linked promo/voucher
       prisma.storeProduct.findMany({
         where: {
           storeId: store.id,
           isFeatured: true,
           countries: { some: { country: { code: countryCode } } },
         },
-        include: { translations: { where: { locale: language } } },
+        select: {
+          id: true,
+          image: true,
+          productUrl: true,
+          originalPrice: true,
+          currentPrice: true,
+          discountValue: true,
+          discountType: true,
+          translations: { where: { locale: language }, select: { title: true } },
+          // ✅ Linked voucher (for ribbon)
+          linkedVoucher: {
+            select: {
+              id: true,
+              code: true,
+              type: true,
+              discount: true,
+              discountPercent: true,
+              verifiedAvgPercent: true,
+              translations: { where: { locale: language }, select: { title: true } },
+            },
+          },
+          // ✅ Linked promo (bank/payment offer) with BNPL fields
+          linkedPromo: {
+            select: {
+              id: true,
+              type: true,
+              url: true,
+              discountPercent: true,
+              verifiedAvgPercent: true,
+              installmentMonths: true,
+              translations: { where: { locale: language }, select: { title: true } },
+              bank: {
+                select: {
+                  logo: true,
+                  translations: { where: { locale: language }, select: { name: true } },
+                },
+              },
+              paymentMethod: {
+                select: {
+                  logo: true,
+                  isBnpl: true,
+                  translations: { where: { locale: language }, select: { name: true } },
+                },
+              },
+              card: { select: { maxInstallmentMonths: true } },
+            },
+          },
+        },
         orderBy: [{ order: 'asc' }, { createdAt: 'desc' }],
         take: 12,
       }),
@@ -391,14 +439,20 @@ export default async function StorePage({ params }) {
       slug: s.translations[0]?.slug || '',
     }));
 
-    // Products
+    // ✅ UPDATED product transformation: include price fields and linked objects
     const transformedProducts = storeProducts.map(p => ({
       id: p.id,
       image: p.image,
       title: p.translations[0]?.title || '',
       productUrl: p.productUrl,
+      originalPrice: p.originalPrice,
+      currentPrice: p.currentPrice,
       discountValue: p.discountValue,
       discountType: p.discountType,
+      voucher: p.linkedVoucher,
+      otherPromo: p.linkedPromo,
+      storeName: store.name,          // fallback for multi‑store mode (unused here)
+      storeLogo: store.logo,
     }));
 
     // Related blog posts
@@ -644,4 +698,4 @@ export default async function StorePage({ params }) {
     console.error('[StorePage] error:', error);
     return notFound();
   }
-      }
+}
