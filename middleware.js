@@ -3,41 +3,24 @@ import { getToken } from 'next-auth/jwt';
 import { NextResponse } from 'next/server';
 import createMiddleware from 'next-intl/middleware';
 
-// ✅ Support both Arabic and English
 const SUPPORTED_LOCALES = ['ar-SA', 'en-SA'];
 const DEFAULT_LOCALE = 'ar-SA'; 
 
-// ✅ Remove /^\/en-SA(\/|$)/ from dead patterns – English is now allowed
 const DEAD_LOCALE_PATTERNS = [
-  /^\/ar-KW\//,
-  /^\/en-AE\//,
-  /^\/ar-AE\//,
-  /^\/en-KW\//,
-  /^\/ar-EG\//,
-  /^\/en-EG\//,
-  /^\/ar-BH\//,
-  /^\/en-BH\//,
-  /^\/ar-OM\//,
-  /^\/en-OM\//,
-  /^\/ar-QA\//,
-  /^\/en-QA\//,
-  /^\/ar-JO\//,
-  /^\/en-JO\//,
-  /^\/ar-LB\//,
-  /^\/en-LB\//,
+  /^\/ar-KW\//, /^\/en-AE\//, /^\/ar-AE\//, /^\/en-KW\//,
+  /^\/ar-EG\//, /^\/en-EG\//, /^\/ar-BH\//, /^\/en-BH\//,
+  /^\/ar-OM\//, /^\/en-OM\//, /^\/ar-QA\//, /^\/en-QA\//,
+  /^\/ar-JO\//, /^\/en-JO\//, /^\/ar-LB\//, /^\/en-LB\//,
 ];
 
+// Cleaned up to avoid intercepting legitimate dynamic Next.js routes
 const isStaticAsset = (pathname) => {
   const staticPatterns = [
     '/_next/',
     '/store-covers/',
     '/public/stores/',
-    '/favicon.ico',
-    '/robots.txt',
-    '/sitemap.xml',
     /\.(avif|webp|png|jpg|jpeg|gif|svg|ico)$/i,
     /\.(woff2?|ttf|eot|otf)$/i,
-    /\.(json|xml|txt)$/i,
   ];
   return staticPatterns.some(pattern => {
     if (pattern instanceof RegExp) return pattern.test(pathname);
@@ -55,10 +38,7 @@ const intlMiddleware = createMiddleware({
 export async function middleware(request) {
   const { pathname } = request.nextUrl;
 
-  if (isStaticAsset(pathname)) {
-    return new NextResponse(null, { status: 404, statusText: 'Not Found' });
-  }
-
+  // FIRST: Let Next.js core assets, public config files, and standard APIs pass clean through
   if (
     pathname.startsWith('/_next') ||
     (pathname.startsWith('/api') && !pathname.startsWith('/api/admin')) ||
@@ -67,6 +47,11 @@ export async function middleware(request) {
     pathname === '/sitemap.xml'
   ) {
     return NextResponse.next();
+  }
+
+  // SECOND: Return a 404 only for broken or invalid static file patterns
+  if (isStaticAsset(pathname)) {
+    return new NextResponse(null, { status: 404, statusText: 'Not Found' });
   }
 
   const isAdminRoute = pathname.startsWith('/admin');
@@ -90,14 +75,14 @@ export async function middleware(request) {
     return NextResponse.next();
   }
 
-  // Block dead locales (excluding en-SA)
+  // Block dead locales
   for (const pattern of DEAD_LOCALE_PATTERNS) {
     if (pattern.test(pathname)) {
       return new NextResponse(null, { status: 404, statusText: 'Not Found' });
     }
   }
 
-  // Redirect any other unsupported locale to ar-SA (safety)
+  // Fallback redirect for unsupported locales
   const match = pathname.match(/^\/([a-z]{2}-[A-Z]{2})\b/);
   if (match) {
     const localeFromUrl = match[1];
