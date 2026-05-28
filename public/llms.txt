@@ -1,0 +1,26 @@
+# Cobonat — كوبونات
+> Saudi Arabia's leading coupon and promo code platform. Covers all major stores in Arabic and English. Data is updated hourly.
+
+## Core Pages
+- [All Coupons (AR)](https://cobonat.me/ar-SA/coupons): Full paginated list of active Saudi promo codes
+- [All Stores (AR)](https://cobonat.me/ar-SA/stores): Directory of all active stores
+- [All Coupons (EN)](https://cobonat.me/en-SA/coupons)
+- [All Stores (EN)](https://cobonat.me/en-SA/stores)
+- [Categories](https://cobonat.me/ar-SA/categories): Shopping categories with store and coupon counts
+- [Bank & Payment Offers](https://cobonat.me/ar-SA/bank-and-payment-offers): Bank card discounts (Mada, Visa, STC Pay, Tabby, Tamara)
+- [Stacked Deals](https://cobonat.me/ar-SA/stacks): Combined coupon + bank offer combinations for maximum savings
+
+## Machine-Readable Data Feeds
+- [Stores Feed (XML)](https://cobonat.me/api/feeds/stores): All active stores with AR/EN names and slugs
+- [Coupons Feed (XML)](https://cobonat.me/api/feeds/coupons): Top 1000 active promo codes with expiry dates
+- [Bank Offers Feed (XML)](https://cobonat.me/api/feeds/offers): Active bank and payment method offers
+- [Stores Feed (JSON)](https://cobonat.me/api/feeds/stores.json): JSON version of the stores feed
+- [Coupons Feed (JSON)](https://cobonat.me/api/feeds/coupons.json): JSON version of the coupons feed
+- [Platform Context (JSON)](https://cobonat.me/api/context): Live platform stats and endpoint directory
+
+## Data Coverage
+- Country: Saudi Arabia (SA)
+- Currency: SAR
+- Languages: Arabic (ar), English (en)
+- Update frequency: Hourly
+- License: Content may be cited with attribution to cobonat.me
