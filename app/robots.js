@@ -70,8 +70,16 @@ const ALLOW_PAGES = [
 // Public XML data feeds — must be reachable by aggregators and Google Merchant.
 const ALLOW_FEEDS = [
   '/api/feeds/stores',
+  '/api/feeds/stores.json',
   '/api/feeds/coupons',
+  '/api/feeds/coupons.json',
   '/api/feeds/offers',
+  '/api/feeds/otherpromo.json',
+  '/api/feeds/store-products.json',
+  '/api/feeds/store-products.xml',
+  '/api/feeds/stacks.json',
+  '/api/feeds/stacks.xml',
+  '/api/context',
 ];
 
 // Internal API routes, admin area, tracking endpoints, and static asset
