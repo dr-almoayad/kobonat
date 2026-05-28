@@ -1,65 +1,89 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-import { useLocale } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import './StoreProductCard.css';
 
 /**
- * Formats a number as SAR currency (Riyal).
+ * StoreProductCard
+ *
+ * Props:
+ *   product          — StoreProduct with originalPrice?, currentPrice?, image, title…
+ *   voucher          — optional linked Voucher { code, type, discount, discountPercent }
+ *   otherPromo       — optional linked OtherPromo { discountPercent, bank, paymentMethod… }
+ *   storeBnplMethods — BNPL providers active for this store, e.g.:
+ *                      [{ id, slug, logo, name, installmentCount }]
+ *                      Comes from /api/stores/[slug]/products → storeBnplMethods
+ *   storeName        — override store display name
+ *   storeLogo        — override store logo URL
  */
-function formatSAR(amount, isRtl) {
-  if (amount == null) return '';
-  const formatted = amount.toLocaleString(isRtl ? 'ar-SA' : 'en-SA', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
-  return isRtl ? `${formatted} ر.س` : `${formatted} SAR`;
-}
-
 const StoreProductCard = ({
   product,
   voucher,
   otherPromo,
+  storeBnplMethods = [],
   storeName: storeNameProp,
   storeLogo: storeLogoProp,
 }) => {
+  const t      = useTranslations('StoreProductCard');
   const locale = useLocale();
-  const isRtl = locale?.startsWith('ar') ?? false;
+  const isRtl  = locale.startsWith('ar');
+
   const [isClicked, setIsClicked] = useState(false);
 
-  // Extract store info
   const storeName = storeNameProp ?? product?.storeName ?? '';
-  const storeLogo = storeLogoProp ?? product?.storeLogo ?? null;
 
-  // Prices
-  const currentPrice = product?.currentPrice ?? null;
+  // ── Price helpers ─────────────────────────────────────────────────────────
+  const currentPrice  = product?.currentPrice  ?? null;
   const originalPrice = product?.originalPrice ?? null;
+  const hasValidPrices = currentPrice != null && currentPrice > 0;
+  const hasOriginal    = originalPrice != null && originalPrice > currentPrice;
 
-  // Determine discount percent – from price comparison first, else from voucher/promo
-  let discountPercent = null;
-  if (currentPrice != null && originalPrice != null && originalPrice > 0 && currentPrice < originalPrice) {
-    discountPercent = Math.round(((originalPrice - currentPrice) / originalPrice) * 100);
-  } else if (voucher?.discountPercent != null) {
-    discountPercent = Math.round(voucher.discountPercent);
-  } else if (otherPromo?.discountPercent != null) {
-    discountPercent = Math.round(otherPromo.discountPercent);
+  const savingsPct = hasValidPrices && hasOriginal
+    ? Math.round(((originalPrice - currentPrice) / originalPrice) * 100)
+    : null;
+
+  function formatSAR(amount) {
+    if (amount == null) return '';
+    const n = amount.toLocaleString(isRtl ? 'ar-SA' : 'en-SA', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+    return isRtl ? `${n} ر.س` : `SAR ${n}`;
   }
 
-  // Always show both prices if available
-  const showPrices = currentPrice != null;
-  const showOriginal = originalPrice != null && originalPrice > 0;
+  // ── BNPL — store-level providers (Tabby / Tamara) ────────────────────────
+  // Pick the first available BNPL provider for this store.
+  // The API already sorted them: Tabby → Tamara → others.
+  const activeBnpl = storeBnplMethods?.[0] ?? null;
+  const bnplCount  = activeBnpl?.installmentCount ?? 4;
+  const showBnpl   = hasValidPrices && activeBnpl != null;
+  const monthlyAmt = showBnpl ? currentPrice / bnplCount : null;
 
-  // Ribbon (promo chip) data
-  const bankLogo = otherPromo?.bank?.logo || null;
-  const bankName = otherPromo?.bank?.name || null;
+  // ── Discount badge (legacy — only when no explicit prices) ────────────────
+  const [discountDisplay, setDiscountDisplay] = useState(null);
+  useEffect(() => {
+    if (hasValidPrices || !product) { setDiscountDisplay(null); return; }
+    const { discountValue, discountType } = product;
+    if (!discountValue || discountValue <= 0) { setDiscountDisplay(null); return; }
+    const v = Math.round(discountValue);
+    setDiscountDisplay(
+      discountType === 'PERCENTAGE' ? `${v}%`    :
+      discountType === 'ABSOLUTE'   ? `${v} SAR` : `${v}`
+    );
+  }, [product, hasValidPrices]);
+
+  // ── Ribbon logic ──────────────────────────────────────────────────────────
+  const bankLogo    = otherPromo?.bank?.logo          || null;
+  const bankName    = otherPromo?.bank?.name          || null;
   const paymentLogo = otherPromo?.paymentMethod?.logo || null;
   const paymentName = otherPromo?.paymentMethod?.name || null;
-  const hasCode = !!voucher?.code;
-  const isDeal = voucher?.type === 'DEAL';
-  const isFreeShip = voucher?.type === 'FREE_SHIPPING';
+  const hasCode     = !!(voucher?.code);
+  const isDeal      = voucher?.type === 'DEAL';
+  const isFreeShip  = voucher?.type === 'FREE_SHIPPING';
 
   const promoPercent = otherPromo?.discountPercent ?? voucher?.discountPercent ?? null;
-  const promoLabel = promoPercent
-    ? `${Math.round(promoPercent)}% OFF`
+  const promoLabel   = promoPercent
+    ? `${Math.round(promoPercent)}% ${t('off', { default: 'OFF' })}`
     : (voucher?.discount || null);
 
   const chipLabel = bankName
@@ -68,48 +92,24 @@ const StoreProductCard = ({
     || promoLabel
     || (isRtl ? 'عرض خاص' : 'Special Offer');
 
-  const hasRibbon = !!(otherPromo || voucher || promoLabel);
-  const ribbonIcon = hasCode ? 'confirmation_number'
-    : isFreeShip ? 'local_shipping'
-    : isDeal ? 'local_fire_department'
-    : otherPromo ? 'account_balance'
-    : 'sell';
+  const hasRibbon = !!(otherPromo || voucher);
 
-  // BNPL (if available)
-  const bnplMonths = otherPromo?.installmentMonths || otherPromo?.card?.maxInstallmentMonths || null;
-  const showBnpl = bnplMonths && bnplMonths > 1 && showPrices;
-  const monthlyAmt = showBnpl ? currentPrice / bnplMonths : null;
-  const bnplLogo = otherPromo?.paymentMethod?.logo || otherPromo?.bank?.logo || null;
-  const bnplName = otherPromo?.paymentMethod?.name || otherPromo?.bank?.name || null;
+  const ribbonIcon = hasCode   ? 'confirmation_number'
+    : isFreeShip              ? 'local_shipping'
+    : isDeal                  ? 'local_fire_department'
+    : otherPromo              ? 'account_balance'
+    :                           'sell';
 
-  // Legacy discount display (fallback when no prices)
-  const [legacyDiscount, setLegacyDiscount] = useState(null);
-  useEffect(() => {
-    if (showPrices) {
-      setLegacyDiscount(null);
-      return;
-    }
-    const { discountValue, discountType } = product || {};
-    if (!discountValue || discountValue <= 0) {
-      setLegacyDiscount(null);
-      return;
-    }
-    const v = Math.round(discountValue);
-    setLegacyDiscount(
-      discountType === 'PERCENTAGE' ? `${v}%` : (discountType === 'ABSOLUTE' ? `${v} SAR` : `${v}`)
-    );
-  }, [product, showPrices]);
-
-  // Click tracking
+  // ── Click handler ─────────────────────────────────────────────────────────
   const handleClick = async (e) => {
     e.preventDefault();
     if (isClicked || !product?.productUrl) return;
     setIsClicked(true);
     try {
       await fetch('/api/store-products/track', {
-        method: 'POST',
+        method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ productId: product.id }),
+        body:    JSON.stringify({ productId: product.id }),
       });
     } catch (err) {
       console.error('Failed to track click:', err);
@@ -118,10 +118,7 @@ const StoreProductCard = ({
   };
 
   const handleKeyDown = (e) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      handleClick(e);
-    }
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleClick(e); }
   };
 
   if (!product) return null;
@@ -136,21 +133,26 @@ const StoreProductCard = ({
       aria-label={`${product.title || 'Product'}${storeName ? ` — ${storeName}` : ''}`}
       dir={isRtl ? 'rtl' : 'ltr'}
     >
-      {/* Image area */}
+      {/* ── Image area ──────────────────────────────────────────────────── */}
       <div className="spc-image-wrap">
-        {/* Discount badge (percentage or legacy) */}
-        {discountPercent != null && discountPercent > 0 && (
+
+        {/* Savings badge from explicit prices */}
+        {savingsPct != null && savingsPct > 0 && (
           <div className="spc-discount-badge">
-            {isRtl ? `${discountPercent}% خصم` : `${discountPercent}% OFF`}
-          </div>
-        )}
-        {legacyDiscount && !discountPercent && (
-          <div className="spc-discount-badge">
-            {legacyDiscount} {isRtl ? 'خصم' : 'OFF'}
+            <span className="spc-discount-badge__flame" aria-hidden="true">🔥</span>
+            {isRtl ? `${savingsPct}٪ خصم` : `-${savingsPct}% OFF`}
           </div>
         )}
 
-        {/* Product image */}
+        {/* Legacy discount badge */}
+        {!hasValidPrices && discountDisplay && (
+          <div className="spc-discount-badge">
+            <span className="spc-discount-badge__flame" aria-hidden="true">🔥</span>
+            {discountDisplay} {t('off', { default: 'OFF' })}
+          </div>
+        )}
+
+        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={product.image || '/placeholder-product.jpg'}
           alt={product.title || 'Product'}
@@ -159,67 +161,94 @@ const StoreProductCard = ({
           onError={(e) => { e.currentTarget.src = '/placeholder-product.jpg'; }}
         />
 
-        {/* Ribbon (promo info) */}
+        {/* Promo ribbon */}
         {hasRibbon && (
-          <div className="spc-ribbon">
+          <div className={`spc-ribbon${isRtl ? ' spc-ribbon--rtl' : ''}`} aria-hidden="true">
             <div className="spc-ribbon__inner">
               {bankLogo ? (
-                <img src={bankLogo} alt="" className="spc-ribbon__logo" />
+                <span className="spc-ribbon__logo-wrap">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={bankLogo} alt={bankName || ''} className="spc-ribbon__logo" />
+                </span>
               ) : paymentLogo ? (
-                <img src={paymentLogo} alt="" className="spc-ribbon__logo" />
+                <span className="spc-ribbon__logo-wrap">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={paymentLogo} alt={paymentName || ''} className="spc-ribbon__logo" />
+                </span>
               ) : (
                 <span className="material-symbols-sharp spc-ribbon__icon">{ribbonIcon}</span>
               )}
-              <span className="spc-ribbon__label">{chipLabel}</span>
+              {promoLabel && <span className="spc-ribbon__label">{promoLabel}</span>}
             </div>
           </div>
         )}
       </div>
 
-      {/* Body */}
+      {/* ── Body ────────────────────────────────────────────────────────── */}
       <div className="spc-body">
-        {/* Title */}
-        <h3 className="spc-title">{product.title || (isRtl ? 'منتج' : 'Product')}</h3>
 
-        {/* Prices – always shown if available */}
-        {showPrices && (
-          <div className="spc-price-row">
-            <span className="spc-current-price">{formatSAR(currentPrice, isRtl)}</span>
-            {showOriginal && originalPrice > currentPrice && (
-              <span className="spc-original-price">{formatSAR(originalPrice, isRtl)}</span>
+        {/* Title */}
+        <p className="spc-title">
+          {product.title || t('untitled', { default: 'Product' })}
+        </p>
+
+        {/* Price row */}
+        {hasValidPrices && (
+          <div
+            className="spc-prices"
+            aria-label={`Price: ${formatSAR(currentPrice)}${hasOriginal ? `, was ${formatSAR(originalPrice)}` : ''}`}
+          >
+            <span className="spc-price-current">{formatSAR(currentPrice)}</span>
+            {hasOriginal && (
+              <span className="spc-price-original">{formatSAR(originalPrice)}</span>
             )}
-            {discountPercent != null && discountPercent > 0 && (
-              <span className="spc-savings-chip">
-                {isRtl ? `وفر ${discountPercent}%` : `Save ${discountPercent}%`}
+            {savingsPct != null && savingsPct > 0 && (
+              <span className="spc-price-savings" aria-hidden="true">
+                {isRtl ? `${savingsPct}٪-` : `-${savingsPct}%`}
               </span>
             )}
           </div>
         )}
 
-        {/* BNPL (if applicable) */}
+        {/* BNPL line — driven by store-level Tabby / Tamara */}
         {showBnpl && monthlyAmt != null && (
-          <div className="spc-bnpl">
-            {bnplLogo ? (
-              <img src={bnplLogo} alt="" className="spc-bnpl__logo" />
+          <div className="spc-bnpl" role="note">
+            {activeBnpl.logo ? (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img
+                src={activeBnpl.logo}
+                alt={activeBnpl.name}
+                className="spc-bnpl__logo"
+              />
             ) : (
               <span className="material-symbols-sharp spc-bnpl__icon">credit_score</span>
             )}
             <span className="spc-bnpl__text">
               {isRtl ? (
-                <>أو ادفع <strong>{formatSAR(monthlyAmt, isRtl)}/شهر</strong> × {bnplMonths} بدون فوائد</>
+                <>
+                  {`أو ادفع `}
+                  <strong>{formatSAR(monthlyAmt)}</strong>
+                  {` × ${bnplCount} أشهر`}
+                </>
               ) : (
-                <>Or pay <strong>{formatSAR(monthlyAmt, isRtl)}/month</strong> × {bnplMonths} at 0% interest</>
+                <>
+                  {'Or pay '}
+                  <strong>{formatSAR(monthlyAmt)}</strong>
+                  {` × ${bnplCount} months`}
+                </>
               )}
             </span>
           </div>
         )}
 
-        {/* Promo chip (bank/payment) – only if not already shown in ribbon? It's fine to duplicate as minimal info */}
-        {hasRibbon && (bankName || paymentName || hasCode) && (
+        {/* Promo chip */}
+        {hasRibbon && (
           <div className="spc-promo-chip">
             {bankLogo ? (
+              /* eslint-disable-next-line @next/next/no-img-element */
               <img src={bankLogo} alt="" className="spc-promo-chip__logo" />
             ) : paymentLogo ? (
+              /* eslint-disable-next-line @next/next/no-img-element */
               <img src={paymentLogo} alt="" className="spc-promo-chip__logo" />
             ) : (
               <span className="material-symbols-sharp spc-promo-chip__icon">{ribbonIcon}</span>
@@ -227,6 +256,7 @@ const StoreProductCard = ({
             <span className="spc-promo-chip__text">{chipLabel}</span>
           </div>
         )}
+
       </div>
     </article>
   );
