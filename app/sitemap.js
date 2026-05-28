@@ -1,22 +1,4 @@
 // app/sitemap.js
-// ─────────────────────────────────────────────────────────────────────────────
-// Changes vs previous version
-// ────────────────────────────
-// 1. XML DATA FEEDS ADDED (section 14)
-//    The three public XML feeds (stores, coupons, offers) are included as
-//    sitemap entries.  While they are data endpoints rather than HTML pages,
-//    adding them here means:
-//      • Google Search Console surfaces them automatically in the Sitemaps report
-//      • Googlebot's feed discovery path is shortened (no manual submission)
-//      • lastmod on each feed entry reflects the same freshness signals used
-//        by the actual feed route (latest voucher / store / promo update time)
-//    The entries use changeFrequency and priority values matching the feed TTLs.
-//
-// 2. DEDUPLICATION GUARD UNCHANGED — feed URLs are unique so no collision risk.
-//
-// 3. ALL EXISTING SECTIONS (1–13) ARE PRESERVED EXACTLY.
-// ─────────────────────────────────────────────────────────────────────────────
-
 import { prisma } from '@/lib/prisma';
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://cobonat.me';
@@ -32,7 +14,7 @@ const BLOG_MAX_PAGE    = 5;
 // Keep this current whenever static page copy changes.
 const STATIC_LAST_MODIFIED = new Date('2026-05-16');
 
-export const revalidate = 3600;
+export const revalidate = 3600; // Cache for 1 hour
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -41,7 +23,6 @@ function getMostRecentDate(...dates) {
   return valid.length ? new Date(Math.max(...valid.map(d => d.getTime()))) : new Date();
 }
 
-/** Hreflang map for pages whose URL structure is locale-identical. */
 function allAlternates(path = '') {
   return {
     'ar-SA':    `${BASE_URL}/ar-SA${path}`,
@@ -50,7 +31,6 @@ function allAlternates(path = '') {
   };
 }
 
-/** Hreflang map for pages whose slug may differ per locale. */
 function buildAlternates(localeUrlMap) {
   if (!localeUrlMap || Object.keys(localeUrlMap).length === 0) return null;
   const xDefault = localeUrlMap['ar-SA'] || Object.values(localeUrlMap)[0];
@@ -86,6 +66,8 @@ export default async function sitemap() {
       latestStoreUpdate,
       latestPostUpdate,
       latestPromoUpdate,
+      latestStackUpdate, // ✅ Fixed missing data point
+      latestProductUpdate, // ✅ Fixed missing data point
       totalVouchers,
       totalStacks,
       totalBlogPosts,
@@ -109,6 +91,15 @@ export default async function sitemap() {
         orderBy: { updatedAt: 'desc' },
         select:  { updatedAt: true },
       }),
+      prisma.offerStack.findFirst({ // ✅ Querying stack update
+        where:   { isActive: true },
+        orderBy: { updatedAt: 'desc' },
+        select:  { updatedAt: true },
+      }),
+      prisma.storeProduct.findFirst({ // ✅ Querying product update
+        orderBy: { updatedAt: 'desc' },
+        select:  { updatedAt: true },
+      }),
       prisma.voucher.count({
         where: {
           store:     { isActive: true },
@@ -124,6 +115,8 @@ export default async function sitemap() {
     const storeDate   = latestStoreUpdate?.updatedAt   || new Date();
     const postDate    = latestPostUpdate?.updatedAt    || new Date();
     const promoDate   = latestPromoUpdate?.updatedAt   || new Date();
+    const stackDate   = latestStackUpdate?.updatedAt   || new Date(); // ✅ Defined
+    const productDate = latestProductUpdate?.updatedAt || new Date(); // ✅ Defined
 
     // ── 1. Homepages ──────────────────────────────────────────────────────────
     for (const locale of LOCALES) {
@@ -172,7 +165,7 @@ export default async function sitemap() {
         urls.push({
           url:             `${BASE_URL}/${locale}${path}`,
           lastModified:    voucherDate,
-          changeFrequency: page === 1 ? 'hourly' : 'daily',
+          changeFrequency: page === 1 ? 'daily' : 'weekly',
           priority:        page === 1 ? 0.9 : 0.6,
           alternates:      { languages: alternates },
         });
@@ -263,8 +256,6 @@ export default async function sitemap() {
     }
 
     // ── 9. Individual store pages ─────────────────────────────────────────────
-    // lastModified accounts for the most recent voucher update so publishing a
-    // new coupon bumps the store's sitemap freshness signal.
     const stores = await prisma.store.findMany({
       where: {
         isActive:  true,
@@ -281,7 +272,6 @@ export default async function sitemap() {
       },
     });
 
-    // Per-language category slug sets — prevent URL collisions.
     const catSlugsByLang = new Map();
     const allCatTrans    = await prisma.categoryTranslation.findMany({
       select: { slug: true, locale: true },
@@ -400,8 +390,6 @@ export default async function sitemap() {
     }
 
     // ── 13. Filter & deduplicate ──────────────────────────────────────────────
-    // Run before section 14 so the feed URLs (which are intentionally non-HTML)
-    // are not stripped by the binary-extension filter below.
     const htmlPages = deduplicateEntries(urls).filter(entry => {
       const lower = entry.url.toLowerCase();
       if (lower.includes('/_next/'))         return false;
@@ -414,85 +402,71 @@ export default async function sitemap() {
     });
 
     // ── 14. XML data feeds ────────────────────────────────────────────────────
-    // These are not HTML pages, but including them in the sitemap ensures:
-    //   • Google Search Console reports on crawl health for the feeds
-    //   • Googlebot discovers feed freshness without manual submission
-    //   • Any sitemap-aware aggregator finds the feeds automatically
-    //
-    // lastModified mirrors the same freshness signals the feed routes use so
-    // the entries stay accurate without an extra DB round-trip.
-    //
-    // No alternates/hreflang — feeds are locale-agnostic (contain both ar + en).
+    // ✅ All changeFrequency set to 'daily' to prevent bot crawler exhaustion
     const feedEntries = [
-      // ── XML ──────────────────────────────────────────────────────────────
         {
           url:             `${BASE_URL}/api/feeds/stores`,
           lastModified:    storeDate,
-          changeFrequency: 'hourly',
+          changeFrequency: 'daily',
           priority:        0.6,
         },
         {
           url:             `${BASE_URL}/api/feeds/coupons`,
           lastModified:    voucherDate,
-          changeFrequency: 'hourly',
+          changeFrequency: 'daily',
           priority:        0.7,
         },
         {
           url:             `${BASE_URL}/api/feeds/offers`,
           lastModified:    promoDate,
-          changeFrequency: 'hourly',
+          changeFrequency: 'daily',
           priority:        0.6,
         },
-        // New XML feeds
         {
           url:             `${BASE_URL}/api/feeds/stacks.xml`,
           lastModified:    stackDate,
-          changeFrequency: 'hourly',
+          changeFrequency: 'daily',
           priority:        0.6,
         },
         {
           url:             `${BASE_URL}/api/feeds/store-products.xml`,
           lastModified:    productDate,
-          changeFrequency: 'hourly',
+          changeFrequency: 'daily',
           priority:        0.6,
         },
-      
-        // ── JSON ─────────────────────────────────────────────────────────────
         {
           url:             `${BASE_URL}/api/feeds/stores.json`,
           lastModified:    storeDate,
-          changeFrequency: 'hourly',
+          changeFrequency: 'daily',
           priority:        0.6,
         },
         {
           url:             `${BASE_URL}/api/feeds/coupons.json`,
           lastModified:    voucherDate,
-          changeFrequency: 'hourly',
+          changeFrequency: 'daily',
           priority:        0.7,
         },
         {
           url:             `${BASE_URL}/api/feeds/otherpromo.json`,
           lastModified:    promoDate,
-          changeFrequency: 'hourly',
+          changeFrequency: 'daily',
           priority:        0.6,
         },
         {
           url:             `${BASE_URL}/api/feeds/store-products.json`,
           lastModified:    productDate,
-          changeFrequency: 'hourly',
+          changeFrequency: 'daily',
           priority:        0.6,
         },
         {
           url:             `${BASE_URL}/api/feeds/stacks.json`,
           lastModified:    stackDate,
-          changeFrequency: 'hourly',
+          changeFrequency: 'daily',
           priority:        0.6,
         },
-      
-        // ── Platform context ──────────────────────────────────────────────────
         {
           url:             `${BASE_URL}/api/context`,
-          lastModified:    new Date(),   // dynamic; reflects current time
+          lastModified:    new Date(),
           changeFrequency: 'daily',
           priority:        0.5,
         },
@@ -500,15 +474,10 @@ export default async function sitemap() {
 
     const allEntries = [...htmlPages, ...feedEntries];
 
-    console.log(
-      `✅ Sitemap: ${htmlPages.length} HTML entries + ${feedEntries.length} feed entries = ${allEntries.length} total`
-    );
-
     return allEntries;
 
   } catch (error) {
     console.error('Sitemap generation error:', error);
-    // Both homepages remain discoverable even on total DB failure.
     return LOCALES.map(locale => ({
       url:             `${BASE_URL}/${locale}`,
       lastModified:    new Date(),
