@@ -16,6 +16,9 @@
 - [Bank Offers Feed (XML)](https://cobonat.me/api/feeds/offers): Active bank and payment method offers
 - [Stores Feed (JSON)](https://cobonat.me/api/feeds/stores.json): JSON version of the stores feed
 - [Coupons Feed (JSON)](https://cobonat.me/api/feeds/coupons.json): JSON version of the coupons feed
+- [Bank/Payment Promos Feed (JSON)](https://cobonat.me/api/feeds/otherpromo.json): Active bank and payment method promos with store/bank/card details
+- [Store Products Feed (JSON)](https://cobonat.me/api/feeds/store-products.json): All store products with prices, discounts, and linked vouchers/promos
+- [Offer Stacks Feed (JSON)](https://cobonat.me/api/feeds/stacks.json): Active coupon + bank offer combos with related vouchers and promos
 - [Platform Context (JSON)](https://cobonat.me/api/context): Live platform stats and endpoint directory
 
 ## Data Coverage
