@@ -424,27 +424,78 @@ export default async function sitemap() {
     //
     // No alternates/hreflang — feeds are locale-agnostic (contain both ar + en).
     const feedEntries = [
-      {
-        // All active SA stores — changes whenever a store is added / updated
-        url:             `${BASE_URL}/api/feeds/stores`,
-        lastModified:    storeDate,
-        changeFrequency: 'hourly',
-        priority:        0.6,
-      },
-      {
-        // Top 1 000 active vouchers — changes whenever any voucher is touched
-        url:             `${BASE_URL}/api/feeds/coupons`,
-        lastModified:    voucherDate,
-        changeFrequency: 'hourly',
-        priority:        0.7,
-      },
-      {
-        // Top 500 active bank/payment promos
-        url:             `${BASE_URL}/api/feeds/offers`,
-        lastModified:    promoDate,
-        changeFrequency: 'hourly',
-        priority:        0.6,
-      },
+      // ── XML ──────────────────────────────────────────────────────────────
+        {
+          url:             `${BASE_URL}/api/feeds/stores`,
+          lastModified:    storeDate,
+          changeFrequency: 'hourly',
+          priority:        0.6,
+        },
+        {
+          url:             `${BASE_URL}/api/feeds/coupons`,
+          lastModified:    voucherDate,
+          changeFrequency: 'hourly',
+          priority:        0.7,
+        },
+        {
+          url:             `${BASE_URL}/api/feeds/offers`,
+          lastModified:    promoDate,
+          changeFrequency: 'hourly',
+          priority:        0.6,
+        },
+        // New XML feeds
+        {
+          url:             `${BASE_URL}/api/feeds/stacks.xml`,
+          lastModified:    stackDate,
+          changeFrequency: 'hourly',
+          priority:        0.6,
+        },
+        {
+          url:             `${BASE_URL}/api/feeds/store-products.xml`,
+          lastModified:    productDate,
+          changeFrequency: 'hourly',
+          priority:        0.6,
+        },
+      
+        // ── JSON ─────────────────────────────────────────────────────────────
+        {
+          url:             `${BASE_URL}/api/feeds/stores.json`,
+          lastModified:    storeDate,
+          changeFrequency: 'hourly',
+          priority:        0.6,
+        },
+        {
+          url:             `${BASE_URL}/api/feeds/coupons.json`,
+          lastModified:    voucherDate,
+          changeFrequency: 'hourly',
+          priority:        0.7,
+        },
+        {
+          url:             `${BASE_URL}/api/feeds/otherpromo.json`,
+          lastModified:    promoDate,
+          changeFrequency: 'hourly',
+          priority:        0.6,
+        },
+        {
+          url:             `${BASE_URL}/api/feeds/store-products.json`,
+          lastModified:    productDate,
+          changeFrequency: 'hourly',
+          priority:        0.6,
+        },
+        {
+          url:             `${BASE_URL}/api/feeds/stacks.json`,
+          lastModified:    stackDate,
+          changeFrequency: 'hourly',
+          priority:        0.6,
+        },
+      
+        // ── Platform context ──────────────────────────────────────────────────
+        {
+          url:             `${BASE_URL}/api/context`,
+          lastModified:    new Date(),   // dynamic; reflects current time
+          changeFrequency: 'daily',
+          priority:        0.5,
+        },
     ];
 
     const allEntries = [...htmlPages, ...feedEntries];
