@@ -66,8 +66,7 @@ export default async function sitemap() {
       latestStoreUpdate,
       latestPostUpdate,
       latestPromoUpdate,
-      latestStackUpdate, // ✅ Fixed missing data point
-      latestProductUpdate, // ✅ Fixed missing data point
+      latestStackUpdate,
       totalVouchers,
       totalStacks,
       totalBlogPosts,
@@ -91,12 +90,8 @@ export default async function sitemap() {
         orderBy: { updatedAt: 'desc' },
         select:  { updatedAt: true },
       }),
-      prisma.offerStack.findFirst({ // ✅ Querying stack update
+      prisma.offerStack.findFirst({
         where:   { isActive: true },
-        orderBy: { updatedAt: 'desc' },
-        select:  { updatedAt: true },
-      }),
-      prisma.storeProduct.findFirst({ // ✅ Querying product update
         orderBy: { updatedAt: 'desc' },
         select:  { updatedAt: true },
       }),
@@ -115,8 +110,7 @@ export default async function sitemap() {
     const storeDate   = latestStoreUpdate?.updatedAt   || new Date();
     const postDate    = latestPostUpdate?.updatedAt    || new Date();
     const promoDate   = latestPromoUpdate?.updatedAt   || new Date();
-    const stackDate   = latestStackUpdate?.updatedAt   || new Date(); // ✅ Defined
-    const productDate = latestProductUpdate?.updatedAt || new Date(); // ✅ Defined
+    const stackDate   = latestStackUpdate?.updatedAt   || new Date();
 
     // ── 1. Homepages ──────────────────────────────────────────────────────────
     for (const locale of LOCALES) {
@@ -185,7 +179,7 @@ export default async function sitemap() {
       for (const locale of LOCALES) {
         urls.push({
           url:             `${BASE_URL}/${locale}${path}`,
-          lastModified:    storeDate,
+          lastModified:    stackDate,
           changeFrequency: page === 1 ? 'daily' : 'weekly',
           priority:        page === 1 ? 0.8 : 0.5,
           alternates:      { languages: alternates },
@@ -401,80 +395,7 @@ export default async function sitemap() {
       return true;
     });
 
-    // ── 14. XML data feeds ────────────────────────────────────────────────────
-    // ✅ All changeFrequency set to 'daily' to prevent bot crawler exhaustion
-    const feedEntries = [
-        {
-          url:             `${BASE_URL}/api/feeds/stores`,
-          lastModified:    storeDate,
-          changeFrequency: 'daily',
-          priority:        0.6,
-        },
-        {
-          url:             `${BASE_URL}/api/feeds/coupons`,
-          lastModified:    voucherDate,
-          changeFrequency: 'daily',
-          priority:        0.7,
-        },
-        {
-          url:             `${BASE_URL}/api/feeds/offers`,
-          lastModified:    promoDate,
-          changeFrequency: 'daily',
-          priority:        0.6,
-        },
-        {
-          url:             `${BASE_URL}/api/feeds/stacks.xml`,
-          lastModified:    stackDate,
-          changeFrequency: 'daily',
-          priority:        0.6,
-        },
-        {
-          url:             `${BASE_URL}/api/feeds/store-products.xml`,
-          lastModified:    productDate,
-          changeFrequency: 'daily',
-          priority:        0.6,
-        },
-        {
-          url:             `${BASE_URL}/api/feeds/stores.json`,
-          lastModified:    storeDate,
-          changeFrequency: 'daily',
-          priority:        0.6,
-        },
-        {
-          url:             `${BASE_URL}/api/feeds/coupons.json`,
-          lastModified:    voucherDate,
-          changeFrequency: 'daily',
-          priority:        0.7,
-        },
-        {
-          url:             `${BASE_URL}/api/feeds/otherpromo.json`,
-          lastModified:    promoDate,
-          changeFrequency: 'daily',
-          priority:        0.6,
-        },
-        {
-          url:             `${BASE_URL}/api/feeds/store-products.json`,
-          lastModified:    productDate,
-          changeFrequency: 'daily',
-          priority:        0.6,
-        },
-        {
-          url:             `${BASE_URL}/api/feeds/stacks.json`,
-          lastModified:    stackDate,
-          changeFrequency: 'daily',
-          priority:        0.6,
-        },
-        {
-          url:             `${BASE_URL}/api/context`,
-          lastModified:    new Date(),
-          changeFrequency: 'daily',
-          priority:        0.5,
-        },
-    ];
-
-    const allEntries = [...htmlPages, ...feedEntries];
-
-    return allEntries;
+    return htmlPages;
 
   } catch (error) {
     console.error('Sitemap generation error:', error);
