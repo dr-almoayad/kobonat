@@ -1,4 +1,4 @@
-// app/api/feeds/offers/route.js
+// app/api/feeds/offers.xml/route.js
 // ─────────────────────────────────────────────────────────────────────────────
 // GET /api/feeds/offers
 //
