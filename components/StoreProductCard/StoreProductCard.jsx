@@ -1,20 +1,20 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+
+import React, { useState } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
+import Image from 'next/image';
 import './StoreProductCard.css';
 
 /**
  * StoreProductCard
  *
  * Props:
- *   product          — StoreProduct with originalPrice?, currentPrice?, image, title…
- *   voucher          — optional linked Voucher { code, type, discount, discountPercent }
- *   otherPromo       — optional linked OtherPromo { discountPercent, bank, paymentMethod… }
- *   storeBnplMethods — BNPL providers active for this store, e.g.:
- *                      [{ id, slug, logo, name, installmentCount }]
- *                      Comes from /api/stores/[slug]/products → storeBnplMethods
- *   storeName        — override store display name
- *   storeLogo        — override store logo URL
+ * product          — StoreProduct with originalPrice?, currentPrice?, image, title…
+ * voucher          — optional linked Voucher { code, type, discount, discountPercent }
+ * otherPromo       — optional linked OtherPromo { discountPercent, bank, paymentMethod… }
+ * storeBnplMethods — BNPL providers active for this store
+ * storeName        — override store display name
+ * storeLogo        — override store logo URL
  */
 const StoreProductCard = ({
   product,
@@ -29,10 +29,11 @@ const StoreProductCard = ({
   const isRtl  = locale.startsWith('ar');
 
   const [isClicked, setIsClicked] = useState(false);
+  const [imgSrc, setImgSrc] = useState(product?.image || '/placeholder-product.jpg');
 
   const storeName = storeNameProp ?? product?.storeName ?? '';
 
-  // ── Price helpers ─────────────────────────────────────────────────────────
+  // ── Price Helpers ─────────────────────────────────────────────────────────
   const currentPrice  = product?.currentPrice  ?? null;
   const originalPrice = product?.originalPrice ?? null;
   const hasValidPrices = currentPrice != null && currentPrice > 0;
@@ -51,17 +52,15 @@ const StoreProductCard = ({
     return isRtl ? `${n} ر.س` : `SAR ${n}`;
   }
 
-  // ── BNPL — store-level providers (Tabby / Tamara) ────────────────────────
-  // Pick the first available BNPL provider for this store.
-  // The API already sorted them: Tabby → Tamara → others.
+  // ── BNPL (Tabby / Tamara) ──────────────────────────────────────────────────
   const activeBnpl = storeBnplMethods?.[0] ?? null;
   const bnplCount  = activeBnpl?.installmentCount ?? 4;
   const showBnpl   = hasValidPrices && activeBnpl != null;
   const monthlyAmt = showBnpl ? currentPrice / bnplCount : null;
 
-  // ── Discount badge (legacy — only when no explicit prices) ────────────────
+  // ── Legacy Discount Badge ─────────────────────────────────────────────────
   const [discountDisplay, setDiscountDisplay] = useState(null);
-  useEffect(() => {
+  React.useEffect(() => {
     if (hasValidPrices || !product) { setDiscountDisplay(null); return; }
     const { discountValue, discountType } = product;
     if (!discountValue || discountValue <= 0) { setDiscountDisplay(null); return; }
@@ -72,193 +71,229 @@ const StoreProductCard = ({
     );
   }, [product, hasValidPrices]);
 
-  // ── Ribbon logic ──────────────────────────────────────────────────────────
+  // ── Combined Ribbon Logic ──────────────────────────────────────────────────
+  const hasRibbon = !!(otherPromo || voucher);
+  
   const bankLogo    = otherPromo?.bank?.logo          || null;
   const bankName    = otherPromo?.bank?.name          || null;
   const paymentLogo = otherPromo?.paymentMethod?.logo || null;
   const paymentName = otherPromo?.paymentMethod?.name || null;
   const hasCode     = !!(voucher?.code);
-  const isDeal      = voucher?.type === 'DEAL';
-  const isFreeShip  = voucher?.type === 'FREE_SHIPPING';
 
-  const promoPercent = otherPromo?.discountPercent ?? voucher?.discountPercent ?? null;
-  const promoLabel   = promoPercent
-    ? `${Math.round(promoPercent)}% ${t('off', { default: 'OFF' })}`
-    : (voucher?.discount || null);
+  // Determine discount numbers to injection into strings
+  const otherPromoPct = otherPromo?.discountPercent ? Math.round(otherPromo.discountPercent) : null;
+  const voucherPct    = voucher?.discountPercent ? Math.round(voucher.discountPercent) : null;
 
-  const chipLabel = bankName
-    || paymentName
-    || (hasCode ? voucher.code : null)
-    || promoLabel
-    || (isRtl ? 'عرض خاص' : 'Special Offer');
+  // Construct precise text layouts based on what offer layer exists
+  let ribbonText = '';
+  let ribbonType = 'generic'; // 'bank', 'payment', 'code', 'generic'
 
-  const hasRibbon = !!(otherPromo || voucher);
+  if (otherPromo) {
+    ribbonType = bankLogo ? 'bank' : paymentLogo ? 'payment' : 'generic';
+    if (otherPromoPct) {
+      ribbonText = isRtl 
+        ? `+ ${otherPromoPct}% خصم إضافي مع ` 
+        : `+ ${otherPromoPct}% Extra Discount with `;
+    } else {
+      ribbonText = isRtl ? `+ خصم إضافي مع ` : `+ Extra Discount with `;
+    }
+    // Fallback if logo files don't exist but textual name does
+    if (!bankLogo && !paymentLogo) {
+      ribbonText += (bankName || paymentName || '');
+    }
+  } else if (hasCode) {
+    ribbonType = 'code';
+    if (voucherPct) {
+      ribbonText = isRtl 
+        ? `+ كود خصم إضافي ${voucherPct}% : ${voucher.code}` 
+        : `+ Extra Discount Code ${voucherPct}% : ${voucher.code}`;
+    } else {
+      ribbonText = isRtl 
+        ? `+ كود خصم إضافي : ${voucher.code}` 
+        : `+ Extra Discount Code : ${voucher.code}`;
+    }
+  } else if (voucher) {
+    // Fallback context for deals or free shipping variants with no explicit code
+    ribbonText = voucher.discount || (isRtl ? 'عرض خاص' : 'Special Offer');
+  }
 
-  const ribbonIcon = hasCode   ? 'confirmation_number'
-    : isFreeShip              ? 'local_shipping'
-    : isDeal                  ? 'local_fire_department'
-    : otherPromo              ? 'account_balance'
-    :                           'sell';
-
-  // ── Click handler ─────────────────────────────────────────────────────────
   const handleClick = async (e) => {
-    e.preventDefault();
     if (isClicked || !product?.productUrl) return;
     setIsClicked(true);
     try {
-      await fetch('/api/store-products/track', {
+      fetch('/api/store-products/track', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({ productId: product.id }),
+        keepalive: true,
       });
     } catch (err) {
       console.error('Failed to track click:', err);
     }
-    window.open(product.productUrl, '_blank', 'noopener,noreferrer');
-  };
-
-  const handleKeyDown = (e) => {
-    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleClick(e); }
   };
 
   if (!product) return null;
 
   return (
-    <article
-      className="spc-card"
+    <a 
+      href={product.productUrl || '#'} 
+      target="_blank" 
+      rel="noopener noreferrer"
+      className="spc-card-link"
       onClick={handleClick}
-      role="link"
-      tabIndex={0}
-      onKeyDown={handleKeyDown}
       aria-label={`${product.title || 'Product'}${storeName ? ` — ${storeName}` : ''}`}
-      dir={isRtl ? 'rtl' : 'ltr'}
+      style={{ display: 'block', textDecoration: 'none', color: 'inherit' }}
     >
-      {/* ── Image area ──────────────────────────────────────────────────── */}
-      <div className="spc-image-wrap">
+      <article className="spc-card" dir={isRtl ? 'rtl' : 'ltr'}>
+        
+        {/* ── Image Area ──────────────────────────────────────────────────── */}
+        <div className="spc-image-wrap" style={{ position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
 
-        {/* Savings badge from explicit prices */}
-        {savingsPct != null && savingsPct > 0 && (
-          <div className="spc-discount-badge">
-            <span className="spc-discount-badge__flame" aria-hidden="true">🔥</span>
-            {isRtl ? `${savingsPct}٪ خصم` : `-${savingsPct}% OFF`}
-          </div>
-        )}
-
-        {/* Legacy discount badge */}
-        {!hasValidPrices && discountDisplay && (
-          <div className="spc-discount-badge">
-            <span className="spc-discount-badge__flame" aria-hidden="true">🔥</span>
-            {discountDisplay} {t('off', { default: 'OFF' })}
-          </div>
-        )}
-
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={product.image || '/placeholder-product.jpg'}
-          alt={product.title || 'Product'}
-          className="spc-image"
-          loading="lazy"
-          onError={(e) => { e.currentTarget.src = '/placeholder-product.jpg'; }}
-        />
-
-        {/* Promo ribbon */}
-        {hasRibbon && (
-          <div className={`spc-ribbon${isRtl ? ' spc-ribbon--rtl' : ''}`} aria-hidden="true">
-            <div className="spc-ribbon__inner">
-              {bankLogo ? (
-                <span className="spc-ribbon__logo-wrap">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={bankLogo} alt={bankName || ''} className="spc-ribbon__logo" />
-                </span>
-              ) : paymentLogo ? (
-                <span className="spc-ribbon__logo-wrap">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={paymentLogo} alt={paymentName || ''} className="spc-ribbon__logo" />
-                </span>
-              ) : (
-                <span className="material-symbols-sharp spc-ribbon__icon">{ribbonIcon}</span>
-              )}
-              {promoLabel && <span className="spc-ribbon__label">{promoLabel}</span>}
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* ── Body ────────────────────────────────────────────────────────── */}
-      <div className="spc-body">
-
-        {/* Title */}
-        <p className="spc-title">
-          {product.title || t('untitled', { default: 'Product' })}
-        </p>
-
-        {/* Price row */}
-        {hasValidPrices && (
-          <div
-            className="spc-prices"
-            aria-label={`Price: ${formatSAR(currentPrice)}${hasOriginal ? `, was ${formatSAR(originalPrice)}` : ''}`}
-          >
-            <span className="spc-price-current">{formatSAR(currentPrice)}</span>
-            {hasOriginal && (
-              <span className="spc-price-original">{formatSAR(originalPrice)}</span>
-            )}
-            {savingsPct != null && savingsPct > 0 && (
-              <span className="spc-price-savings" aria-hidden="true">
-                {isRtl ? `${savingsPct}٪-` : `-${savingsPct}%`}
-              </span>
-            )}
-          </div>
-        )}
-
-        {/* BNPL line — driven by store-level Tabby / Tamara */}
-        {showBnpl && monthlyAmt != null && (
-          <div className="spc-bnpl" role="note">
-            {activeBnpl.logo ? (
-              /* eslint-disable-next-line @next/next/no-img-element */
-              <img
-                src={activeBnpl.logo}
-                alt={activeBnpl.name}
-                className="spc-bnpl__logo"
-              />
-            ) : (
-              <span className="material-symbols-sharp spc-bnpl__icon">credit_score</span>
-            )}
-            <span className="spc-bnpl__text">
+          {/* Pricing Savings Badge */}
+          {savingsPct != null && savingsPct > 0 && (
+            <div className="spc-discount-badge">
               {isRtl ? (
-                <>
-                  {`أو ادفع `}
-                  <strong>{formatSAR(monthlyAmt)}</strong>
-                  {` × ${bnplCount} أشهر`}
-                </>
+                <div className="spc-discount-badge__content">
+                  <p className="spc-discount-badge__savingsText">وفر</p>
+                  <p className="spc-discount-badge__savingsPct">{`${savingsPct}٪`}</p>
+                </div>
               ) : (
-                <>
-                  {'Or pay '}
-                  <strong>{formatSAR(monthlyAmt)}</strong>
-                  {` × ${bnplCount} months`}
-                </>
+                <div className="spc-discount-badge__content">
+                  <p className="spc-discount-badge__savingsText">SAVE</p>
+                  <p className="spc-discount-badge__savingsPct">{`${savingsPct}%`}</p>
+                </div>
               )}
-            </span>
-          </div>
-        )}
+            </div>
+          )}
 
-        {/* Promo chip */}
-        {hasRibbon && (
-          <div className="spc-promo-chip">
-            {bankLogo ? (
-              /* eslint-disable-next-line @next/next/no-img-element */
-              <img src={bankLogo} alt="" className="spc-promo-chip__logo" />
-            ) : paymentLogo ? (
-              /* eslint-disable-next-line @next/next/no-img-element */
-              <img src={paymentLogo} alt="" className="spc-promo-chip__logo" />
-            ) : (
-              <span className="material-symbols-sharp spc-promo-chip__icon">{ribbonIcon}</span>
-            )}
-            <span className="spc-promo-chip__text">{chipLabel}</span>
-          </div>
-        )}
+          {/* Legacy Discount Badge */}
+          {!hasValidPrices && discountDisplay && (
+            <div className="spc-discount-badge">
+              <span className="spc-discount-badge__flame" aria-hidden="true">🔥</span>
+              {discountDisplay} {t('off', { default: 'OFF' })}
+            </div>
+          )}
 
-      </div>
-    </article>
+          {/* Main Product Thumbnail */}
+          <Image
+            src={imgSrc}
+            alt={product.title || 'Product'}
+            width={205}
+            height={205}
+            className="spc-image"
+            style={{ objectFit: 'contain', maxWidth: '100%', height: 'auto' }}
+            loading="lazy"
+            onError={() => setImgSrc('/placeholder-product.jpg')}
+          />
+
+          {/* ── Integrated Promo Ribbon ────────────────────────────────────── */}
+          {hasRibbon && (
+            <div className={`spc-ribbon${isRtl ? ' spc-ribbon--rtl' : ''}`} aria-hidden="true">
+              <div className="spc-ribbon__inner" style={{ display: 'flex', alignItems: 'center', gap: '4px', flexWrap: 'wrap' }}>
+                
+                {/* Text String Segment */}
+                <span className="spc-ribbon__label">{ribbonText}</span>
+                
+                {/* Conditional Dynamic Inline Brand Logo Segment */}
+                {ribbonType === 'bank' && bankLogo && (
+                  <span className="spc-ribbon__logo-inline" style={{ display: 'inline-flex', alignItems: 'center' }}>
+                    <Image 
+                      src={bankLogo} 
+                      alt={bankName || ''} 
+                      width={75} 
+                      height={35} 
+                      style={{ objectFit: 'contain', width: 'auto', maxHeight: '18px' }} // Scale slightly to look beautiful inline with text
+                    />
+                  </span>
+                )}
+                {ribbonType === 'payment' && paymentLogo && (
+                  <span className="spc-ribbon__logo-inline" style={{ display: 'inline-flex', alignItems: 'center' }}>
+                    <Image 
+                      src={paymentLogo} 
+                      alt={paymentName || ''} 
+                      width={75} 
+                      height={35} 
+                      style={{ objectFit: 'contain', width: 'auto', maxHeight: '18px' }}
+                    />
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* ── Body (Decluttered — Chip Removed) ───────────────────────────── */}
+        <div className="spc-body">
+          {/* Title */}
+          <p className="spc-title">
+            {product.title || t('untitled', { default: 'Product' })}
+          </p>
+
+          {/* Price Row */}
+          {hasValidPrices && (
+            <div
+              className="spc-prices"
+              aria-label={`Price: ${formatSAR(currentPrice)}${hasOriginal ? `, was ${formatSAR(originalPrice)}` : ''}`}
+            >
+              <span className="spc-price-current">{formatSAR(currentPrice)}</span>
+              {hasOriginal && (
+                <span className="spc-price-original">{formatSAR(originalPrice)}</span>
+              )}
+              {savingsPct != null && savingsPct > 0 && (
+                <span className="spc-price-savings" aria-hidden="true">
+                  {isRtl ? `${savingsPct}٪-` : `-${savingsPct}%`}
+                </span>
+              )}
+            </div>
+          )}
+
+          {/* BNPL Installment Terms - Driven by storeBnplMethods */}
+          {/* We check if storeBnplMethods exists and has at least one entry */}
+          {hasValidPrices && storeBnplMethods?.length > 0 && (
+            <div 
+              className="spc-bnpl" 
+              role="note" 
+              style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', marginTop: '8px' }}
+            >
+              {/* Calculate based on the first available store provider (Tabby/Tamara) */}
+              <span className="spc-bnpl__text" style={{ fontSize: '0.85rem', color: '#555' }}>
+                {isRtl ? (
+                  <>
+                    {`أو `}
+                    <strong style={{ color: '#000' }}>
+                      {formatSAR(currentPrice / (storeBnplMethods[0].installmentCount || 4))}
+                    </strong>
+                    {`/شهر × ${storeBnplMethods[0].installmentCount || 4} بدون فوائد مع`}
+                  </>
+                ) : (
+                  <>
+                    {`Or `}
+                    <strong style={{ color: '#000' }}>
+                      {formatSAR(currentPrice / (storeBnplMethods[0].installmentCount || 4))}
+                    </strong>
+                    {`/month × ${storeBnplMethods[0].installmentCount || 4} at 0% interest with`}
+                  </>
+                )}
+              </span>
+
+              {storeBnplMethods[0].logo ? (
+                <Image
+                  src={storeBnplMethods[0].logo}
+                  alt={storeBnplMethods[0].name || 'BNPL Provider'}
+                  width={60}
+                  height={23}
+                  className="spc-bnpl__logo"
+                  style={{ objectFit: 'contain', display: 'inline-block' }}
+                />
+              ) : (
+                <strong className="spc-bnpl__fallback-name">{storeBnplMethods[0].name}</strong>
+              )}
+            </div>
+          )}
+        </div>
+
+      </article>
+    </a>
   );
 };
 
