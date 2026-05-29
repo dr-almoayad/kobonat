@@ -3,6 +3,7 @@
 /* ── Card ──────────────────────────────────────────────────── */
 .spc-card {
   display: flex;
+  position: relative;
   flex-direction: column;
   width: 100%;
   background: none;
@@ -29,6 +30,7 @@
 /* ── Image wrapper ──────────────────────────────────────────── */
 .spc-image-wrap {
   width: 100%;
+  position: static !important;
   aspect-ratio: 1 / 1;
   border-radius: 8px;
   background: none;
@@ -55,7 +57,8 @@
 .spc-discount-badge {
   position: absolute;
   top: calc( 50% - 44px );
-  inset-inline-start: 10px;
+  right: 12px;
+  left: auto;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -68,6 +71,11 @@
   color: #18113a;
   z-index: 4;
   overflow: hidden;
+}
+
+[dir="rtl"] .spc-discount-badge {
+  left: 12px;
+  right: auto;
 }
 
 .spc-discount-badge__content {
@@ -93,29 +101,25 @@
 
 /* ── Promo ribbon ───────────────────────────────────────────── */
 .spc-ribbon {
-  --r: .38em;
+  --r: 20px;
   --c: #4f0fd4;
-
   position: absolute;
-  bottom: 14px;
+  height: calc(25px + 1.25rem);
+  bottom: -26px;
   left: 0;
-  
   line-height: 1.7;
   padding-inline: .75rem;
-  
-  /* Standard LTR styling */
   border-top: var(--r) solid #0000;
-  border-radius: 0 var(--r) var(--r) 0; /* Rounded right-side corners */
-  
-  mask: 
-    radial-gradient(var(--r) at 100% 0, #0000 98%, #000 101%) 
-      0 0 / var(--r) 100% no-repeat,
-    conic-gradient(#000 0 0) padding-box;
-    
+  border-radius: 0 var(--r) var(--r) 0;
+  -webkit-mask: radial-gradient(var(--r) at 100% 0, #0000 98%, #000 101%) 0 0 / var(--r) 100% no-repeat, conic-gradient(#000 0 0) padding-box;
+  mask: radial-gradient(var(--r) at 100% 0, #0000 98%, #000 101%) 0 0 / var(--r) 100% no-repeat, conic-gradient(#000 0 0) padding-box;
   background: var(--c) border-box;
+  width: -moz-fit-content;
   width: fit-content;
-  max-width: 82%;
+  max-width: 100%;
   z-index: 3;
+  color: #fff;
+  font-size: 0.75rem;
   pointer-events: none;
 }
 
@@ -123,15 +127,9 @@
 .spc-ribbon--rtl {
   left: auto;
   right: 0;
-  
-  /* Swap border radius to the left side */
   border-radius: var(--r) 0 0 var(--r);
-  
-  /* Flip the mask notch to the top-left */
-  mask: 
-    radial-gradient(var(--r) at 0 0, #0000 98%, #000 101%) 
-      100% 0 / var(--r) 100% no-repeat,
-    conic-gradient(#000 0 0) padding-box;
+  -webkit-mask: radial-gradient(var(--r) at 0 0, #0000 98%, #000 101%) 100% 0 / var(--r) 100% no-repeat, conic-gradient(#000 0 0) padding-box;
+  mask: radial-gradient(var(--r) at 0 0, #0000 98%, #000 101%) 100% 0 / var(--r) 100% no-repeat, conic-gradient(#000 0 0) padding-box;
 }
 
 .spc-ribbon__label {
