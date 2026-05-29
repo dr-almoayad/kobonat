@@ -1,4 +1,4 @@
-// app/api/feeds/stores/route.js
+// app/api/feeds/stores.xml/route.js
 // ─────────────────────────────────────────────────────────────────────────────
 // GET /api/feeds/stores
 //
