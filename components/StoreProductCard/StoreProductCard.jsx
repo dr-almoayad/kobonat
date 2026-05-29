@@ -166,17 +166,10 @@ const StoreProductCard = ({
             </div>
           )}
 
-          {/* Legacy Discount Badge */}
-          {!hasValidPrices && discountDisplay && (
-            <div className="spc-discount-badge">
-              <span className="spc-discount-badge__flame" aria-hidden="true">🔥</span>
-              {discountDisplay} {t('off', { default: 'OFF' })}
-            </div>
-          )}
-
           {/* Main Product Thumbnail */}
           <Image
             src={imgSrc}
+            unoptimized={true}
             alt={product.title || 'Product'}
             width={205}
             height={205}
@@ -199,6 +192,7 @@ const StoreProductCard = ({
                   <span className="spc-ribbon__logo-inline" style={{ display: 'inline-flex', alignItems: 'center' }}>
                     <Image 
                       src={bankLogo} 
+                      unoptimized={true}
                       alt={bankName || ''} 
                       width={75} 
                       height={35} 
@@ -210,6 +204,7 @@ const StoreProductCard = ({
                   <span className="spc-ribbon__logo-inline" style={{ display: 'inline-flex', alignItems: 'center' }}>
                     <Image 
                       src={paymentLogo} 
+                      unoptimized={true}
                       alt={paymentName || ''} 
                       width={75} 
                       height={35} 
@@ -279,6 +274,7 @@ const StoreProductCard = ({
               {storeBnplMethods[0].logo ? (
                 <Image
                   src={storeBnplMethods[0].logo}
+                  unoptimized={true}
                   alt={storeBnplMethods[0].name || 'BNPL Provider'}
                   width={60}
                   height={23}
