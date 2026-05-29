@@ -1,4 +1,4 @@
-// app/api/feeds/coupons/route.js
+// app/api/feeds/coupons.xml/route.js
 // ─────────────────────────────────────────────────────────────────────────────
 // GET /api/feeds/coupons
 //
