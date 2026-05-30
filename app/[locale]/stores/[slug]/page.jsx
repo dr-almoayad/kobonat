@@ -24,7 +24,7 @@ import ExpiredVouchersList from '@/components/ExpiredVouchersList/ExpiredVoucher
 import ExpiredOtherPromosList from '@/components/ExpiredOtherPromosList/ExpiredOtherPromosList';
 import './store-page.css';
 
-export const revalidate = 300;
+export const revalidate = 3600; // Updated from 300
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://cobonat.me';
 
@@ -242,7 +242,7 @@ export default async function StorePage({ params }) {
       })),
     };
 
-    // Parallel data fetch
+    // Parallel data fetch - Reduced queries and constrained returns
     const [
       allVouchers,
       paymentMethodsData,
@@ -250,9 +250,7 @@ export default async function StorePage({ params }) {
       relatedStores,
       storeProducts,
       relatedPostsRaw,
-      allOtherPromos,
-      curatedOffers,
-      offerStacks,
+      expiredOtherPromos,
     ] = await Promise.all([
       prisma.voucher.findMany({
         where: {
@@ -270,6 +268,7 @@ export default async function StorePage({ params }) {
           { isVerified: 'desc' },
           { popularityScore: 'desc' },
         ],
+        take: 200, 
       }),
       prisma.storePaymentMethod.findMany({
         where: { storeId: store.id, countryId: country.id },
@@ -307,7 +306,6 @@ export default async function StorePage({ params }) {
         take: 6,
         orderBy: { isFeatured: 'desc' },
       }),
-      // ✅ UPDATED product query: include original/current prices and linked promo/voucher
       prisma.storeProduct.findMany({
         where: {
           storeId: store.id,
@@ -323,7 +321,6 @@ export default async function StorePage({ params }) {
           discountValue: true,
           discountType: true,
           translations: { where: { locale: language }, select: { title: true } },
-          // ✅ Linked voucher (for ribbon)
           linkedVoucher: {
             select: {
               id: true,
@@ -335,7 +332,6 @@ export default async function StorePage({ params }) {
               translations: { where: { locale: language }, select: { title: true } },
             },
           },
-          // ✅ Linked promo (bank/payment offer) with BNPL fields
           linkedPromo: {
             select: {
               id: true,
@@ -371,6 +367,7 @@ export default async function StorePage({ params }) {
           storeId: store.id,
           countryId: country.id,
           isActive: true,
+          expiryDate: { lt: now },
         },
         include: {
           translations: { where: { locale: language } },
@@ -379,40 +376,13 @@ export default async function StorePage({ params }) {
           card: true,
         },
         orderBy: { order: 'asc' },
-      }),
-      prisma.curatedOffer.findMany({
-        where: {
-          storeId: store.id,
-          isActive: true,
-          countries: { some: { country: { code: countryCode } } },
-          OR: [{ expiryDate: null }, { expiryDate: { gte: now } }],
-        },
-        include: { translations: { where: { locale: language } } },
-        orderBy: [{ isFeatured: 'desc' }, { order: 'asc' }],
-      }),
-      prisma.offerStack.findMany({
-        where: { storeId: store.id, isActive: true },
-        include: {
-          codeVoucher: { include: { translations: { where: { locale: language } } } },
-          dealVoucher: { include: { translations: { where: { locale: language } } } },
-          promo: {
-            include: {
-              translations: { where: { locale: language } },
-              bank: { include: { translations: { where: { locale: language } } } },
-            },
-          },
-        },
-        orderBy: { order: 'asc' },
+        take: 10,
       }),
     ]);
 
     // Split vouchers
     const activeVouchers = allVouchers.filter(v => !v.expiryDate || v.expiryDate >= now);
     const expiredVouchers = allVouchers.filter(v => v.expiryDate && v.expiryDate < now).slice(0, 10);
-
-    // Split other promos
-    const activeOtherPromos = allOtherPromos.filter(p => !p.expiryDate || p.expiryDate >= now);
-    const expiredOtherPromos = allOtherPromos.filter(p => p.expiryDate && p.expiryDate < now).slice(0, 10);
 
     // Transform active vouchers
     const transformedVouchers = activeVouchers.map(v => ({
@@ -422,55 +392,8 @@ export default async function StorePage({ params }) {
       store: transformedStore,
     }));
 
-    // Payment methods
-    const allPaymentMethods = paymentMethodsData.map(spm => ({
-      ...spm.paymentMethod,
-      name: spm.paymentMethod.translations[0]?.name || '',
-      description: spm.paymentMethod.translations[0]?.description || null,
-    }));
-    const bnplMethods = allPaymentMethods.filter(pm => pm.isBnpl);
-    const otherPaymentMethods = allPaymentMethods.filter(pm => !pm.isBnpl);
-    const mostTrackedVoucher = transformedVouchers[0] || null;
-
-    // Related stores
-    const transformedRelatedStores = relatedStores.map(s => ({
-      ...s,
-      name: s.translations[0]?.name || '',
-      slug: s.translations[0]?.slug || '',
-    }));
-
-    // ✅ UPDATED product transformation: include price fields and linked objects
-    const transformedProducts = storeProducts.map(p => ({
-      id: p.id,
-      image: p.image,
-      title: p.translations[0]?.title || '',
-      productUrl: p.productUrl,
-      originalPrice: p.originalPrice,
-      currentPrice: p.currentPrice,
-      discountValue: p.discountValue,
-      discountType: p.discountType,
-      voucher: p.linkedVoucher,
-      otherPromo: p.linkedPromo,
-      storeName: store.name,          // fallback for multi‑store mode (unused here)
-      storeLogo: store.logo,
-    }));
-
-    // Related blog posts
-    const relatedPosts = relatedPostsRaw.map(post => ({
-      id: post.id,
-      slug: post.slug,
-      title: post.translations?.[0]?.title || '',
-      excerpt: post.translations?.[0]?.excerpt || null,
-      featuredImage: post.featuredImage || null,
-      publishedAt: post.publishedAt,
-      category: post.category ? {
-        name: post.category.translations?.[0]?.name || '',
-        color: post.category.color || '#470ae2',
-      } : null,
-    }));
-
-    // Active other promos
-    const transformedOtherPromos = activeOtherPromos.map(p => ({
+    // Transform expired promos directly
+    const transformedExpiredOtherPromos = expiredOtherPromos.map(p => ({
       id: p.id,
       type: p.type,
       image: p.image,
@@ -493,40 +416,50 @@ export default async function StorePage({ params }) {
       voucherCode: p.voucherCode,
     }));
 
-    // Curated offers (unchanged)
-    const transformedCuratedOffers = curatedOffers.map(o => ({
-      id: o.id,
-      type: o.type,
-      offerImage: o.offerImage,
-      code: o.code,
-      ctaUrl: o.ctaUrl,
-      startDate: o.startDate,
-      expiryDate: o.expiryDate,
-      title: o.translations[0]?.title || '',
-      description: o.translations[0]?.description || null,
-      ctaText: o.translations[0]?.ctaText || null,
+    // Payment methods
+    const allPaymentMethods = paymentMethodsData.map(spm => ({
+      ...spm.paymentMethod,
+      name: spm.paymentMethod.translations[0]?.name || '',
+      description: spm.paymentMethod.translations[0]?.description || null,
+    }));
+    const bnplMethods = allPaymentMethods.filter(pm => pm.isBnpl);
+    const otherPaymentMethods = allPaymentMethods.filter(pm => !pm.isBnpl);
+    const mostTrackedVoucher = transformedVouchers[0] || null;
+
+    // Related stores
+    const transformedRelatedStores = relatedStores.map(s => ({
+      ...s,
+      name: s.translations[0]?.name || '',
+      slug: s.translations[0]?.slug || '',
     }));
 
-    // Offer stacks
-    const transformedOfferStacks = offerStacks.map(s => ({
-      id: s.id,
-      label: s.label,
-      codeVoucher: s.codeVoucher ? {
-        id: s.codeVoucher.id,
-        code: s.codeVoucher.code,
-        discountPercent: s.codeVoucher.verifiedAvgPercent ?? s.codeVoucher.discountPercent,
-        title: s.codeVoucher.translations[0]?.title || s.codeVoucher.discount || '',
-      } : null,
-      dealVoucher: s.dealVoucher ? {
-        id: s.dealVoucher.id,
-        discountPercent: s.dealVoucher.verifiedAvgPercent ?? s.dealVoucher.discountPercent,
-        title: s.dealVoucher.translations[0]?.title || s.dealVoucher.discount || '',
-      } : null,
-      promo: s.promo ? {
-        id: s.promo.id,
-        discountPercent: s.promo.verifiedAvgPercent ?? s.promo.discountPercent,
-        title: s.promo.translations[0]?.title || s.promo.bank?.translations[0]?.name || '',
-        bankName: s.promo.bank?.translations[0]?.name || null,
+    // Transform products
+    const transformedProducts = storeProducts.map(p => ({
+      id: p.id,
+      image: p.image,
+      title: p.translations[0]?.title || '',
+      productUrl: p.productUrl,
+      originalPrice: p.originalPrice,
+      currentPrice: p.currentPrice,
+      discountValue: p.discountValue,
+      discountType: p.discountType,
+      voucher: p.linkedVoucher,
+      otherPromo: p.linkedPromo,
+      storeName: store.name,          
+      storeLogo: store.logo,
+    }));
+
+    // Related blog posts
+    const relatedPosts = relatedPostsRaw.map(post => ({
+      id: post.id,
+      slug: post.slug,
+      title: post.translations?.[0]?.title || '',
+      excerpt: post.translations?.[0]?.excerpt || null,
+      featuredImage: post.featuredImage || null,
+      publishedAt: post.publishedAt,
+      category: post.category ? {
+        name: post.category.translations?.[0]?.name || '',
+        color: post.category.color || '#470ae2',
       } : null,
     }));
 
@@ -536,10 +469,9 @@ export default async function StorePage({ params }) {
     const shippingVouchers = transformedVouchers.filter(v => v.type === 'FREE_SHIPPING');
     const countryName = country.translations[0]?.name || country.code;
 
-    // Compute max savings for UI + structured data
+    // Compute max savings for UI + structured data (removed transformedOtherPromos dependency to prevent crashes)
     const maxSavings = Math.max(
       ...transformedVouchers.map(v => v.verifiedAvgPercent ?? v.discountPercent ?? 0),
-      ...transformedOtherPromos.map(p => p.verifiedAvgPercent ?? p.discountPercent ?? 0),
       0
     );
 
@@ -658,9 +590,9 @@ export default async function StorePage({ params }) {
                   <ExpiredVouchersList vouchers={expiredVouchers} />
                 )}
 
-                {expiredOtherPromos.length > 0 && (
+                {transformedExpiredOtherPromos.length > 0 && (
                   <ExpiredOtherPromosList
-                    promos={expiredOtherPromos}
+                    promos={transformedExpiredOtherPromos}
                     storeName={transformedStore.name}
                     storeLogo={transformedStore.logo}
                   />
