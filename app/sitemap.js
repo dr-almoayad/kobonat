@@ -11,10 +11,12 @@ const COUPONS_MAX_PAGE = 9;
 const STACKS_MAX_PAGE  = 9;
 const BLOG_MAX_PAGE    = 5;
 
-// Keep this current whenever static page copy changes.
 const STATIC_LAST_MODIFIED = new Date('2026-05-16');
 
-export const revalidate = 3600; // Cache for 1 hour
+// ── Was 3600 (hourly). Changed to 86400 (daily).
+// Store/category URLs change at most once a day; sitemaps don't need
+// sub-hour freshness and the old interval caused ~12 DB queries every hour.
+export const revalidate = 86400;
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -61,6 +63,8 @@ export default async function sitemap() {
   const urls = [];
 
   try {
+    // ── Parallel block — all lightweight (findFirst with select, or count).
+    // These haven't changed; they were already fast.
     const [
       latestVoucherUpdate,
       latestStoreUpdate,
@@ -112,7 +116,8 @@ export default async function sitemap() {
     const promoDate   = latestPromoUpdate?.updatedAt   || new Date();
     const stackDate   = latestStackUpdate?.updatedAt   || new Date();
 
-    // ── 1. Homepages ──────────────────────────────────────────────────────────
+    // ── 1–7. Static and paginated sections — unchanged ────────────────────────
+
     for (const locale of LOCALES) {
       urls.push({
         url:             `${BASE_URL}/${locale}`,
@@ -123,7 +128,6 @@ export default async function sitemap() {
       });
     }
 
-    // ── 2. All-stores listing ─────────────────────────────────────────────────
     for (const locale of LOCALES) {
       urls.push({
         url:             `${BASE_URL}/${locale}/stores`,
@@ -134,7 +138,6 @@ export default async function sitemap() {
       });
     }
 
-    // ── 3. Categories listing ─────────────────────────────────────────────────
     for (const locale of LOCALES) {
       urls.push({
         url:             `${BASE_URL}/${locale}/categories`,
@@ -145,7 +148,6 @@ export default async function sitemap() {
       });
     }
 
-    // ── 4. Coupons (paginated) ────────────────────────────────────────────────
     const couponsLastPage = Math.min(
       Math.ceil(totalVouchers / COUPONS_PER_PAGE),
       COUPONS_MAX_PAGE
@@ -166,7 +168,6 @@ export default async function sitemap() {
       }
     }
 
-    // ── 5. Stacks (paginated) ─────────────────────────────────────────────────
     const stacksLastPage = Math.min(
       Math.max(1, Math.ceil(totalStacks / STACKS_PER_PAGE)),
       STACKS_MAX_PAGE
@@ -187,7 +188,6 @@ export default async function sitemap() {
       }
     }
 
-    // ── 6. Bank & payment offers ──────────────────────────────────────────────
     for (const locale of LOCALES) {
       urls.push({
         url:             `${BASE_URL}/${locale}/bank-and-payment-offers`,
@@ -198,7 +198,6 @@ export default async function sitemap() {
       });
     }
 
-    // ── 7. Static pages ───────────────────────────────────────────────────────
     for (const page of STATIC_PAGES) {
       for (const locale of LOCALES) {
         urls.push({
@@ -211,10 +210,16 @@ export default async function sitemap() {
       }
     }
 
-    // ── 8. Individual category pages ──────────────────────────────────────────
+    // ── 8. Category pages ─────────────────────────────────────────────────────
+    // FIX: was `include: { translations: true }` which loaded every locale.
+    // Now uses `select` scoped to the two locales we actually need.
     const categories = await prisma.category.findMany({
-      include: {
-        translations: true,
+      select: {
+        updatedAt: true,
+        translations: {
+          where:  { locale: { in: ['ar', 'en'] } },
+          select: { slug: true, locale: true },
+        },
         stores: {
           where: {
             store: {
@@ -222,9 +227,21 @@ export default async function sitemap() {
               countries: { some: { country: { code: 'SA' } } },
             },
           },
+          select: { storeId: true },
         },
       },
     });
+
+    // FIX: the old code ran a separate `prisma.categoryTranslation.findMany`
+    // just to build this slug Set. We already have the translation data above,
+    // so build it from there — one fewer round-trip to Neon.
+    const catSlugsByLang = new Map();
+    for (const cat of categories) {
+      for (const t of cat.translations) {
+        if (!catSlugsByLang.has(t.locale)) catSlugsByLang.set(t.locale, new Set());
+        catSlugsByLang.get(t.locale).add(t.slug);
+      }
+    }
 
     for (const cat of categories) {
       if (cat.stores.length === 0) continue;
@@ -249,50 +266,51 @@ export default async function sitemap() {
       }
     }
 
-    // ── 9. Individual store pages ─────────────────────────────────────────────
+    // ── 9. Store pages ────────────────────────────────────────────────────────
+    // FIX 1: was `include: { translations: true }` — loaded all locales.
+    //         Now scoped to the two we need via `select`.
+    // FIX 2: was `include: { vouchers: { take: 1, orderBy: updatedAt } }` —
+    //         a JOIN to the vouchers table on every store just to get one date.
+    //         We already have `voucherDate` (the most recent voucher update
+    //         across the whole site) from the parallel block above. Using
+    //         store.updatedAt is accurate enough for sitemap lastModified
+    //         and avoids the per-store voucher join entirely.
     const stores = await prisma.store.findMany({
       where: {
         isActive:  true,
         countries: { some: { country: { code: 'SA' } } },
       },
-      include: {
-        translations: true,
-        vouchers: {
-          where:   { OR: [{ expiryDate: null }, { expiryDate: { gte: new Date() } }] },
-          orderBy: { updatedAt: 'desc' },
-          take:    1,
-          select:  { updatedAt: true },
+      select: {
+        updatedAt:  true,
+        isFeatured: true,
+        translations: {
+          where:  { locale: { in: ['ar', 'en'] } },
+          select: { slug: true, locale: true },
         },
       },
     });
 
-    const catSlugsByLang = new Map();
-    const allCatTrans    = await prisma.categoryTranslation.findMany({
-      select: { slug: true, locale: true },
-    });
-    for (const ct of allCatTrans) {
-      if (!catSlugsByLang.has(ct.locale)) catSlugsByLang.set(ct.locale, new Set());
-      catSlugsByLang.get(ct.locale).add(ct.slug);
-    }
-
     for (const store of stores) {
-      const lastModified = getMostRecentDate(store.updatedAt, store.vouchers[0]?.updatedAt);
-      const validUrls    = new Map();
+      const validUrls = new Map();
 
       for (const locale of LOCALES) {
         const [lang]      = locale.split('-');
         const translation = store.translations.find(t => t.locale === lang);
         if (!translation?.slug) continue;
+        // Skip slugs that belong to a category (would redirect anyway)
         if (catSlugsByLang.get(lang)?.has(translation.slug)) continue;
         validUrls.set(locale, `${BASE_URL}/${locale}/stores/${translation.slug}`);
       }
       if (validUrls.size === 0) continue;
 
       const alternates = buildAlternates(Object.fromEntries(validUrls.entries()));
+      // Use store.updatedAt — accurate and requires no extra join.
+      // The global voucherDate from the parallel block already captures
+      // "when did any voucher last change" at the sitemap level.
       for (const [, url] of validUrls.entries()) {
         urls.push({
           url,
-          lastModified,
+          lastModified:    store.updatedAt,
           changeFrequency: 'daily',
           priority:        store.isFeatured ? 0.85 : 0.75,
           alternates:      { languages: alternates },
@@ -301,9 +319,20 @@ export default async function sitemap() {
     }
 
     // ── 10. Seasonal pages ────────────────────────────────────────────────────
+    // FIX: was `include: { translations: true }` — loaded all locales.
     const seasonal = await prisma.seasonalPage.findMany({
-      where:   { isActive: true, countries: { some: { country: { code: 'SA' } } } },
-      include: { translations: true },
+      where: {
+        isActive:  true,
+        countries: { some: { country: { code: 'SA' } } },
+      },
+      select: {
+        slug:      true,
+        updatedAt: true,
+        translations: {
+          where:  { locale: { in: ['ar', 'en'] } },
+          select: { locale: true, title: true },
+        },
+      },
     });
 
     for (const sp of seasonal) {
@@ -349,7 +378,7 @@ export default async function sitemap() {
       }
     }
 
-    // ── 12. Individual blog posts ─────────────────────────────────────────────
+    // ── 12. Blog posts — already used `select` correctly, no change needed ───
     const blogPosts = await prisma.blogPost.findMany({
       where:  { status: 'PUBLISHED' },
       select: {
@@ -383,7 +412,7 @@ export default async function sitemap() {
       }
     }
 
-    // ── 13. Filter & deduplicate ──────────────────────────────────────────────
+    // ── Filter & deduplicate ──────────────────────────────────────────────────
     const htmlPages = deduplicateEntries(urls).filter(entry => {
       const lower = entry.url.toLowerCase();
       if (lower.includes('/_next/'))         return false;
