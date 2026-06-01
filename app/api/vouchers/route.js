@@ -1,4 +1,6 @@
-// app/api/vouchers/route.js - Updated for new schema
+// app/api/vouchers/route.js - Updated for new schema + Cache Headers
+export const revalidate = 300; // Cache route for 5 minutes
+
 import { NextResponse } from "next/server";
 import { prisma } from '@/lib/prisma';
 
@@ -152,6 +154,10 @@ export async function GET(req) {
       country: {
         ...country,
         name: country.translations[0]?.name || country.code
+      }
+    }, {
+      headers: {
+        'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
       }
     });
 
