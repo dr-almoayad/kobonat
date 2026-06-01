@@ -1,5 +1,5 @@
 // app/api/stores/route.js - FIXED for Mobile Footer + Cache Headers
-export const revalidate = 300; // Cache route for 5 minutes
+export const revalidate = 300; // Cache route for 5 minutes 
 
 import { NextResponse } from "next/server";
 import { prisma } from '@/lib/prisma';
