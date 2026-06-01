@@ -1,4 +1,6 @@
-// app/api/stores/route.js - FIXED for Mobile Footer
+// app/api/stores/route.js - FIXED for Mobile Footer + Cache Headers
+export const revalidate = 300; // Cache route for 5 minutes
+
 import { NextResponse } from "next/server";
 import { prisma } from '@/lib/prisma';
 
@@ -162,7 +164,12 @@ export async function GET(req) {
         currency: country.currency,
         flag: country.flag
       }
-    }, { status: 200 });
+    }, { 
+      status: 200,
+      headers: {
+        'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
+      }
+    });
     
   } catch (error) {
     console.error("❌ Error fetching stores:", error);
