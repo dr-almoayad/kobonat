@@ -1,4 +1,6 @@
-// app/api/categories/route.js - FIXED: Always include image field regardless of locale
+// app/api/categories/route.js - FIXED: Always include image field regardless of locale + Cache Headers
+export const revalidate = 3600; // Cache route for 1 hour
+
 import { NextResponse } from "next/server";
 import { prisma } from '@/lib/prisma';
 
@@ -95,7 +97,11 @@ export async function GET(req) {
       imageValue: c.image
     })));
 
-    return NextResponse.json(formattedCategories);
+    return NextResponse.json(formattedCategories, {
+      headers: {
+        'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400',
+      },
+    });
 
   } catch (error) {
     console.error("❌ Categories API error:", error);
