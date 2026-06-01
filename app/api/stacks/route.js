@@ -1,3 +1,6 @@
+// app/api/stacks/route.js
+export const revalidate = 300; // Cache route for 5 minutes
+
 import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
 
@@ -163,7 +166,14 @@ export async function GET(request) {
     const stacks = activeStacksOnly.slice(skip, skip + PER_PAGE);
     const hasMore = skip + PER_PAGE < total;
 
-    return NextResponse.json({ stacks, total, hasMore, page });
+    return NextResponse.json(
+      { stacks, total, hasMore, page },
+      {
+        headers: {
+          'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
+        },
+      }
+    );
   } catch (error) {
     console.error('[GET /api/stacks]', error);
     return NextResponse.json(
