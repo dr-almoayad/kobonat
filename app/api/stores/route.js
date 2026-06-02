@@ -1,89 +1,35 @@
-// app/api/stores/route.js - FIXED for Mobile Footer + Cache Headers
-export const revalidate = 300; // Cache route for 5 minutes 
-
+// app/api/stores/route.js
 import { NextResponse } from "next/server";
 import { prisma } from '@/lib/prisma';
+import { unstable_cache, revalidateTag } from 'next/cache';
 
-export async function GET(req) {
-  try {
-    const { searchParams } = new URL(req.url);
-    const countryCode = searchParams.get('country') || 'SA';
-    const locale = searchParams.get('locale') || 'en';
-    const limit = parseInt(searchParams.get('limit') || '50');
-    const page = parseInt(searchParams.get('page') || '1');
-    const offset = (page - 1) * limit;
-    
-    console.log('🏪 Stores API Request:', { countryCode, locale, limit, page });
-    
-    // Check if country exists and is active
+const getCachedStoresData = unstable_cache(
+  async (countryCode, locale, limit, page, offset) => {
     const country = await prisma.country.findUnique({
       where: { code: countryCode, isActive: true },
-      include: {
-        translations: {
-          where: { locale }
-        }
-      }
+      include: { translations: { where: { locale } } }
     });
-    
-    if (!country) {
-      console.log('❌ Country not found or inactive:', countryCode);
-      return NextResponse.json(
-        { 
-          error: "Country not found or inactive",
-          stores: [],
-          pagination: {
-            current: page,
-            total: 0,
-            pages: 0,
-            limit,
-            hasNext: false,
-            hasPrev: false
-          }
-        },
-        { status: 404 }
-      );
-    }
-    
-    console.log('✅ Country found:', country.code, country.translations[0]?.name);
-    
+
+    if (!country) return null;
+
     const where = {
       isActive: true,
-      countries: {
-        some: {
-          country: {
-            code: countryCode
-          }
-        }
-      }
+      countries: { some: { country: { code: countryCode } } }
     };
-    
+
     const [stores, total] = await Promise.all([
       prisma.store.findMany({
         where,
         include: {
-          translations: {
-            where: { locale }
-          },
+          translations: { where: { locale } },
           countries: {
             include: {
-              country: {
-                include: {
-                  translations: {
-                    where: { locale }
-                  }
-                }
-              }
+              country: { include: { translations: { where: { locale } } } }
             }
           },
           categories: {
             include: {
-              category: {
-                include: {
-                  translations: {
-                    where: { locale }
-                  }
-                }
-              }
+              category: { include: { translations: { where: { locale } } } }
             }
           },
           _count: {
@@ -91,36 +37,23 @@ export async function GET(req) {
               vouchers: {
                 where: {
                   expiryDate: { gte: new Date() },
-                  countries: {
-                    some: {
-                      country: {
-                        code: countryCode
-                      }
-                    }
-                  }
+                  countries: { some: { country: { code: countryCode } } }
                 }
               }
             }
           }
         },
-        orderBy: [
-          { isFeatured: 'desc' },
-          { id: 'asc' }
-        ],
+        orderBy: [{ isFeatured: 'desc' }, { id: 'asc' }],
         skip: offset,
         take: limit
       }),
       prisma.store.count({ where })
     ]);
-    
-    console.log('📊 Found stores:', stores.length, 'Total:', total);
-    
+
     const totalPages = Math.ceil(total / limit);
-    
-    // Transform stores to include translations
+
     const transformedStores = stores.map(store => {
       const storeTranslation = store.translations[0] || {};
-      
       return {
         id: store.id,
         name: storeTranslation.name || '',
@@ -140,15 +73,11 @@ export async function GET(req) {
           icon: sc.category.icon,
           color: sc.category.color
         })),
-        _count: {
-          vouchers: store._count?.vouchers || 0
-        }
+        _count: { vouchers: store._count?.vouchers || 0 }
       };
     });
-    
-    console.log('✅ Transformed stores sample:', transformedStores[0]);
-    
-    return NextResponse.json({
+
+    return {
       stores: transformedStores,
       pagination: {
         current: page,
@@ -164,24 +93,43 @@ export async function GET(req) {
         currency: country.currency,
         flag: country.flag
       }
-    }, { 
-      status: 200,
-      headers: {
-        'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
-      }
-    });
-    
+    };
+  },
+  ['stores-api-query'],
+  // 1 hour. new Date() inside the function is evaluated at cache-creation time,
+  // so a 1-year TTL (the previous value) would serve stale voucher counts for
+  // up to a year between invalidations. 1 hour is a safe balance between
+  // freshness and query reduction. The revalidateTag('stores') call in POST
+  // handles on-demand purging when stores are created via this endpoint.
+  { tags: ['stores'], revalidate: 3600 }
+);
+
+export async function GET(req) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const countryCode = searchParams.get('country') || 'SA';
+    const locale = searchParams.get('locale') || 'en';
+    const limit = parseInt(searchParams.get('limit') || '50');
+    const page = parseInt(searchParams.get('page') || '1');
+    const offset = (page - 1) * limit;
+
+    const data = await getCachedStoresData(countryCode, locale, limit, page, offset);
+
+    if (!data) {
+      return NextResponse.json(
+        {
+          error: "Country not found or inactive",
+          stores: [],
+          pagination: { current: page, total: 0, pages: 0, limit, hasNext: false, hasPrev: false }
+        },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json(data);
   } catch (error) {
-    console.error("❌ Error fetching stores:", error);
-    console.error("Error details:", error.message);
-    console.error("Stack trace:", error.stack);
-    
     return NextResponse.json(
-      { 
-        error: "Failed to fetch stores",
-        details: error.message,
-        stores: []
-      },
+      { error: "Failed to fetch stores", details: error.message, stores: [] },
       { status: 500 }
     );
   }
@@ -190,20 +138,11 @@ export async function GET(req) {
 export async function POST(req) {
   try {
     const body = await req.json();
-    const { 
-      name_en, 
-      name_ar, 
-      slug_en,
-      slug_ar,
-      description_en,
-      description_ar,
-      logo, 
-      websiteUrl, 
-      affiliateNetwork, 
-      trackingUrl,
-      isActive = true,
-      isFeatured = false,
-      countryCodes = ['SA']
+    const {
+      name_en, name_ar, slug_en, slug_ar,
+      description_en, description_ar,
+      logo, websiteUrl, affiliateNetwork, trackingUrl,
+      isActive = true, isFeatured = false, countryCodes = ['SA']
     } = body;
 
     if (!name_en || !name_ar || !slug_en || !slug_ar) {
@@ -213,15 +152,11 @@ export async function POST(req) {
       );
     }
 
-    // Check if slugs already exist
-    const existingStoreEN = await prisma.storeTranslation.findFirst({
-      where: { slug: slug_en, locale: 'en' }
-    });
-    
-    const existingStoreAR = await prisma.storeTranslation.findFirst({
-      where: { slug: slug_ar, locale: 'ar' }
-    });
-    
+    const [existingStoreEN, existingStoreAR] = await Promise.all([
+      prisma.storeTranslation.findFirst({ where: { slug: slug_en, locale: 'en' } }),
+      prisma.storeTranslation.findFirst({ where: { slug: slug_ar, locale: 'ar' } })
+    ]);
+
     if (existingStoreEN || existingStoreAR) {
       return NextResponse.json(
         { error: "A store with this slug already exists" },
@@ -229,71 +164,37 @@ export async function POST(req) {
       );
     }
 
-    // Get country IDs
     const countries = await prisma.country.findMany({
-      where: {
-        code: { in: countryCodes },
-        isActive: true
-      }
+      where: { code: { in: countryCodes }, isActive: true }
     });
-    
+
     if (countries.length === 0) {
-      return NextResponse.json(
-        { error: "No valid countries provided" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "No valid countries provided" }, { status: 400 });
     }
 
     const newStore = await prisma.store.create({
-      data: { 
-        logo, 
-        websiteUrl, 
-        affiliateNetwork, 
-        trackingUrl,
-        isActive,
-        isFeatured,
+      data: {
+        logo, websiteUrl, affiliateNetwork, trackingUrl, isActive, isFeatured,
         translations: {
           create: [
-            {
-              locale: 'en',
-              name: name_en,
-              slug: slug_en,
-              description: description_en
-            },
-            {
-              locale: 'ar',
-              name: name_ar,
-              slug: slug_ar,
-              description: description_ar
-            }
+            { locale: 'en', name: name_en, slug: slug_en, description: description_en },
+            { locale: 'ar', name: name_ar, slug: slug_ar, description: description_ar }
           ]
         },
         countries: {
-          create: countries.map(country => ({
-            country: { connect: { id: country.id } }
-          }))
+          create: countries.map(country => ({ country: { connect: { id: country.id } } }))
         }
       },
       include: {
         translations: true,
-        countries: {
-          include: {
-            country: true
-          }
-        }
+        countries: { include: { country: true } }
       }
     });
 
-    return NextResponse.json({
-      message: "Store created successfully",
-      store: newStore
-    }, { status: 201 });
-    
+    revalidateTag('stores');
+
+    return NextResponse.json({ message: "Store created successfully", store: newStore }, { status: 201 });
   } catch (error) {
-    console.error("Error creating store:", error);
-    return NextResponse.json(
-      { error: "Failed to create store" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to create store" }, { status: 500 });
   }
 }
