@@ -12,7 +12,7 @@ import Breadcrumbs from '@/components/Breadcrumbs/Breadcrumbs';
 import { serializeStack } from '@/lib/offerStacks';
 import './category-page.css';
 
-export const revalidate = 300;
+export const revalidate = 3600;
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://cobonat.me';
 
