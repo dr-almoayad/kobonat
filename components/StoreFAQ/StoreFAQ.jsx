@@ -1,4 +1,3 @@
-
 'use client';
 import React from 'react';
 import './StoreFAQ.css';
@@ -31,8 +30,9 @@ const StoreFAQ = ({ faqs = [], locale = 'ar-SA', storeName = '', countryName = '
 
         <div className="store-faq-list">
           {faqs.map((faq, index) => {
-            // ✅ FIX: Access translations properly
-            const translation = faq.translations?.[0];
+            // ✅ CRITICAL FIX: Find the translation that matches the current locale, 
+            // fallback to the first item only if a match isn't found.
+            const translation = faq.translations?.find((t) => t.locale === language) || faq.translations?.[0];
             const question = translation?.question || '';
             const answer = translation?.answer || '';
 
