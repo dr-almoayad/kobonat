@@ -9,7 +9,7 @@ import CouponsStructuredData from "@/components/StructuredData/CouponsStructured
 import Breadcrumbs from '@/components/Breadcrumbs/Breadcrumbs';
 import "./coupons-page.css";
 
-export const revalidate = 60;
+export const revalidate = 1800;
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://cobonat.me';
 const PAGE_LIMIT = 60;
