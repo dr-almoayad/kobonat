@@ -12,7 +12,7 @@ import HelpBox from "@/components/help/HelpBox";
 import Breadcrumbs from '@/components/Breadcrumbs/Breadcrumbs';
 import "./stores-page.css";
 
-export const revalidate = 60;
+export const revalidate = 3600;
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://cobonat.me';
 
