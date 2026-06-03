@@ -7,7 +7,7 @@ import OfferStackBox from '@/components/OfferStackBox/OfferStackBox';
 import StacksInfiniteGrid from './StacksInfiniteGrid';
 import './stacks-page.css';
 
-export const revalidate = 300;
+export const revalidate = 1800;
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://cobonat.me';
 const PER_PAGE = 12;
