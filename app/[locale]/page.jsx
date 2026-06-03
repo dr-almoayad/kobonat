@@ -21,7 +21,7 @@ import PromoCodesFAQ from '@/components/PromoCodesFAQ/PromoCodesFAQ';
 import SavingsBanner from '@/components/SavingsBanner/SavingsBanner';
 import HowItWorks from '@/components/HowItWorks/HowItWorks';
 
-export const revalidate = 60;
+export const revalidate = 1800;
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://cobonat.me';
 
