@@ -9,7 +9,7 @@ import StoreCard from '@/components/StoreCard/StoreCard';
 import FeaturedProductsCarousel from '@/components/FeaturedProductsCarousel/FeaturedProductsCarousel';
 import OtherPromosSection from '@/components/OtherPromosSection/OtherPromosSection';
 import { StoreStructuredSchemas } from '@/lib/seo/storeSchemas';
-import Breadcrumbs from '@/components/Breadcrumbs/Breadcrumbs'; 
+import Breadcrumbs from '@/components/Breadcrumbs/Breadcrumbs';
 import RelatedPostsSidebar from '@/components/blog/RelatedPostsSidebar';
 import StoreOfferStacks from '@/components/StoreOfferStacks/StoreOfferStacks';
 import { getCategoryData } from '@/lib/storeCategories';
@@ -22,9 +22,10 @@ import PromoCodesFAQ from '@/components/PromoCodesFAQ/PromoCodesFAQ';
 import HelpBox from '@/components/help/HelpBox';
 import ExpiredVouchersList from '@/components/ExpiredVouchersList/ExpiredVouchersList';
 import ExpiredOtherPromosList from '@/components/ExpiredOtherPromosList/ExpiredOtherPromosList';
+import { getGeneralFaqSchemaEntities } from '@/components/PromoCodesFAQ/PromoCodesFAQSchema'; // ✅ ADDED
 import './store-page.css';
 
-export const revalidate = 3600; // Updated from 300
+export const revalidate = 3600;
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://cobonat.me';
 
@@ -242,6 +243,9 @@ export default async function StorePage({ params }) {
       })),
     };
 
+    // ✅ Fetch general FAQ schema entities
+    const generalFaqEntities = await getGeneralFaqSchemaEntities(locale);
+
     // Parallel data fetch - Reduced queries and constrained returns
     const [
       allVouchers,
@@ -268,7 +272,7 @@ export default async function StorePage({ params }) {
           { isVerified: 'desc' },
           { popularityScore: 'desc' },
         ],
-        take: 200, 
+        take: 200,
       }),
       prisma.storePaymentMethod.findMany({
         where: { storeId: store.id, countryId: country.id },
@@ -445,7 +449,7 @@ export default async function StorePage({ params }) {
       discountType: p.discountType,
       voucher: p.linkedVoucher,
       otherPromo: p.linkedPromo,
-      storeName: store.name,          
+      storeName: store.name,
       storeLogo: store.logo,
     }));
 
@@ -469,7 +473,7 @@ export default async function StorePage({ params }) {
     const shippingVouchers = transformedVouchers.filter(v => v.type === 'FREE_SHIPPING');
     const countryName = country.translations[0]?.name || country.code;
 
-    // Compute max savings for UI + structured data (removed transformedOtherPromos dependency to prevent crashes)
+    // Compute max savings for UI + structured data
     const maxSavings = Math.max(
       ...transformedVouchers.map(v => v.verifiedAvgPercent ?? v.discountPercent ?? 0),
       0
@@ -516,6 +520,7 @@ export default async function StorePage({ params }) {
           maxSavings={maxSavings}
           updatedAt={store.updatedAt}
           faqs={faqs}
+          generalFaqs={generalFaqEntities} // ✅ ADDED
           breadcrumbs={breadcrumbItems}
         />
 
@@ -620,7 +625,7 @@ export default async function StorePage({ params }) {
               </aside>
             </div>
           </div>
-          
+
           <PromoCodesFAQ includeStructuredData={false} />
           <HelpBox locale={locale} />
         </div>
