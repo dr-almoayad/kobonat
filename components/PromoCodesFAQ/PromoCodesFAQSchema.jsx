@@ -1,12 +1,4 @@
-// components/PromoCodesFAQ/PromoCodesFAQSchema.jsx
-// Server component — emits FAQPage JSON-LD schema alongside the PromoCodesFAQ UI.
-// Uses the same question list as PromoCodesFAQ.jsx so the schema always matches
-// what is visually displayed on the page (a Google Search Console requirement).
-//
-// Usage:
-//   import PromoCodesFAQSchema from '@/components/PromoCodesFAQ/PromoCodesFAQSchema';
-//   <PromoCodesFAQSchema />   ← place immediately before <PromoCodesFAQ />
-
+// components/PromoCodesFAQ/PromoCodesFAQSchema.js
 import { getTranslations } from 'next-intl/server';
 
 // Mirrors the allQuestions array in PromoCodesFAQ.jsx exactly.
@@ -34,13 +26,16 @@ function stripHtml(str) {
   return str.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
 }
 
-export default async function PromoCodesFAQSchema() {
-  const t = await getTranslations('faq');
+/**
+ * Returns an array of Schema.org Question entities for the general promo code FAQs.
+ * Does NOT return a script tag. Used to merge into the main page @graph.
+ */
+export async function getGeneralFaqSchemaEntities(locale) {
+  const t = await getTranslations({ locale, namespace: 'faq' });
 
   const mainEntity = ALL_QUESTIONS.map(({ category, key }) => {
     const questionPath = `categories.${category}.questions.${key}`;
     const question = t(`${questionPath}.question`);
-    // t.raw() returns the raw JSON value which may contain HTML — strip it for schema.
     const answerRaw = t.raw(`${questionPath}.answer`);
     const answer = stripHtml(typeof answerRaw === 'string' ? answerRaw : String(answerRaw));
 
@@ -56,18 +51,5 @@ export default async function PromoCodesFAQSchema() {
     };
   }).filter(Boolean);
 
-  if (mainEntity.length === 0) return null;
-
-  const schema = {
-    '@context': 'https://schema.org',
-    '@type': 'FAQPage',
-    mainEntity,
-  };
-
-  return (
-    <script
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
-    />
-  );
+  return mainEntity;
 }
