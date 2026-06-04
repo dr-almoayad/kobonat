@@ -6,19 +6,8 @@ import './StickyStoreHeader.css';
 
 /**
  * StickyStoreHeader
- *
- * A compact sticky bar that slides down from the top once the main
- * StoreHeader leaves the viewport.  It owns its own copy/track logic
- * so the two components are fully independent.
- *
- * Props
- * -----
- * sentinelRef   – a React ref attached to the main <StoreHeader>.
- *                 We observe it with IntersectionObserver.
- * store         – same store object passed to StoreHeader.
- * mostTrackedVoucher – same voucher object (needs .id, .code, .title).
- * locale        – e.g. 'ar-SA' | 'en-AE'
- * country       – { code, name, … }
+ * ✅ FIXED: CTA button now renders if there is a voucher OR an external website URL.
+ *           This ensures fallback redirection works for stores without active codes.
  */
 const StickyStoreHeader = ({
   sentinelRef,
@@ -38,7 +27,6 @@ const StickyStoreHeader = ({
   const storeLogo = store?.logo;
   const websiteUrl = store?.websiteUrl;
   const voucherCode = mostTrackedVoucher?.code;
-  const topVoucherTitle = mostTrackedVoucher?.title || null;
 
   // ── Observe the main header ───────────────────────────
   useEffect(() => {
@@ -47,12 +35,10 @@ const StickyStoreHeader = ({
 
     const observer = new IntersectionObserver(
       ([entry]) => {
-        // When the main header is NOT intersecting (scrolled away) → show bar
         setIsVisible(!entry.isIntersecting);
       },
       {
         root: null,
-        // Trigger as soon as the very bottom edge of the header leaves the viewport
         rootMargin: '0px 0px 0px 0px',
         threshold: 0,
       }
@@ -96,9 +82,10 @@ const StickyStoreHeader = ({
     }
   };
 
-  // Don't render anything until we actually need to show
-  // (keeps the DOM clean and avoids any layout cost while scrolled to top)
   if (!store) return null;
+
+  // ✅ FIX: Determine if we have any valid action path (Voucher OR Store Link Available)
+  const hasAction = !!voucherCode || !!websiteUrl;
 
   return (
     <div
@@ -114,10 +101,10 @@ const StickyStoreHeader = ({
             <Image
               src={storeLogo}
               alt={`${storeName} logo`}
-              width={100}
-              height={100}
+              width={40} // ✅ UX Optimization: Set explicitly to compact dimensions to prevent LCP/CLS shifts inside a sticky layout
+              height={40}
               className="ssh-logo-img"
-              quality={100}
+              quality={90}
             />
           ) : (
             <div className="ssh-logo-fallback">
@@ -129,20 +116,22 @@ const StickyStoreHeader = ({
         {/* Store name */}
         <span className="ssh-store-name">{storeName}</span>
 
-        {/* CTA — only render when there's a voucher title */}
-        {topVoucherTitle && (
+        {/* ✅ FIX: Now properly renders the action element even if no code is currently listed */}
+        {hasAction && (
           <button
             className={`ssh-cta ${isCopied ? 'copied' : ''}`}
             onClick={handleCopyAndTrack}
             type="button"
           >
             <span className="material-symbols-sharp">
-              {isCopied ? 'check_circle' : 'arrow_forward'}
+              {isCopied ? 'check_circle' : (voucherCode ? 'content_copy' : 'open_in_new')}
             </span>
             <span className="ssh-cta-label">
               {isCopied
-                ? isArabic ? 'تم النسخ!' : 'Copied!'
-                : isArabic ? 'الذهاب للمتجر' : 'Go to Store'}
+                ? (isArabic ? 'تم النسخ!' : 'Copied!')
+                : (voucherCode 
+                    ? (isArabic ? 'نسخ الكود' : 'Copy Code') 
+                    : (isArabic ? 'الذهاب للمتجر' : 'Go to Store'))}
             </span>
             {!isCopied && <div className="ssh-cta-ripple" />}
           </button>
