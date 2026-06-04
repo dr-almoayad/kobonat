@@ -22,7 +22,7 @@ import PromoCodesFAQ from '@/components/PromoCodesFAQ/PromoCodesFAQ';
 import HelpBox from '@/components/help/HelpBox';
 import ExpiredVouchersList from '@/components/ExpiredVouchersList/ExpiredVouchersList';
 import ExpiredOtherPromosList from '@/components/ExpiredOtherPromosList/ExpiredOtherPromosList';
-import { getGeneralFaqSchemaEntities } from '@/components/PromoCodesFAQ/PromoCodesFAQSchema'; // ✅ ADDED
+import { getGeneralFaqSchemaEntities } from '@/components/PromoCodesFAQ/PromoCodesFAQSchema';
 import './store-page.css';
 
 export const revalidate = 3600;
@@ -396,6 +396,42 @@ export default async function StorePage({ params }) {
       store: transformedStore,
     }));
 
+    // Compute latestVoucherDate from active vouchers' updatedAt
+    let latestVoucherDate = null;
+    if (activeVouchers.length > 0) {
+      const latestVoucher = activeVouchers.reduce((latest, v) => {
+        const vDate = v.updatedAt ? new Date(v.updatedAt) : new Date(0);
+        const latestDate = latest?.updatedAt ? new Date(latest.updatedAt) : new Date(0);
+        return vDate > latestDate ? v : latest;
+      }, null);
+      latestVoucherDate = latestVoucher?.updatedAt ? new Date(latestVoucher.updatedAt).toISOString() : null;
+    }
+    // Fallback to store updatedAt if no active vouchers
+    if (!latestVoucherDate && store.updatedAt) {
+      latestVoucherDate = new Date(store.updatedAt).toISOString();
+    }
+
+    // Compute heroSubtitle
+    const maxSavings = Math.max(
+      ...transformedVouchers.map(v => v.verifiedAvgPercent ?? v.discountPercent ?? 0),
+      0
+    );
+    const heroSubtitle = (() => {
+      const codes = transformedVouchers.length;
+      const savings = maxSavings;
+      if (codes === 0) {
+        return language === 'ar' ? 'لا توجد أكواد نشطة حالياً' : 'No active codes currently';
+      }
+      if (savings > 0) {
+        return language === 'ar'
+          ? `${codes} كود نشط • وفر حتى ${savings}%`
+          : `${codes} active codes • Save up to ${savings}%`;
+      }
+      return language === 'ar'
+        ? `${codes} كود نشط`
+        : `${codes} active codes`;
+    })();
+
     // Transform expired promos directly
     const transformedExpiredOtherPromos = expiredOtherPromos.map(p => ({
       id: p.id,
@@ -449,8 +485,8 @@ export default async function StorePage({ params }) {
       discountType: p.discountType,
       voucher: p.linkedVoucher,
       otherPromo: p.linkedPromo,
-      storeName: store.name,
-      storeLogo: store.logo,
+      storeName: transformedStore.name,
+      storeLogo: transformedStore.logo,
     }));
 
     // Related blog posts
@@ -473,13 +509,7 @@ export default async function StorePage({ params }) {
     const shippingVouchers = transformedVouchers.filter(v => v.type === 'FREE_SHIPPING');
     const countryName = country.translations[0]?.name || country.code;
 
-    // Compute max savings for UI + structured data
-    const maxSavings = Math.max(
-      ...transformedVouchers.map(v => v.verifiedAvgPercent ?? v.discountPercent ?? 0),
-      0
-    );
-
-    // Dynamic H1
+    // Dynamic H1 from generateStorePageTitle
     const { h1: pageH1, title: pageTitle, description: autoDescription } = generateStorePageTitle({
       storeName: transformedStore.name,
       locale,
@@ -495,7 +525,7 @@ export default async function StorePage({ params }) {
       { name: transformedStore.name, url: `${BASE_URL}/${locale}/stores/${slug}` },
     ];
 
-    // Header props
+    // Header props (to be passed to StorePageShell)
     const headerProps = {
       store: transformedStore,
       mostTrackedVoucher,
@@ -506,6 +536,8 @@ export default async function StorePage({ params }) {
       voucherCount: transformedVouchers.length,
       maxSavings,
       pageH1,
+      heroSubtitle,
+      latestVoucherDate,
     };
 
     return (
@@ -520,7 +552,7 @@ export default async function StorePage({ params }) {
           maxSavings={maxSavings}
           updatedAt={store.updatedAt}
           faqs={faqs}
-          generalFaqs={generalFaqEntities} // ✅ ADDED
+          generalFaqs={generalFaqEntities}
           breadcrumbs={breadcrumbItems}
         />
 
@@ -635,4 +667,4 @@ export default async function StorePage({ params }) {
     console.error('[StorePage] error:', error);
     return notFound();
   }
-}
+               }
