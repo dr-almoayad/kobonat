@@ -10,10 +10,10 @@ const COUPONS_MAX_PAGE = 9;
 const STACKS_MAX_PAGE  = 9;
 const BLOG_MAX_PAGE    = 5;
 
-// Cache lifecycle configuration for dynamic sitemaps (hourly refresh window)
+// Cache dynamic sitemap responses on the edge infrastructure for 1 hour
 export const revalidate = 3600; 
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+// ── SEO & Localization Helpers ────────────────────────────────────────────────
 
 function buildAlternates(localeUrlMap) {
   if (!localeUrlMap || Object.keys(localeUrlMap).length === 0) return null;
@@ -51,7 +51,7 @@ export default async function sitemap() {
   const urls = [];
   const CURRENT_DATE = new Date();
 
-  // Defensive Date Parser preventing method execution crashes on null or invalid dates
+  // Coerces date references cleanly to prevent runtime schema crashes
   const safeDate = (dateVal) => {
     if (!dateVal) return CURRENT_DATE;
     const parsed = new Date(dateVal);
@@ -112,12 +112,8 @@ export default async function sitemap() {
         });
       }
     }
-  } catch (err) {
-    console.error('Sitemap Layer Error: Static Core Nodes failed', err);
-  }
 
-  // ── 2. Paginated Active Coupons / Vouchers Listing ──────────────────────────
-  try {
+    // ── 2. Paginated Active Coupons / Vouchers Listing ────────────────────────
     const totalVouchers = await prisma.voucher.count({
       where: {
         store: { isActive: true },
@@ -132,7 +128,7 @@ export default async function sitemap() {
       for (const locale of LOCALES) {
         urls.push({
           url: `${BASE_URL}/${locale}${path}`,
-          lastModified: CURRENT_DATE,
+          lastModified: voucherDate, // SEO Optimization: Binds update directly to real data lifecycle
           changeFrequency: page === 1 ? 'daily' : 'weekly',
           priority: page === 1 ? 0.9 : 0.6,
           alternates: { languages: coreAlternates(path) },
@@ -140,7 +136,7 @@ export default async function sitemap() {
       }
     }
   } catch (err) {
-    console.error('Sitemap Layer Error: Voucher Pagination Engine failed', err);
+    console.error('Sitemap Layer Error: Static Core Nodes failed', err);
   }
 
   // ── 3. Offer Stacks Feed Pages ──────────────────────────────────────────────
@@ -150,13 +146,14 @@ export default async function sitemap() {
       prisma.offerStack.count({ where: { isActive: true, countries: { some: { country: { code: 'SA' } } } } }).catch(() => 0)
     ]);
 
+    const stackDate = safeDate(latestStack?.updatedAt);
     const stackLastPage = Math.min(Math.ceil(totalStacks / STACKS_PER_PAGE), STACKS_MAX_PAGE);
     for (let page = 1; page <= stackLastPage; page++) {
       const path = page === 1 ? '/stacks' : `/stacks?page=${page}`;
       for (const locale of LOCALES) {
         urls.push({
           url: `${BASE_URL}/${locale}${path}`,
-          lastModified: safeDate(latestStack?.updatedAt),
+          lastModified: stackDate, 
           changeFrequency: page === 1 ? 'daily' : 'weekly',
           priority: page === 1 ? 0.8 : 0.5,
           alternates: { languages: coreAlternates(path) },
@@ -169,22 +166,28 @@ export default async function sitemap() {
 
   // ── 4. Dynamic Category Profile Paths ───────────────────────────────────────
   try {
+    // Database Optimization: Filters out categories lacking active Saudi stores directly via SQL index
     const categories = await prisma.category.findMany({
+      where: {
+        stores: {
+          some: {
+            store: {
+              isActive: true,
+              countries: { some: { country: { code: 'SA' } } }
+            }
+          }
+        }
+      },
       select: {
         updatedAt: true,
         translations: {
           where: { locale: { in: ['ar', 'en'] } },
           select: { slug: true, locale: true },
         },
-        stores: {
-          where: { store: { isActive: true, countries: { some: { country: { code: 'SA' } } } } },
-          select: { storeId: true },
-        },
       },
     }).catch(() => []);
 
     for (const cat of categories) {
-      if (!cat.stores || cat.stores.length === 0) continue;
       const validUrls = new Map();
       for (const locale of LOCALES) {
         const [lang] = locale.split('-');
@@ -300,13 +303,14 @@ export default async function sitemap() {
       prisma.blogPost.count({ where: { status: 'PUBLISHED' } }).catch(() => 0)
     ]);
 
+    const blogDate = safeDate(latestPost?.updatedAt);
     const blogLastPage = Math.min(Math.ceil(totalBlogPosts / BLOG_PER_PAGE), BLOG_MAX_PAGE);
     for (let page = 1; page <= blogLastPage; page++) {
       const path = page === 1 ? '/blog' : `/blog?page=${page}`;
       for (const locale of LOCALES) {
         urls.push({
           url: `${BASE_URL}/${locale}${path}`,
-          lastModified: safeDate(latestPost?.updatedAt),
+          lastModified: blogDate,
           changeFrequency: page === 1 ? 'daily' : 'weekly',
           priority: page === 1 ? 0.85 : 0.55,
           alternates: { languages: coreAlternates(path) },
@@ -361,11 +365,10 @@ export default async function sitemap() {
     if (lower.includes('/_next/')) return false;
     if (lower.includes('/store-covers/')) return false;
     if (lower.includes('/public/stores/')) return false;
-    // Strip image formats, asset distributions, or structural static styling layers
     return !lower.match(/\.(avif|webp|png|jpg|jpeg|gif|svg|ico|json|js|css|woff2?|ttf|eot|xml|txt)$/);
   });
 
-  // Emergency safety fallback if absolutely all queries across blocks return zero properties
+  // Global safety fallback array if database communication drops out entirely
   if (htmlPages.length === 0) {
     return LOCALES.map(locale => ({
       url: `${BASE_URL}/${locale}`,
@@ -377,4 +380,4 @@ export default async function sitemap() {
   }
 
   return htmlPages;
-}
+          }
