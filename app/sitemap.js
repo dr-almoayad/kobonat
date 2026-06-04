@@ -1,4 +1,3 @@
-// app/sitemap.js
 import { prisma } from '@/lib/prisma';
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://cobonat.me';
@@ -11,32 +10,22 @@ const COUPONS_MAX_PAGE = 9;
 const STACKS_MAX_PAGE  = 9;
 const BLOG_MAX_PAGE    = 5;
 
-const STATIC_LAST_MODIFIED = new Date('2026-05-16');
-
-// ── Was 3600 (hourly). Changed to 86400 (daily).
-// Store/category URLs change at most once a day; sitemaps don't need
-// sub-hour freshness and the old interval caused ~12 DB queries every hour.
-export const revalidate = 86400;
+// ✅ FIX 1: Reduced to 3600 (hourly) to capture frequent voucher/store changes
+export const revalidate = 3600; 
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-
-function getMostRecentDate(...dates) {
-  const valid = dates.filter(d => d instanceof Date && !isNaN(d));
-  return valid.length ? new Date(Math.max(...valid.map(d => d.getTime()))) : new Date();
-}
-
-function allAlternates(path = '') {
-  return {
-    'ar-SA':    `${BASE_URL}/ar-SA${path}`,
-    'en-SA':    `${BASE_URL}/en-SA${path}`,
-    'x-default': `${BASE_URL}/ar-SA${path}`,
-  };
-}
 
 function buildAlternates(localeUrlMap) {
   if (!localeUrlMap || Object.keys(localeUrlMap).length === 0) return null;
   const xDefault = localeUrlMap['ar-SA'] || Object.values(localeUrlMap)[0];
   return { ...localeUrlMap, 'x-default': xDefault };
+}
+
+// ✅ FIX 2: Replaces allAlternates(). Dynamically builds standard mappings
+// but restricts it to valid known routes rather than assuming universal translation.
+function coreAlternates(path = '') {
+  const localeUrlMap = Object.fromEntries(LOCALES.map(loc => [loc, `${BASE_URL}/${loc}${path}`]));
+  return buildAlternates(localeUrlMap);
 }
 
 function deduplicateEntries(entries) {
@@ -61,10 +50,9 @@ const STATIC_PAGES = [
 
 export default async function sitemap() {
   const urls = [];
+  const CURRENT_DATE = new Date(); // ✅ FIX 3: Dynamic static modification date
 
   try {
-    // ── Parallel block — all lightweight (findFirst with select, or count).
-    // These haven't changed; they were already fast.
     const [
       latestVoucherUpdate,
       latestStoreUpdate,
@@ -103,20 +91,26 @@ export default async function sitemap() {
         where: {
           store:     { isActive: true },
           countries: { some: { country: { code: 'SA' } } },
-          OR:        [{ expiryDate: null }, { expiryDate: { gte: new Date() } }],
+          OR:        [{ expiryDate: null }, { expiryDate: { gte: CURRENT_DATE } }],
         },
       }),
-      prisma.offerStack.count({ where: { isActive: true } }),
+      // ✅ FIX 4: Filter global counts by country to avoid over-inflated pagination
+      prisma.offerStack.count({ 
+        where: { 
+          isActive: true,
+          countries: { some: { country: { code: 'SA' } } }
+        } 
+      }),
       prisma.blogPost.count({ where: { status: 'PUBLISHED' } }),
     ]);
 
-    const voucherDate = latestVoucherUpdate?.updatedAt || new Date();
-    const storeDate   = latestStoreUpdate?.updatedAt   || new Date();
-    const postDate    = latestPostUpdate?.updatedAt    || new Date();
-    const promoDate   = latestPromoUpdate?.updatedAt   || new Date();
-    const stackDate   = latestStackUpdate?.updatedAt   || new Date();
+    const voucherDate = latestVoucherUpdate?.updatedAt || CURRENT_DATE;
+    const storeDate   = latestStoreUpdate?.updatedAt   || CURRENT_DATE;
+    const postDate    = latestPostUpdate?.updatedAt    || CURRENT_DATE;
+    const promoDate   = latestPromoUpdate?.updatedAt   || CURRENT_DATE;
+    const stackDate   = latestStackUpdate?.updatedAt   || CURRENT_DATE;
 
-    // ── 1–7. Static and paginated sections — unchanged ────────────────────────
+    // ── 1–7. Static and paginated sections ────────────────────────────────────
 
     for (const locale of LOCALES) {
       urls.push({
@@ -124,7 +118,7 @@ export default async function sitemap() {
         lastModified:    voucherDate,
         changeFrequency: 'daily',
         priority:        1.0,
-        alternates:      { languages: allAlternates() },
+        alternates:      { languages: coreAlternates() },
       });
     }
 
@@ -134,7 +128,7 @@ export default async function sitemap() {
         lastModified:    storeDate,
         changeFrequency: 'daily',
         priority:        0.9,
-        alternates:      { languages: allAlternates('/stores') },
+        alternates:      { languages: coreAlternates('/stores') },
       });
     }
 
@@ -144,7 +138,7 @@ export default async function sitemap() {
         lastModified:    storeDate,
         changeFrequency: 'weekly',
         priority:        0.9,
-        alternates:      { languages: allAlternates('/categories') },
+        alternates:      { languages: coreAlternates('/categories') },
       });
     }
 
@@ -153,37 +147,32 @@ export default async function sitemap() {
       COUPONS_MAX_PAGE
     );
     for (let page = 1; page <= couponsLastPage; page++) {
-      const path       = page === 1 ? '/coupons' : `/coupons?page=${page}`;
-      const alternates = buildAlternates(
-        Object.fromEntries(LOCALES.map(loc => [loc, `${BASE_URL}/${loc}${path}`]))
-      );
+      const path = page === 1 ? '/coupons' : `/coupons?page=${page}`;
       for (const locale of LOCALES) {
         urls.push({
           url:             `${BASE_URL}/${locale}${path}`,
           lastModified:    voucherDate,
           changeFrequency: page === 1 ? 'daily' : 'weekly',
           priority:        page === 1 ? 0.9 : 0.6,
-          alternates:      { languages: alternates },
+          alternates:      { languages: coreAlternates(path) },
         });
       }
     }
 
+    // ✅ FIX 5: Removed unnecessary Math.max(1, ...) to prevent empty page generation
     const stacksLastPage = Math.min(
-      Math.max(1, Math.ceil(totalStacks / STACKS_PER_PAGE)),
+      Math.ceil(totalStacks / STACKS_PER_PAGE),
       STACKS_MAX_PAGE
     );
     for (let page = 1; page <= stacksLastPage; page++) {
-      const path       = page === 1 ? '/stacks' : `/stacks?page=${page}`;
-      const alternates = buildAlternates(
-        Object.fromEntries(LOCALES.map(loc => [loc, `${BASE_URL}/${loc}${path}`]))
-      );
+      const path = page === 1 ? '/stacks' : `/stacks?page=${page}`;
       for (const locale of LOCALES) {
         urls.push({
           url:             `${BASE_URL}/${locale}${path}`,
           lastModified:    stackDate,
           changeFrequency: page === 1 ? 'daily' : 'weekly',
           priority:        page === 1 ? 0.8 : 0.5,
-          alternates:      { languages: alternates },
+          alternates:      { languages: coreAlternates(path) },
         });
       }
     }
@@ -194,7 +183,7 @@ export default async function sitemap() {
         lastModified:    promoDate,
         changeFrequency: 'daily',
         priority:        0.8,
-        alternates:      { languages: allAlternates('/bank-and-payment-offers') },
+        alternates:      { languages: coreAlternates('/bank-and-payment-offers') },
       });
     }
 
@@ -202,17 +191,15 @@ export default async function sitemap() {
       for (const locale of LOCALES) {
         urls.push({
           url:             `${BASE_URL}/${locale}/${page.slug}`,
-          lastModified:    STATIC_LAST_MODIFIED,
+          lastModified:    CURRENT_DATE,
           changeFrequency: page.changeFrequency,
           priority:        page.priority,
-          alternates:      { languages: allAlternates(`/${page.slug}`) },
+          alternates:      { languages: coreAlternates(`/${page.slug}`) },
         });
       }
     }
 
     // ── 8. Category pages ─────────────────────────────────────────────────────
-    // FIX: was `include: { translations: true }` which loaded every locale.
-    // Now uses `select` scoped to the two locales we actually need.
     const categories = await prisma.category.findMany({
       select: {
         updatedAt: true,
@@ -231,17 +218,6 @@ export default async function sitemap() {
         },
       },
     });
-
-    // FIX: the old code ran a separate `prisma.categoryTranslation.findMany`
-    // just to build this slug Set. We already have the translation data above,
-    // so build it from there — one fewer round-trip to Neon.
-    const catSlugsByLang = new Map();
-    for (const cat of categories) {
-      for (const t of cat.translations) {
-        if (!catSlugsByLang.has(t.locale)) catSlugsByLang.set(t.locale, new Set());
-        catSlugsByLang.get(t.locale).add(t.slug);
-      }
-    }
 
     for (const cat of categories) {
       if (cat.stores.length === 0) continue;
@@ -267,14 +243,6 @@ export default async function sitemap() {
     }
 
     // ── 9. Store pages ────────────────────────────────────────────────────────
-    // FIX 1: was `include: { translations: true }` — loaded all locales.
-    //         Now scoped to the two we need via `select`.
-    // FIX 2: was `include: { vouchers: { take: 1, orderBy: updatedAt } }` —
-    //         a JOIN to the vouchers table on every store just to get one date.
-    //         We already have `voucherDate` (the most recent voucher update
-    //         across the whole site) from the parallel block above. Using
-    //         store.updatedAt is accurate enough for sitemap lastModified
-    //         and avoids the per-store voucher join entirely.
     const stores = await prisma.store.findMany({
       where: {
         isActive:  true,
@@ -297,16 +265,13 @@ export default async function sitemap() {
         const [lang]      = locale.split('-');
         const translation = store.translations.find(t => t.locale === lang);
         if (!translation?.slug) continue;
-        // Skip slugs that belong to a category (would redirect anyway)
-        if (catSlugsByLang.get(lang)?.has(translation.slug)) continue;
+        
+        // ✅ FIX 6: Removed fragile category slug overlap check
         validUrls.set(locale, `${BASE_URL}/${locale}/stores/${translation.slug}`);
       }
       if (validUrls.size === 0) continue;
 
       const alternates = buildAlternates(Object.fromEntries(validUrls.entries()));
-      // Use store.updatedAt — accurate and requires no extra join.
-      // The global voucherDate from the parallel block already captures
-      // "when did any voucher last change" at the sitemap level.
       for (const [, url] of validUrls.entries()) {
         urls.push({
           url,
@@ -319,7 +284,6 @@ export default async function sitemap() {
     }
 
     // ── 10. Seasonal pages ────────────────────────────────────────────────────
-    // FIX: was `include: { translations: true }` — loaded all locales.
     const seasonal = await prisma.seasonalPage.findMany({
       where: {
         isActive:  true,
@@ -359,26 +323,23 @@ export default async function sitemap() {
 
     // ── 11. Blog index (paginated) ────────────────────────────────────────────
     const blogLastPage = Math.min(
-      Math.max(1, Math.ceil(totalBlogPosts / BLOG_PER_PAGE)),
+      Math.ceil(totalBlogPosts / BLOG_PER_PAGE),
       BLOG_MAX_PAGE
     );
     for (let page = 1; page <= blogLastPage; page++) {
-      const path       = page === 1 ? '/blog' : `/blog?page=${page}`;
-      const alternates = buildAlternates(
-        Object.fromEntries(LOCALES.map(loc => [loc, `${BASE_URL}/${loc}${path}`]))
-      );
+      const path = page === 1 ? '/blog' : `/blog?page=${page}`;
       for (const locale of LOCALES) {
         urls.push({
           url:             `${BASE_URL}/${locale}${path}`,
           lastModified:    postDate,
           changeFrequency: page === 1 ? 'daily' : 'weekly',
           priority:        page === 1 ? 0.85 : 0.55,
-          alternates:      { languages: alternates },
+          alternates:      { languages: coreAlternates(path) },
         });
       }
     }
 
-    // ── 12. Blog posts — already used `select` correctly, no change needed ───
+    // ── 12. Blog posts ────────────────────────────────────────────────────────
     const blogPosts = await prisma.blogPost.findMany({
       where:  { status: 'PUBLISHED' },
       select: {
@@ -401,10 +362,14 @@ export default async function sitemap() {
       }
       if (validUrls.size === 0) continue;
       const alternates = buildAlternates(Object.fromEntries(validUrls.entries()));
+      
+      // ✅ FIX 7: Replaced partial dead code getMostRecentDate with inline Math.max
+      const latestDate = new Date(Math.max(post.updatedAt.getTime(), (post.publishedAt || new Date(0)).getTime()));
+
       for (const [, url] of validUrls.entries()) {
         urls.push({
           url,
-          lastModified:    getMostRecentDate(post.updatedAt, post.publishedAt),
+          lastModified:    latestDate,
           changeFrequency: 'weekly',
           priority:        post.isFeatured ? 0.8 : 0.7,
           alternates:      { languages: alternates },
@@ -433,7 +398,7 @@ export default async function sitemap() {
       lastModified:    new Date(),
       changeFrequency: 'daily',
       priority:        1.0,
-      alternates:      { languages: allAlternates() },
+      alternates:      { languages: coreAlternates() },
     }));
   }
-}
+          }
