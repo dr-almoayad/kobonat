@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
 import Image from 'next/image';
 import './StoreProductCard.css';
@@ -60,10 +60,16 @@ const StoreProductCard = ({
 
   // ── Legacy Discount Badge ─────────────────────────────────────────────────
   const [discountDisplay, setDiscountDisplay] = useState(null);
-  React.useEffect(() => {
-    if (hasValidPrices || !product) { setDiscountDisplay(null); return; }
+  useEffect(() => {
+    if (hasValidPrices || !product) {
+      setDiscountDisplay(null);
+      return;
+    }
     const { discountValue, discountType } = product;
-    if (!discountValue || discountValue <= 0) { setDiscountDisplay(null); return; }
+    if (!discountValue || discountValue <= 0) {
+      setDiscountDisplay(null);
+      return;
+    }
     const v = Math.round(discountValue);
     setDiscountDisplay(
       discountType === 'PERCENTAGE' ? `${v}%`    :
@@ -80,13 +86,11 @@ const StoreProductCard = ({
   const paymentName = otherPromo?.paymentMethod?.name || null;
   const hasCode     = !!(voucher?.code);
 
-  // Determine discount numbers to injection into strings
   const otherPromoPct = otherPromo?.discountPercent ? Math.round(otherPromo.discountPercent) : null;
   const voucherPct    = voucher?.discountPercent ? Math.round(voucher.discountPercent) : null;
 
-  // Construct precise text layouts based on what offer layer exists
   let ribbonText = '';
-  let ribbonType = 'generic'; // 'bank', 'payment', 'code', 'generic'
+  let ribbonType = 'generic';
 
   if (otherPromo) {
     ribbonType = bankLogo ? 'bank' : paymentLogo ? 'payment' : 'generic';
@@ -97,7 +101,6 @@ const StoreProductCard = ({
     } else {
       ribbonText = isRtl ? `+ خصم إضافي مع ` : `+ Extra Discount with `;
     }
-    // Fallback if logo files don't exist but textual name does
     if (!bankLogo && !paymentLogo) {
       ribbonText += (bankName || paymentName || '');
     }
@@ -113,7 +116,6 @@ const StoreProductCard = ({
         : `+ Extra Discount Code : ${voucher.code}`;
     }
   } else if (voucher) {
-    // Fallback context for deals or free shipping variants with no explicit code
     ribbonText = voucher.discount || (isRtl ? 'عرض خاص' : 'Special Offer');
   }
 
@@ -183,25 +185,21 @@ const StoreProductCard = ({
           {hasRibbon && (
             <div className={`spc-ribbon${isRtl ? ' spc-ribbon--rtl' : ''}`} aria-hidden="true">
               <div className="spc-ribbon__inner" style={{ display: 'flex', alignItems: 'center', gap: '4px', flexWrap: 'wrap' }}>
-                
-                {/* Text String Segment */}
                 <span className="spc-ribbon__label">{ribbonText}</span>
-                
-                {/* Conditional Dynamic Inline Brand Logo Segment */}
                 {ribbonType === 'bank' && bankLogo && (
-                  <span className="spc-ribbon__logo-inline" style={{ display: 'inline-flex', alignItems: 'center' }}>
+                  <span className="spc-ribbon__logo-inline">
                     <Image 
                       src={bankLogo} 
                       unoptimized={true}
                       alt={bankName || ''} 
                       width={75} 
                       height={35} 
-                      style={{ objectFit: 'contain', width: 'auto', maxHeight: '18px' }} // Scale slightly to look beautiful inline with text
+                      style={{ objectFit: 'contain', width: 'auto', maxHeight: '18px' }}
                     />
                   </span>
                 )}
                 {ribbonType === 'payment' && paymentLogo && (
-                  <span className="spc-ribbon__logo-inline" style={{ display: 'inline-flex', alignItems: 'center' }}>
+                  <span className="spc-ribbon__logo-inline">
                     <Image 
                       src={paymentLogo} 
                       unoptimized={true}
@@ -217,40 +215,28 @@ const StoreProductCard = ({
           )}
         </div>
 
-        {/* ── Body (Decluttered — Chip Removed) ───────────────────────────── */}
+        {/* ── Body ───────────────────────────────────────────────────────── */}
         <div className="spc-body">
-          {/* Title */}
           <p className="spc-title">
             {product.title || t('untitled', { default: 'Product' })}
           </p>
 
-          {/* Price Row */}
           {hasValidPrices && (
-            <div
-              className="spc-prices"
-              aria-label={`Price: ${formatSAR(currentPrice)}${hasOriginal ? `, was ${formatSAR(originalPrice)}` : ''}`}
-            >
+            <div className="spc-prices">
               <span className="spc-price-current">{formatSAR(currentPrice)}</span>
               {hasOriginal && (
                 <span className="spc-price-original">{formatSAR(originalPrice)}</span>
               )}
               {savingsPct != null && savingsPct > 0 && (
-                <span className="spc-price-savings" aria-hidden="true">
+                <span className="spc-price-savings">
                   {isRtl ? `${savingsPct}٪-` : `-${savingsPct}%`}
                 </span>
               )}
             </div>
           )}
 
-          {/* BNPL Installment Terms - Driven by storeBnplMethods */}
-          {/* We check if storeBnplMethods exists and has at least one entry */}
           {hasValidPrices && storeBnplMethods?.length > 0 && (
-            <div 
-              className="spc-bnpl" 
-              role="note" 
-              style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', marginTop: '8px' }}
-            >
-              {/* Calculate based on the first available store provider (Tabby/Tamara) */}
+            <div className="spc-bnpl" style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', marginTop: '8px' }}>
               <span className="spc-bnpl__text" style={{ fontSize: '0.85rem', color: '#555' }}>
                 {isRtl ? (
                   <>
@@ -270,7 +256,6 @@ const StoreProductCard = ({
                   </>
                 )}
               </span>
-
               {storeBnplMethods[0].logo ? (
                 <Image
                   src={storeBnplMethods[0].logo}
@@ -287,7 +272,6 @@ const StoreProductCard = ({
             </div>
           )}
         </div>
-
       </article>
     </a>
   );
