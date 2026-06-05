@@ -331,8 +331,6 @@ export default async function StorePage({ params }) {
       prisma.storeProduct.findMany({
         where: {
           storeId: store.id,
-          isFeatured: true,
-          countries: { some: { country: { code: countryCode } } },
         },
         select: {
           id: true,
@@ -381,7 +379,7 @@ export default async function StorePage({ params }) {
           },
         },
         orderBy: [{ order: 'asc' }, { createdAt: 'desc' }],
-        take: 12,
+        take: 24,
       }),
       getStoreRelatedPosts(store.id, language, 6),
       prisma.otherPromo.findMany({
