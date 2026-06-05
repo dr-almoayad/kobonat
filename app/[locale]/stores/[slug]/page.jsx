@@ -60,9 +60,14 @@ export async function generateMetadata({ params }) {
     const isArabic = language === 'ar';
     const now = new Date();
 
-    // If slug belongs to a category, redirect – metadata not needed
+    // ✅ FIX: If slug belongs to a category, provide metadata + noindex
     const isCategory = await getCategoryData(slug, language, countryCode);
-    if (isCategory) return {};
+    if (isCategory) {
+      return {
+        robots: { index: false, follow: true },
+        alternates: { canonical: `${BASE_URL}/${locale}/categories/${slug}` },
+      };
+    }
 
     const store = await getStoreData(slug, language, countryCode);
     if (!store) return {};
@@ -70,6 +75,19 @@ export async function generateMetadata({ params }) {
     const storeTranslation = store.translations[0];
     const storeName = storeTranslation?.name || slug;
 
+    // ✅ FIX: English pages – noindex (thin content, duplicate of Arabic)
+    if (language === 'en') {
+      return {
+        robots: { index: false, follow: true },
+        title: `${storeName} Coupons`,
+        description: `Find the latest ${storeName} discount codes and deals. Updated daily.`,
+        alternates: {
+          canonical: `${BASE_URL}/ar-SA/stores/${storeTranslation?.slug || slug}`,
+        },
+      };
+    }
+
+    // ── Arabic metadata (unchanged, keep original logic) ────────────────────
     const otherLocale = language === 'ar' ? 'en' : 'ar';
     const otherTranslation = await prisma.storeTranslation.findFirst({
       where: { storeId: store.id, locale: otherLocale },
@@ -243,10 +261,10 @@ export default async function StorePage({ params }) {
       })),
     };
 
-    // ✅ Fetch general FAQ schema entities
+    // Fetch general FAQ schema entities
     const generalFaqEntities = await getGeneralFaqSchemaEntities(locale);
 
-    // Parallel data fetch - Reduced queries and constrained returns
+    // Parallel data fetch - reduced queries and constrained returns
     const [
       allVouchers,
       paymentMethodsData,
@@ -272,7 +290,7 @@ export default async function StorePage({ params }) {
           { isVerified: 'desc' },
           { popularityScore: 'desc' },
         ],
-        take: 200,
+        take: 50, // ✅ Reduced from 200 to improve performance and HTML size
       }),
       prisma.storePaymentMethod.findMany({
         where: { storeId: store.id, countryId: country.id },
@@ -427,9 +445,7 @@ export default async function StorePage({ params }) {
           ? `${codes} كود نشط • وفر حتى ${savings}%`
           : `${codes} active codes • Save up to ${savings}%`;
       }
-      return language === 'ar'
-        ? `${codes} كود نشط`
-        : `${codes} active codes`;
+      return language === 'ar' ? `${codes} كود نشط` : `${codes} active codes`;
     })();
 
     // Transform expired promos directly
@@ -667,4 +683,4 @@ export default async function StorePage({ params }) {
     console.error('[StorePage] error:', error);
     return notFound();
   }
-               }
+}
