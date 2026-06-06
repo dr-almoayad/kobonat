@@ -2,12 +2,12 @@
 'use client';
 import React from 'react';
 import Link from 'next/link';
-import './Breadcrumbs.css';
+import './breadcrumbs.css';
 import { useLocale } from 'next-intl';
 
 export default function Breadcrumbs({ category, brand, product, items }) {
   const locale = useLocale();
-  const isRtl = locale.startsWith('ar');
+  const isRtl = locale?.startsWith('ar');
 
   // Helper to build a proper localized URL
   const localizeHref = (path) => {
@@ -44,7 +44,7 @@ export default function Breadcrumbs({ category, brand, product, items }) {
   const trail = [];
   trail.push({ name: locale.startsWith('ar') ? 'الرئيسية' : 'Home', href: '/' });
 
-  // Build category trail recursively, ensuring each href is localized
+  // Build category trail recursively
   const buildCategoryTrail = (cat) => {
     if (!cat) return;
     if (cat.parent) buildCategoryTrail(cat.parent);
