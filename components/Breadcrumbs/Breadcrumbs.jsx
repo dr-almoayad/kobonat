@@ -1,74 +1,87 @@
 // components/Breadcrumbs/Breadcrumbs.jsx
+'use client';
+import React from 'react';
 import Link from 'next/link';
-import './breadcrumbs.css';
+import './Breadcrumbs.css';
+import { useLocale } from 'next-intl';
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://cobonat.me';
+export default function Breadcrumbs({ category, brand, product, items }) {
+  const locale = useLocale();
+  const isRtl = locale.startsWith('ar');
 
-/**
- * Breadcrumb component with visible navigation + Schema.org BreadcrumbList in JSON‑LD.
- * @param {Object[]} items - Array of breadcrumb items.
- * @param {string} items[].name - Display name.
- * @param {string} items[].url - URL for the item (can be absolute or relative).
- * @param {string} locale - Current locale, e.g. 'ar-SA' or 'en-SA'.
- */
-export default function Breadcrumbs({ items, locale }) {
-  if (!items || items.length === 0) return null;
-
-  const isRtl = locale?.startsWith('ar') ?? false;
-  const separator = isRtl ? '‹' : '›';
-
-  // Build absolute URLs for JSON‑LD (Google requires them)
-  const absoluteItems = items.map(item => ({
-    ...item,
-    absoluteUrl: item.url.startsWith('http') ? item.url : `${BASE_URL}${item.url}`,
-  }));
-
-  const breadcrumbSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'BreadcrumbList',
-    itemListElement: absoluteItems.map((item, index) => ({
-      '@type': 'ListItem',
-      position: index + 1,
-      name: item.name,
-      item: {
-        '@id': item.absoluteUrl,
-        name: item.name,
-      },
-    })),
+  // Helper to build a proper localized URL
+  const localizeHref = (path) => {
+    if (!path) return '#';
+    if (path.startsWith('http')) return path;
+    const clean = path.startsWith('/') ? path : `/${path}`;
+    return `/${locale}${clean}`;
   };
 
-  return (
-    <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
-      />
-
-      <nav aria-label="Breadcrumb" className="breadcrumbs">
-        <ol className="breadcrumbs-list">
+  // ── Mode 1: flat items array (used by store pages) ──
+  if (Array.isArray(items) && items.length > 0) {
+    return (
+      <nav className="breadcrumbs" dir={isRtl ? 'rtl' : 'ltr'} aria-label="breadcrumb">
+        <ul>
           {items.map((item, index) => {
             const isLast = index === items.length - 1;
+            const href = localizeHref(item.url);
             return (
-              <li key={item.url} className="breadcrumb-item">
-                {!isLast ? (
-                  <>
-                    <Link href={item.url} className="breadcrumb-link">
-                      {item.name}
-                    </Link>
-                    <span className="breadcrumb-separator" aria-hidden="true">
-                      {separator}
-                    </span>
-                  </>
+              <li key={`${href}-${index}`} className={isLast ? 'active' : ''}>
+                {isLast ? (
+                  <span>{item.name}</span>
                 ) : (
-                  <span className="breadcrumb-current" aria-current="page">
-                    {item.name}
-                  </span>
+                  <Link href={href}>{item.name}</Link>
                 )}
               </li>
             );
           })}
-        </ol>
+        </ul>
       </nav>
-    </>
+    );
+  }
+
+  // ── Mode 2: legacy category / brand / product props ──
+  const trail = [];
+  trail.push({ name: locale.startsWith('ar') ? 'الرئيسية' : 'Home', href: '/' });
+
+  // Build category trail recursively, ensuring each href is localized
+  const buildCategoryTrail = (cat) => {
+    if (!cat) return;
+    if (cat.parent) buildCategoryTrail(cat.parent);
+    const slug = cat.slug || cat.id;
+    const name = locale.startsWith('ar') && cat.name_ar ? cat.name_ar : cat.name_en;
+    trail.push({ name, href: `/categories/${slug}` });
+  };
+  buildCategoryTrail(category);
+
+  if (brand) {
+    const brandSlug = brand.slug || brand.name_en?.toLowerCase().replace(/\s+/g, '-');
+    const brandName = locale.startsWith('ar') && brand.name_ar ? brand.name_ar : brand.name_en;
+    trail.push({ name: brandName, href: `/brands/${brandSlug}` });
+  }
+
+  if (product) {
+    const productName = locale.startsWith('ar') && product.name_ar ? product.name_ar : product.name_en;
+    trail.push({ name: productName, href: '#' }); // current page, no link
+  }
+
+  return (
+    <nav className="breadcrumbs" dir={isRtl ? 'rtl' : 'ltr'} aria-label="breadcrumb">
+      <ul>
+        {trail.map((item, index) => {
+          const isLast = index === trail.length - 1;
+          const href = localizeHref(item.href);
+          return (
+            <li key={`${href}-${index}`} className={isLast ? 'active' : ''}>
+              {isLast || href === '#' ? (
+                <span>{item.name}</span>
+              ) : (
+                <Link href={href}>{item.name}</Link>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+    </nav>
   );
 }
