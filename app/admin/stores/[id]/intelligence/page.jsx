@@ -1,6 +1,7 @@
 'use client';
 // app/admin/stores/[id]/intelligence/page.jsx
 // Full intelligence editor for one store:
+//   — Description (rich text, EN + AR)  ← NEW
 //   — Logistics & delivery info
 //   — Offer cadence
 //   — Peak seasons
@@ -11,15 +12,14 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import '@/components/admin/admin-panel.css';
+import RichTextEditor from '@/components/admin/RichTextEditor/RichTextEditor';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers
 // ─────────────────────────────────────────────────────────────────────────────
 
 const CONFIDENCE_LABELS = { LOW: 'Low', MEDIUM: 'Medium', HIGH: 'High' };
-const CERTAINTY_COLORS  = { EXACT: 'green', VERIFIED: 'green', TYPICAL: 'blue', ESTIMATED: 'amber', UNKNOWN: 'muted' };
 
-function fmt(v) { return v == null ? '—' : v; }
 function fmtPct(v) { return v == null ? '—' : `${Number(v).toFixed(1)}%`; }
 
 function ScoreBar({ label, value, weight }) {
@@ -33,6 +33,80 @@ function ScoreBar({ label, value, weight }) {
         <div style={{ height: '100%', width: `${(value ?? 0) * 10}%`, background: 'var(--ap-accent)', borderRadius: '2px', transition: 'width 0.4s' }} />
       </div>
       <span style={{ fontSize: '0.62rem', color: 'var(--ap-text-muted)', fontFamily: 'var(--ap-mono)', textAlign: 'right' }}>{Math.round(weight * 100)}% weight</span>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Description editor  ← NEW
+// ─────────────────────────────────────────────────────────────────────────────
+
+function DescriptionEditor({ storeId, initialEn, initialAr, flash }) {
+  const [descEn,  setDescEn]  = useState(initialEn || '');
+  const [descAr,  setDescAr]  = useState(initialAr || '');
+  const [saving,  setSaving]  = useState(false);
+
+  // Sync if parent re-loads data (e.g. after triggerCron)
+  useEffect(() => { setDescEn(initialEn || ''); }, [initialEn]);
+  useEffect(() => { setDescAr(initialAr || ''); }, [initialAr]);
+
+  async function handleSave() {
+    setSaving(true);
+    try {
+      const res = await fetch(`/api/admin/stores/${storeId}/description`, {
+        method:  'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ descriptionEn: descEn, descriptionAr: descAr }),
+      });
+      if (!res.ok) throw new Error((await res.json()).error || 'Save failed');
+      flash('success', 'Description saved — it will appear in the Store Intelligence card.');
+    } catch (e) {
+      flash('error', e.message);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div>
+      <p style={{ fontSize: '0.8rem', color: 'var(--ap-text-secondary)', marginBottom: '1.25rem', lineHeight: 1.5 }}>
+        This description appears directly in the <strong>Store Intelligence Card</strong> on the store page.
+        Write it from the shopper's perspective — what makes this store unique, what to expect, tips for saving.
+        Supports bold, italic, lists and links. Both languages are shown to their respective audiences.
+      </p>
+
+      <p className="ap-section-label">English description</p>
+      <RichTextEditor
+        key={`en-${storeId}`}
+        value={descEn}
+        onChange={setDescEn}
+        dir="ltr"
+        placeholder="e.g. Noon is Saudi Arabia's leading e-commerce platform offering…"
+        minHeight={220}
+      />
+
+      <p className="ap-section-label" style={{ marginTop: '1.75rem' }}>
+        Arabic description — الوصف بالعربية
+      </p>
+      <RichTextEditor
+        key={`ar-${storeId}`}
+        value={descAr}
+        onChange={setDescAr}
+        dir="rtl"
+        placeholder="مثال: نون هي المنصة الرائدة للتسوق الإلكتروني في السعودية…"
+        minHeight={220}
+      />
+
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1.5rem' }}>
+        <button
+          type="button"
+          className="ap-btn ap-btn--primary"
+          onClick={handleSave}
+          disabled={saving}
+        >
+          {saving ? <><span className="ap-spinner" /> Saving…</> : 'Save description'}
+        </button>
+      </div>
     </div>
   );
 }
@@ -136,7 +210,6 @@ function UpcomingEventsManager({ storeId, initial, flash, onChanged }) {
   const [events,  setEvents]  = useState(initial || []);
   const [newItem, setNewItem] = useState(BLANK_EVENT);
   const [adding,  setAdding]  = useState(false);
-  const [editing, setEditing] = useState(null); // id of row in edit mode
 
   useEffect(() => { setEvents(initial || []); }, [initial]);
 
@@ -170,7 +243,7 @@ function UpcomingEventsManager({ storeId, initial, flash, onChanged }) {
     onChanged();
   }
 
-  const thisMonth = new Date().toISOString().slice(0, 7); // "2026-03"
+  const thisMonth = new Date().toISOString().slice(0, 7);
 
   return (
     <div>
@@ -200,7 +273,7 @@ function UpcomingEventsManager({ storeId, initial, flash, onChanged }) {
                           (ev.confidenceLevel === 'LOW' && i === 1) ||
                           (ev.confidenceLevel === 'MEDIUM' && i <= 2) ||
                           (ev.confidenceLevel === 'HIGH')
-                          ? `ap-confidence__pip--${ev.confidenceLevel}` : ''
+                            ? `ap-confidence__pip--${ev.confidenceLevel}` : ''
                         }`} />
                       ))}
                       <span style={{ fontSize: '0.7rem', marginLeft: '0.3rem', color: 'var(--ap-text-secondary)' }}>
@@ -221,7 +294,6 @@ function UpcomingEventsManager({ storeId, initial, flash, onChanged }) {
         </div>
       )}
 
-      {/* Add form */}
       <p className="ap-section-label">Add event</p>
       <div className="ap-form-grid" style={{ marginBottom: '0.75rem' }}>
         <div className="ap-field" style={{ gridColumn: 'span 2' }}>
@@ -263,24 +335,24 @@ function UpcomingEventsManager({ storeId, initial, flash, onChanged }) {
 // ─────────────────────────────────────────────────────────────────────────────
 
 const SEASON_PRESETS = [
-  { seasonKey: 'ramadan',          nameEn: 'Ramadan Sale',       nameAr: 'تخفيضات رمضان'       },
-  { seasonKey: 'white_friday',     nameEn: 'White Friday',       nameAr: 'الجمعة البيضاء'       },
-  { seasonKey: 'national_day',     nameEn: 'National Day',       nameAr: 'اليوم الوطني'          },
-  { seasonKey: 'back_to_school',   nameEn: 'Back to School',     nameAr: 'العودة للمدارس'         },
-  { seasonKey: 'summer_sale',      nameEn: 'Summer Sale',        nameAr: 'تخفيضات الصيف'         },
-  { seasonKey: 'year_end',         nameEn: 'Year End Sale',      nameAr: 'تخفيضات نهاية العام'   },
+  { seasonKey: 'ramadan',        nameEn: 'Ramadan Sale',       nameAr: 'تخفيضات رمضان'     },
+  { seasonKey: 'white_friday',   nameEn: 'White Friday',       nameAr: 'الجمعة البيضاء'     },
+  { seasonKey: 'national_day',   nameEn: 'National Day',       nameAr: 'اليوم الوطني'       },
+  { seasonKey: 'back_to_school', nameEn: 'Back to School',     nameAr: 'العودة للمدارس'     },
+  { seasonKey: 'summer_sale',    nameEn: 'Summer Sale',        nameAr: 'تخفيضات الصيف'     },
+  { seasonKey: 'year_end',       nameEn: 'Year End Sale',      nameAr: 'تخفيضات نهاية العام'},
 ];
 
 const BLANK_SEASON = { seasonKey: '', nameEn: '', nameAr: '' };
 
 function PeakSeasonsManager({ storeId, initial, flash, onChanged }) {
-  const [seasons,    setSeasons]    = useState(initial || []);
-  const [newSeason,  setNewSeason]  = useState(BLANK_SEASON);
-  const [adding,     setAdding]     = useState(false);
+  const [seasons,   setSeasons]   = useState(initial || []);
+  const [newSeason, setNewSeason] = useState(BLANK_SEASON);
+  const [adding,    setAdding]    = useState(false);
 
   useEffect(() => { setSeasons(initial || []); }, [initial]);
 
-  const existingKeys = new Set(seasons.map((s) => s.seasonKey));
+  const existingKeys     = new Set(seasons.map((s) => s.seasonKey));
   const availablePresets = SEASON_PRESETS.filter((p) => !existingKeys.has(p.seasonKey));
 
   async function handleAdd() {
@@ -312,7 +384,6 @@ function PeakSeasonsManager({ storeId, initial, flash, onChanged }) {
 
   return (
     <div>
-      {/* Current seasons */}
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '1.25rem' }}>
         {seasons.length === 0 && <span style={{ color: 'var(--ap-text-muted)', fontSize: '0.8rem', fontFamily: 'var(--ap-mono)' }}>None added yet.</span>}
         {seasons.map((s) => (
@@ -321,15 +392,11 @@ function PeakSeasonsManager({ storeId, initial, flash, onChanged }) {
               <div style={{ fontSize: '0.78rem', fontWeight: 600 }}>{s.nameEn}</div>
               <div style={{ fontSize: '0.7rem', color: 'var(--ap-text-muted)', direction: 'rtl' }}>{s.nameAr}</div>
             </div>
-            <button
-              onClick={() => handleDelete(s.id, s.seasonKey)}
-              style={{ background: 'none', border: 'none', color: 'var(--ap-text-muted)', cursor: 'pointer', fontSize: '0.9rem', padding: '0 0.2rem' }}
-            >✕</button>
+            <button onClick={() => handleDelete(s.id, s.seasonKey)} style={{ background: 'none', border: 'none', color: 'var(--ap-text-muted)', cursor: 'pointer', fontSize: '0.9rem', padding: '0 0.2rem' }}>✕</button>
           </div>
         ))}
       </div>
 
-      {/* Presets */}
       {availablePresets.length > 0 && (
         <>
           <p className="ap-section-label">Quick-add preset seasons</p>
@@ -362,7 +429,6 @@ function PeakSeasonsManager({ storeId, initial, flash, onChanged }) {
         </>
       )}
 
-      {/* Custom season */}
       <p className="ap-section-label">Custom season</p>
       <div className="ap-form-grid" style={{ marginBottom: '0.75rem' }}>
         <div className="ap-field">
@@ -407,14 +473,12 @@ function MetricsHistory({ metrics }) {
             <th>Score</th>
             <th>Max stackable</th>
             <th>Avg discount</th>
-            <th>Quality ratio</th>
             <th>Active offers</th>
             <th>Updated</th>
           </tr>
         </thead>
         <tbody>
           {metrics.map((m) => {
-            const breakdown = m.scoreBreakdown ? JSON.parse(m.scoreBreakdown) : null;
             const scoreClass = m.storeScore >= 7.5 ? 'high' : m.storeScore >= 5 ? 'mid' : 'low';
             return (
               <tr key={m.monthIdentifier}>
@@ -424,9 +488,6 @@ function MetricsHistory({ metrics }) {
                 </td>
                 <td className="ap-table__mono ap-table__dim">{fmtPct(m.maxStackableSavingsPercent)}</td>
                 <td className="ap-table__mono ap-table__dim">{fmtPct(m.averageDiscountPercent)}</td>
-                <td className="ap-table__mono ap-table__dim">
-                  {m.offerQualityRatio != null ? `${(m.offerQualityRatio * 100).toFixed(0)}%` : '—'}
-                </td>
                 <td className="ap-table__mono ap-table__dim">{m.totalActiveOffers}</td>
                 <td className="ap-table__dim" style={{ fontSize: '0.72rem' }}>
                   {new Date(m.updatedAt).toLocaleDateString()}
@@ -444,16 +505,16 @@ function MetricsHistory({ metrics }) {
 // Main page
 // ─────────────────────────────────────────────────────────────────────────────
 
-const TABS = ['Logistics', 'Upcoming Events', 'Peak Seasons', 'Metrics History'];
+const TABS = ['Description', 'Logistics', 'Upcoming Events', 'Peak Seasons', 'Metrics History'];
 
 export default function StoreIntelligencePage() {
-  const params = useParams();
+  const params  = useParams();
   const storeId = Number(params.id);
 
-  const [data, setData] = useState(null);
+  const [data,    setData]    = useState(null);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState('Logistics');
-  const [alert, setAlert] = useState(null);
+  const [tab,     setTab]     = useState('Description');
+  const [alert,   setAlert]   = useState(null);
   const [running, setRunning] = useState(false);
 
   function flash(type, msg) {
@@ -461,19 +522,16 @@ export default function StoreIntelligencePage() {
     setTimeout(() => setAlert(null), 5000);
   }
 
-  // Define fetchData with useCallback, depends only on storeId
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/admin/stores/${storeId}/intelligence`);
+      const res  = await fetch(`/api/admin/stores/${storeId}/intelligence`);
       if (!res.ok) {
         const err = await res.json();
         throw new Error(err.error || 'Failed to load');
       }
-      const json = await res.json();
-      setData(json);
+      setData(await res.json());
     } catch (e) {
-      console.error('Fetch error:', e);
       flash('error', e.message);
       setData(null);
     } finally {
@@ -482,26 +540,21 @@ export default function StoreIntelligencePage() {
   }, [storeId]);
 
   useEffect(() => {
-    // Only fetch if storeId is valid
-    if (storeId && !isNaN(storeId)) {
-      fetchData();
-    } else {
-      setLoading(false);
-    }
+    if (storeId && !isNaN(storeId)) fetchData();
+    else setLoading(false);
   }, [fetchData]);
 
   async function triggerCron() {
     setRunning(true);
     try {
-      const res = await fetch('/api/admin/intelligence/trigger', {
-        method: 'POST',
+      const res    = await fetch('/api/admin/intelligence/trigger', {
+        method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ storeId }),
+        body:    JSON.stringify({ storeId }),
       });
       const result = await res.json();
       if (!result.ok) throw new Error(result.error);
       flash('success', `Intelligence recalculated in ${result.durationMs}ms.`);
-      // Refresh data after cron completes
       await fetchData();
     } catch (e) {
       flash('error', e.message);
@@ -518,9 +571,14 @@ export default function StoreIntelligencePage() {
     );
   }
 
-  const storeName = data?.translations?.[0]?.name ?? `Store #${storeId}`;
+  // Support both old (single EN translation at [0]) and new (array with locale field)
+  const translations  = data?.translations || [];
+  const enTranslation = translations.find(t => t.locale === 'en') || translations[0] || {};
+  const arTranslation = translations.find(t => t.locale === 'ar') || {};
+
+  const storeName     = enTranslation.name ?? `Store #${storeId}`;
   const latestMetrics = data?.savingsMetrics?.[0];
-  const latestSnap = data?.savingsSnapshots?.[0];
+  const latestSnap    = data?.savingsSnapshots?.[0];
 
   return (
     <div className="ap-root">
@@ -563,12 +621,6 @@ export default function StoreIntelligencePage() {
             <span className="ap-stat__value">{fmtPct(latestMetrics?.maxStackableSavingsPercent)}</span>
           </div>
           <div className="ap-stat">
-            <span className="ap-stat__label">Offer quality ratio</span>
-            <span className="ap-stat__value">
-              {latestMetrics?.offerQualityRatio != null ? `${(latestMetrics.offerQualityRatio * 100).toFixed(0)}%` : '—'}
-            </span>
-          </div>
-          <div className="ap-stat">
             <span className="ap-stat__label">Active offers</span>
             <span className="ap-stat__value">{latestMetrics?.totalActiveOffers ?? '—'}</span>
           </div>
@@ -577,6 +629,13 @@ export default function StoreIntelligencePage() {
             <span className="ap-stat__value" style={{ fontSize: '0.85rem' }}>
               {data?.lastVerifiedAt ? new Date(data.lastVerifiedAt).toLocaleDateString() : 'Never'}
             </span>
+          </div>
+          <div className="ap-stat">
+            <span className="ap-stat__label">Description</span>
+            <span className={`ap-stat__value ${enTranslation.description ? 'ap-stat__value--green' : 'ap-stat__value--red'}`} style={{ fontSize: '0.8rem' }}>
+              {enTranslation.description ? '✓ Set' : '✗ Missing'}
+            </span>
+            <span className="ap-stat__sub">{arTranslation.description ? '✓ AR set' : '✗ AR missing'}</span>
           </div>
         </div>
 
@@ -605,12 +664,34 @@ export default function StoreIntelligencePage() {
         {/* ── Tabs ──────────────────────────────────────────────────────── */}
         <div className="ap-tabs">
           {TABS.map((t) => (
-            <button key={t} className={`ap-tab ${tab === t ? 'ap-tab--active' : ''}`} onClick={() => setTab(t)}>{t}</button>
+            <button key={t} className={`ap-tab ${tab === t ? 'ap-tab--active' : ''}`} onClick={() => setTab(t)}>
+              {t === 'Description' && (
+                <span
+                  style={{
+                    display: 'inline-block', width: 6, height: 6, borderRadius: '50%',
+                    background: enTranslation.description ? '#22c55e' : '#ef4444',
+                    marginRight: 5, verticalAlign: 'middle',
+                  }}
+                />
+              )}
+              {t}
+            </button>
           ))}
         </div>
 
         <div className="ap-card">
           <div className="ap-card-body">
+
+            {/* ── Description tab ──────────────────────────────────────── */}
+            {tab === 'Description' && (
+              <DescriptionEditor
+                storeId={storeId}
+                initialEn={enTranslation.description || ''}
+                initialAr={arTranslation.description || ''}
+                flash={flash}
+              />
+            )}
+
             {tab === 'Logistics' && (
               <LogisticsForm
                 storeId={storeId}
@@ -619,25 +700,29 @@ export default function StoreIntelligencePage() {
                 flash={flash}
               />
             )}
+
             {tab === 'Upcoming Events' && (
               <UpcomingEventsManager
                 storeId={storeId}
                 initial={data?.upcomingEvents}
                 flash={flash}
-                onChanged={fetchData}   // ✅
+                onChanged={fetchData}
               />
             )}
+
             {tab === 'Peak Seasons' && (
               <PeakSeasonsManager
                 storeId={storeId}
                 initial={data?.peakSeasons}
                 flash={flash}
-                onChanged={fetchData}   // ✅
+                onChanged={fetchData}
               />
             )}
+
             {tab === 'Metrics History' && (
               <MetricsHistory metrics={data?.savingsMetrics} />
             )}
+
           </div>
         </div>
 
