@@ -12,6 +12,7 @@ import { StoreStructuredSchemas } from '@/lib/seo/storeSchemas';
 import Breadcrumbs from '@/components/Breadcrumbs/Breadcrumbs';
 import RelatedPostsSidebar from '@/components/blog/RelatedPostsSidebar';
 import StoreOfferStacks from '@/components/StoreOfferStacks/StoreOfferStacks';
+import StoreIntelligenceCard from '@/components/StoreIntelligenceCard/StoreIntelligenceCard';
 import { getCategoryData } from '@/lib/storeCategories';
 import { getStoreData } from '@/lib/stores';
 import { getStoreRelatedPosts } from '@/app/admin/_lib/queries';
@@ -627,6 +628,13 @@ export default async function StorePage({ params }) {
                     products={transformedProducts}
                   />
                 )}
+
+                {/* --- Store Intelligence Card --- */}
+                <StoreIntelligenceCard
+                  storeId={store.id}
+                  locale={locale}
+                  countryCode={countryCode || 'SA'}
+                />
 
                 {faqs.length > 0 && (
                   <StoreFAQ
