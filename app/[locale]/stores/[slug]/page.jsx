@@ -16,7 +16,6 @@ import StoreIntelligenceCard from '@/components/StoreIntelligenceCard/StoreIntel
 import { getCategoryData } from '@/lib/storeCategories';
 import { getStoreData } from '@/lib/stores';
 import { getStoreRelatedPosts } from '@/app/admin/_lib/queries';
-import { generateEnhancedStoreMetadata } from '@/lib/seo/generateStoreMetadata';
 import { getCurrentWeekIdentifier } from '@/lib/leaderboard/calculateStoreSavings';
 import { generateStorePageTitle } from '@/lib/seo/dynamicStoreTitle';
 import PromoCodesFAQ from '@/components/PromoCodesFAQ/PromoCodesFAQ';
@@ -27,21 +26,28 @@ import { getGeneralFaqSchemaEntities } from '@/components/PromoCodesFAQ/PromoCod
 import './store-page.css';
 
 export const revalidate = 3600;
+export const dynamicParams = true; // ✅ Forces on‑demand rendering for any missing static param
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://cobonat.me';
 
-// ── Static params ─────────────────────────────────────────────────────────────
+// ── Optimised Static Params (only featured stores, limit 100) ──
 export async function generateStaticParams() {
   try {
-    const translations = await prisma.storeTranslation.findMany({
-      where: { store: { isActive: true } },
+    const featuredStoreTranslations = await prisma.storeTranslation.findMany({
+      where: {
+        store: {
+          isActive: true,
+          isFeatured: true,
+        },
+      },
       select: { slug: true, locale: true },
+      take: 24,
     });
 
     const localeMap = { ar: 'ar-SA', en: 'en-SA' };
     const params = [];
 
-    for (const t of translations) {
+    for (const t of featuredStoreTranslations) {
       const fullLocale = localeMap[t.locale];
       if (fullLocale && t.slug) {
         params.push({ locale: fullLocale, slug: t.slug });
@@ -53,15 +59,38 @@ export async function generateStaticParams() {
   }
 }
 
+/**
+ * Helper: fallback for old Arabic slugs (or any mismatched slug)
+ * Searches for a store translation by name (partial match) in the requested locale.
+ * Returns the correct (English) slug if found, otherwise null.
+ */
+async function handleLegacySlugFallback(slug, language) {
+  const hasArabic = /[\u0600-\u06FF]/.test(slug);
+  if (!hasArabic) return null;
+
+  // Attempt to find a store whose translation name contains the slug (with dashes replaced by spaces)
+  const normalized = slug.replace(/-/g, ' ');
+  const fallback = await prisma.storeTranslation.findFirst({
+    where: {
+      locale: language,
+      name: { contains: normalized, mode: 'insensitive' },
+      store: { isActive: true },
+    },
+    select: { slug: true },
+  });
+  return fallback?.slug || null;
+}
+
 // ── Metadata ──────────────────────────────────────────────────────────────────
 export async function generateMetadata({ params }) {
   try {
-    const { slug, locale } = await params;
+    const { slug: rawSlug, locale } = await params;
+    let slug = decodeURIComponent(rawSlug);
     const [language, countryCode] = locale.split('-');
     const isArabic = language === 'ar';
     const now = new Date();
 
-    // ✅ FIX: If slug belongs to a category, provide metadata + noindex
+    // Category redirect check
     const isCategory = await getCategoryData(slug, language, countryCode);
     if (isCategory) {
       return {
@@ -70,25 +99,34 @@ export async function generateMetadata({ params }) {
       };
     }
 
-    const store = await getStoreData(slug, language, countryCode);
-    if (!store) return {};
+    let store = await getStoreData(slug, language, countryCode);
+
+    // Fallback: try to redirect from old Arabic slug
+    if (!store) {
+      const newSlug = await handleLegacySlugFallback(slug, language);
+      if (newSlug) {
+        // In metadata we return a noindex + canonical pointing to the new URL
+        return {
+          robots: { index: false, follow: true },
+          alternates: { canonical: `${BASE_URL}/${locale}/stores/${newSlug}` },
+        };
+      }
+      return {};
+    }
 
     const storeTranslation = store.translations[0];
     const storeName = storeTranslation?.name || slug;
 
-    // ✅ FIX: English pages – noindex (thin content, duplicate of Arabic)
+    // English pages – noindex
     if (language === 'en') {
       return {
         robots: { index: false, follow: true },
         title: `${storeName} Coupons`,
         description: `Find the latest ${storeName} discount codes and deals. Updated daily.`,
-        alternates: {
-          canonical: `${BASE_URL}/ar-SA/stores/${storeTranslation?.slug || slug}`,
-        },
+        alternates: { canonical: `${BASE_URL}/ar-SA/stores/${storeTranslation?.slug || slug}` },
       };
     }
 
-    // ── Arabic metadata (unchanged, keep original logic) ────────────────────
     const otherLocale = language === 'ar' ? 'en' : 'ar';
     const otherTranslation = await prisma.storeTranslation.findFirst({
       where: { storeId: store.id, locale: otherLocale },
@@ -103,32 +141,14 @@ export async function generateMetadata({ params }) {
     if (enSlug) hreflangLanguages['en-SA'] = `${BASE_URL}/en-SA/stores/${enSlug}`;
     hreflangLanguages['x-default'] = `${BASE_URL}/ar-SA/stores/${arSlug || enSlug || slug}`;
 
-    // If admin has set custom SEO title/description, use it
+    // Custom SEO if set by admin
     if (storeTranslation?.seoTitle || storeTranslation?.seoDescription) {
       return {
         metadataBase: new URL(BASE_URL),
-        icons: {
-          icon: [
-            { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
-            { url: '/favicon-96x96.png', sizes: '96x96', type: 'image/png' },
-          ],
-          apple: [{ url: '/apple-touch-icon.png', sizes: '180x180' }],
-        },
         title: storeTranslation.seoTitle || storeName,
         description: storeTranslation.seoDescription || storeTranslation?.description || '',
-        alternates: {
-          canonical: `${BASE_URL}/${locale}/stores/${slug}`,
-          languages: hreflangLanguages,
-        },
-        openGraph: {
-          siteName: isArabic ? 'كوبونات' : 'Cobonat',
-          title: storeTranslation.seoTitle || storeName,
-          description: storeTranslation.seoDescription || storeTranslation?.description || '',
-          type: 'website',
-          locale,
-          url: `${BASE_URL}/${locale}/stores/${slug}`,
-          images: store.coverImage ? [{ url: store.coverImage, width: 1200, height: 630 }] : [],
-        },
+        alternates: { canonical: `${BASE_URL}/${locale}/stores/${slug}`, languages: hreflangLanguages },
+        robots: { index: true, follow: true, googleBot: { 'max-image-preview': 'large', 'max-snippet': -1 } },
       };
     }
 
@@ -146,14 +166,7 @@ export async function generateMetadata({ params }) {
           storeId: store.id,
           countries: { some: { country: { code: countryCode } } },
           OR: [{ expiryDate: null }, { expiryDate: { gte: now } }],
-          AND: [
-            {
-              OR: [
-                { verifiedAvgPercent: { not: null, gt: 0 } },
-                { discountPercent: { not: null, gt: 0 } },
-              ],
-            },
-          ],
+          AND: [{ OR: [{ verifiedAvgPercent: { gt: 0 } }, { discountPercent: { gt: 0 } }] }],
         },
         select: { discountPercent: true, verifiedAvgPercent: true },
       }),
@@ -176,19 +189,9 @@ export async function generateMetadata({ params }) {
 
     return {
       metadataBase: new URL(BASE_URL),
-      icons: {
-        icon: [
-          { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
-          { url: '/favicon-96x96.png', sizes: '96x96', type: 'image/png' },
-        ],
-        apple: [{ url: '/apple-touch-icon.png', sizes: '180x180' }],
-      },
       title,
       description,
-      alternates: {
-        canonical: `${BASE_URL}/${locale}/stores/${slug}`,
-        languages: hreflangLanguages,
-      },
+      alternates: { canonical: `${BASE_URL}/${locale}/stores/${slug}`, languages: hreflangLanguages },
       openGraph: {
         siteName: isArabic ? 'كوبونات' : 'Cobonat',
         title,
@@ -208,12 +211,7 @@ export async function generateMetadata({ params }) {
       robots: {
         index: true,
         follow: true,
-        googleBot: {
-          index: true,
-          follow: true,
-          'max-image-preview': 'large',
-          'max-snippet': -1,
-        },
+        googleBot: { index: true, follow: true, 'max-image-preview': 'large', 'max-snippet': -1 },
       },
     };
   } catch (error) {
@@ -222,24 +220,30 @@ export async function generateMetadata({ params }) {
   }
 }
 
-// ── Page ──────────────────────────────────────────────────────────────────────
+// ── Page Component ─────────────────────────────────────────────────────────────
 export default async function StorePage({ params }) {
   try {
-    const { slug, locale } = await params;
+    const { slug: rawSlug, locale } = await params;
+    let slug = decodeURIComponent(rawSlug);
     const [language, countryCode] = locale.split('-');
-    const currentWeek = getCurrentWeekIdentifier();
     const now = new Date();
 
-    // Category redirect
+    // Category redirect (only once)
     const category = await getCategoryData(slug, language, countryCode);
     if (category) permanentRedirect(`/${locale}/categories/${slug}`);
 
-    // Fetch store
-    const store = await getStoreData(slug, language, countryCode);
-    if (!store) return notFound();
+    let store = await getStoreData(slug, language, countryCode);
+
+    // Fallback redirect from old Arabic slug
+    if (!store) {
+      const newSlug = await handleLegacySlugFallback(slug, language);
+      if (newSlug) {
+        return permanentRedirect(`/${locale}/stores/${newSlug}`);
+      }
+      return notFound();
+    }
 
     const tStore = await getTranslations('StorePage');
-
     const country = await prisma.country.findUnique({
       where: { code: countryCode, isActive: true },
       include: { translations: { where: { locale: language } } },
@@ -262,10 +266,9 @@ export default async function StorePage({ params }) {
       })),
     };
 
-    // Fetch general FAQ schema entities
     const generalFaqEntities = await getGeneralFaqSchemaEntities(locale);
 
-    // Parallel data fetch - reduced queries and constrained returns
+    // Parallel data fetch (reduced complexity)
     const [
       allVouchers,
       paymentMethodsData,
@@ -276,28 +279,18 @@ export default async function StorePage({ params }) {
       expiredOtherPromos,
     ] = await Promise.all([
       prisma.voucher.findMany({
-        where: {
-          storeId: store.id,
-          countries: { some: { country: { code: countryCode } } },
-        },
+        where: { storeId: store.id, countries: { some: { country: { code: countryCode } } } },
         include: {
           translations: { where: { locale: language } },
           _count: { select: { clicks: true } },
           store: { include: { translations: { where: { locale: language } } } },
         },
-        orderBy: [
-          { expiryDate: 'desc' },
-          { isExclusive: 'desc' },
-          { isVerified: 'desc' },
-          { popularityScore: 'desc' },
-        ],
-        take: 50, // ✅ Reduced from 200 to improve performance and HTML size
+        orderBy: [{ expiryDate: 'desc' }, { isExclusive: 'desc' }, { isVerified: 'desc' }, { popularityScore: 'desc' }],
+        take: 50,
       }),
       prisma.storePaymentMethod.findMany({
         where: { storeId: store.id, countryId: country.id },
-        include: {
-          paymentMethod: { include: { translations: { where: { locale: language } } } },
-        },
+        include: { paymentMethod: { include: { translations: { where: { locale: language } } } } },
       }),
       prisma.storeFAQ.findMany({
         where: { storeId: store.id, countryId: country.id, isActive: true },
@@ -309,30 +302,17 @@ export default async function StorePage({ params }) {
           id: { not: store.id },
           isActive: true,
           countries: { some: { country: { code: countryCode } } },
-          categories: {
-            some: { categoryId: { in: store.categories.map(sc => sc.categoryId) } },
-          },
+          categories: { some: { categoryId: { in: store.categories.map(sc => sc.categoryId) } } },
         },
         include: {
           translations: { where: { locale: language } },
-          _count: {
-            select: {
-              vouchers: {
-                where: {
-                  OR: [{ expiryDate: null }, { expiryDate: { gte: now } }],
-                  countries: { some: { country: { code: countryCode } } },
-                },
-              },
-            },
-          },
+          _count: { select: { vouchers: { where: { OR: [{ expiryDate: null }, { expiryDate: { gte: now } }] } } } },
         },
         take: 6,
         orderBy: { isFeatured: 'desc' },
       }),
       prisma.storeProduct.findMany({
-        where: {
-          storeId: store.id,
-        },
+        where: { storeId: store.id },
         select: {
           id: true,
           image: true,
@@ -362,19 +342,8 @@ export default async function StorePage({ params }) {
               verifiedAvgPercent: true,
               installmentMonths: true,
               translations: { where: { locale: language }, select: { title: true } },
-              bank: {
-                select: {
-                  logo: true,
-                  translations: { where: { locale: language }, select: { name: true } },
-                },
-              },
-              paymentMethod: {
-                select: {
-                  logo: true,
-                  isBnpl: true,
-                  translations: { where: { locale: language }, select: { name: true } },
-                },
-              },
+              bank: { select: { logo: true, translations: { where: { locale: language }, select: { name: true } } } },
+              paymentMethod: { select: { logo: true, isBnpl: true, translations: { where: { locale: language }, select: { name: true } } } },
               card: { select: { maxInstallmentMonths: true } },
             },
           },
@@ -401,11 +370,9 @@ export default async function StorePage({ params }) {
       }),
     ]);
 
-    // Split vouchers
     const activeVouchers = allVouchers.filter(v => !v.expiryDate || v.expiryDate >= now);
     const expiredVouchers = allVouchers.filter(v => v.expiryDate && v.expiryDate < now).slice(0, 10);
 
-    // Transform active vouchers
     const transformedVouchers = activeVouchers.map(v => ({
       ...v,
       title: v.translations[0]?.title || '',
@@ -413,7 +380,6 @@ export default async function StorePage({ params }) {
       store: transformedStore,
     }));
 
-    // Compute latestVoucherDate from active vouchers' updatedAt
     let latestVoucherDate = null;
     if (activeVouchers.length > 0) {
       const latestVoucher = activeVouchers.reduce((latest, v) => {
@@ -423,31 +389,17 @@ export default async function StorePage({ params }) {
       }, null);
       latestVoucherDate = latestVoucher?.updatedAt ? new Date(latestVoucher.updatedAt).toISOString() : null;
     }
-    // Fallback to store updatedAt if no active vouchers
-    if (!latestVoucherDate && store.updatedAt) {
-      latestVoucherDate = new Date(store.updatedAt).toISOString();
-    }
+    if (!latestVoucherDate && store.updatedAt) latestVoucherDate = new Date(store.updatedAt).toISOString();
 
-    // Compute heroSubtitle
-    const maxSavings = Math.max(
-      ...transformedVouchers.map(v => v.verifiedAvgPercent ?? v.discountPercent ?? 0),
-      0
-    );
+    const maxSavings = Math.max(...transformedVouchers.map(v => v.verifiedAvgPercent ?? v.discountPercent ?? 0), 0);
     const heroSubtitle = (() => {
       const codes = transformedVouchers.length;
       const savings = maxSavings;
-      if (codes === 0) {
-        return language === 'ar' ? 'لا توجد أكواد نشطة حالياً' : 'No active codes currently';
-      }
-      if (savings > 0) {
-        return language === 'ar'
-          ? `${codes} كود نشط • وفر حتى ${savings}%`
-          : `${codes} active codes • Save up to ${savings}%`;
-      }
+      if (codes === 0) return language === 'ar' ? 'لا توجد أكواد نشطة حالياً' : 'No active codes currently';
+      if (savings > 0) return language === 'ar' ? `${codes} كود نشط • وفر حتى ${savings}%` : `${codes} active codes • Save up to ${savings}%`;
       return language === 'ar' ? `${codes} كود نشط` : `${codes} active codes`;
     })();
 
-    // Transform expired promos directly
     const transformedExpiredOtherPromos = expiredOtherPromos.map(p => ({
       id: p.id,
       type: p.type,
@@ -461,17 +413,18 @@ export default async function StorePage({ params }) {
       description: p.translations[0]?.description || null,
       terms: p.translations[0]?.terms || null,
       bank: p.bank ? { name: p.bank.translations[0]?.name || '', logo: p.bank.logo } : null,
-      paymentMethod: p.paymentMethod ? {
-        name: p.paymentMethod.translations[0]?.name || '',
-        logo: p.paymentMethod.logo,
-        type: p.paymentMethod.type,
-        isBnpl: p.paymentMethod.isBnpl,
-      } : null,
+      paymentMethod: p.paymentMethod
+        ? {
+            name: p.paymentMethod.translations[0]?.name || '',
+            logo: p.paymentMethod.logo,
+            type: p.paymentMethod.type,
+            isBnpl: p.paymentMethod.isBnpl,
+          }
+        : null,
       card: p.card,
       voucherCode: p.voucherCode,
     }));
 
-    // Payment methods
     const allPaymentMethods = paymentMethodsData.map(spm => ({
       ...spm.paymentMethod,
       name: spm.paymentMethod.translations[0]?.name || '',
@@ -481,14 +434,12 @@ export default async function StorePage({ params }) {
     const otherPaymentMethods = allPaymentMethods.filter(pm => !pm.isBnpl);
     const mostTrackedVoucher = transformedVouchers[0] || null;
 
-    // Related stores
     const transformedRelatedStores = relatedStores.map(s => ({
       ...s,
       name: s.translations[0]?.name || '',
       slug: s.translations[0]?.slug || '',
     }));
 
-    // Transform products
     const transformedProducts = storeProducts.map(p => ({
       id: p.id,
       image: p.image,
@@ -504,7 +455,6 @@ export default async function StorePage({ params }) {
       storeLogo: transformedStore.logo,
     }));
 
-    // Related blog posts
     const relatedPosts = relatedPostsRaw.map(post => ({
       id: post.id,
       slug: post.slug,
@@ -512,19 +462,19 @@ export default async function StorePage({ params }) {
       excerpt: post.translations?.[0]?.excerpt || null,
       featuredImage: post.featuredImage || null,
       publishedAt: post.publishedAt,
-      category: post.category ? {
-        name: post.category.translations?.[0]?.name || '',
-        color: post.category.color || '#470ae2',
-      } : null,
+      category: post.category
+        ? {
+            name: post.category.translations?.[0]?.name || '',
+            color: post.category.color || '#470ae2',
+          }
+        : null,
     }));
 
-    // Categorised vouchers
     const codeVouchers = transformedVouchers.filter(v => v.type === 'CODE');
     const dealVouchers = transformedVouchers.filter(v => v.type === 'DEAL');
     const shippingVouchers = transformedVouchers.filter(v => v.type === 'FREE_SHIPPING');
     const countryName = country.translations[0]?.name || country.code;
 
-    // Dynamic H1 from generateStorePageTitle
     const { h1: pageH1, title: pageTitle, description: autoDescription } = generateStorePageTitle({
       storeName: transformedStore.name,
       locale,
@@ -533,14 +483,12 @@ export default async function StorePage({ params }) {
     });
     const pageDescription = storeTranslation?.seoDescription || transformedStore.description || autoDescription;
 
-    // Breadcrumbs
     const breadcrumbItems = [
       { name: language === 'ar' ? 'الرئيسية' : 'Home', url: `${BASE_URL}/${locale}` },
       { name: language === 'ar' ? 'المتاجر' : 'Stores', url: `${BASE_URL}/${locale}/stores` },
       { name: transformedStore.name, url: `${BASE_URL}/${locale}/stores/${slug}` },
     ];
 
-    // Header props (to be passed to StorePageShell)
     const headerProps = {
       store: transformedStore,
       mostTrackedVoucher,
@@ -584,7 +532,7 @@ export default async function StorePage({ params }) {
                       <span className="material-symbols-sharp">local_offer</span>
                       {tStore('couponCodes')}
                     </h2>
-                    <VouchersGrid vouchers={codeVouchers} hideStoreBranding={true} />
+                    <VouchersGrid vouchers={codeVouchers} hideStoreBranding />
                   </section>
                 )}
 
@@ -594,7 +542,7 @@ export default async function StorePage({ params }) {
                       <span className="material-symbols-sharp">shopping_bag</span>
                       {tStore('deals')}
                     </h2>
-                    <VouchersGrid vouchers={dealVouchers} hideStoreBranding={true} />
+                    <VouchersGrid vouchers={dealVouchers} hideStoreBranding />
                   </section>
                 )}
 
@@ -604,21 +552,12 @@ export default async function StorePage({ params }) {
                       <span className="material-symbols-sharp">local_shipping</span>
                       {tStore('freeShipping')}
                     </h2>
-                    <VouchersGrid vouchers={shippingVouchers} hideStoreBranding={true} />
+                    <VouchersGrid vouchers={shippingVouchers} hideStoreBranding />
                   </section>
                 )}
 
-                <StoreOfferStacks
-                  storeId={store.id}
-                  locale={locale}
-                  countryCode={countryCode || 'SA'}
-                />
-
-                <OtherPromosSection
-                  storeSlug={transformedStore.slug}
-                  storeName={transformedStore.name}
-                  storeLogo={transformedStore.logo}
-                />
+                <StoreOfferStacks storeId={store.id} locale={locale} countryCode={countryCode || 'SA'} />
+                <OtherPromosSection storeSlug={transformedStore.slug} storeName={transformedStore.name} storeLogo={transformedStore.logo} />
 
                 {transformedProducts.length > 0 && (
                   <FeaturedProductsCarousel
@@ -629,32 +568,14 @@ export default async function StorePage({ params }) {
                   />
                 )}
 
-                {/* --- Store Intelligence Card --- */}
-                <StoreIntelligenceCard
-                  storeId={store.id}
-                  locale={locale}
-                  countryCode={countryCode || 'SA'}
-                />
+                <StoreIntelligenceCard storeId={store.id} locale={locale} countryCode={countryCode || 'SA'} />
 
-                {faqs.length > 0 && (
-                  <StoreFAQ
-                    faqs={faqs}
-                    locale={locale}
-                    storeName={transformedStore.name}
-                    countryName={countryName}
-                  />
-                )}
+                {faqs.length > 0 && <StoreFAQ faqs={faqs} locale={locale} storeName={transformedStore.name} countryName={countryName} />}
 
-                {expiredVouchers.length > 0 && (
-                  <ExpiredVouchersList vouchers={expiredVouchers} />
-                )}
+                {expiredVouchers.length > 0 && <ExpiredVouchersList vouchers={expiredVouchers} />}
 
                 {transformedExpiredOtherPromos.length > 0 && (
-                  <ExpiredOtherPromosList
-                    promos={transformedExpiredOtherPromos}
-                    storeName={transformedStore.name}
-                    storeLogo={transformedStore.logo}
-                  />
+                  <ExpiredOtherPromosList promos={transformedExpiredOtherPromos} storeName={transformedStore.name} storeLogo={transformedStore.logo} />
                 )}
 
                 {transformedRelatedStores.length > 0 && (
@@ -673,9 +594,7 @@ export default async function StorePage({ params }) {
               </main>
 
               <aside className="store-content-sidebar">
-                {relatedPosts.length > 0 && (
-                  <RelatedPostsSidebar posts={relatedPosts} locale={locale} />
-                )}
+                {relatedPosts.length > 0 && <RelatedPostsSidebar posts={relatedPosts} locale={locale} />}
               </aside>
             </div>
           </div>
