@@ -1,6 +1,6 @@
 // app/[locale]/stores/[slug]/page.jsx
 import { prisma } from '@/lib/prisma';
-import { notFound, permanentRedirect } from 'next/navigation';
+import { notFound, permanentRedirect } from 'next/navigation'; 
 import { getTranslations } from 'next-intl/server';
 import StorePageShell from '@/components/headers/StorePageShell';
 import VouchersGrid from '@/components/VouchersGrid/VouchersGrid';
