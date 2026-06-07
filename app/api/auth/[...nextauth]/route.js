@@ -1,7 +1,7 @@
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { prisma } from "@/lib/prisma";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs"; // ✅ Changed from 'bcrypt' to 'bcryptjs'
 
 // Fix for Next.js 15 ESM Interop
 const authHandler = NextAuth.default || NextAuth;
@@ -24,6 +24,7 @@ export const authOptions = {
 
         if (!admin || !admin.isActive) return null;
 
+        // ✅ Now using the serverless-friendly bcryptjs
         const isValid = await bcrypt.compare(credentialsData.password, admin.password);
         if (!isValid) return null;
 
