@@ -1,4 +1,4 @@
-/* StoreProductCard.css — Premium Restyle: Standout discount & ribbon */
+/* StoreProductCard.css — Modern, professional redesign */
 
 /* ── Card ──────────────────────────────────────────────────── */
 .spc-card {
@@ -6,22 +6,19 @@
   position: relative;
   flex-direction: column;
   width: 100%;
-  background: none;
-  border: 1px solid #ede8fb;
+  background: #ffffff;
+  border: 1px solid #eef2f6;
   border-radius: 12px;
-  padding: 5px;
-  overflow: visible;
+  overflow: hidden;
   cursor: pointer;
   font-family: 'Alexandria', 'Open Sans', Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
-  user-select: none;
-  height: 100%;
   transition: box-shadow 0.2s ease, transform 0.2s ease;
+  height: 100%;
 }
 
 .spc-card:hover {
-  background: #f8f9fc;
-  box-shadow: 0 8px 20px rgba(71, 10, 226, 0.08);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
   transform: translateY(-2px);
 }
 
@@ -30,151 +27,112 @@
   outline-offset: 2px;
 }
 
-/* ── Image wrapper ──────────────────────────────────────────── */
+/* ── Image wrapper (square, centered) ──────────────────────── */
 .spc-image-wrap {
+  position: relative;
   width: 100%;
-  position: static !important;
   aspect-ratio: 1 / 1;
-  border-radius: 12px;
-  background: #ffffff;
+  background: #fafbfc;
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  flex-shrink: 0;
 }
 
 .spc-image {
-  width: 80%;
-  height: 80%;
+  width: 85%;
+  height: 85%;
   object-fit: contain;
-  transition: transform 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+  transition: transform 0.3s ease;
   mix-blend-mode: multiply;
 }
 
 .spc-card:hover .spc-image {
-  transform: scale(1.05);
+  transform: scale(1.02);
 }
 
-/* ═════════════════════════════════════════════════════════════
-   DISCOUNT BADGE – Large, bold, eye‑catching
-   ═════════════════════════════════════════════════════════════ */
+/* ── Product discount badge (pill shape, top corner) ───────── */
 .spc-discount-badge {
   position: absolute;
   top: 12px;
-  right: 12px;
-  width: 56px;
-  height: 56px;
-  background: linear-gradient(135deg, #e31c3d 0%, #c2122f 100%);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 4;
-  box-shadow: 0 4px 12px rgba(227, 28, 61, 0.3);
-}
-
-[dir="rtl"] .spc-discount-badge {
-  right: auto;
-  left: 12px;
+  inset-inline-end: 12px;
+  z-index: 2;
+  background: #e31c3d;
+  color: #fff;
+  font-weight: 700;
+  border-radius: 24px;
+  padding: 4px 8px;
+  font-size: 0.75rem;
+  line-height: 1;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
 .spc-discount-badge__content {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  line-height: 1.2;
-}
-
-.spc-discount-badge__savingsText {
-  font-size: 0.55rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: #fff;
-  background: rgba(0,0,0,0.15);
-  padding: 0.15rem 0.35rem;
-  border-radius: 12px;
-  margin-bottom: 2px;
+  align-items: baseline;
+  gap: 2px;
 }
 
 .spc-discount-badge__savingsPct {
-  font-size: 1.4rem;
-  font-weight: 900;
-  color: #fff;
-  text-shadow: 0 1px 2px rgba(0,0,0,0.2);
-  line-height: 1;
-  letter-spacing: -0.01em;
+  font-size: 1rem;
+  font-weight: 800;
 }
 
-/* ═════════════════════════════════════════════════════════════
-   PROFESSIONAL PROMO RIBBON – Clean folded‑corner style
-   ═════════════════════════════════════════════════════════════ */
-.spc-ribbon {
-  --r: 14px;
-  position: absolute;
-  bottom: -12px;
-  left: 8px;
-  background: linear-gradient(105deg, #5a24d8 0%, #3b0f9e 100%);
-  border-radius: 0 20px 20px 0;
-  padding: 0.25rem 1rem 0.25rem 1.2rem;
-  color: #ffffff;
+.spc-discount-badge__savingsText {
   font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-  z-index: 5;
-  backdrop-filter: blur(2px);
-  /* Folded edge effect */
-  clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%, 0% 70%, 8px 50%, 0% 30%);
+  font-weight: 600;
+  opacity: 0.9;
 }
 
-[dir="rtl"] .spc-ribbon {
-  left: auto;
-  right: 8px;
-  border-radius: 20px 0 0 20px;
-  padding: 0.25rem 1.2rem 0.25rem 1rem;
-  clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%, 100% 70%, calc(100% - 8px) 50%, 100% 30%);
-}
-
-.spc-ribbon__inner {
+/* ── Promo ribbon (pill at bottom, clean) ──────────────────── */
+.spc-ribbon {
+  position: absolute;
+  bottom: 12px;
+  inset-inline-start: 12px;
+  inset-inline-end: 12px;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(8px);
+  border-radius: 40px;
+  padding: 6px 12px;
+  z-index: 2;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #fff;
+  text-align: center;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .spc-ribbon__label {
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.3px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .spc-ribbon__logo-inline {
   display: inline-flex;
   align-items: center;
-  background: rgba(255,255,255,0.15);
-  padding: 2px 6px;
-  border-radius: 20px;
-  margin-inline-start: 4px;
+  flex-shrink: 0;
 }
 
 .spc-ribbon__logo-inline img {
   max-height: 18px;
   width: auto;
-  object-fit: contain;
-  filter: brightness(0) invert(1);
 }
 
-/* ═════════════════════════════════════════════════════════════
-   BODY – Typography & layout
-   ═════════════════════════════════════════════════════════════ */
+/* RTL adjustments already handled by inset-inline-start/end */
+
+/* ── Body ───────────────────────────────────────────────────── */
 .spc-body {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  padding: 0.75rem 0.75rem 1rem;
+  padding: 0.75rem 0.85rem 0.85rem;
   flex: 1;
 }
 
@@ -182,7 +140,7 @@
   font-size: 0.85rem;
   font-weight: 500;
   line-height: 1.4;
-  color: #1a1a2e;
+  color: #1e293b;
   margin: 0;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -191,101 +149,84 @@
   min-height: 2.4em;
 }
 
-/* Price block – standout current price */
+/* ── Price block ────────────────────────────────────────────── */
 .spc-prices {
   display: flex;
   align-items: baseline;
-  gap: 0.5rem;
+  gap: 0.6rem;
   flex-wrap: wrap;
-  margin-top: 0.2rem;
 }
 
 .spc-price-current {
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   font-weight: 800;
-  color: #1e1b4b;
+  color: #0f172a;
   letter-spacing: -0.01em;
-  background: linear-gradient(135deg, #1e1b4b 0%, #3a2c7a 100%);
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  text-shadow: 0 1px 1px rgba(0,0,0,0.03);
 }
 
 .spc-price-original {
   font-size: 0.75rem;
-  font-weight: 500;
   color: #94a3b8;
   text-decoration: line-through;
 }
 
-/* Small savings indicator (optional) – removed because badge already shows % */
 .spc-price-savings {
-  display: none;
+  font-size: 0.7rem;
+  font-weight: 700;
+  background: #e6f7ec;
+  color: #15803d;
+  padding: 2px 6px;
+  border-radius: 20px;
+  white-space: nowrap;
 }
 
-/* BNPL section (unchanged) */
+/* ── BNPL Section ───────────────────────────────────────────── */
 .spc-bnpl {
   display: flex;
   align-items: center;
   gap: 6px;
   flex-wrap: wrap;
-  margin-top: 8px;
+  margin-top: 4px;
 }
 
 .spc-bnpl__text {
-  font-size: 0.78rem;
-  color: #4b5563;
+  font-size: 0.7rem;
+  color: #475569;
 }
 
 .spc-bnpl__text strong {
-  color: #1e293b;
-  font-weight: 800;
+  color: #0f172a;
+  font-weight: 700;
 }
 
 .spc-bnpl__logo {
+  max-height: 20px;
+  width: auto;
   object-fit: contain;
-  display: inline-block;
-  vertical-align: middle;
 }
 
 .spc-bnpl__fallback-name {
-  font-size: 0.78rem;
-  font-weight: 700;
-  color: #1e293b;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #0f172a;
 }
 
-/* Responsive adjustments */
+/* ── Responsive ─────────────────────────────────────────────── */
 @media (max-width: 480px) {
-  .spc-discount-badge {
-    width: 48px;
-    height: 48px;
-    top: 8px;
-    right: 8px;
-  }
-  .spc-discount-badge__savingsPct {
-    font-size: 1.1rem;
-  }
-  .spc-discount-badge__savingsText {
-    font-size: 0.5rem;
+  .spc-title {
+    font-size: 0.8rem;
   }
   .spc-price-current {
     font-size: 1rem;
   }
-  .spc-title {
-    font-size: 0.78rem;
+  .spc-ribbon {
+    padding: 4px 8px;
+    font-size: 0.65rem;
   }
-  .spc-bnpl__text {
-    font-size: 0.7rem;
-  }
-}
-
-@media (max-width: 380px) {
   .spc-discount-badge {
-    width: 42px;
-    height: 42px;
-  }
-  .spc-discount-badge__savingsPct {
-    font-size: 0.9rem;
+    top: 8px;
+    inset-inline-end: 8px;
+    padding: 3px 6px;
+    font-size: 0.7rem;
   }
 }
