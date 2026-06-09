@@ -26,37 +26,14 @@ import { getGeneralFaqSchemaEntities } from '@/components/PromoCodesFAQ/PromoCod
 import './store-page.css';
 
 export const revalidate = 3600;
-export const dynamicParams = true; // Forces on‑demand rendering for any missing static param
+export const dynamicParams = true; // ✅ Forces on‑demand rendering for any missing static param
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://cobonat.me';
 
-// Optimised Static Params (only featured stores, limit 24)
+// ── Static params – DISABLED (no pre‑rendering, ISR only) ──
 export async function generateStaticParams() {
-  try {
-    const featuredStoreTranslations = await prisma.storeTranslation.findMany({
-      where: {
-        store: {
-          isActive: true,
-          isFeatured: true,
-        },
-      },
-      select: { slug: true, locale: true },
-      take: 24,
-    });
-
-    const localeMap = { ar: 'ar-SA', en: 'en-SA' }; 
-    const params = [];
-
-    for (const t of featuredStoreTranslations) {
-      const fullLocale = localeMap[t.locale];
-      if (fullLocale && t.slug) {
-        params.push({ locale: fullLocale, slug: t.slug });
-      }
-    }
-    return params;
-  } catch {
-    return [];
-  }
+  // Return empty array – all store pages will be generated on first request
+  return [];
 }
 
 /**
@@ -116,7 +93,7 @@ export async function generateMetadata({ params }) {
     const storeTranslation = store.translations[0];
     const storeName = storeTranslation?.name || slug;
 
-    // ✅ REMOVED the old noindex block for English – both locales are now indexable
+    // ✅ Both locales are indexable – no `noindex` block for English
 
     const otherLocale = language === 'ar' ? 'en' : 'ar';
     const otherTranslation = await prisma.storeTranslation.findFirst({
@@ -599,4 +576,4 @@ export default async function StorePage({ params }) {
     console.error('[StorePage] error:', error);
     return notFound();
   }
-                                  }
+}
