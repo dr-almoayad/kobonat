@@ -106,8 +106,8 @@ export async function generateMetadata({ params, searchParams: rawSearchParams }
 
 const CouponsPage = async ({ params, searchParams: rawSearchParams }) => {
   const { locale = 'ar-SA' } = await params;
-  const searchParams = await rawSearchParams;
-  const page = Math.max(1, parseInt(searchParams?.page || '1'));
+  const rawSP = await rawSearchParams;
+  const page = Math.max(1, parseInt(rawSP?.page || '1'));
 
   const t = await getTranslations('CouponsPage');
   const now = new Date();
@@ -115,7 +115,6 @@ const CouponsPage = async ({ params, searchParams: rawSearchParams }) => {
   const [language, countryCode] = locale.includes('-')
     ? locale.split('-')
     : [locale, locale.toUpperCase()];
-
   const normalizedCountryCode = countryCode?.toUpperCase() || 'SA';
 
   const where = {
@@ -124,34 +123,62 @@ const CouponsPage = async ({ params, searchParams: rawSearchParams }) => {
     OR: [{ expiryDate: null }, { expiryDate: { gt: now } }],
   };
 
-  const [vouchers, totalCount] = await Promise.all([
-    prisma.voucher.findMany({
-      where,
-      include: {
-        translations: {
-          where: { locale: language },
-          select: { title: true, description: true },
-        },
-        store: {
-          include: {
-            translations: {
-              where: { locale: language },
-              select: { name: true, slug: true },
+  let vouchers = [];
+  let totalCount = 0;
+
+  try {
+    [vouchers, totalCount] = await Promise.all([
+      prisma.voucher.findMany({
+        where,
+        select: {
+          id: true,
+          code: true,
+          type: true,
+          discount: true,
+          discountPercent: true,
+          verifiedAvgPercent: true,
+          landingUrl: true,
+          expiryDate: true,
+          startDate: true,
+          isExclusive: true,
+          isVerified: true,
+          popularityScore: true,
+          createdAt: true,
+          updatedAt: true,
+          storeId: true,
+          translations: {
+            where: { locale: language },
+            select: { title: true, description: true },
+          },
+          store: {
+            select: {
+              id: true,
+              logo: true,
+              websiteUrl: true,
+              isVerified: true,
+              isFeatured: true,
+              translations: {
+                where: { locale: language },
+                select: { name: true, slug: true },
+              },
             },
           },
+          _count: { select: { clicks: true } },
         },
-        _count: { select: { clicks: true } },
-      },
-      orderBy: [
-        { isExclusive: 'desc' },
-        { popularityScore: 'desc' },
-        { createdAt: 'desc' },
-      ],
-      take: PAGE_LIMIT,
-      skip: (page - 1) * PAGE_LIMIT,
-    }),
-    prisma.voucher.count({ where }),
-  ]);
+        orderBy: [
+          { isExclusive: 'desc' },
+          { popularityScore: 'desc' },
+          { createdAt: 'desc' },
+        ],
+        take: PAGE_LIMIT,
+        skip: (page - 1) * PAGE_LIMIT,
+      }),
+      prisma.voucher.count({ where }),
+    ]);
+  } catch (error) {
+    console.error('[CouponsPage] DB error:', error?.message ?? error);
+    // vouchers and totalCount remain empty arrays / 0 – page will show empty state
+  }
 
   const totalPages = Math.ceil(totalCount / PAGE_LIMIT);
 
