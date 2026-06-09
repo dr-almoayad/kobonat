@@ -1,5 +1,6 @@
-// app/api/vouchers/route.js - Updated for new schema + Cache Headers
-export const revalidate = 300; // Cache route for 5 minutes
+// app/api/vouchers/route.js
+// ✅ Force dynamic execution (no edge caching)
+export const dynamic = 'force-dynamic';
 
 import { NextResponse } from "next/server";
 import { prisma } from '@/lib/prisma';
