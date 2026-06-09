@@ -44,7 +44,7 @@ export async function generateStaticParams() {
       take: 24,
     });
 
-    const localeMap = { ar: 'ar-SA', en: 'en-SA' };
+    const localeMap = { ar: 'ar-SA', en: 'en-SA' }; 
     const params = [];
 
     for (const t of featuredStoreTranslations) {
