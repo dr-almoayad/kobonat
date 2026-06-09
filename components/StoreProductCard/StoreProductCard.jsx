@@ -5,17 +5,6 @@ import { useTranslations, useLocale } from 'next-intl';
 import Image from 'next/image';
 import './StoreProductCard.css';
 
-/**
- * StoreProductCard
- *
- * Props:
- * product          — StoreProduct with originalPrice?, currentPrice?, image, title…
- * voucher          — optional linked Voucher { code, type, discount, discountPercent }
- * otherPromo       — optional linked OtherPromo { discountPercent, bank, paymentMethod… }
- * storeBnplMethods — BNPL providers active for this store
- * storeName        — override store display name
- * storeLogo        — override store logo URL
- */
 const StoreProductCard = ({
   product,
   voucher,
@@ -149,22 +138,18 @@ const StoreProductCard = ({
       <article className="spc-card" dir={isRtl ? 'rtl' : 'ltr'}>
         
         {/* ── Image Area ──────────────────────────────────────────────────── */}
-        <div className="spc-image-wrap" style={{ position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-
-          {/* Pricing Savings Badge */}
+        <div className="spc-image-wrap">
+          {/* Pricing Savings Badge (modern pill) */}
           {savingsPct != null && savingsPct > 0 && (
             <div className="spc-discount-badge">
-              {isRtl ? (
-                <div className="spc-discount-badge__content">
-                  <p className="spc-discount-badge__savingsText">وفر</p>
-                  <p className="spc-discount-badge__savingsPct">{`${savingsPct}٪`}</p>
-                </div>
-              ) : (
-                <div className="spc-discount-badge__content">
-                  <p className="spc-discount-badge__savingsText">SAVE</p>
-                  <p className="spc-discount-badge__savingsPct">{`${savingsPct}%`}</p>
-                </div>
-              )}
+              <div className="spc-discount-badge__content">
+                <span className="spc-discount-badge__savingsPct">
+                  {isRtl ? `${savingsPct}٪` : `${savingsPct}%`}
+                </span>
+                <span className="spc-discount-badge__savingsText">
+                  {isRtl ? 'خصم' : 'OFF'}
+                </span>
+              </div>
             </div>
           )}
 
@@ -176,41 +161,38 @@ const StoreProductCard = ({
             width={205}
             height={205}
             className="spc-image"
-            style={{ objectFit: 'contain', maxWidth: '100%', height: 'auto' }}
             loading="lazy"
             onError={() => setImgSrc('/placeholder-product.jpg')}
           />
 
-          {/* ── Integrated Promo Ribbon ────────────────────────────────────── */}
+          {/* ── Integrated Promo Ribbon (modern pill) ────────────────────── */}
           {hasRibbon && (
             <div className={`spc-ribbon${isRtl ? ' spc-ribbon--rtl' : ''}`} aria-hidden="true">
-              <div className="spc-ribbon__inner" style={{ display: 'flex', alignItems: 'center', gap: '4px', flexWrap: 'wrap' }}>
-                <span className="spc-ribbon__label">{ribbonText}</span>
-                {ribbonType === 'bank' && bankLogo && (
-                  <span className="spc-ribbon__logo-inline">
-                    <Image 
-                      src={bankLogo} 
-                      unoptimized={true}
-                      alt={bankName || ''} 
-                      width={75} 
-                      height={35} 
-                      style={{ objectFit: 'contain', width: 'auto', maxHeight: '18px' }}
-                    />
-                  </span>
-                )}
-                {ribbonType === 'payment' && paymentLogo && (
-                  <span className="spc-ribbon__logo-inline">
-                    <Image 
-                      src={paymentLogo} 
-                      unoptimized={true}
-                      alt={paymentName || ''} 
-                      width={75} 
-                      height={35} 
-                      style={{ objectFit: 'contain', width: 'auto', maxHeight: '18px' }}
-                    />
-                  </span>
-                )}
-              </div>
+              <span className="spc-ribbon__label">{ribbonText}</span>
+              {ribbonType === 'bank' && bankLogo && (
+                <span className="spc-ribbon__logo-inline">
+                  <Image 
+                    src={bankLogo} 
+                    unoptimized={true}
+                    alt={bankName || ''} 
+                    width={75} 
+                    height={35} 
+                    style={{ objectFit: 'contain', maxHeight: '18px', width: 'auto' }}
+                  />
+                </span>
+              )}
+              {ribbonType === 'payment' && paymentLogo && (
+                <span className="spc-ribbon__logo-inline">
+                  <Image 
+                    src={paymentLogo} 
+                    unoptimized={true}
+                    alt={paymentName || ''} 
+                    width={75} 
+                    height={35} 
+                    style={{ objectFit: 'contain', maxHeight: '18px', width: 'auto' }}
+                  />
+                </span>
+              )}
             </div>
           )}
         </div>
@@ -228,31 +210,25 @@ const StoreProductCard = ({
                 <span className="spc-price-original">{formatSAR(originalPrice)}</span>
               )}
               {savingsPct != null && savingsPct > 0 && (
-                <span className="spc-price-savings">
-                  {isRtl ? `${savingsPct}٪-` : `-${savingsPct}%`}
+                <span className="spc-price-savings" aria-hidden="true">
+                  {isRtl ? `-${savingsPct}%` : `-${savingsPct}%`}
                 </span>
               )}
             </div>
           )}
 
           {hasValidPrices && storeBnplMethods?.length > 0 && (
-            <div className="spc-bnpl" style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', marginTop: '8px' }}>
-              <span className="spc-bnpl__text" style={{ fontSize: '0.85rem', color: '#555' }}>
+            <div className="spc-bnpl">
+              <span className="spc-bnpl__text">
                 {isRtl ? (
                   <>
-                    {`أو `}
-                    <strong style={{ color: '#000' }}>
-                      {formatSAR(currentPrice / (storeBnplMethods[0].installmentCount || 4))}
-                    </strong>
-                    {`/شهر × ${storeBnplMethods[0].installmentCount || 4} بدون فوائد مع`}
+                    أو <strong>{formatSAR(currentPrice / (storeBnplMethods[0].installmentCount || 4))}</strong>
+                    /شهر × {storeBnplMethods[0].installmentCount || 4} بدون فوائد مع
                   </>
                 ) : (
                   <>
-                    {`Or `}
-                    <strong style={{ color: '#000' }}>
-                      {formatSAR(currentPrice / (storeBnplMethods[0].installmentCount || 4))}
-                    </strong>
-                    {`/month × ${storeBnplMethods[0].installmentCount || 4} at 0% interest with`}
+                    Or <strong>{formatSAR(currentPrice / (storeBnplMethods[0].installmentCount || 4))}</strong>
+                    /month × {storeBnplMethods[0].installmentCount || 4} at 0% interest with
                   </>
                 )}
               </span>
@@ -264,7 +240,6 @@ const StoreProductCard = ({
                   width={60}
                   height={23}
                   className="spc-bnpl__logo"
-                  style={{ objectFit: 'contain', display: 'inline-block' }}
                 />
               ) : (
                 <strong className="spc-bnpl__fallback-name">{storeBnplMethods[0].name}</strong>
