@@ -26,11 +26,11 @@ import { getGeneralFaqSchemaEntities } from '@/components/PromoCodesFAQ/PromoCod
 import './store-page.css';
 
 export const revalidate = 3600;
-export const dynamicParams = true; // ✅ Forces on‑demand rendering for any missing static param
+export const dynamicParams = true; // Forces on‑demand rendering for any missing static param
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://cobonat.me';
 
-// ── Optimised Static Params (only featured stores, limit 100) ──
+// Optimised Static Params (only featured stores, limit 24)
 export async function generateStaticParams() {
   try {
     const featuredStoreTranslations = await prisma.storeTranslation.findMany({
@@ -68,7 +68,6 @@ async function handleLegacySlugFallback(slug, language) {
   const hasArabic = /[\u0600-\u06FF]/.test(slug);
   if (!hasArabic) return null;
 
-  // Attempt to find a store whose translation name contains the slug (with dashes replaced by spaces)
   const normalized = slug.replace(/-/g, ' ');
   const fallback = await prisma.storeTranslation.findFirst({
     where: {
@@ -117,15 +116,7 @@ export async function generateMetadata({ params }) {
     const storeTranslation = store.translations[0];
     const storeName = storeTranslation?.name || slug;
 
-    // English pages – noindex
-    if (language === 'en') {
-      return {
-        robots: { index: false, follow: true },
-        title: `${storeName} Coupons`,
-        description: `Find the latest ${storeName} discount codes and deals. Updated daily.`,
-        alternates: { canonical: `${BASE_URL}/ar-SA/stores/${storeTranslation?.slug || slug}` },
-      };
-    }
+    // ✅ REMOVED the old noindex block for English – both locales are now indexable
 
     const otherLocale = language === 'ar' ? 'en' : 'ar';
     const otherTranslation = await prisma.storeTranslation.findFirst({
@@ -608,4 +599,4 @@ export default async function StorePage({ params }) {
     console.error('[StorePage] error:', error);
     return notFound();
   }
-}
+                                  }
