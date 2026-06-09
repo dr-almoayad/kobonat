@@ -23,6 +23,15 @@ const ALLOW_FEEDS = [
   '/api/feeds/stacks.xml',
 ];
 
+// ── Static assets required for rendering (JS/CSS/Media) ──────────────────────
+const STATIC_ASSETS = [
+  '/_next/static/css/',
+  '/_next/static/js/',
+  '/_next/static/chunks/',
+  '/_next/static/media/',
+  '/_next/image/',
+];
+
 // ── Protected System Enclaves & Query Noise ──────────────────────────────────
 const DISALLOW_INTERNAL = [
   '/admin/',
@@ -60,9 +69,7 @@ export default function robots() {
         allow: [
           ...ALLOW_FEEDS, 
           ...ALLOW_PAGES,
-          '/_next/static/css/',
-          '/_next/static/js/',
-          '/_next/static/chunks/',
+          ...STATIC_ASSETS,
         ],
         disallow: DISALLOW_INTERNAL,
       },
@@ -71,30 +78,27 @@ export default function robots() {
         allow: [
           ...ALLOW_FEEDS, 
           ...ALLOW_PAGES,
-          '/_next/static/css/',
-          '/_next/static/js/',
-          '/_next/static/chunks/',
+          ...STATIC_ASSETS,
         ],
         disallow: DISALLOW_INTERNAL,
       },
 
       // ── 2. IMAGE INDEXING SEARCH ENGINE ENGINE ─────────────────────────────
-      // Reconfigured to fully open up brand logos and visual coupon catalogs
       {
         userAgent: 'Googlebot-Image',
         allow: [
           '/store-covers/', 
           '/public/stores/', 
-          '/_next/static/media/'
+          '/_next/static/media/',
+          '/_next/image/',
         ],
         disallow: ['/admin/', '/api/'],
       },
 
       // ── 3. WELCOMED ARTIFICIAL INTELLIGENCE & LLM ENGINE AGENTS ────────────
-      // Explicitly allows engines to crawl coupon data structures cleanly
       {
         userAgent: 'GPTBot',
-        allow: [...ALLOW_FEEDS, ...ALLOW_PAGES, '/_next/static/css/', '/_next/static/js/'],
+        allow: [...ALLOW_FEEDS, ...ALLOW_PAGES, ...STATIC_ASSETS],
         disallow: ['/admin/', '/api/admin/', '/api/cron/', '/api/vouchers/track'],
       },
       {
@@ -104,32 +108,32 @@ export default function robots() {
       },
       {
         userAgent: 'Google-Extended',
-        allow: [...ALLOW_FEEDS, ...ALLOW_PAGES, '/_next/static/css/', '/_next/static/js/'],
+        allow: [...ALLOW_FEEDS, ...ALLOW_PAGES, ...STATIC_ASSETS],
         disallow: ['/admin/', '/api/admin/', '/api/cron/'],
       },
       {
         userAgent: 'ClaudeBot',
-        allow: [...ALLOW_FEEDS, ...ALLOW_PAGES, '/_next/static/css/', '/_next/static/js/'],
+        allow: [...ALLOW_FEEDS, ...ALLOW_PAGES, ...STATIC_ASSETS],
         disallow: ['/admin/', '/api/admin/', '/api/cron/'],
       },
       {
         userAgent: 'Claude-Web',
-        allow: [...ALLOW_FEEDS, ...ALLOW_PAGES, '/_next/static/css/', '/_next/static/js/'],
+        allow: [...ALLOW_FEEDS, ...ALLOW_PAGES, ...STATIC_ASSETS],
         disallow: ['/admin/', '/api/admin/', '/api/cron/'],
       },
       {
         userAgent: 'anthropic-ai',
-        allow: [...ALLOW_FEEDS, ...ALLOW_PAGES, '/_next/static/css/', '/_next/static/js/'],
+        allow: [...ALLOW_FEEDS, ...ALLOW_PAGES, ...STATIC_ASSETS],
         disallow: ['/admin/', '/api/admin/', '/api/cron/'],
       },
       {
         userAgent: 'PerplexityBot',
-        allow: [...ALLOW_FEEDS, ...ALLOW_PAGES, '/_next/static/css/', '/_next/static/js/'],
+        allow: [...ALLOW_FEEDS, ...ALLOW_PAGES, ...STATIC_ASSETS],
         disallow: ['/admin/', '/api/admin/'],
       },
       {
         userAgent: 'CCBot',
-        allow: [...ALLOW_FEEDS, ...ALLOW_PAGES],
+        allow: [...ALLOW_FEEDS, ...ALLOW_PAGES, ...STATIC_ASSETS],
         disallow: ['/admin/', '/api/admin/', '/api/cron/'],
       },
 
@@ -146,7 +150,6 @@ export default function robots() {
       },
 
       // ── 5. MALICIOUS SCRAPERS & AGGRESSIVE SEO CRAWLERS ────────────────────
-      // Blocked completely from hitting internal paths to protect server compute limits
       { userAgent: 'AhrefsBot',   disallow: '/', crawlDelay: 10 },
       { userAgent: 'SemrushBot',  disallow: '/', crawlDelay: 10 },
       { userAgent: 'MJ12bot',     disallow: '/' },
