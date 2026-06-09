@@ -19,26 +19,15 @@ import StoreCard from '@/components/StoreCard/StoreCard';
 import SectionBlockRenderer from '@/components/blog/SectionBlockRenderer/SectionBlockRenderer';
 import './BlogPost.css';
 
-export const revalidate = 60;
+export const revalidate = 43200;
 export const dynamicParams = true;
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Static params
+// Static params – DISABLED to avoid build‑time failures
 // ─────────────────────────────────────────────────────────────────────────────
 export async function generateStaticParams() {
-  try {
-    const posts = await prisma.blogPost.findMany({
-      where:  { status: 'PUBLISHED' },
-      select: { slug: true },
-    });
-    return posts.flatMap(p => [
-      { locale: 'ar-SA', slug: p.slug },
-      { locale: 'en-SA', slug: p.slug },
-    ]);
-  } catch (err) {
-    console.warn('[blog/[slug]] generateStaticParams skipped:', err.message);
-    return [];
-  }
+  // Return empty array – no static pre‑rendering (ISR only)
+  return [];
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -606,4 +595,4 @@ export default async function BlogPostPage({ params }) {
       </main>
     </>
   );
-}
+                }
