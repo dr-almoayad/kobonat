@@ -47,22 +47,20 @@ const nextConfig = {
           },
           {
             key: 'Referrer-Policy',
-            value: 'origin-when-cross-origin'
+            value: 'strict-origin-when-cross-origin'
           },
         ],
       },
     ];
   },
   
-  // ✅ ADDED: Only redirects for old locale formats (if Google has them indexed)
-  // These HELP SEO by preventing 404s on legacy URLs
   async redirects() {
     return [
-      // Handle old 2-letter locale format (if you ever used /ar or /en)
+      // ── Handle old 2-letter locale format ──
       {
         source: '/ar',
         destination: '/ar-SA',
-        permanent: true,  // 301 redirect
+        permanent: true,
       },
       {
         source: '/ar/:path*',
@@ -77,6 +75,35 @@ const nextConfig = {
       {
         source: '/en/:path*',
         destination: '/en-SA/:path*',
+        permanent: true,
+      },
+
+      // ── NEW: Redirect root-level static pages to Arabic version (default locale) ──
+      { source: '/about', destination: '/ar-SA/about', permanent: true },
+      { source: '/contact', destination: '/ar-SA/contact', permanent: true },
+      { source: '/privacy', destination: '/ar-SA/privacy', permanent: true },
+      { source: '/terms', destination: '/ar-SA/terms', permanent: true },
+      { source: '/cookies', destination: '/ar-SA/cookies', permanent: true },
+      { source: '/help', destination: '/ar-SA/help', permanent: true },
+
+      // ── NEW: Remove trailing slashes (if they exist) ──
+      {
+        source: '/:path*/',
+        destination: '/:path*',
+        permanent: true,
+      },
+
+      // ── NEW: Redirect dead locales to the Arabic version ──
+      {
+        source: '/:locale(ar-KW|en-AE|ar-AE|en-KW|ar-EG|en-EG|ar-BH|en-BH|ar-OM|en-OM|ar-QA|en-QA|ar-JO|en-JO|ar-LB|en-LB)/:path*',
+        destination: '/ar-SA/:path*',
+        permanent: true,
+      },
+
+      // ── Also handle dead locale without any path (e.g., /ar-KW) ──
+      {
+        source: '/:locale(ar-KW|en-AE|ar-AE|en-KW|ar-EG|en-EG|ar-BH|en-BH|ar-OM|en-OM|ar-QA|en-QA|ar-JO|en-JO|ar-LB|en-LB)',
+        destination: '/ar-SA',
         permanent: true,
       },
     ];
@@ -98,10 +125,7 @@ const nextConfig = {
   
   productionBrowserSourceMaps: false,
   
-  // ✅ CRITICAL: Consistent trailing slash behavior
   trailingSlash: false,
-  
-  // ✅ Skip trailing slash redirect to avoid redirect chains
   skipTrailingSlashRedirect: true,
 };
 
