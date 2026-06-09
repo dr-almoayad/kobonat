@@ -13,6 +13,7 @@ import { serializeStack } from '@/lib/offerStacks';
 import './category-page.css';
 
 export const revalidate = 3600;
+export const dynamicParams = true; // ✅ allows on‑demand generation for any slug not pre‑rendered
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://cobonat.me';
 
@@ -209,20 +210,9 @@ async function getTaggedPromos(categoryId, language, countryCode) {
     }));
 }
 
-// ── Static params ─────────────────────────────────────────────────────────────
-
+// ── Static params – DISABLED to avoid build‑time failures (ISR only) ──
 export async function generateStaticParams() {
-  try {
-    const translations = await prisma.categoryTranslation.findMany({ select: { slug: true, locale: true } });
-    const params = [];
-    for (const loc of ['ar-SA', 'en-SA']) {
-      const [lang] = loc.split('-');
-      for (const t of translations.filter(t => t.locale === lang)) {
-        params.push({ locale: loc, slug: t.slug });
-      }
-    }
-    return params;
-  } catch { return []; }
+  return [];
 }
 
 // ── Metadata ──────────────────────────────────────────────────────────────────
@@ -304,15 +294,15 @@ export default async function CategoryDetailPage({ params }) {
   const featuredStores = stores.filter(s => s.isFeatured);
   const regularStores = stores.filter(s => !s.isFeatured);
 
-  // ✅ FIXED transformStore: preserve _count and vouchers for StoreCard
+  // Transform store for StoreCard (preserve _count and vouchers)
   const transformStore = (s) => ({
     ...s,
     name: s.translations[0]?.name || '',
     slug: s.translations[0]?.slug || '',
     description: s.translations[0]?.description || null,
     showOffer: s.translations[0]?.showOffer || '',
-    _count: s._count,       // keep active vouchers count
-    vouchers: s.vouchers,   // keep vouchers array (if any)
+    _count: s._count,
+    vouchers: s.vouchers,
   });
 
   // Breadcrumb items
@@ -322,7 +312,7 @@ export default async function CategoryDetailPage({ params }) {
     { name: categoryName, url: `/${locale}/categories/${slug}` },
   ];
 
-  // Structured data: BreadcrumbList (already covered by Breadcrumbs component) + ItemList for stores
+  // Structured data: ItemList for stores
   const storeItemListSchema = {
     '@context': 'https://schema.org',
     '@type': 'ItemList',
