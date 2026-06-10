@@ -536,7 +536,7 @@ export default async function StorePage({ params }) {
                   />
                 )}
 
-                <StoreIntelligenceCard storeId={store.id} locale={locale} countryCode={countryCode || 'SA'} />
+                {/*<StoreIntelligenceCard storeId={store.id} locale={locale} countryCode={countryCode || 'SA'} />*/}
 
                 {faqs.length > 0 && <StoreFAQ faqs={faqs} locale={locale} storeName={transformedStore.name} countryName={countryName} />}
 
