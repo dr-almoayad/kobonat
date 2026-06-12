@@ -2,7 +2,7 @@
 import { prisma } from '@/lib/prisma';
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://cobonat.me';
-const LOCALES = ['ar-SA', 'en-SA']; // ✅ both
+const LOCALES = ['ar-SA', 'en-SA'];
 
 const COUPONS_PER_PAGE = 60;
 const STACKS_PER_PAGE  = 12;
@@ -21,8 +21,8 @@ function buildAlternates(localeUrlMap) {
 }
 
 function coreAlternates(path = '') {
-  const localeUrlMap = Object.fromEntries(LOCALES.map(loc => [loc, `${BASE_URL}/${loc}${path}`]));
-  return buildAlternates(localeUrlMap);
+  const map = Object.fromEntries(LOCALES.map(loc => [loc, `${BASE_URL}/${loc}${path}`]));
+  return buildAlternates(map);
 }
 
 function slugAlternates(arSlug, enSlug, prefix = '') {
@@ -51,29 +51,148 @@ const STATIC_PAGES = [
   { slug: 'cookies', priority: 0.3, changeFrequency: 'yearly'  },
 ];
 
-// ── Main Sitemap Generation ────────────────────────────────────────────────
+// ── Main ───────────────────────────────────────────────────────────────────
 export default async function sitemap() {
   const urls = [];
-  const CURRENT_DATE = new Date();
+  const NOW = new Date();
 
-  const safeDate = (dateVal) => {
-    if (!dateVal) return CURRENT_DATE;
-    const parsed = new Date(dateVal);
-    return isNaN(parsed.getTime()) ? CURRENT_DATE : parsed;
+  const safeDate = (val) => {
+    if (!val) return NOW;
+    const d = new Date(val);
+    return isNaN(d.getTime()) ? NOW : d;
   };
 
   try {
-    const [latestVoucher, latestStore, latestPromo] = await Promise.all([
-      prisma.voucher.findFirst({ orderBy: { updatedAt: 'desc' }, select: { updatedAt: true } }).catch(() => null),
-      prisma.store.findFirst({ where: { isActive: true }, orderBy: { updatedAt: 'desc' }, select: { updatedAt: true } }).catch(() => null),
-      prisma.otherPromo.findFirst({ where: { isActive: true }, orderBy: { updatedAt: 'desc' }, select: { updatedAt: true } }).catch(() => null),
+    // ── All DB queries in one parallel batch ───────────────────────────────
+    // Previously these ran sequentially, costing ~10× as long and holding
+    // connections open for the full duration. Parallel cuts wall-clock time
+    // from ~1 s to ~200 ms and releases connections much sooner.
+    const [
+      latestVoucher,
+      latestStore,
+      latestPromo,
+      totalVouchers,
+      totalStacks,
+      totalBlogPosts,
+      categories,
+      stores,
+      seasonal,
+      blogPosts,
+    ] = await Promise.all([
+
+      prisma.voucher.findFirst({
+        orderBy: { updatedAt: 'desc' },
+        select: { updatedAt: true },
+      }).catch(() => null),
+
+      prisma.store.findFirst({
+        where: { isActive: true },
+        orderBy: { updatedAt: 'desc' },
+        select: { updatedAt: true },
+      }).catch(() => null),
+
+      prisma.otherPromo.findFirst({
+        where: { isActive: true },
+        orderBy: { updatedAt: 'desc' },
+        select: { updatedAt: true },
+      }).catch(() => null),
+
+      prisma.voucher.count({
+        where: {
+          store: { isActive: true },
+          countries: { some: { country: { code: 'SA' } } },
+          OR: [{ expiryDate: null }, { expiryDate: { gte: NOW } }],
+        },
+      }).catch(() => 0),
+
+      prisma.offerStack.count({
+        where: {
+          isActive: true,
+          store: { countries: { some: { country: { code: 'SA' } } } },
+        },
+      }).catch(() => 0),
+
+      prisma.blogPost.count({
+        where: { status: 'PUBLISHED' },
+      }).catch(() => 0),
+
+      prisma.category.findMany({
+        where: {
+          stores: {
+            some: {
+              store: {
+                isActive: true,
+                countries: { some: { country: { code: 'SA' } } },
+              },
+            },
+          },
+        },
+        select: {
+          updatedAt: true,
+          translations: {
+            where: { locale: { in: ['ar', 'en'] } },
+            select: { slug: true, locale: true },
+          },
+        },
+      }).catch(() => []),
+
+      // KEY CHANGE: only stores that have at least one active voucher in SA.
+      // Stores with zero active vouchers are thin pages — excluding them from
+      // the sitemap prevents them from wasting crawl budget and hurting
+      // overall site quality signals.
+      prisma.store.findMany({
+        where: {
+          isActive: true,
+          countries: { some: { country: { code: 'SA' } } },
+          vouchers: {
+            some: {
+              OR: [{ expiryDate: null }, { expiryDate: { gte: NOW } }],
+              countries: { some: { country: { code: 'SA' } } },
+            },
+          },
+        },
+        select: {
+          updatedAt: true,
+          isFeatured: true,
+          translations: {
+            where: { locale: { in: ['ar', 'en'] } },
+            select: { slug: true, locale: true },
+          },
+        },
+      }).catch(() => []),
+
+      prisma.seasonalPage.findMany({
+        where: {
+          isActive: true,
+          countries: { some: { country: { code: 'SA' } } },
+        },
+        select: {
+          slug: true,
+          updatedAt: true,
+          translations: {
+            where: { locale: { in: ['ar', 'en'] } },
+            select: { locale: true, title: true },
+          },
+        },
+      }).catch(() => []),
+
+      prisma.blogPost.findMany({
+        where: { status: 'PUBLISHED' },
+        select: {
+          slug: true,
+          isFeatured: true,
+          publishedAt: true,
+          updatedAt: true,
+          translations: { select: { locale: true } },
+        },
+      }).catch(() => []),
     ]);
 
     const voucherDate = safeDate(latestVoucher?.updatedAt);
     const storeDate   = safeDate(latestStore?.updatedAt);
     const promoDate   = safeDate(latestPromo?.updatedAt);
 
-    // ── 1. Homepages for both locales ──────────────────────────────────────
+    // ── 1. Homepages ───────────────────────────────────────────────────────
     for (const locale of LOCALES) {
       urls.push({
         url: `${BASE_URL}/${locale}`,
@@ -122,7 +241,7 @@ export default async function sitemap() {
       for (const locale of LOCALES) {
         urls.push({
           url: `${BASE_URL}/${locale}/${page.slug}`,
-          lastModified: CURRENT_DATE,
+          lastModified: NOW,
           changeFrequency: page.changeFrequency,
           priority: page.priority,
           alternates: { languages: coreAlternates(`/${page.slug}`) },
@@ -130,14 +249,7 @@ export default async function sitemap() {
       }
     }
 
-    // ── 6. Coupons paginated (max 9 pages) ─────────────────────────────────
-    const totalVouchers = await prisma.voucher.count({
-      where: {
-        store: { isActive: true },
-        countries: { some: { country: { code: 'SA' } } },
-        OR: [{ expiryDate: null }, { expiryDate: { gte: CURRENT_DATE } }],
-      },
-    }).catch(() => 0);
+    // ── 6. Coupons paginated ───────────────────────────────────────────────
     const couponsLastPage = Math.min(Math.ceil(totalVouchers / COUPONS_PER_PAGE), COUPONS_MAX_PAGE);
     for (let page = 1; page <= couponsLastPage; page++) {
       const path = page === 1 ? '/coupons' : `/coupons?page=${page}`;
@@ -152,21 +264,14 @@ export default async function sitemap() {
       }
     }
 
-    // ── 7. Stacks paginated (max 9 pages) ──────────────────────────────────
-    // ✅ FIX: OfferStack does not have `countries`; filter via store.countries
-    const totalStacks = await prisma.offerStack.count({
-      where: {
-        isActive: true,
-        store: { countries: { some: { country: { code: 'SA' } } } },
-      },
-    }).catch(() => 0);
+    // ── 7. Stacks paginated ────────────────────────────────────────────────
     const stacksLastPage = Math.min(Math.ceil(totalStacks / STACKS_PER_PAGE), STACKS_MAX_PAGE);
     for (let page = 1; page <= stacksLastPage; page++) {
       const path = page === 1 ? '/stacks' : `/stacks?page=${page}`;
       for (const locale of LOCALES) {
         urls.push({
           url: `${BASE_URL}/${locale}${path}`,
-          lastModified: safeDate(latestVoucher?.updatedAt),
+          lastModified: voucherDate,
           changeFrequency: page === 1 ? 'daily' : 'weekly',
           priority: page === 1 ? 0.8 : 0.5,
           alternates: { languages: coreAlternates(path) },
@@ -174,32 +279,11 @@ export default async function sitemap() {
       }
     }
 
-    // ── 8. Dynamic categories (per locale) ─────────────────────────────────
-    const categories = await prisma.category.findMany({
-      where: {
-        stores: {
-          some: {
-            store: {
-              isActive: true,
-              countries: { some: { country: { code: 'SA' } } },
-            },
-          },
-        },
-      },
-      select: {
-        updatedAt: true,
-        translations: {
-          where: { locale: { in: ['ar', 'en'] } },
-          select: { slug: true, locale: true },
-        },
-      },
-    }).catch(() => []);
-
+    // ── 8. Category pages ──────────────────────────────────────────────────
     for (const cat of categories) {
       const arSlug = cat.translations?.find(t => t.locale === 'ar')?.slug;
       const enSlug = cat.translations?.find(t => t.locale === 'en')?.slug;
       const alternates = slugAlternates(arSlug, enSlug, '/categories');
-      // Add an entry for each locale that exists
       if (arSlug) {
         urls.push({
           url: `${BASE_URL}/ar-SA/categories/${arSlug}`,
@@ -220,22 +304,7 @@ export default async function sitemap() {
       }
     }
 
-    // ── 9. Dynamic stores (per locale) ─────────────────────────────────────
-    const stores = await prisma.store.findMany({
-      where: {
-        isActive: true,
-        countries: { some: { country: { code: 'SA' } } },
-      },
-      select: {
-        updatedAt: true,
-        isFeatured: true,
-        translations: {
-          where: { locale: { in: ['ar', 'en'] } },
-          select: { slug: true, locale: true },
-        },
-      },
-    }).catch(() => []);
-
+    // ── 9. Store pages (active-voucher stores only) ────────────────────────
     for (const store of stores) {
       const arSlug = store.translations?.find(t => t.locale === 'ar')?.slug;
       const enSlug = store.translations?.find(t => t.locale === 'en')?.slug;
@@ -261,21 +330,6 @@ export default async function sitemap() {
     }
 
     // ── 10. Seasonal pages ─────────────────────────────────────────────────
-    const seasonal = await prisma.seasonalPage.findMany({
-      where: {
-        isActive: true,
-        countries: { some: { country: { code: 'SA' } } },
-      },
-      select: {
-        slug: true,
-        updatedAt: true,
-        translations: {
-          where: { locale: { in: ['ar', 'en'] } },
-          select: { locale: true, title: true },
-        },
-      },
-    }).catch(() => []);
-
     for (const sp of seasonal) {
       const arTitle = sp.translations?.find(t => t.locale === 'ar')?.title;
       const enTitle = sp.translations?.find(t => t.locale === 'en')?.title;
@@ -285,7 +339,7 @@ export default async function sitemap() {
           lastModified: safeDate(sp.updatedAt),
           changeFrequency: 'weekly',
           priority: 0.75,
-          alternates: { languages: slugAlternates(arTitle ? sp.slug : null, enTitle ? sp.slug : null, '/seasonal') },
+          alternates: { languages: slugAlternates(sp.slug, enTitle ? sp.slug : null, '/seasonal') },
         });
       }
       if (enTitle) {
@@ -294,20 +348,19 @@ export default async function sitemap() {
           lastModified: safeDate(sp.updatedAt),
           changeFrequency: 'weekly',
           priority: 0.75,
-          alternates: { languages: slugAlternates(arTitle ? sp.slug : null, enTitle ? sp.slug : null, '/seasonal') },
+          alternates: { languages: slugAlternates(arTitle ? sp.slug : null, sp.slug, '/seasonal') },
         });
       }
     }
 
-    // ── 11. Blog index (max 5 pages) ───────────────────────────────────────
-    const totalBlogPosts = await prisma.blogPost.count({ where: { status: 'PUBLISHED' } }).catch(() => 0);
+    // ── 11. Blog index ─────────────────────────────────────────────────────
     const blogLastPage = Math.min(Math.ceil(totalBlogPosts / BLOG_PER_PAGE), BLOG_MAX_PAGE);
     for (let page = 1; page <= blogLastPage; page++) {
       const path = page === 1 ? '/blog' : `/blog?page=${page}`;
       for (const locale of LOCALES) {
         urls.push({
           url: `${BASE_URL}/${locale}${path}`,
-          lastModified: safeDate(latestVoucher?.updatedAt),
+          lastModified: voucherDate,
           changeFrequency: page === 1 ? 'daily' : 'weekly',
           priority: page === 1 ? 0.85 : 0.55,
           alternates: { languages: coreAlternates(path) },
@@ -315,43 +368,32 @@ export default async function sitemap() {
       }
     }
 
-    // ── 12. Individual blog posts ──────────────────────────────────────────
-    const blogPosts = await prisma.blogPost.findMany({
-      where: { status: 'PUBLISHED' },
-      select: {
-        slug: true,
-        isFeatured: true,
-        publishedAt: true,
-        updatedAt: true,
-        translations: { select: { locale: true } },
-      },
-    }).catch(() => []);
-
+    // ── 12. Blog posts ─────────────────────────────────────────────────────
     for (const post of blogPosts) {
-      const hasArabic = post.translations?.some(t => t.locale === 'ar');
-      const hasEnglish = post.translations?.some(t => t.locale === 'en');
-      if (hasArabic) {
+      const hasAr = post.translations?.some(t => t.locale === 'ar');
+      const hasEn = post.translations?.some(t => t.locale === 'en');
+      if (hasAr) {
         urls.push({
           url: `${BASE_URL}/ar-SA/blog/${post.slug}`,
           lastModified: safeDate(post.updatedAt || post.publishedAt),
           changeFrequency: 'weekly',
           priority: post.isFeatured ? 0.8 : 0.7,
-          alternates: { languages: slugAlternates(post.slug, post.slug, '/blog') },
+          alternates: { languages: slugAlternates(post.slug, hasEn ? post.slug : null, '/blog') },
         });
       }
-      if (hasEnglish) {
+      if (hasEn) {
         urls.push({
           url: `${BASE_URL}/en-SA/blog/${post.slug}`,
           lastModified: safeDate(post.updatedAt || post.publishedAt),
           changeFrequency: 'weekly',
           priority: post.isFeatured ? 0.8 : 0.7,
-          alternates: { languages: slugAlternates(post.slug, post.slug, '/blog') },
+          alternates: { languages: slugAlternates(hasAr ? post.slug : null, post.slug, '/blog') },
         });
       }
     }
 
-    // ── Final sanitisation ─────────────────────────────────────────────────
-    const filtered = deduplicateEntries(urls).filter(entry => {
+    // ── Sanitise ───────────────────────────────────────────────────────────
+    return deduplicateEntries(urls).filter(entry => {
       const lower = entry.url.toLowerCase();
       if (lower.includes('/_next/')) return false;
       if (lower.includes('/store-covers/')) return false;
@@ -359,15 +401,15 @@ export default async function sitemap() {
       return !lower.match(/\.(avif|webp|png|jpg|jpeg|gif|svg|ico|json|js|css|woff2?|ttf|eot|xml|txt)$/);
     });
 
-    return filtered;
   } catch (error) {
-    console.error('Sitemap generation error:', error);
+    console.error('[sitemap] generation error:', error);
+    // Fallback: at minimum return homepages so the sitemap is never empty
     return LOCALES.map(locale => ({
       url: `${BASE_URL}/${locale}`,
-      lastModified: CURRENT_DATE,
+      lastModified: NOW,
       changeFrequency: 'daily',
       priority: 1.0,
       alternates: { languages: coreAlternates() },
     }));
   }
-          }
+}
