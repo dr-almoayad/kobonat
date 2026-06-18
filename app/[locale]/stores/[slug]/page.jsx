@@ -1,4 +1,5 @@
 // app/[locale]/stores/[slug]/page.jsx
+
 import { prisma } from '@/lib/prisma';
 import { notFound, permanentRedirect } from 'next/navigation'; 
 import { getTranslations } from 'next-intl/server';
@@ -26,25 +27,18 @@ import { getGeneralFaqSchemaEntities } from '@/components/PromoCodesFAQ/PromoCod
 import './store-page.css';
 
 export const revalidate = 3600;
-export const dynamicParams = true; // ✅ Forces on‑demand rendering for any missing static param
+export const dynamicParams = true;
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://cobonat.me';
 
-// ── Static params – DISABLED (no pre‑rendering, ISR only) ──
 export async function generateStaticParams() {
-  // Return empty array – all store pages will be generated on first request
   return [];
 }
 
-/**
- * Helper: fallback for old Arabic slugs (or any mismatched slug)
- * Searches for a store translation by name (partial match) in the requested locale.
- * Returns the correct (English) slug if found, otherwise null.
- */
+// ── Helper: fallback for legacy Arabic slugs ──
 async function handleLegacySlugFallback(slug, language) {
   const hasArabic = /[\u0600-\u06FF]/.test(slug);
   if (!hasArabic) return null;
-
   const normalized = slug.replace(/-/g, ' ');
   const fallback = await prisma.storeTranslation.findFirst({
     where: {
@@ -57,6 +51,17 @@ async function handleLegacySlugFallback(slug, language) {
   return fallback?.slug || null;
 }
 
+// ── Helper: get a valid logo URL ──
+function getStoreLogoUrl(store) {
+  if (!store?.logo) return null;
+  // If it's already an absolute URL, return it
+  if (store.logo.startsWith('http')) return store.logo;
+  // If it starts with a slash, assume it's a relative path
+  if (store.logo.startsWith('/')) return `${BASE_URL}${store.logo}`;
+  // Otherwise, treat it as a store name and build a path (adjust extension as needed)
+  return `${BASE_URL}/stores/${store.logo.toLowerCase().replace(/\s+/g, '-')}.webp`;
+}
+
 // ── Metadata ──────────────────────────────────────────────────────────────────
 export async function generateMetadata({ params }) {
   try {
@@ -66,7 +71,7 @@ export async function generateMetadata({ params }) {
     const isArabic = language === 'ar';
     const now = new Date();
 
-    // Category redirect check
+    // Category redirect
     const isCategory = await getCategoryData(slug, language, countryCode);
     if (isCategory) {
       return {
@@ -77,11 +82,9 @@ export async function generateMetadata({ params }) {
 
     let store = await getStoreData(slug, language, countryCode);
 
-    // Fallback: try to redirect from old Arabic slug
     if (!store) {
       const newSlug = await handleLegacySlugFallback(slug, language);
       if (newSlug) {
-        // In metadata we return a noindex + canonical pointing to the new URL
         return {
           robots: { index: false, follow: true },
           alternates: { canonical: `${BASE_URL}/${locale}/stores/${newSlug}` },
@@ -93,8 +96,7 @@ export async function generateMetadata({ params }) {
     const storeTranslation = store.translations[0];
     const storeName = storeTranslation?.name || slug;
 
-    // ✅ Both locales are indexable – no `noindex` block for English
-
+    // Build hreflang
     const otherLocale = language === 'ar' ? 'en' : 'ar';
     const otherTranslation = await prisma.storeTranslation.findFirst({
       where: { storeId: store.id, locale: otherLocale },
@@ -109,18 +111,47 @@ export async function generateMetadata({ params }) {
     if (enSlug) hreflangLanguages['en-SA'] = `${BASE_URL}/en-SA/stores/${enSlug}`;
     hreflangLanguages['x-default'] = `${BASE_URL}/ar-SA/stores/${arSlug || enSlug || slug}`;
 
-    // Custom SEO if set by admin
+    // ── Common OG/Twitter image ──
+    const ogImage = store.coverImage || store.logo || `${BASE_URL}/logo-512x512.png`;
+    // If the logo is a relative path, make it absolute
+    const finalOgImage = ogImage.startsWith('http') ? ogImage : `${BASE_URL}${ogImage.startsWith('/') ? '' : '/'}${ogImage}`;
+
+    // ✅ FIX: If custom SEO is set, return full metadata with og/twitter
     if (storeTranslation?.seoTitle || storeTranslation?.seoDescription) {
       return {
         metadataBase: new URL(BASE_URL),
         title: storeTranslation.seoTitle || storeName,
         description: storeTranslation.seoDescription || storeTranslation?.description || '',
-        alternates: { canonical: `${BASE_URL}/${locale}/stores/${slug}`, languages: hreflangLanguages },
-        robots: { index: true, follow: true, googleBot: { 'max-image-preview': 'large', 'max-snippet': -1 } },
+        alternates: {
+          canonical: `${BASE_URL}/${locale}/stores/${slug}`,
+          languages: hreflangLanguages,
+        },
+        // ✅ ADDED: OpenGraph and Twitter for custom SEO pages
+        openGraph: {
+          siteName: isArabic ? 'كوبونات' : 'Cobonat',
+          title: storeTranslation.seoTitle || storeName,
+          description: storeTranslation.seoDescription || storeTranslation?.description || '',
+          type: 'website',
+          locale,
+          url: `${BASE_URL}/${locale}/stores/${slug}`,
+          images: [{ url: finalOgImage, width: 1200, height: 630 }],
+        },
+        twitter: {
+          card: 'summary_large_image',
+          site: '@cobonat',
+          title: storeTranslation.seoTitle || storeName,
+          description: storeTranslation.seoDescription || storeTranslation?.description || '',
+          images: [finalOgImage],
+        },
+        robots: {
+          index: true,
+          follow: true,
+          googleBot: { index: true, follow: true, 'max-image-preview': 'large', 'max-snippet': -1 },
+        },
       };
     }
 
-    // Dynamic metadata
+    // Dynamic metadata (no custom SEO)
     const [voucherCount, savingsAgg] = await Promise.all([
       prisma.voucher.count({
         where: {
@@ -153,13 +184,15 @@ export async function generateMetadata({ params }) {
     });
 
     const description = storeTranslation?.description || autoDescription;
-    const ogImage = store.coverImage || store.logo || `${BASE_URL}/logo-512x512.png`;
 
     return {
       metadataBase: new URL(BASE_URL),
       title,
       description,
-      alternates: { canonical: `${BASE_URL}/${locale}/stores/${slug}`, languages: hreflangLanguages },
+      alternates: {
+        canonical: `${BASE_URL}/${locale}/stores/${slug}`,
+        languages: hreflangLanguages,
+      },
       openGraph: {
         siteName: isArabic ? 'كوبونات' : 'Cobonat',
         title,
@@ -167,14 +200,14 @@ export async function generateMetadata({ params }) {
         type: 'website',
         locale,
         url: `${BASE_URL}/${locale}/stores/${slug}`,
-        images: [{ url: ogImage, width: 1200, height: 630 }],
+        images: [{ url: finalOgImage, width: 1200, height: 630 }],
       },
       twitter: {
         card: 'summary_large_image',
         site: '@cobonat',
         title,
         description,
-        images: [ogImage],
+        images: [finalOgImage],
       },
       robots: {
         index: true,
@@ -196,13 +229,13 @@ export default async function StorePage({ params }) {
     const [language, countryCode] = locale.split('-');
     const now = new Date();
 
-    // Category redirect (only once)
+    // Category redirect
     const category = await getCategoryData(slug, language, countryCode);
     if (category) permanentRedirect(`/${locale}/categories/${slug}`);
 
     let store = await getStoreData(slug, language, countryCode);
 
-    // Fallback redirect from old Arabic slug
+    // Fallback redirect
     if (!store) {
       const newSlug = await handleLegacySlugFallback(slug, language);
       if (newSlug) {
@@ -219,12 +252,20 @@ export default async function StorePage({ params }) {
     if (!country) return notFound();
 
     const storeTranslation = store.translations[0];
+
+    // ✅ FIX: Ensure logo is a valid URL for display (fallback)
+    const storeLogoUrl = getStoreLogoUrl(store);
+    const storeCoverUrl = store.coverImage?.startsWith('http')
+      ? store.coverImage
+      : `${BASE_URL}${store.coverImage?.startsWith('/') ? '' : '/'}${store.coverImage || ''}`;
+
     const transformedStore = {
       ...store,
       name: storeTranslation?.name || slug,
       slug: storeTranslation?.slug || slug,
       description: storeTranslation?.description || null,
-      coverImage: store.coverImage,
+      coverImage: storeCoverUrl || null,
+      logo: storeLogoUrl || null,
       categories: store.categories.map(sc => ({
         id: sc.category.id,
         name: sc.category.translations[0]?.name || '',
@@ -236,7 +277,7 @@ export default async function StorePage({ params }) {
 
     const generalFaqEntities = await getGeneralFaqSchemaEntities(locale);
 
-    // Parallel data fetch (reduced complexity)
+    // Parallel data fetch
     const [
       allVouchers,
       paymentMethodsData,
@@ -406,6 +447,8 @@ export default async function StorePage({ params }) {
       ...s,
       name: s.translations[0]?.name || '',
       slug: s.translations[0]?.slug || '',
+      // Ensure logo is valid for each related store
+      logo: getStoreLogoUrl(s),
     }));
 
     const transformedProducts = storeProducts.map(p => ({
@@ -536,8 +579,6 @@ export default async function StorePage({ params }) {
                   />
                 )}
 
-                {/*<StoreIntelligenceCard storeId={store.id} locale={locale} countryCode={countryCode || 'SA'} />*/}
-
                 {faqs.length > 0 && <StoreFAQ faqs={faqs} locale={locale} storeName={transformedStore.name} countryName={countryName} />}
 
                 {expiredVouchers.length > 0 && <ExpiredVouchersList vouchers={expiredVouchers} />}
@@ -576,4 +617,4 @@ export default async function StorePage({ params }) {
     console.error('[StorePage] error:', error);
     return notFound();
   }
-}
+      }
