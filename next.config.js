@@ -1,4 +1,4 @@
-// next.config.js - FINAL CORRECTED VERSION
+// next.config.js - FULLY CORRECTED VERSION
 import createNextIntlPlugin from 'next-intl/plugin';
 
 const withNextIntl = createNextIntlPlugin('./i18n/request.js');
@@ -78,7 +78,7 @@ const nextConfig = {
         permanent: true,
       },
 
-      // ── NEW: Redirect root-level static pages to Arabic version (default locale) ──
+      // ── Redirect root-level static pages to Arabic version (default locale) ──
       { source: '/about', destination: '/ar-SA/about', permanent: true },
       { source: '/contact', destination: '/ar-SA/contact', permanent: true },
       { source: '/privacy', destination: '/ar-SA/privacy', permanent: true },
@@ -86,14 +86,14 @@ const nextConfig = {
       { source: '/cookies', destination: '/ar-SA/cookies', permanent: true },
       { source: '/help', destination: '/ar-SA/help', permanent: true },
 
-      // ── NEW: Remove trailing slashes (if they exist) ──
+      // ── Remove trailing slashes (if they exist) ──
       {
         source: '/:path*/',
         destination: '/:path*',
         permanent: true,
       },
 
-      // ── NEW: Redirect dead locales to the Arabic version ──
+      // ── Redirect dead locales to the Arabic version ──
       {
         source: '/:locale(ar-KW|en-AE|ar-AE|en-KW|ar-EG|en-EG|ar-BH|en-BH|ar-OM|en-OM|ar-QA|en-QA|ar-JO|en-JO|ar-LB|en-LB)/:path*',
         destination: '/ar-SA/:path*',
@@ -125,8 +125,11 @@ const nextConfig = {
   
   productionBrowserSourceMaps: false,
   
+  // ✅ CRITICAL FIX: Removed skipTrailingSlashRedirect to eliminate duplicate URL issues.
+  // Next.js will now automatically redirect /stores/amazon/ → /stores/amazon (301),
+  // ensuring Google sees only one canonical version per store page.
   trailingSlash: false,
-  skipTrailingSlashRedirect: true,
+  // skipTrailingSlashRedirect: true  ← REMOVED
 };
 
 export default withNextIntl(nextConfig);
