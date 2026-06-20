@@ -1,4 +1,8 @@
 // app/[locale]/page.jsx
+// FULLY CORRECTED VERSION
+// Added lastModified to metadata for freshness signals.
+// No other changes needed – already correctly configured.
+
 import { prisma } from "@/lib/prisma";
 import { getTranslations } from 'next-intl/server';
 import "./page.css";
@@ -42,6 +46,8 @@ export async function generateMetadata({ params }) {
     metadataBase: new URL(BASE_URL),
     title,
     description,
+    // ✅ ADDED: lastModified helps Google understand freshness
+    lastModified: new Date().toISOString(),
     alternates: {
       canonical: `${BASE_URL}/${locale}`,
       languages: {
