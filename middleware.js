@@ -4,7 +4,7 @@ import { NextResponse } from 'next/server';
 import createMiddleware from 'next-intl/middleware';
 
 const SUPPORTED_LOCALES = ['ar-SA', 'en-SA'];
-const DEFAULT_LOCALE = 'ar-SA'; 
+const DEFAULT_LOCALE = 'ar-SA';  
 
 const DEAD_LOCALE_PATTERNS = [
   /^\/ar-KW\//, /^\/en-AE\//, /^\/ar-AE\//, /^\/en-KW\//,
