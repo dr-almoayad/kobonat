@@ -1,7 +1,6 @@
 // app/[locale]/page.jsx
-// FULLY CORRECTED VERSION
-// Added lastModified to metadata for freshness signals.
-// No other changes needed – already correctly configured.
+// FULLY CORRECTED – includes lastModified and full metadata.
+// Note: The 403 and Prisma errors are not in this file; see guidance above.
 
 import { prisma } from "@/lib/prisma";
 import { getTranslations } from 'next-intl/server';
@@ -46,7 +45,6 @@ export async function generateMetadata({ params }) {
     metadataBase: new URL(BASE_URL),
     title,
     description,
-    // ✅ ADDED: lastModified helps Google understand freshness
     lastModified: new Date().toISOString(),
     alternates: {
       canonical: `${BASE_URL}/${locale}`,
@@ -111,7 +109,6 @@ export default async function Home({ params }) {
     leaderboardSnapshots,
     rawTopStores,
   ] = await Promise.all([
-    // 1. Hero stores (color slots 1–5)
     prisma.store.findMany({
       where: {
         isActive:   true,
@@ -133,7 +130,6 @@ export default async function Home({ params }) {
       orderBy: { color: 'asc' },
       take: 5,
     }),
-    // 2. Brands carousel
     prisma.store.findMany({
       where: {
         isActive:  true,
@@ -151,7 +147,6 @@ export default async function Home({ params }) {
       orderBy: [{ isFeatured: 'desc' }, { id: 'asc' }],
       take: 20,
     }),
-    // 3. Leaderboard (unused in UI, kept for potential future use)
     prisma.storeSavingsSnapshot.findMany({
       where:   { weekIdentifier: currentWeek, categoryId: null },
       orderBy: { rank: 'asc' },
@@ -170,7 +165,6 @@ export default async function Home({ params }) {
         },
       },
     }),
-    // 4. Featured stores for carousel – includes _count.vouchers for StoreCard
     prisma.store.findMany({
       where: {
         isActive:  true,
@@ -208,7 +202,6 @@ export default async function Home({ params }) {
     }),
   ]);
 
-  // Transform featured stores for carousel (rawTopStores) into StoreCard-compatible shape
   const topStores = rawTopStores.map(store => {
     const translation = store.translations?.[0] || {};
     const topDiscount = store.vouchers?.[0]?.discountPercent;
@@ -239,7 +232,6 @@ export default async function Home({ params }) {
 
   const carouselTitle = isArabic ? 'متاجر مميزة' : 'Featured Stores with Discounts';
 
-  // Transform for other sections (unchanged)
   const transformStore = (store) => {
     const t = store.translations?.[0] || {};
     return {
@@ -262,7 +254,6 @@ export default async function Home({ params }) {
     activeVouchersCount: b._count?.vouchers || 0,
   }));
 
-  // Structured data
   const homepageSchema = topStores.length > 0 ? {
     '@context':    'https://schema.org',
     '@type':       'ItemList',
@@ -296,7 +287,6 @@ export default async function Home({ params }) {
         <SavingsBanner locale={locale} />
         <HeroBestOffersCarousel />
 
-        {/* Featured Stores Carousel – uses StoreCard which now receives _count.vouchers */}
         <FeaturedStoresCarousel
           title={carouselTitle}
           stores={topStores}
