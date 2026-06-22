@@ -19,9 +19,7 @@ import FeaturedStoresSection from '@/components/FeaturedStoresSection/FeaturedSt
 import FeaturedStoresCarousel from '@/components/FeaturedStoresCarousel/FeaturedStoresCarousel';
 import { getCurrentWeekIdentifier } from '@/lib/leaderboard/calculateStoreSavings';
 import HeroCuratedSection from '@/components/HeroCuratedCarousel/HeroCuratedSection';
-import HeroBestOffersCarousel from '@/components/HeroBestOffersCarousel/HeroBestOffersCarousel';
 import PromoCodesFAQ from '@/components/PromoCodesFAQ/PromoCodesFAQ';
-import SavingsBanner from '@/components/SavingsBanner/SavingsBanner';
 import HowItWorks from '@/components/HowItWorks/HowItWorks';
 
 export const revalidate = 1800;
@@ -284,8 +282,6 @@ export default async function Home({ params }) {
         </div>
 
         <HeroCuratedSection locale={locale} countryCode={country} />
-        <SavingsBanner locale={locale} />
-        <HeroBestOffersCarousel />
 
         <FeaturedStoresCarousel
           title={carouselTitle}
