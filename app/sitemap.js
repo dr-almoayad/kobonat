@@ -1,4 +1,10 @@
 // app/sitemap.js
+// FULLY CORRECTED VERSION
+// Changes:
+// 1. Removed voucher filter for stores – now includes ALL active stores.
+// 2. Store page lastModified set to NOW to encourage fresh crawling.
+// 3. Kept all other logic intact.
+
 import { prisma } from '@/lib/prisma';
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://cobonat.me';
@@ -64,9 +70,6 @@ export default async function sitemap() {
 
   try {
     // ── All DB queries in one parallel batch ───────────────────────────────
-    // Previously these ran sequentially, costing ~10× as long and holding
-    // connections open for the full duration. Parallel cuts wall-clock time
-    // from ~1 s to ~200 ms and releases connections much sooner.
     const [
       latestVoucher,
       latestStore,
@@ -136,20 +139,11 @@ export default async function sitemap() {
         },
       }).catch(() => []),
 
-      // KEY CHANGE: only stores that have at least one active voucher in SA.
-      // Stores with zero active vouchers are thin pages — excluding them from
-      // the sitemap prevents them from wasting crawl budget and hurting
-      // overall site quality signals.
+      // ✅ FIX: Removed voucher filter – include ALL active stores.
       prisma.store.findMany({
         where: {
           isActive: true,
           countries: { some: { country: { code: 'SA' } } },
-          vouchers: {
-            some: {
-              OR: [{ expiryDate: null }, { expiryDate: { gte: NOW } }],
-              countries: { some: { country: { code: 'SA' } } },
-            },
-          },
         },
         select: {
           updatedAt: true,
@@ -304,7 +298,8 @@ export default async function sitemap() {
       }
     }
 
-    // ── 9. Store pages (active-voucher stores only) ────────────────────────
+    // ── 9. Store pages (ALL active stores) ────────────────────────────────
+    // ✅ FIX: lastModified is set to NOW to signal freshness.
     for (const store of stores) {
       const arSlug = store.translations?.find(t => t.locale === 'ar')?.slug;
       const enSlug = store.translations?.find(t => t.locale === 'en')?.slug;
@@ -312,7 +307,7 @@ export default async function sitemap() {
       if (arSlug) {
         urls.push({
           url: `${BASE_URL}/ar-SA/stores/${arSlug}`,
-          lastModified: safeDate(store.updatedAt),
+          lastModified: NOW, // Always fresh
           changeFrequency: 'daily',
           priority: store.isFeatured ? 0.85 : 0.75,
           alternates: { languages: alternates },
@@ -321,7 +316,7 @@ export default async function sitemap() {
       if (enSlug) {
         urls.push({
           url: `${BASE_URL}/en-SA/stores/${enSlug}`,
-          lastModified: safeDate(store.updatedAt),
+          lastModified: NOW, // Always fresh
           changeFrequency: 'daily',
           priority: store.isFeatured ? 0.85 : 0.75,
           alternates: { languages: alternates },
