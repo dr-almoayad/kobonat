@@ -13,9 +13,8 @@
 // Cache: 30 minutes at the CDN edge — vouchers change frequently.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { prisma }                                from '@/lib/prisma';
-import { escapeXml, xmlTag, bilingualTags, isoDate, xmlHeader, xmlFooter, xmlResponse, xmlErrorResponse }
-  from '@/lib/feeds/xmlHelpers';
+import { prisma } from '@/lib/prisma';
+import { escapeXml, xmlTag, bilingualTags, isoDate, xmlHeader, xmlFooter, xmlResponse, xmlErrorResponse } from '@/lib/feeds/xmlHelpers';
 
 // Revalidate every 30 minutes — coupons expire faster than stores change
 export const revalidate = 1800;
