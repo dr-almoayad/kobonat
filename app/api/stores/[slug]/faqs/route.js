@@ -8,7 +8,7 @@ export async function GET(req, { params }) {
     const { searchParams } = new URL(req.url);
     const locale = searchParams.get('locale') || 'ar';
     const countryCode = searchParams.get('country') || 'SA';
-
+ 
     // Find store in specified country
     const store = await prisma.store.findFirst({
       where: { 
