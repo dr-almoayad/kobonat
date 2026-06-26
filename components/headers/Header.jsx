@@ -1,9 +1,8 @@
 'use client';
 // components/headers/Header.jsx
 // Updates:
-//  - Desktop/tablet: Categories link added to nav
-//  - Mobile: Hamburger button (logo | search | hamburger) + slide-in drawer
-//  - Drawer: all pages + categories accordion grid + locale switcher
+//  - Fixed: /api/translate-slug → /api/slug-translate (actual endpoint)
+//  - Fallback: if translation fails, redirect to homepage instead of staying on broken page
 
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
@@ -156,7 +155,7 @@ const Header = () => {
     })),
   ], [staticNavLinks, seasonalPages]);
 
-  // Locale switch handler
+  // ── Locale switch handler (FIXED: uses correct API endpoint) ──
   const handleLocaleChange = useCallback(async (newLocale) => {
     if (currentLocale === newLocale) { setShowLocaleMenu(false); return; }
     setTranslating(true);
@@ -170,8 +169,9 @@ const Header = () => {
       const type        = storeMatch ? 'store' : 'category';
       const currentSlug = storeMatch ? storeMatch[1] : categoryMatch[1];
       try {
+        // ✅ FIX: Use the correct API endpoint
         const res = await fetch(
-          `/api/translate-slug?type=${type}&slug=${encodeURIComponent(currentSlug)}&from=${currentLanguage}&to=${newLanguage}`
+          `/api/slug-translate?type=${type}&slug=${encodeURIComponent(currentSlug)}&from=${currentLanguage}&to=${newLanguage}`
         );
         if (res.ok) {
           const data = await res.json();
@@ -184,7 +184,10 @@ const Header = () => {
             return;
           }
         }
-      } catch {}
+      } catch (error) {
+        console.warn('[Header] Slug translation failed:', error);
+      }
+      // Fallback: go to homepage of the new locale
       router.push(`/${newLocale}`);
     } else {
       router.push(`/${newLocale}${pathWithoutLocale}`);
