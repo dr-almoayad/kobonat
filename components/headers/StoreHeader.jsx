@@ -9,12 +9,12 @@ import './StoreHeader.css';
  * FIXED StoreHeader Component
  * ✅ FIX 1: Receives pre-computed `pageH1` and `heroSubtitle` as props from the Server Component.
  * ✅ FIX 2: Uses <h1> for the primary heading to match the <title> tag exactly.
- * ✅ FIX 3: Removed redundant client-side generation of SEO titles to improve performance.
- * ✅ FIX 4: Targets the latest voucher's update date with an automated 3-day rollover threshold.
+ * ✅ FIX 3: Removed client-side generation of SEO titles for performance.
+ * ✅ FIX 4: Timestamp uses only real data – no fabricated "freshness" values.
  */
-const StoreHeader = ({ 
-  store, 
-  mostTrackedVoucher, 
+const StoreHeader = ({
+  store,
+  mostTrackedVoucher,
   paymentMethods = [],
   bnplMethods = [],
   locale,
@@ -24,13 +24,13 @@ const StoreHeader = ({
   maxSavings = 0,
   pageH1,
   heroSubtitle,
-  latestVoucherDate // 🌟 New Prop: Pass the freshest voucher updatedAt timestamp from page.jsx
+  latestVoucherDate, // Real date from the server component
 }) => {
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
   const [isDescriptionOverflowing, setIsDescriptionOverflowing] = useState(false);
 
   const descriptionRef = useRef(null);
-  
+
   const isArabic = locale?.startsWith('ar');
   const dir = isArabic ? 'rtl' : 'ltr';
 
@@ -40,49 +40,43 @@ const StoreHeader = ({
   const storeDescription = store?.description;
   const categories = store?.categories || [];
 
-  // Semantic timestamp for freshness (E-E-A-T compliance)
+  // ── Real freshness timestamp (no fabrication) ──────────────────────────
   const getLastUpdatedTime = () => {
-    // 1. Target the latest voucher update as primary baseline, fallback to store structural update[cite: 15]
-    let baselineDate = latestVoucherDate 
-      ? new Date(latestVoucherDate) 
-      : store?.updatedAt 
-        ? new Date(store.updatedAt) 
+    // Use the latest voucher date if available, otherwise fall back to store.updatedAt
+    if (!latestVoucherDate && !store?.updatedAt) return null;
+
+    const baselineDate = latestVoucherDate
+      ? new Date(latestVoucherDate)
+      : store?.updatedAt
+        ? new Date(store.updatedAt)
         : null;
 
     if (!baselineDate) return null;
 
     const now = new Date();
-    let diffMs = now - baselineDate;
+    const diffMs = now - baselineDate;
 
-    // 2. 🔁 Auto-Update every 3 Days:
-    // If the latest voucher change is older than 3 days (72 hours), generate a stable, 
-    // deterministic window within the last 3 days using the store's ID as a seed. 
-    // This maintains premium freshness signals without causing hydration/layout flicker.
-    const THREE_DAYS_MS = 3 * 24 * 60 * 60 * 1000;
-    if (diffMs > THREE_DAYS_MS || diffMs < 0) {
-      const seed = typeof store?.id === 'number' 
-        ? store.id 
-        : (store?.id?.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) || 0);
-      
-      // Returns a pseudo-freshened window tracking back between 4 and 68 hours ago
-      const hoursAgo = 4 + (seed % 64);
-      baselineDate = new Date(now.getTime() - hoursAgo * 60 * 60 * 1000);
-      diffMs = now - baselineDate;
-    }
+    if (diffMs < 0) return null; // future date – shouldn't happen
 
     const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-
-    if (diffHours < 1) return isArabic ? 'محدث للتو' : 'Updated just now'; //[cite: 15]
-    if (diffHours < 24) return isArabic ? `محدث قبل ${diffHours} ساعة` : `Updated ${diffHours}h ago`; //[cite: 15]
-    
     const diffDays = Math.floor(diffHours / 24);
-    if (diffDays === 1) return isArabic ? 'محدث أمس' : 'Updated yesterday'; //[cite: 15]
-    return isArabic ? `محدث قبل ${diffDays} أيام` : `Updated ${diffDays}d ago`; //[cite: 15]
+
+    if (diffHours < 1) return isArabic ? 'محدث للتو' : 'Updated just now';
+    if (diffHours < 24) return isArabic ? `محدث قبل ${diffHours} ساعة` : `Updated ${diffHours}h ago`;
+    if (diffDays === 1) return isArabic ? 'محدث أمس' : 'Updated yesterday';
+    if (diffDays < 7) return isArabic ? `محدث قبل ${diffDays} أيام` : `Updated ${diffDays}d ago`;
+
+    // More than a week – show the actual date
+    return new Intl.DateTimeFormat(locale, {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    }).format(baselineDate);
   };
-  
+
   const lastUpdated = getLastUpdatedTime();
 
-  // Check for description text overflow to show "Read More"
+  // Check for description text overflow
   useLayoutEffect(() => {
     const checkOverflow = () => {
       const element = descriptionRef.current;
@@ -99,7 +93,6 @@ const StoreHeader = ({
 
   return (
     <header className="sh-container" dir={dir} ref={sentinelRef}>
-      
       {/* Visual Banner Background */}
       <div className="sh-banner-wrapper">
         {storeCover ? (
@@ -121,16 +114,15 @@ const StoreHeader = ({
       {/* Main Content Area */}
       <div className="sh-content-wrapper">
         <div className="sh-main-grid">
-          
           {/* Brand Identity Section */}
           <div className="sh-identity-col">
             <div className="sh-logo-wrapper">
               {storeLogo ? (
-                <Image 
-                  src={storeLogo} 
-                  alt={`${storeName} logo`} 
-                  width={110} 
-                  height={110} 
+                <Image
+                  src={storeLogo}
+                  alt={`${storeName} logo`}
+                  width={110}
+                  height={110}
                   className="sh-logo-img"
                   quality={90}
                 />
@@ -140,16 +132,12 @@ const StoreHeader = ({
                 </div>
               )}
             </div>
-            
+
             <div className="sh-identity-text">
-              {/* ✅ THE PRIMARY H1: Matches metadata <title> for maximum SEO relevance */}
               <h1 className="sh-store-name">{pageH1}</h1>
-              
-              {/* Dynamic hero metadata string (e.g. "12 active codes • Save up to 15%") */}
               {heroSubtitle && (
                 <div className="sh-hero-subtitle">{heroSubtitle}</div>
               )}
-              
               <div className="sh-meta-row">
                 {country?.name && (
                   <span className="sh-meta-item">
@@ -171,19 +159,19 @@ const StoreHeader = ({
           <div className="sh-details-container">
             {storeDescription && (
               <div className="sh-description-wrapper">
-                <p 
+                <p
                   ref={descriptionRef}
                   className={`sh-description ${isDescriptionExpanded ? 'expanded' : ''}`}
                 >
                   {storeDescription}
                 </p>
                 {(isDescriptionOverflowing || isDescriptionExpanded) && (
-                  <button 
+                  <button
                     onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
                     className="sh-read-more-btn"
                     type="button"
                   >
-                    {isDescriptionExpanded 
+                    {isDescriptionExpanded
                       ? (isArabic ? 'عرض أقل' : 'Read less')
                       : (isArabic ? 'عرض المزيد' : 'Read more')}
                   </button>
@@ -191,12 +179,12 @@ const StoreHeader = ({
               </div>
             )}
 
-            {/* Category Breadcrumbs/Pills */}
+            {/* Category Pills */}
             {categories.length > 0 && (
               <div className="sh-categories-scroll">
                 {categories.map((cat) => (
-                  <Link 
-                    key={cat.id} 
+                  <Link
+                    key={cat.id}
                     href={`/${locale}/categories/${cat.slug}`}
                     className="sh-cat-pill"
                     style={{ '--hover-color': cat.color || '#6366f1' }}
@@ -208,7 +196,7 @@ const StoreHeader = ({
               </div>
             )}
 
-            {/* Payment Method Icons (BNPL & Standard) */}
+            {/* Payment Methods */}
             {(paymentMethods.length > 0 || bnplMethods.length > 0) && (
               <div className="sh-payments-row">
                 {bnplMethods.map(pm => (
@@ -232,7 +220,6 @@ const StoreHeader = ({
               </div>
             )}
           </div>
-
         </div>
       </div>
     </header>
