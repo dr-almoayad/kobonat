@@ -1,9 +1,11 @@
 // app/[locale]/stores/[slug]/page.jsx
-// FULLY CORRECTED VERSION
+// ✅ FULLY CORRECTED VERSION
 // Fixes:
 // 1. Custom SEO metadata now includes openGraph & twitter → prevents fallback to homepage metadata.
 // 2. Logo/cover images are converted to absolute URLs → eliminates 404s.
 // 3. Canonical & hreflang correct → no duplicate URL confusion.
+// 4. generateStaticParams pre‑builds all store pages → faster crawl, no 503s.
+// 5. Removed category slug collision check → eliminates extra DB query and potential redirect loops.
 
 import { prisma } from '@/lib/prisma';
 import { notFound, permanentRedirect } from 'next/navigation'; 
@@ -31,13 +33,38 @@ import ExpiredOtherPromosList from '@/components/ExpiredOtherPromosList/ExpiredO
 import { getGeneralFaqSchemaEntities } from '@/components/PromoCodesFAQ/PromoCodesFAQSchema';
 import './store-page.css';
 
-export const revalidate = 3600;
+export const revalidate = 3600; // ISR: revalidate every hour
 export const dynamicParams = true;
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://cobonat.me';
 
+// ── ✅ FIX: Pre‑build all store pages ──
 export async function generateStaticParams() {
-  return [];
+  try {
+    const stores = await prisma.store.findMany({
+      where: { isActive: true },
+      select: {
+        translations: {
+          where: { locale: { in: ['ar', 'en'] } },
+          select: { slug: true, locale: true },
+        },
+      },
+    });
+
+    const params = [];
+    for (const store of stores) {
+      for (const t of store.translations) {
+        if (t.slug) {
+          const locale = t.locale === 'ar' ? 'ar-SA' : 'en-SA';
+          params.push({ locale, slug: t.slug });
+        }
+      }
+    }
+    return params;
+  } catch (error) {
+    console.error('[generateStaticParams] error:', error);
+    return []; // fallback to on‑demand ISR
+  }
 }
 
 // ── Helper: fallback for legacy Arabic slugs ──
@@ -59,11 +86,8 @@ async function handleLegacySlugFallback(slug, language) {
 // ── Helper: get a valid logo URL ──
 function getStoreLogoUrl(store) {
   if (!store?.logo) return null;
-  // If it's already an absolute URL, return it
   if (store.logo.startsWith('http')) return store.logo;
-  // If it starts with a slash, assume it's a relative path
   if (store.logo.startsWith('/')) return `${BASE_URL}${store.logo}`;
-  // Otherwise, treat it as a store name and build a path
   return `${BASE_URL}/stores/${store.logo.toLowerCase().replace(/\s+/g, '-')}.webp`;
 }
 
@@ -76,14 +100,8 @@ export async function generateMetadata({ params }) {
     const isArabic = language === 'ar';
     const now = new Date();
 
-    // Category redirect
-    const isCategory = await getCategoryData(slug, language, countryCode);
-    if (isCategory) {
-      return {
-        robots: { index: false, follow: true },
-        alternates: { canonical: `${BASE_URL}/${locale}/categories/${slug}` },
-      };
-    }
+    // ✅ REMOVED: category slug collision check – store page now only handles stores.
+    // If a slug belongs to a category, the category route will handle it.
 
     let store = await getStoreData(slug, language, countryCode);
 
@@ -116,11 +134,10 @@ export async function generateMetadata({ params }) {
     if (enSlug) hreflangLanguages['en-SA'] = `${BASE_URL}/en-SA/stores/${enSlug}`;
     hreflangLanguages['x-default'] = `${BASE_URL}/ar-SA/stores/${arSlug || enSlug || slug}`;
 
-    // ── Common OG/Twitter image ──
     const ogImage = store.coverImage || store.logo || `${BASE_URL}/logo-512x512.png`;
     const finalOgImage = ogImage.startsWith('http') ? ogImage : `${BASE_URL}${ogImage.startsWith('/') ? '' : '/'}${ogImage}`;
 
-    // ✅ FIX: Custom SEO block now includes openGraph & twitter
+    // Custom SEO
     if (storeTranslation?.seoTitle || storeTranslation?.seoDescription) {
       return {
         metadataBase: new URL(BASE_URL),
@@ -154,7 +171,7 @@ export async function generateMetadata({ params }) {
       };
     }
 
-    // Dynamic metadata (no custom SEO)
+    // Dynamic metadata
     const [voucherCount, savingsAgg] = await Promise.all([
       prisma.voucher.count({
         where: {
@@ -232,13 +249,10 @@ export default async function StorePage({ params }) {
     const [language, countryCode] = locale.split('-');
     const now = new Date();
 
-    // Category redirect
-    const category = await getCategoryData(slug, language, countryCode);
-    if (category) permanentRedirect(`/${locale}/categories/${slug}`);
-
+    // ✅ REMOVED: category redirect – now only handle store lookup.
     let store = await getStoreData(slug, language, countryCode);
 
-    // Fallback redirect
+    // Fallback redirect for legacy slugs
     if (!store) {
       const newSlug = await handleLegacySlugFallback(slug, language);
       if (newSlug) {
@@ -256,7 +270,6 @@ export default async function StorePage({ params }) {
 
     const storeTranslation = store.translations[0];
 
-    // ✅ FIX: Use helpers for logo and cover
     const storeLogoUrl = getStoreLogoUrl(store);
     const storeCoverUrl = store.coverImage?.startsWith('http')
       ? store.coverImage
@@ -450,7 +463,6 @@ export default async function StorePage({ params }) {
       ...s,
       name: s.translations[0]?.name || '',
       slug: s.translations[0]?.slug || '',
-      // ✅ Ensure logo is valid for each related store
       logo: getStoreLogoUrl(s),
     }));
 
