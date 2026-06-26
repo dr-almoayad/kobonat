@@ -1,7 +1,7 @@
 // app/api/admin/banks/[id]/route.js
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { getServerSession } from 'next-auth';
+import { getServerSession } from 'next-auth'; 
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 
 async function auth() {
