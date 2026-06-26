@@ -5,7 +5,7 @@ import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { calculateBankNicheScores } from '@/lib/banks/calculateBankNicheScores';
 
 export async function POST(req) {
-  const session = await getServerSession(authOptions);
+  const session = await getServerSession(authOptions); 
   if (!session?.user?.isAdmin)
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
