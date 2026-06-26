@@ -96,11 +96,7 @@ const getCachedStoresData = unstable_cache(
     };
   },
   ['stores-api-query'],
-  // 1 hour. new Date() inside the function is evaluated at cache-creation time,
-  // so a 1-year TTL (the previous value) would serve stale voucher counts for
-  // up to a year between invalidations. 1 hour is a safe balance between
-  // freshness and query reduction. The revalidateTag('stores') call in POST
-  // handles on-demand purging when stores are created via this endpoint.
+  // ✅ FIXED: 1 hour revalidation – ensures fresh data for Googlebot
   { tags: ['stores'], revalidate: 3600 }
 );
 
