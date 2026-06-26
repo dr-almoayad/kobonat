@@ -1,4 +1,4 @@
-// app/api/translate-slug/route.js
+// app/api/slug-translate/route.js
 // Translates store or category slugs between locales.
 // Called by Header.jsx when the user switches language on a store or category page.
 //
