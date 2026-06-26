@@ -1,6 +1,6 @@
 // app/api/feeds/stacks.xml/route.js
 import { prisma } from '@/lib/prisma';
-import { NextResponse } from 'next/server';
+import { NextResponse } from 'next/server'; 
 
 export const revalidate = 3600;
 
