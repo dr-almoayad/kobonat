@@ -4,7 +4,7 @@
 //
 // Produces an XML feed of the top 500 active bank/payment/card/seasonal promos
 // available in Saudi Arabia.  Includes bank name, payment method, card details,
-// and store linkage so aggregators can map each offer to a merchant.
+// and store linkage so aggregators can map each offer to a merchant. 
 //
 // Cache: 1 hour at the CDN edge.
 // ─────────────────────────────────────────────────────────────────────────────
