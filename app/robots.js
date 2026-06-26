@@ -1,51 +1,11 @@
 // app/robots.js
+// Clean, standard robots.txt for SEO best practices.
+// No explicit allow lists needed because there is no catch‑all Disallow: /.
+// We only disallow internal/admin paths and aggressive crawlers.
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://cobonat.me';
 
-// ── Public page paths ──────────────────────────────────────────────────────
-const ALLOW_PAGES = [
-  '/',
-  '/ar-SA/', '/ar-SA/coupons', '/ar-SA/stores', '/ar-SA/stores/*',
-  '/ar-SA/categories', '/ar-SA/categories/*', '/ar-SA/stacks',
-  '/ar-SA/blog', '/ar-SA/blog/*', '/ar-SA/about', '/ar-SA/contact',
-  '/ar-SA/privacy', '/ar-SA/cookies', '/ar-SA/terms', '/ar-SA/help',
-  '/ar-SA/seasonal/*', '/ar-SA/bank-and-payment-offers',
-  '/en-SA/', '/en-SA/coupons', '/en-SA/stores', '/en-SA/stores/*',
-  '/en-SA/categories', '/en-SA/categories/*', '/en-SA/stacks',
-  '/en-SA/blog', '/en-SA/blog/*', '/en-SA/about', '/en-SA/contact',
-  '/en-SA/privacy', '/en-SA/cookies', '/en-SA/terms', '/en-SA/help',
-  '/en-SA/seasonal/*', '/en-SA/bank-and-payment-offers',
-];
-
-// ── Data feeds (public, machine-readable) ──────────────────────────────────
-// FIX: corrected to match actual route filenames (.xml / .json suffixes)
-const ALLOW_FEEDS = [
-  '/api/feeds/stores.xml',
-  '/api/feeds/stores.json',
-  '/api/feeds/coupons.xml',
-  '/api/feeds/coupons.json',
-  '/api/feeds/offers.xml',
-  '/api/feeds/offers.json',
-  '/api/feeds/stacks.xml',
-  '/api/feeds/stacks.json',
-  '/api/feeds/store-products.xml',
-  '/api/feeds/store-products.json',
-  '/api/context',
-];
-
-// ── Static assets — needed for Google to render JS/CSS ────────────────────
-const STATIC_ASSETS = [
-  '/_next/static/css/',
-  '/_next/static/js/',
-  '/_next/static/chunks/',
-  '/_next/static/media/',
-  '/_next/image/',
-];
-
-// ── Internal routes to block ───────────────────────────────────────────────
-// FIX: removed redundant /*-suffixed duplicates (the base path covers them)
-// FIX: removed query-param disallows (/*?utm_ etc.) — unreliable in robots.txt;
-//      canonical tags handle parameterised URL deduplication correctly.
+// ── Paths that should never be crawled ────────────────────────────────────
 const DISALLOW_INTERNAL = [
   '/admin/',
   '/api/admin/',
@@ -64,89 +24,77 @@ const DISALLOW_INTERNAL = [
   '/api/seasonal/',
   '/api/leaderboard',
   '/api/og',
-  '/api/slug-translate',
-  '/*/search',
+  // Search pages with query parameters – block via standard wildcard
+  '/search',
 ];
 
 export default function robots() {
   return {
     rules: [
-      // ── 1. Google ──────────────────────────────────────────────────────
+      // ── 1. Main search engines ──────────────────────────────────────
+      // No allow list needed – they can crawl everything not disallowed.
       {
         userAgent: 'Googlebot',
-        allow: [...ALLOW_FEEDS, ...ALLOW_PAGES, ...STATIC_ASSETS],
         disallow: DISALLOW_INTERNAL,
       },
-
-      // ── 2. Bing ────────────────────────────────────────────────────────
       {
         userAgent: 'Bingbot',
-        allow: [...ALLOW_FEEDS, ...ALLOW_PAGES, ...STATIC_ASSETS],
         disallow: DISALLOW_INTERNAL,
       },
 
-      // ── 3. Google Images ───────────────────────────────────────────────
+      // ── 2. Google Images ──────────────────────────────────────────────
+      // Allow images, disallow admin/API.
       {
         userAgent: 'Googlebot-Image',
-        allow: ['/store-covers/', '/public/stores/', '/_next/static/media/', '/_next/image/'],
         disallow: ['/admin/', '/api/'],
       },
 
-      // ── 4. AI / LLM crawlers ───────────────────────────────────────────
-      {
-        userAgent: 'GPTBot',
-        allow: [...ALLOW_FEEDS, ...ALLOW_PAGES, ...STATIC_ASSETS],
-        disallow: ['/admin/', '/api/admin/', '/api/cron/', '/api/vouchers/track'],
-      },
-      {
-        userAgent: 'ChatGPT-User',
-        allow: [...ALLOW_FEEDS, ...ALLOW_PAGES],
-        disallow: ['/admin/', '/api/admin/'],
-      },
-      {
-        userAgent: 'Google-Extended',
-        allow: [...ALLOW_FEEDS, ...ALLOW_PAGES, ...STATIC_ASSETS],
-        disallow: ['/admin/', '/api/admin/', '/api/cron/'],
-      },
-      {
-        userAgent: 'ClaudeBot',
-        allow: [...ALLOW_FEEDS, ...ALLOW_PAGES, ...STATIC_ASSETS],
-        disallow: ['/admin/', '/api/admin/', '/api/cron/'],
-      },
-      {
-        userAgent: 'Claude-Web',
-        allow: [...ALLOW_FEEDS, ...ALLOW_PAGES, ...STATIC_ASSETS],
-        disallow: ['/admin/', '/api/admin/', '/api/cron/'],
-      },
-      {
-        userAgent: 'anthropic-ai',
-        allow: [...ALLOW_FEEDS, ...ALLOW_PAGES, ...STATIC_ASSETS],
-        disallow: ['/admin/', '/api/admin/', '/api/cron/'],
-      },
-      {
-        userAgent: 'PerplexityBot',
-        allow: [...ALLOW_FEEDS, ...ALLOW_PAGES, ...STATIC_ASSETS],
-        disallow: ['/admin/', '/api/admin/'],
-      },
-      {
-        userAgent: 'CCBot',
-        allow: [...ALLOW_FEEDS, ...ALLOW_PAGES, ...STATIC_ASSETS],
-        disallow: ['/admin/', '/api/admin/', '/api/cron/'],
-      },
-
-      // ── 5. Social link resolvers ───────────────────────────────────────
+      // ── 3. Social link resolvers ──────────────────────────────────────
       {
         userAgent: 'FacebookBot',
-        allow: [...ALLOW_PAGES, ...STATIC_ASSETS],
         disallow: ['/admin/', '/api/'],
       },
       {
         userAgent: 'Twitterbot',
-        allow: [...ALLOW_PAGES, ...STATIC_ASSETS],
         disallow: ['/admin/', '/api/'],
       },
 
-      // ── 6. Aggressive SEO crawlers ─────────────────────────────────────
+      // ── 4. AI / LLM crawlers – restrict to public content only ───────
+      // They get the same disallow list as Google.
+      {
+        userAgent: 'GPTBot',
+        disallow: DISALLOW_INTERNAL,
+      },
+      {
+        userAgent: 'ChatGPT-User',
+        disallow: ['/admin/', '/api/admin/'],
+      },
+      {
+        userAgent: 'Google-Extended',
+        disallow: DISALLOW_INTERNAL,
+      },
+      {
+        userAgent: 'ClaudeBot',
+        disallow: DISALLOW_INTERNAL,
+      },
+      {
+        userAgent: 'Claude-Web',
+        disallow: DISALLOW_INTERNAL,
+      },
+      {
+        userAgent: 'anthropic-ai',
+        disallow: DISALLOW_INTERNAL,
+      },
+      {
+        userAgent: 'PerplexityBot',
+        disallow: ['/admin/', '/api/admin/'],
+      },
+      {
+        userAgent: 'CCBot',
+        disallow: DISALLOW_INTERNAL,
+      },
+
+      // ── 5. Aggressive SEO crawlers – block entirely ────────────────
       { userAgent: 'AhrefsBot',   disallow: '/' },
       { userAgent: 'SemrushBot',  disallow: '/' },
       { userAgent: 'MJ12bot',     disallow: '/' },
@@ -154,12 +102,10 @@ export default function robots() {
       { userAgent: 'YandexBot',   disallow: '/' },
       { userAgent: 'Baiduspider', disallow: '/' },
 
-      // ── 7. Fallback ────────────────────────────────────────────────────
-      // crawlDelay throttles unknown bots without affecting Google/Bing
-      // (both ignore crawlDelay and use their own rate controls)
+      // ── 6. Fallback for all other bots ──────────────────────────────
+      // crawlDelay throttles unknown bots without affecting Google/Bing.
       {
         userAgent: '*',
-        allow: [...ALLOW_FEEDS, ...ALLOW_PAGES],
         disallow: DISALLOW_INTERNAL,
         crawlDelay: 5,
       },
