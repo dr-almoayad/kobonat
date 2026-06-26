@@ -1,13 +1,8 @@
 // app/[locale]/blog/[slug]/page.jsx
-// Renders blog post content as an ordered list of sections.
-// Each section may contain:
-//   - rich text (HTML)
-//   - image
-//   - legacy product/store lists (deprecated)
-//   - rich embeddable blocks (SectionBlock) of any type (TEXT, VOUCHER, PROMO, STORE, PRODUCT, POST, TABLE, BANK, CARD)
-//
-// The order of blocks inside a section is determined by the `order` field on SectionBlock.
-// No cross‑section block layout is applied – each section's blocks are rendered in order within that section.
+// FULLY CORRECTED VERSION
+// ✅ Added generateStaticParams to pre‑build all published blog posts (both locales).
+// Keeps all metadata, data fetching, and rendering logic unchanged.
+// Revalidate: 12 hours, dynamic params allowed.
 
 import { prisma } from '@/lib/prisma';
 import { notFound } from 'next/navigation';
@@ -19,20 +14,42 @@ import StoreCard from '@/components/StoreCard/StoreCard';
 import SectionBlockRenderer from '@/components/blog/SectionBlockRenderer/SectionBlockRenderer';
 import './BlogPost.css';
 
-export const revalidate = 43200;
+export const revalidate = 43200; // 12 hours
 export const dynamicParams = true;
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Static params – DISABLED to avoid build‑time failures
-// ─────────────────────────────────────────────────────────────────────────────
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://cobonat.me';
+
+// ── ✅ FIX: Pre‑build all published blog posts ──
 export async function generateStaticParams() {
-  // Return empty array – no static pre‑rendering (ISR only)
-  return [];
+  try {
+    const posts = await prisma.blogPost.findMany({
+      where: { status: 'PUBLISHED' },
+      select: {
+        slug: true,
+        translations: {
+          where: { locale: { in: ['ar', 'en'] } },
+          select: { locale: true },
+        },
+      },
+    });
+
+    const params = [];
+    for (const post of posts) {
+      for (const t of post.translations) {
+        if (post.slug) {
+          const locale = t.locale === 'ar' ? 'ar-SA' : 'en-SA';
+          params.push({ locale, slug: post.slug });
+        }
+      }
+    }
+    return params;
+  } catch (error) {
+    console.error('[blog/[slug] generateStaticParams] error:', error);
+    return []; // fallback to on‑demand ISR
+  }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Metadata
-// ─────────────────────────────────────────────────────────────────────────────
+// ── Metadata ─────────────────────────────────────────────────────────────────
 export async function generateMetadata({ params }) {
   const { locale, slug } = await params;
   const lang    = locale.split('-')[0];
@@ -69,9 +86,7 @@ export async function generateMetadata({ params }) {
   };
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Data fetch – includes all relations needed for rich blocks
-// ─────────────────────────────────────────────────────────────────────────────
+// ── Data fetch ─────────────────────────────────────────────────────────────
 async function getPost(slug, lang) {
   return prisma.blogPost.findUnique({
     where: { slug, status: 'PUBLISHED' },
@@ -83,13 +98,10 @@ async function getPost(slug, lang) {
         include: { translations: { where: { locale: lang }, select: { name: true, slug: true } } },
       },
       tags: { include: { tag: { include: { translations: { where: { locale: lang } } } } } },
-
-      // Sections – each section can have its own rich blocks
       sections: {
         orderBy: { order: 'asc' },
         include: {
           translations: { where: { locale: lang } },
-          // Legacy product/store lists (deprecated, but kept for backward compatibility)
           products: {
             orderBy: { order: 'asc' },
             include: {
@@ -106,11 +118,9 @@ async function getPost(slug, lang) {
               },
             },
           },
-          // New rich embeddable blocks (ordered within section)
           sectionBlocks: {
             orderBy: { order: 'asc' },
             include: {
-              // Post embed
               post: {
                 include: {
                   translations:  { where: { locale: lang } },
@@ -118,7 +128,6 @@ async function getPost(slug, lang) {
                   category:      { include: { translations: { where: { locale: lang } } } },
                 },
               },
-              // Comparison table embed
               table: {
                 include: {
                   translations: { where: { locale: lang } },
@@ -141,27 +150,21 @@ async function getPost(slug, lang) {
                   },
                 },
               },
-              // Product embed
               product: { include: { translations: { where: { locale: lang } } } },
-              // Store embed
               store:   { include: { translations: { where: { locale: lang } } } },
-              // Bank embed
               bank:    { include: { translations: { where: { locale: lang } } } },
-              // Credit card embed
               card:    {
                 include: {
                   translations: { where: { locale: lang } },
                   bank: { include: { translations: { where: { locale: lang } } } },
                 },
               },
-              // Voucher embed (coupon / deal)
               voucher: {
                 include: {
                   translations: { where: { locale: lang } },
                   store: { include: { translations: { where: { locale: lang } } } },
                 },
               },
-              // Bank/payment promo embed
               promo: {
                 include: {
                   translations: { where: { locale: lang } },
@@ -173,8 +176,6 @@ async function getPost(slug, lang) {
           },
         },
       },
-
-      // Sidebar: linked stores
       linkedStores: {
         orderBy: { order: 'asc' },
         include: {
@@ -191,8 +192,6 @@ async function getPost(slug, lang) {
           },
         },
       },
-
-      // Sidebar: related posts (explicitly linked)
       relatedPosts: {
         orderBy: { order: 'asc' },
         take:    4,
@@ -210,9 +209,7 @@ async function getPost(slug, lang) {
   });
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Store card transformer for sidebar
-// ─────────────────────────────────────────────────────────────────────────────
+// ── Store card transformer ──────────────────────────────────────────────
 function transformStore(ls) {
   const st = ls.store;
   return {
@@ -226,10 +223,7 @@ function transformStore(ls) {
   };
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Section renderer – displays the section's content (text, image, legacy items)
-// and then the rich blocks (ordered)
-// ─────────────────────────────────────────────────────────────────────────────
+// ── Section renderer ────────────────────────────────────────────────────
 function SectionBlock({ section, locale }) {
   const lang = locale.split('-')[0];
   const st   = section.translations?.[0] || {};
@@ -251,20 +245,17 @@ function SectionBlock({ section, locale }) {
         </div>
       )}
 
-      {/* Primary HTML content (rich text) */}
       {st.content && (
         <div className="blog-content" dangerouslySetInnerHTML={{ __html: st.content }} />
       )}
 
       {hasRichBlocks ? (
-        /* ── New block‑based content (vouchers, promos, stores, etc.) ── */
         <div className="bp-section-blocks">
           {section.sectionBlocks.map(block => (
             <SectionBlockRenderer key={block.id} block={block} locale={locale} />
           ))}
         </div>
       ) : (
-        /* ── Legacy fallback: product grid + store chips (deprecated) ── */
         <>
           {section.products?.length > 0 && (
             <div className="bp-product-grid">
@@ -320,9 +311,7 @@ function SectionBlock({ section, locale }) {
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Page component
-// ─────────────────────────────────────────────────────────────────────────────
+// ── Page ─────────────────────────────────────────────────────────────────
 export default async function BlogPostPage({ params }) {
   const { locale, slug } = await params;
   const lang    = locale.split('-')[0];
@@ -340,7 +329,7 @@ export default async function BlogPostPage({ params }) {
     ? new Intl.DateTimeFormat(locale, { year: 'numeric', month: 'long', day: 'numeric' }).format(new Date(post.publishedAt))
     : '';
 
-  // ── Related posts (explicit + fallback) ─────────────────────────────────
+  // ── Related posts ──────────────────────────────────────────────────
   const explicitRelated = (post.relatedPosts || [])
     .filter(rp => rp.relatedPost?.status === 'PUBLISHED')
     .map(rp => {
@@ -403,7 +392,7 @@ export default async function BlogPostPage({ params }) {
     }
   }
 
-  // ── FAQ ──────────────────────────────────────────────────────────────────
+  // ── FAQ ─────────────────────────────────────────────────────────────
   let faqItems = [];
   if (post.faqJson) {
     try { faqItems = JSON.parse(post.faqJson); } catch {}
@@ -448,7 +437,6 @@ export default async function BlogPostPage({ params }) {
           {/* ── ARTICLE ── */}
           <article className="bp-article">
 
-            {/* Meta */}
             <div className="bp-meta">
               {post.category && (
                 <Link
@@ -479,10 +467,8 @@ export default async function BlogPostPage({ params }) {
               )}
             </div>
 
-            {/* H1 */}
             <h1 className="bp-title">{t.title}</h1>
 
-            {/* Cover */}
             {post.featuredImage && (
               <div className="bp-cover">
                 <Image
@@ -495,15 +481,12 @@ export default async function BlogPostPage({ params }) {
               </div>
             )}
 
-            {/* Lead excerpt */}
             {t.excerpt && <p className="bp-excerpt">{t.excerpt}</p>}
 
-            {/* Main body (first HTML block – legacy) */}
             {t.content && (
               <div className="blog-content" dangerouslySetInnerHTML={{ __html: t.content }} />
             )}
 
-            {/* ── Sections with their embedded blocks ── */}
             {post.sections?.length > 0 && (
               <div className="bp-sections">
                 {post.sections.map(section => (
@@ -516,7 +499,6 @@ export default async function BlogPostPage({ params }) {
               </div>
             )}
 
-            {/* FAQ */}
             {faqItems.length > 0 && (
               <section className="bp-faq">
                 <h2 className="bp-faq__title">
@@ -534,7 +516,6 @@ export default async function BlogPostPage({ params }) {
               </section>
             )}
 
-            {/* Tags */}
             {post.tags?.length > 0 && (
               <div className="bp-tags">
                 {post.tags.map(pt => (
@@ -549,7 +530,6 @@ export default async function BlogPostPage({ params }) {
               </div>
             )}
 
-            {/* Author bio */}
             {post.author && authorBio && (
               <div className="bp-author">
                 {post.author.avatar && (
@@ -595,4 +575,4 @@ export default async function BlogPostPage({ params }) {
       </main>
     </>
   );
-                }
+}
