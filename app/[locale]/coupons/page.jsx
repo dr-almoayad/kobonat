@@ -11,7 +11,7 @@ import "./coupons-page.css";
 
 export const revalidate = 1800;
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://cobonat.me';
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://cobonat.me'; 
 const PAGE_LIMIT = 60;
 
 // ── Metadata ─────────────────────────────────────────────────────────────────
