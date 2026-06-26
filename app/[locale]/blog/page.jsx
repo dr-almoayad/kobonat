@@ -1,7 +1,7 @@
 // app/[locale]/blog/page.jsx
 import { prisma } from '@/lib/prisma';
 import Link from 'next/link';
-import BlogCard from '@/components/blog/BlogCard';
+import BlogCard from '@/components/blog/BlogCard'; 
 import BlogStructuredData from '@/components/StructuredData/BlogStructuredData';
 import './blog.css';
 
