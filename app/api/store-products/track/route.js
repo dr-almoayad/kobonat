@@ -6,7 +6,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
 export async function POST(req) {
-  try {
+  try { 
     const { productId } = await req.json();
 
     if (!productId) {
