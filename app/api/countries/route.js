@@ -1,51 +1,24 @@
-// app/api/countries/route.js - FIXED for Header compatibility
+// app/api/countries/route.js
 import { NextResponse } from "next/server";
 import { prisma } from '@/lib/prisma';
+import { unstable_cache } from 'next/cache';
 
-export async function GET(req) {
-  try {
-    const { searchParams } = new URL(req.url);
-    const locale = searchParams.get('locale') || 'en';
-    
-    console.log('🌍 Countries API - Locale:', locale);
-    
+const SUPPORTED_LOCALES = ['ar-SA', 'en-SA'];
+const DEFAULT_LOCALE = 'ar-SA';
+
+const getCachedCountries = unstable_cache(
+  async (locale) => {
     const countries = await prisma.country.findMany({
       where: { isActive: true },
       include: {
-        translations: {
-          where: { locale }
-        },
-        _count: {
-          select: {
-            stores: {
-              where: {
-                store: {
-                  isActive: true
-                }
-              }
-            },
-            vouchers: {
-              where: {
-                voucher: {
-                  expiryDate: { gte: new Date() }
-                }
-              }
-            }
-          }
-        }
+        translations: { where: { locale } },
+        // _count removed for performance – add back if needed
       },
-      orderBy: [
-        { isDefault: 'desc' },
-        { code: 'asc' }
-      ]
+      orderBy: [{ isDefault: 'desc' }, { code: 'asc' }],
     });
-    
-    console.log('📊 Raw countries from DB:', countries.length);
-    
-    // Transform countries to include translation data
-    const transformedCountries = countries.map(country => {
+
+    return countries.map((country) => {
       const translation = country.translations[0];
-      
       return {
         id: country.id,
         code: country.code,
@@ -54,28 +27,41 @@ export async function GET(req) {
         flag: country.flag,
         isDefault: country.isDefault,
         isActive: country.isActive,
-        _count: country._count || { stores: 0, vouchers: 0 }
       };
     });
-    
-    console.log('✅ Transformed countries:', transformedCountries);
-    
+  },
+  ['countries'],
+  { revalidate: 86400 } // 24 hours
+);
+
+export async function GET(req) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const locale = searchParams.get('locale') || DEFAULT_LOCALE;
+
+    // Validate locale
+    if (!SUPPORTED_LOCALES.includes(locale)) {
+      return NextResponse.json(
+        { error: 'Unsupported locale', countries: [], total: 0 },
+        { status: 400 }
+      );
+    }
+
+    const transformedCountries = await getCachedCountries(locale);
+
     return NextResponse.json({
       countries: transformedCountries,
       total: transformedCountries.length,
-      defaultCountry: transformedCountries.find(c => c.isDefault) || transformedCountries[0]
+      defaultCountry: transformedCountries.find(c => c.isDefault) || transformedCountries[0],
     });
-    
   } catch (error) {
-    console.error("❌ Countries API error:", error);
-    console.error("Error details:", error.message);
-    console.error("Stack trace:", error.stack);
-    
+    console.error('❌ Countries API error:', error);
     return NextResponse.json(
-      { 
-        error: "Failed to fetch countries",
+      {
+        error: 'Failed to fetch countries',
         details: error.message,
-        countries: [] // Return empty array on error
+        countries: [],
+        total: 0,
       },
       { status: 500 }
     );
