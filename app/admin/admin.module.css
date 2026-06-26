@@ -2,7 +2,7 @@
    Single stylesheet for ALL light-theme admin pages.
    Uses --admin-* tokens declared in AdminNav.css (loaded by every admin page).
    No duplicate class blocks. No inline colour overrides needed.
-*/
+*/ 
 
 /* ============================================================================
    LAYOUT
