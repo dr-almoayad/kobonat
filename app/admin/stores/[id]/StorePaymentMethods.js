@@ -1,5 +1,5 @@
 // app/admin/stores/[id]/StorePaymentMethods.js
-'use client';
+'use client'; 
 
 import { useState, useEffect, useCallback } from 'react';
 import styles from '../../admin.module.css';
