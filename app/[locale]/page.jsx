@@ -293,7 +293,7 @@ export default async function Home({ params }) {
         <HomeFeaturedProductsSection locale={locale} countryCode={country} />
         <HowItWorks locale={locale} />
         <HomepageBlogSection locale={locale} count={3} />
-        <PromoCodesFAQ />
+        <PromoCodesFAQ includeStructuredData={true} />
         <HelpBox locale={locale} />
       </main>
     </>
