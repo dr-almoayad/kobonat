@@ -2,7 +2,7 @@
 import { getTranslations } from 'next-intl/server';
 import { prisma } from "@/lib/prisma";
 import StoresGrid from "@/components/StoresGrid/StoresGrid";
-import HeroCarousel from "@/components/HeroCarousel/HeroCarousel";
+import HeroCarousel from "@/components/HeroCarousel/HeroCarousel"; 
 import { getCountryCategories } from "@/lib/storeCategories";
 import { getStoresData } from "@/lib/stores";
 import { isValidLocale } from "@/i18n/locales";
