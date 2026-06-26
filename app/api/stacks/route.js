@@ -1,3 +1,4 @@
+// app/api/stacks/route.js
 import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
 import { unstable_cache } from 'next/cache';
@@ -75,7 +76,7 @@ function toStackShape(ds, isAr, now) {
   };
 }
 
-// 1. Cache the RAW query results, not the time-filtered results
+// Cache the RAW query results (no time-based filtering)
 const getCachedStackRows = unstable_cache(
   async (language) => {
     return await prisma.offerStack.findMany({
@@ -91,7 +92,8 @@ const getCachedStackRows = unstable_cache(
     });
   },
   ['stacks-db-rows'],
-  { tags: ['stacks'], revalidate: 31536000 }
+  // ✅ FIXED: 1 hour revalidation – fresh data for infinite scroll
+  { tags: ['stacks'], revalidate: 3600 }
 );
 
 export async function GET(request) {
@@ -103,10 +105,10 @@ export async function GET(request) {
     const isAr = language === 'ar';
     const now = new Date();
 
-    // 2. Get the cached rows (shields the DB)
+    // Fetch cached rows (fresh up to 1 hour)
     const rows = await getCachedStackRows(language);
 
-    // 3. Filter using the exact current time (happens in memory instantly)
+    // Filter and transform in memory using the current time
     const activeStacksOnly = rows
       .map(ds => toStackShape(ds, isAr, now))
       .filter(Boolean); 
