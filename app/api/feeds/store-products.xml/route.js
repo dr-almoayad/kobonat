@@ -1,7 +1,7 @@
 // app/api/feeds/store-products.xml/route.js
 import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
-
+ 
 export const revalidate = 3600;
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://cobonat.me';
