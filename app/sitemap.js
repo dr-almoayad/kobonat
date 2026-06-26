@@ -3,7 +3,7 @@
 // Changes:
 // 1. Removed voucher filter for stores – now includes ALL active stores.
 // 2. Store page lastModified set to NOW to encourage fresh crawling.
-// 3. Kept all other logic intact.
+// 3. On DB error, re-throw to trigger a 500 response (preserves Google's cached sitemap).
 
 import { prisma } from '@/lib/prisma';
 
@@ -397,14 +397,12 @@ export default async function sitemap() {
     });
 
   } catch (error) {
+    // ── ✅ CRITICAL FIX: Re-throw the error ──────────────────────────────
+    // Returning an empty or partial sitemap with a 200 OK tells Google
+    // that you intentionally deleted all your pages, causing immediate
+    // de‑indexing. Instead, a 500 status tells Google "server error, retry later"
+    // – preserving your current index while the issue is resolved.
     console.error('[sitemap] generation error:', error);
-    // Fallback: at minimum return homepages so the sitemap is never empty
-    return LOCALES.map(locale => ({
-      url: `${BASE_URL}/${locale}`,
-      lastModified: NOW,
-      changeFrequency: 'daily',
-      priority: 1.0,
-      alternates: { languages: coreAlternates() },
-    }));
+    throw new Error(`Sitemap generation failed: ${error.message}`);
   }
 }
