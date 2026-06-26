@@ -2,7 +2,7 @@
 // app/admin/stores/[id]/offers/page.jsx
 // Inline editor for calculator fields on every voucher and OtherPromo.
 // Two tabs: Vouchers / Bank & Card Offers.
-// Inline row editing — click a cell to change certainty, stack group, cap, verified avg.
+// Inline row editing — click a cell to change certainty, stack group, cap, verified avg. 
 
 import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'next/navigation';
