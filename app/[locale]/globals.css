@@ -1,10 +1,10 @@
 :root {
   --background: #ffffff;
   --foreground: #0f041c;
-  --space-xs: 0.5rem; /* 8px */
-  --space-sm: 1rem;   /* 16px */
-  --space-md: 2.5rem; /* 32px */
-  --space-lg: 3.5rem; /* 48px */
+  --space-xs: 0.5rem;
+  --space-sm: 1rem;
+  --space-md: 2.5rem;
+  --space-lg: 3.5rem;
 }
 
 html,
@@ -35,10 +35,10 @@ a {
   text-decoration: none;
 }
 
-/* ── Material Symbols – fallback font family ── */
-.material-symbols-sharp,
-.material-symbols-outlined {
-  font-family: 'Material Symbols Sharp', 'Material Icons', sans-serif;
+/* ── Material Symbols using the variable font from next/font ── */
+.material-symbols-outlined,
+.material-symbols-sharp {
+  font-family: var(--font-material-symbols);
   font-weight: normal;
   font-style: normal;
   line-height: 1;
@@ -48,45 +48,25 @@ a {
   white-space: nowrap;
   word-wrap: normal;
   direction: ltr;
+  font-feature-settings: "liga";
+  -webkit-font-feature-settings: "liga";
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-rendering: optimizeLegibility;
-  font-feature-settings: 'liga';
 }
 
 .material-symbols-outlined {
-  font-variation-settings:
-    'FILL' 0,
-    'wght' 400,
-    'GRAD' 0,
-    'opsz' 24;
+  font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
 }
-
 .material-symbols-outlined.filled {
-  font-variation-settings:
-    'FILL' 1,
-    'wght' 400,
-    'GRAD' 0,
-    'opsz' 24;
+  font-variation-settings: "FILL" 1, "wght" 400, "GRAD" 0, "opsz" 24;
 }
-
 .material-symbols-sharp {
-  font-variation-settings:
-    'FILL' 0,
-    'wght' 400,
-    'GRAD' 0,
-    'opsz' 24;
+  font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
 }
-
 .material-symbols-sharp.filled {
-  font-variation-settings:
-    'FILL' 1,
-    'wght' 400,
-    'GRAD' 0,
-    'opsz' 24;
+  font-variation-settings: "FILL" 1, "wght" 400, "GRAD" 0, "opsz" 24;
 }
 
-/* ── Remove dark mode rule if not used ── */
+/* Optional: dark mode support if needed */
 @media (prefers-color-scheme: dark) {
   html {
     color-scheme: dark;
