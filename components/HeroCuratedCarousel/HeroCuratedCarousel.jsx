@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
+import Image from 'next/image'; // ✅ Added for responsive images
 import EmblaCarousel from '@/components/EmblaCarousel/EmblaCarousel';
 import './HeroCuratedCarousel.css';
 
@@ -19,7 +20,6 @@ function SlideCard({ slide }) {
     ctaText = "Install",
     ctaSubtext = "In-app purchases",
     badgeText = "Update available",
-    // Color configurations defaulting to a light theme variant
     bgColor = "#f3e8ee", 
     textColor = "#1f2937",
     badgeBg = "rgba(255, 255, 255, 0.6)",
@@ -38,7 +38,6 @@ function SlideCard({ slide }) {
     }
   };
 
-  // Inline CSS variables keep colors perfectly isolated per card
   const cardStyles = {
     '--card-bg': bgColor,
     '--card-text': textColor,
@@ -51,27 +50,23 @@ function SlideCard({ slide }) {
   const inner = (
     <div className={`hcc-card ${!hasLink ? 'hcc-card--no-link' : ''}`} style={cardStyles}>
       
-      {/* Top Banner Area with Badge */}
       <div className="hcc-img-container">
-        {/*{badgeText && <span className="hcc-badge">{badgeText}</span>}*/}
         {mainImage && (
           <>
-            <img
+            <Image
               src={imgSrc}
               alt={title}
+              fill
+              sizes="(max-width: 640px) 85vw, (max-width: 1024px) 65vw, 45vw"
+              quality={80}
               className="hcc-img"
-              draggable={false}
-              loading="lazy"
-              decoding="async"
               onError={handleImageError}
             />
-            {/* Creates the smooth visual blend from image to solid color below */}
             <div className="hcc-img-overlay" />
           </>
         )}
       </div>
 
-      {/* Card Content Details */}
       <div className="hcc-card-details">
         <div className="hcc-body">
           <h2 className="hcc-title">{title}</h2>
@@ -85,10 +80,6 @@ function SlideCard({ slide }) {
               <span className="hcc-app-name">{appName}</span>
             </div>
           </div>
-
-          {/*<div className="hcc-cta-wrap">
-            <button className="hcc-cta">{ctaText}</button>
-          </div>*/}
         </div>
       </div>
     </div>
