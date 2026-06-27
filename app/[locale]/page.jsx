@@ -1,5 +1,6 @@
 // app/[locale]/page.jsx
 // FULLY CORRECTED – includes lastModified, full metadata, and lazy-loads below-the-fold components.
+// ✅ Removed ssr: false from dynamic imports (not allowed in Server Components).
 
 import { prisma } from "@/lib/prisma";
 import { getTranslations } from 'next-intl/server';
@@ -10,69 +11,58 @@ import { getCurrentWeekIdentifier } from '@/lib/leaderboard/calculateStoreSaving
 import dynamic from 'next/dynamic';
 
 // ── Lazy-load components that appear below the fold ──
+// ssr: false is NOT allowed in Server Components (Next.js 15).
+// The components themselves use 'use client' – they will render client-side.
 const BrandsCarousel = dynamic(
-  () => import('@/components/BrandsCarousel/BrandsCarousel'),
-  { ssr: false }
+  () => import('@/components/BrandsCarousel/BrandsCarousel')
 );
 
 const CuratedOffersSection = dynamic(
-  () => import('@/components/CuratedOffersSection/CuratedOffersSection'),
-  { ssr: false }
+  () => import('@/components/CuratedOffersSection/CuratedOffersSection')
 );
 
 const HomeFeaturedProductsSection = dynamic(
-  () => import('@/components/HomeFeaturedProducts/HomeFeaturedProductsSection'),
-  { ssr: false }
+  () => import('@/components/HomeFeaturedProducts/HomeFeaturedProductsSection')
 );
 
 const HomepageBlogSection = dynamic(
-  () => import('@/components/blog/HomepageBlogSection'),
-  { ssr: false }
+  () => import('@/components/blog/HomepageBlogSection')
 );
 
 const HelpBox = dynamic(
-  () => import('@/components/help/HelpBox'),
-  { ssr: false }
+  () => import('@/components/help/HelpBox')
 );
 
 const HomepageHeroSection = dynamic(
-  () => import('@/components/HomepageHeroSection/HomepageHeroSection'),
-  { ssr: false }
+  () => import('@/components/HomepageHeroSection/HomepageHeroSection')
 );
 
 const OfferStacksSection = dynamic(
-  () => import('@/components/OfferStacksSection/OfferStacksSection'),
-  { ssr: false }
+  () => import('@/components/OfferStacksSection/OfferStacksSection')
 );
 
 const FeaturedVouchersSection = dynamic(
-  () => import('@/components/FeaturedVouchersSection/FeaturedVouchersSection'),
-  { ssr: false }
+  () => import('@/components/FeaturedVouchersSection/FeaturedVouchersSection')
 );
 
 const FeaturedStoresSection = dynamic(
-  () => import('@/components/FeaturedStoresSection/FeaturedStoresSection'),
-  { ssr: false }
+  () => import('@/components/FeaturedStoresSection/FeaturedStoresSection')
 );
 
 const FeaturedStoresCarousel = dynamic(
-  () => import('@/components/FeaturedStoresCarousel/FeaturedStoresCarousel'),
-  { ssr: false }
+  () => import('@/components/FeaturedStoresCarousel/FeaturedStoresCarousel')
 );
 
 const HeroCuratedSection = dynamic(
-  () => import('@/components/HeroCuratedCarousel/HeroCuratedSection'),
-  { ssr: false }
+  () => import('@/components/HeroCuratedCarousel/HeroCuratedSection')
 );
 
 const PromoCodesFAQ = dynamic(
-  () => import('@/components/PromoCodesFAQ/PromoCodesFAQ'),
-  { ssr: false }
+  () => import('@/components/PromoCodesFAQ/PromoCodesFAQ')
 );
 
 const HowItWorks = dynamic(
-  () => import('@/components/HowItWorks/HowItWorks'),
-  { ssr: false }
+  () => import('@/components/HowItWorks/HowItWorks')
 );
 
 export const revalidate = 1800;
