@@ -35,7 +35,25 @@ a {
   text-decoration: none;
 }
 
-/* ── Material Symbols (if still used with class-based approach) ── */
+/* ── Material Symbols – fallback font family ── */
+.material-symbols-sharp,
+.material-symbols-outlined {
+  font-family: 'Material Symbols Sharp', 'Material Icons', sans-serif;
+  font-weight: normal;
+  font-style: normal;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: 'liga';
+}
+
 .material-symbols-outlined {
   font-variation-settings:
     'FILL' 0,
@@ -68,7 +86,7 @@ a {
     'opsz' 24;
 }
 
-/* (Optional) Remove dark mode rule if not used */
+/* ── Remove dark mode rule if not used ── */
 @media (prefers-color-scheme: dark) {
   html {
     color-scheme: dark;
