@@ -1,14 +1,12 @@
 // app/[locale]/layout.jsx
 
 import { Geist, Geist_Mono, Alexandria, Open_Sans } from "next/font/google";
-import { GoogleFont } from "next/font/google";
 import "./globals.css";
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages, setRequestLocale } from 'next-intl/server';
 import Header from "@/components/headers/Header";
 import Footer from "@/components/footers/footer";
 import SessionProviderWrapper from "@/components/SessionProviderComp";
-import "@emran-alhaddad/saudi-riyal-font/index.css";
 import MobileFooter from "@/components/footers/MobileFooter";
 import CategoryCarouselSubHeader from "@/components/headers/CategoryCarouselSubHeader";
 import Disclaimer from "@/components/Disclaimer/Disclaimer";
@@ -39,17 +37,12 @@ const geistMono = Geist_Mono({
   display: "swap",
 });
 
-// ── Material Symbols loaded via next/font ──
-const materialSymbols = GoogleFont({
-  family: "Material+Symbols+Sharp",
-  weight: ["100", "200", "300", "400", "500", "600", "700"],
-  variable: "--font-material-symbols",
-  display: "swap",
-  subsets: ["latin"],
-});
-
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://cobonat.me";
 const GA_MEASUREMENT_ID = "G-EFNHSXWE0M";
+
+// ── Material Symbols URL (deferred with media="print") ──
+const MATERIAL_SYMBOLS_URL =
+  "https://fonts.googleapis.com/css2?family=Material+Symbols+Sharp:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap";
 
 export async function generateMetadata({ params }) {
   const { locale } = await params;
@@ -156,8 +149,25 @@ export default async function LocaleLayout({ children, params }) {
   return (
     <html lang={locale} dir={isArabic ? "rtl" : "ltr"}>
       <head>
+        {/* Preconnect to Google Fonts servers */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+
+        {/*
+          Material Symbols – loaded asynchronously to avoid blocking rendering.
+          The media="print" trick loads the CSS without delaying the main thread.
+          Once loaded, the media is switched to 'all', applying the styles immediately.
+        */}
+        <link
+          rel="stylesheet"
+          href={MATERIAL_SYMBOLS_URL}
+          media="print"
+          onLoad="this.media='all'"
+          crossOrigin="anonymous"
+        />
+        <noscript>
+          <link rel="stylesheet" href={MATERIAL_SYMBOLS_URL} crossOrigin="anonymous" />
+        </noscript>
       </head>
       <body
         className={`
@@ -165,7 +175,6 @@ export default async function LocaleLayout({ children, params }) {
           ${geistMono.variable}
           ${alexandria.variable}
           ${openSans.variable}
-          ${materialSymbols.variable}
           antialiased
         `}
       >
