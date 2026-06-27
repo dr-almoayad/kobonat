@@ -1,11 +1,11 @@
 'use client';
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
-import Image from 'next/image'; // ✅ Added for responsive images
+import Image from 'next/image';
 import EmblaCarousel from '@/components/EmblaCarousel/EmblaCarousel';
 import './HeroCuratedCarousel.css';
 
-function SlideCard({ slide }) {
+function SlideCard({ slide, priority = false }) {
   const {
     id,
     mainImage,
@@ -61,6 +61,7 @@ function SlideCard({ slide }) {
               quality={80}
               className="hcc-img"
               onError={handleImageError}
+              priority={priority}
             />
             <div className="hcc-img-overlay" />
           </>
@@ -115,8 +116,8 @@ export default function HeroCuratedCarousel({ slides, locale }) {
           loop={false}
           className="hcc-embla"
         >
-          {slides.map((slide) => (
-            <SlideCard key={slide.id} slide={slide} />
+          {slides.map((slide, index) => (
+            <SlideCard key={slide.id} slide={slide} priority={index === 0} />
           ))}
         </EmblaCarousel>
       </div>
