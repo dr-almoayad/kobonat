@@ -22,7 +22,7 @@ const geistMono  = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"
 const BASE_URL           = process.env.NEXT_PUBLIC_BASE_URL || 'https://cobonat.me';
 const GA_MEASUREMENT_ID  = 'G-EFNHSXWE0M';
 
-// ── Material Symbols – Deferred ──────────────────────────────────────────────
+// ── Material Symbols (preloaded + loaded as stylesheet) ──
 const MATERIAL_SYMBOLS_URL =
   'https://fonts.googleapis.com/css2?family=Material+Symbols+Sharp:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap';
 
@@ -136,21 +136,21 @@ export default async function LocaleLayout({ children, params }) {
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
 
         {/*
-          Material Symbols — loaded asynchronously to avoid blocking rendering.
-          The media="print" trick loads the CSS without delaying the main thread.
-          Once loaded, the media is switched to 'all', applying the styles immediately.
-          A fallback <noscript> ensures the CSS loads even if JavaScript is disabled.
+          Preload Material Symbols CSS so it starts downloading early,
+          then load it as a regular stylesheet for immediate application.
+          This eliminates the render‑blocking delay while ensuring icons appear.
         */}
+        <link
+          rel="preload"
+          href={MATERIAL_SYMBOLS_URL}
+          as="style"
+          crossOrigin="anonymous"
+        />
         <link
           rel="stylesheet"
           href={MATERIAL_SYMBOLS_URL}
-          media="print"
-          onLoad="this.media='all'"
           crossOrigin="anonymous"
         />
-        <noscript>
-          <link rel="stylesheet" href={MATERIAL_SYMBOLS_URL} crossOrigin="anonymous" />
-        </noscript>
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} ${alexandria.variable} ${openSans.variable} antialiased`}>
         <NextIntlClientProvider messages={messages} locale={locale}>
