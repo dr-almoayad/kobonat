@@ -1,5 +1,6 @@
 'use client';
 // components/OfferStackBox/OfferStackBox.jsx
+import Image from 'next/image'; // ✅ Added for responsive images
 import StackCta from './StackCta';
 import './OfferStack.css';
 
@@ -12,10 +13,8 @@ const TILE_TYPE = {
 function OfferTile({ item, isAr }) {
   const meta = TILE_TYPE[item.itemType] ?? TILE_TYPE.DEAL;
 
-  // For BANK_OFFER, show logo on the left if available (no wrapper, no filter)
   const showBankLogo = item.itemType === 'BANK_OFFER' && item.bankLogo;
 
-  // Savings percent — always show for all types including bank
   const pct =
     item.discountPercent != null ? `${Math.round(item.discountPercent)}%`
     : item.discount             ? item.discount
@@ -23,7 +22,6 @@ function OfferTile({ item, isAr }) {
 
   return (
     <div className={`os-tile os-tile--${meta.cls}`}>
-      {/* Left: icon or bank logo */}
       {showBankLogo ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img
@@ -35,7 +33,6 @@ function OfferTile({ item, isAr }) {
         null
       )}
 
-      {/* Middle: label + title + code */}
       <div className="os-tile__body">
         <span className="os-tile__badge">{isAr ? meta.labelAr : meta.labelEn}</span>
         {item.title && (
@@ -46,7 +43,6 @@ function OfferTile({ item, isAr }) {
         )}
       </div>
 
-      {/* Right: savings percent */}
       {pct && (
         <span className="os-tile__pct">{pct}</span>
       )}
@@ -70,23 +66,27 @@ export default function OfferStackBox({ stack, locale }) {
       {/* ── Header ── */}
       <div className="os-card__header">
         <div className="os-header-left">
-          {/* Store logo — bare, no wrapper, no filter */}
           {store.logo ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={store.logo} alt={store.name} className="os-store-logo" />
+            <Image
+              src={store.logo}
+              alt={store.name}
+              width={98}
+              height={34}
+              className="os-store-logo"
+              quality={80}
+              sizes="(max-width: 768px) 98px, 98px"
+            />
           ) : (
             <div className="os-store-name-block">
               <span className="os-store-name">{store.name}</span>
             </div>
           )}
-          {/* Show name alongside logo only if logo present */}
           {store.logo && (
             <div className="os-store-name-block">
               <span className="os-store-name">{store.name}</span>
             </div>
           )}
         </div>
-
       </div>
 
       {/* ── Savings hero ── */}
@@ -100,8 +100,7 @@ export default function OfferStackBox({ stack, locale }) {
         <p className="os-savings-stacked-label">
           {isAr
             ? <>بتطبيق العروض مع بعض</>
-            : <>by stacking offers</>
-          }
+            : <>by stacking offers</>}
         </p>
       </div>
 
