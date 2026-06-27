@@ -19,7 +19,7 @@
     width: 100%;
     transform: translateZ(0);
     padding: 0 0.5rem;
-    min-height: 200px; /* Reserve height for slides to prevent CLS */
+    min-height: 50px; /* Reserve height for slides to prevent CLS */
 }
 
 .ec-container {
