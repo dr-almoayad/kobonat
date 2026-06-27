@@ -105,6 +105,32 @@ export default function HeroCuratedCarousel({ slides, locale }) {
   const isAr = locale?.split('-')[0] === 'ar';
   if (!slides?.length) return null;
 
+  // ── Dynamic preload for LCP image ──
+  useEffect(() => {
+    const firstSlide = slides[0];
+    if (!firstSlide?.mainImage) return;
+
+    // Check if preload already exists to avoid duplicates
+    const existingPreload = document.querySelector(
+      `link[rel="preload"][as="image"][href="${firstSlide.mainImage}"]`
+    );
+    if (existingPreload) return;
+
+    const link = document.createElement('link');
+    link.rel = 'preload';
+    link.as = 'image';
+    link.href = firstSlide.mainImage;
+    link.fetchPriority = 'high';
+    document.head.appendChild(link);
+
+    // Cleanup: remove the link when component unmounts (optional)
+    return () => {
+      if (link.parentNode) {
+        link.parentNode.removeChild(link);
+      }
+    };
+  }, [slides]);
+
   return (
     <div className="hcc-carousel-wrapper" dir={isAr ? 'rtl' : 'ltr'}>
       <div className="hcc-root">
