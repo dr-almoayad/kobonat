@@ -1,26 +1,79 @@
 // app/[locale]/page.jsx
-// FULLY CORRECTED – includes lastModified and full metadata.
-// Note: The 403 and Prisma errors are not in this file; see guidance above.
+// FULLY CORRECTED – includes lastModified, full metadata, and lazy-loads below-the-fold components.
 
 import { prisma } from "@/lib/prisma";
 import { getTranslations } from 'next-intl/server';
 import "./page.css";
 import { notFound } from "next/navigation"; 
 import { allLocaleCodes } from "@/i18n/locales";
-import BrandsCarousel from "@/components/BrandsCarousel/BrandsCarousel";
-import CuratedOffersSection from '@/components/CuratedOffersSection/CuratedOffersSection';
-import HomeFeaturedProductsSection from '@/components/HomeFeaturedProducts/HomeFeaturedProductsSection';
-import HomepageBlogSection from '@/components/blog/HomepageBlogSection';
-import HelpBox from "@/components/help/HelpBox";
-import HomepageHeroSection from '@/components/HomepageHeroSection/HomepageHeroSection';
-import OfferStacksSection from '@/components/OfferStacksSection/OfferStacksSection';
-import FeaturedVouchersSection from '@/components/FeaturedVouchersSection/FeaturedVouchersSection';
-import FeaturedStoresSection from '@/components/FeaturedStoresSection/FeaturedStoresSection';
-import FeaturedStoresCarousel from '@/components/FeaturedStoresCarousel/FeaturedStoresCarousel';
 import { getCurrentWeekIdentifier } from '@/lib/leaderboard/calculateStoreSavings';
-import HeroCuratedSection from '@/components/HeroCuratedCarousel/HeroCuratedSection';
-import PromoCodesFAQ from '@/components/PromoCodesFAQ/PromoCodesFAQ';
-import HowItWorks from '@/components/HowItWorks/HowItWorks';
+import dynamic from 'next/dynamic';
+
+// ── Lazy-load components that appear below the fold ──
+const BrandsCarousel = dynamic(
+  () => import('@/components/BrandsCarousel/BrandsCarousel'),
+  { ssr: false }
+);
+
+const CuratedOffersSection = dynamic(
+  () => import('@/components/CuratedOffersSection/CuratedOffersSection'),
+  { ssr: false }
+);
+
+const HomeFeaturedProductsSection = dynamic(
+  () => import('@/components/HomeFeaturedProducts/HomeFeaturedProductsSection'),
+  { ssr: false }
+);
+
+const HomepageBlogSection = dynamic(
+  () => import('@/components/blog/HomepageBlogSection'),
+  { ssr: false }
+);
+
+const HelpBox = dynamic(
+  () => import('@/components/help/HelpBox'),
+  { ssr: false }
+);
+
+const HomepageHeroSection = dynamic(
+  () => import('@/components/HomepageHeroSection/HomepageHeroSection'),
+  { ssr: false }
+);
+
+const OfferStacksSection = dynamic(
+  () => import('@/components/OfferStacksSection/OfferStacksSection'),
+  { ssr: false }
+);
+
+const FeaturedVouchersSection = dynamic(
+  () => import('@/components/FeaturedVouchersSection/FeaturedVouchersSection'),
+  { ssr: false }
+);
+
+const FeaturedStoresSection = dynamic(
+  () => import('@/components/FeaturedStoresSection/FeaturedStoresSection'),
+  { ssr: false }
+);
+
+const FeaturedStoresCarousel = dynamic(
+  () => import('@/components/FeaturedStoresCarousel/FeaturedStoresCarousel'),
+  { ssr: false }
+);
+
+const HeroCuratedSection = dynamic(
+  () => import('@/components/HeroCuratedCarousel/HeroCuratedSection'),
+  { ssr: false }
+);
+
+const PromoCodesFAQ = dynamic(
+  () => import('@/components/PromoCodesFAQ/PromoCodesFAQ'),
+  { ssr: false }
+);
+
+const HowItWorks = dynamic(
+  () => import('@/components/HowItWorks/HowItWorks'),
+  { ssr: false }
+);
 
 export const revalidate = 1800;
 
@@ -101,6 +154,7 @@ export default async function Home({ params }) {
     ? 'وفر أكثر مع كوبونات فعالة ومجربة من أشهر المتاجر العالمية والمحلية'
     : 'Save more with verified, tested coupons from top local and international stores';
 
+  // ── Data fetching ──
   const [
     featuredStoresWithCovers,
     allActiveBrands,
@@ -200,6 +254,7 @@ export default async function Home({ params }) {
     }),
   ]);
 
+  // ── Transform stores ──
   const topStores = rawTopStores.map(store => {
     const translation = store.translations?.[0] || {};
     const topDiscount = store.vouchers?.[0]?.discountPercent;
@@ -252,6 +307,7 @@ export default async function Home({ params }) {
     activeVouchersCount: b._count?.vouchers || 0,
   }));
 
+  // ── Structured data ──
   const homepageSchema = topStores.length > 0 ? {
     '@context':    'https://schema.org',
     '@type':       'ItemList',
