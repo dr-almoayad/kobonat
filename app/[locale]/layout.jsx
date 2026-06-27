@@ -7,6 +7,7 @@ import { getMessages, setRequestLocale } from 'next-intl/server';
 import Header from "@/components/headers/Header";
 import Footer from "@/components/footers/footer";
 import SessionProviderWrapper from "@/components/SessionProviderComp";
+import "@emran-alhaddad/saudi-riyal-font/index.css";
 import MobileFooter from "@/components/footers/MobileFooter";
 import CategoryCarouselSubHeader from "@/components/headers/CategoryCarouselSubHeader";
 import Disclaimer from "@/components/Disclaimer/Disclaimer";
@@ -40,7 +41,7 @@ const geistMono = Geist_Mono({
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://cobonat.me";
 const GA_MEASUREMENT_ID = "G-EFNHSXWE0M";
 
-// ── Material Symbols URL (deferred with media="print") ──
+// ── Material Symbols – deferred to avoid blocking render ──
 const MATERIAL_SYMBOLS_URL =
   "https://fonts.googleapis.com/css2?family=Material+Symbols+Sharp:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap";
 
