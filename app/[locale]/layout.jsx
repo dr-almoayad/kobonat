@@ -23,10 +23,8 @@ const BASE_URL           = process.env.NEXT_PUBLIC_BASE_URL || 'https://cobonat.
 const GA_MEASUREMENT_ID  = 'G-EFNHSXWE0M';
 
 // ── Material Symbols ──────────────────────────────────────────────────────────
-// Loaded as a synchronous stylesheet so icons are available on first paint.
-// Previously this was deferred via a JS script, which caused icons to render
-// as raw text (e.g. "storefront", "local_offer") until JavaScript ran —
-// producing a Cumulative Layout Shift that hurt Core Web Vitals rankings.
+// Deferred loading to avoid blocking the main thread.
+// The CSS is applied immediately after load using the media="print" trick.
 const MATERIAL_SYMBOLS_URL =
   'https://fonts.googleapis.com/css2?family=Material+Symbols+Sharp:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap';
 
@@ -140,18 +138,21 @@ export default async function LocaleLayout({ children, params }) {
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
 
         {/*
-          Material Symbols — loaded as a blocking stylesheet so icons are
-          available on the very first paint. The previous approach deferred
-          this via a JS script (strategy="afterInteractive"), which caused
-          icons to render as raw text until JS executed, producing layout
-          shift and failing Core Web Vitals. Loading it here is the correct
-          pattern recommended by Google Fonts for icon fonts.
+          Material Symbols — loaded asynchronously to avoid blocking rendering.
+          The media="print" trick loads the CSS without delaying the main thread.
+          Once loaded, the media is switched to 'all', applying the styles immediately.
+          A fallback <noscript> ensures the CSS loads even if JavaScript is disabled.
         */}
         <link
           rel="stylesheet"
           href={MATERIAL_SYMBOLS_URL}
+          media="print"
+          onLoad="this.media='all'"
           crossOrigin="anonymous"
         />
+        <noscript>
+          <link rel="stylesheet" href={MATERIAL_SYMBOLS_URL} crossOrigin="anonymous" />
+        </noscript>
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} ${alexandria.variable} ${openSans.variable} antialiased`}>
         <NextIntlClientProvider messages={messages} locale={locale}>
