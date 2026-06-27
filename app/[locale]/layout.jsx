@@ -22,9 +22,7 @@ const geistMono  = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"
 const BASE_URL           = process.env.NEXT_PUBLIC_BASE_URL || 'https://cobonat.me';
 const GA_MEASUREMENT_ID  = 'G-EFNHSXWE0M';
 
-// ── Material Symbols ──────────────────────────────────────────────────────────
-// Deferred loading to avoid blocking the main thread.
-// The CSS is applied immediately after load using the media="print" trick.
+// ── Material Symbols – Deferred ──────────────────────────────────────────────
 const MATERIAL_SYMBOLS_URL =
   'https://fonts.googleapis.com/css2?family=Material+Symbols+Sharp:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap';
 
@@ -133,7 +131,7 @@ export default async function LocaleLayout({ children, params }) {
   return (
     <html lang={locale} dir={isArabic ? 'rtl' : 'ltr'}>
       <head>
-        {/* Preconnect to Google Fonts servers for faster resolution */}
+        {/* Preconnect to Google Fonts servers */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
 
