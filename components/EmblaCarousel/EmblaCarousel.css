@@ -19,6 +19,7 @@
     width: 100%;
     transform: translateZ(0);
     padding: 0 0.5rem;
+    min-height: 200px; /* Reserve height for slides to prevent CLS */
 }
 
 .ec-container {
@@ -93,5 +94,11 @@
 
   .ec-arrow--next {
     inset-inline-end: -22px;
+  }
+}
+
+@media (max-width: 768px) {
+  .ec-viewport {
+    min-height: 160px; /* Smaller reserve on mobile */
   }
 }
