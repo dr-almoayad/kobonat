@@ -35,24 +35,7 @@ a {
   text-decoration: none;
 }
 
-/* ── Material Symbols using the variable font from next/font ── */
-.material-symbols-outlined,
-.material-symbols-sharp {
-  font-family: var(--font-material-symbols);
-  font-weight: normal;
-  font-style: normal;
-  line-height: 1;
-  letter-spacing: normal;
-  text-transform: none;
-  display: inline-block;
-  white-space: nowrap;
-  word-wrap: normal;
-  direction: ltr;
-  font-feature-settings: "liga";
-  -webkit-font-feature-settings: "liga";
-  -webkit-font-smoothing: antialiased;
-}
-
+/* ── Material Symbols classes (the font-family is set by the external CSS) ── */
 .material-symbols-outlined {
   font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
 }
@@ -66,7 +49,6 @@ a {
   font-variation-settings: "FILL" 1, "wght" 400, "GRAD" 0, "opsz" 24;
 }
 
-/* Optional: dark mode support if needed */
 @media (prefers-color-scheme: dark) {
   html {
     color-scheme: dark;
