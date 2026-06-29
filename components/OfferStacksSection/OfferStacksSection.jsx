@@ -1,25 +1,36 @@
+// components/OfferStacksSection/OfferStacksSection.jsx
+// ✅ Fully corrected – accepts pre‑fetched stacks, falls back to self‑fetch.
+
 import { buildOfferStacks } from '@/lib/offerStacks';
 import OfferStackBox from '@/components/OfferStackBox/OfferStackBox';
 import EmblaCarousel from '@/components/EmblaCarousel/EmblaCarousel';
 import './OfferStacksSection.css';
 
-export default async function OfferStacksSection({ locale, countryCode = 'SA' }) {
+export default async function OfferStacksSection({
+  stacks: preFetchedStacks, // ✅ NEW: pre‑fetched stacks from parent
+  locale,
+  countryCode = 'SA',
+}) {
   const lang = locale?.split('-')[0] || 'ar';
   const isAr = lang === 'ar';
 
-  let stacks = [];
-  try {
-    stacks = await buildOfferStacks({
-      countryCode,
-      language: lang,
-      limit:    10,
-    });
-  } catch (err) {
-    console.error('[OfferStacksSection] build error:', err?.message);
-    return null;
+  let stacks = preFetchedStacks;
+
+  // If no stacks provided, fetch them
+  if (!stacks) {
+    try {
+      stacks = await buildOfferStacks({
+        countryCode,
+        language: lang,
+        limit: 10,
+      });
+    } catch (err) {
+      console.error('[OfferStacksSection] build error:', err?.message);
+      return null;
+    }
   }
 
-  if (!stacks.length) return null;
+  if (!stacks?.length) return null;
 
   return (
     <section className="offer-stacks-section" dir={isAr ? 'rtl' : 'ltr'}>
