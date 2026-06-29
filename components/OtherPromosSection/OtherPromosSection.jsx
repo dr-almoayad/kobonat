@@ -360,20 +360,33 @@ function PromoCard({ promo, storeName, storeLogo, isAr, locale, onClick }) {
 }
 
 // ─── Section ───────────────────────────────────────────────────
-const OtherPromosSection = ({ storeSlug, storeName, storeLogo }) => {
+const OtherPromosSection = ({
+  storeSlug,
+  storeName,
+  storeLogo,
+  offers: serverOffers, // ✅ NEW: pre-fetched offers from server
+}) => {
   const t = useTranslations('OtherPromos');
   const locale = useLocale();
   const [language, countryCode] = locale.split('-');
   const isAr = language === 'ar';
 
-  const [promos,      setPromos]      = useState([]);
-  const [loading,     setLoading]     = useState(true);
+  // ✅ If serverOffers are provided, use them immediately; otherwise fallback to client fetch.
+  const [promos, setPromos] = useState(serverOffers || []);
+  const [loading, setLoading] = useState(!serverOffers);
   const [activePromo, setActivePromo] = useState(null);
-  const [mounted,     setMounted]     = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => { setMounted(true); }, []);
 
+  // ✅ Only fetch client-side if no serverOffers were provided.
   useEffect(() => {
+    // If serverOffers were passed, skip the fetch entirely.
+    if (serverOffers) {
+      setLoading(false);
+      return;
+    }
+
     (async () => {
       try {
         const res = await fetch(
@@ -386,7 +399,7 @@ const OtherPromosSection = ({ storeSlug, storeName, storeLogo }) => {
         setLoading(false);
       }
     })();
-  }, [storeSlug, language, countryCode]);
+  }, [storeSlug, language, countryCode, serverOffers]);
 
   const handleClose = useCallback(() => setActivePromo(null), []);
 
