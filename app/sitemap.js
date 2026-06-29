@@ -2,8 +2,9 @@
 // FULLY CORRECTED VERSION
 // Changes:
 // 1. Removed voucher filter for stores – includes ALL active stores.
-// 2. Store lastModified uses store.updatedAt (plus latest voucher date via sub‑query).
-// 3. On error, re‑throws to trigger 500 status – prevents accidental de‑indexing.
+// 2. Store lastModified uses store.updatedAt (real date).
+// 3. On ANY DB error, re‑throws to trigger 500 status – preserves Google's cached sitemap.
+// 4. Removed all .catch() fallbacks – no silent omissions; errors bubble up.
 
 import { prisma } from '@/lib/prisma';
 
@@ -70,6 +71,8 @@ export default async function sitemap() {
 
   try {
     // ── All DB queries in one parallel batch ───────────────────────────────
+    // ❌ REMOVED all .catch() fallbacks – any query error will bubble up
+    //    and trigger the top‑level catch, returning a 500.
     const [
       latestVoucher,
       latestStore,
@@ -86,19 +89,19 @@ export default async function sitemap() {
       prisma.voucher.findFirst({
         orderBy: { updatedAt: 'desc' },
         select: { updatedAt: true },
-      }).catch(() => null),
+      }),
 
       prisma.store.findFirst({
         where: { isActive: true },
         orderBy: { updatedAt: 'desc' },
         select: { updatedAt: true },
-      }).catch(() => null),
+      }),
 
       prisma.otherPromo.findFirst({
         where: { isActive: true },
         orderBy: { updatedAt: 'desc' },
         select: { updatedAt: true },
-      }).catch(() => null),
+      }),
 
       prisma.voucher.count({
         where: {
@@ -106,18 +109,18 @@ export default async function sitemap() {
           countries: { some: { country: { code: 'SA' } } },
           OR: [{ expiryDate: null }, { expiryDate: { gte: NOW } }],
         },
-      }).catch(() => 0),
+      }),
 
       prisma.offerStack.count({
         where: {
           isActive: true,
           store: { countries: { some: { country: { code: 'SA' } } } },
         },
-      }).catch(() => 0),
+      }),
 
       prisma.blogPost.count({
         where: { status: 'PUBLISHED' },
-      }).catch(() => 0),
+      }),
 
       prisma.category.findMany({
         where: {
@@ -137,7 +140,7 @@ export default async function sitemap() {
             select: { slug: true, locale: true },
           },
         },
-      }).catch(() => []),
+      }),
 
       // ✅ FIX: Removed voucher filter – include ALL active stores.
       prisma.store.findMany({
@@ -153,12 +156,8 @@ export default async function sitemap() {
             where: { locale: { in: ['ar', 'en'] } },
             select: { slug: true, locale: true },
           },
-          // We need the latest voucher updatedAt to compute real lastModified.
-          // We'll fetch it separately via another query or rely on store.updatedAt
-          // and accept that it may not catch voucher additions.
-          // For simplicity, we use store.updatedAt – good enough for most cases.
         },
-      }).catch(() => []),
+      }),
 
       prisma.seasonalPage.findMany({
         where: {
@@ -173,7 +172,7 @@ export default async function sitemap() {
             select: { locale: true, title: true },
           },
         },
-      }).catch(() => []),
+      }),
 
       prisma.blogPost.findMany({
         where: { status: 'PUBLISHED' },
@@ -184,7 +183,7 @@ export default async function sitemap() {
           updatedAt: true,
           translations: { select: { locale: true } },
         },
-      }).catch(() => []),
+      }),
     ]);
 
     const voucherDate = safeDate(latestVoucher?.updatedAt);
@@ -304,15 +303,12 @@ export default async function sitemap() {
     }
 
     // ── 9. Store pages (ALL active stores) ────────────────────────────────
-    // ✅ FIX: lastModified uses the actual store.updatedAt (or latest voucher).
-    // We use store.updatedAt as a proxy – if you have a reliable way to get
-    // the latest voucher per store, you could enhance this.
+    // ✅ FIX: lastModified uses the actual store.updatedAt.
     for (const store of stores) {
       const arSlug = store.translations?.find(t => t.locale === 'ar')?.slug;
       const enSlug = store.translations?.find(t => t.locale === 'en')?.slug;
       const alternates = slugAlternates(arSlug, enSlug, '/stores');
 
-      // ✅ Use store.updatedAt – a real date, not NOW.
       const lastModified = safeDate(store.updatedAt);
 
       if (arSlug) {
@@ -409,12 +405,10 @@ export default async function sitemap() {
     });
 
   } catch (error) {
-    // ── ✅ CRITICAL FIX: Re-throw the error ──────────────────────────────
-    // Returning an empty or partial sitemap with a 200 OK tells Google
-    // that you intentionally deleted all your pages, causing immediate
-    // de‑indexing. Instead, a 500 status tells Google "server error, retry later"
-    // – preserving your current index while the issue is resolved.
+    // ── ✅ CRITICAL FIX: Re‑throw the error ──────────────────────────────
+    // Returning a partial sitemap with a 200 OK tells Google you deleted pages.
+    // A 500 status tells Google "server error, retry later" – preserves your index.
     console.error('[sitemap] generation error:', error);
     throw new Error(`Sitemap generation failed: ${error.message}`);
   }
-}
+                       }
