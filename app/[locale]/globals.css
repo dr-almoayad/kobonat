@@ -35,7 +35,24 @@ a {
   text-decoration: none;
 }
 
-/* ── Material Symbols classes (the font-family is set by the external CSS) ── */
+/* ── Material Symbols – explicit font-family fallback ── */
+.material-symbols-outlined,
+.material-symbols-sharp {
+  font-family: 'Material Symbols Sharp', 'Material Symbols Outlined', sans-serif;
+  font-weight: normal;
+  font-style: normal;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  font-feature-settings: "liga";
+  -webkit-font-feature-settings: "liga";
+  -webkit-font-smoothing: antialiased;
+}
+
 .material-symbols-outlined {
   font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
 }
