@@ -1,5 +1,6 @@
 // components/blog/HomepageBlogSection.jsx
-// Server Component - fetches its own data
+// ✅ Fully corrected – accepts pre‑fetched posts, falls back to self‑fetch.
+
 import { prisma } from '@/lib/prisma';
 import Link from 'next/link';
 import BlogCard from './BlogCard';
@@ -9,36 +10,31 @@ import BlogCard from './BlogCard';
 // ============================================================================
 async function getFeaturedPosts(lang, count = 3) {
   try {
-    // ── BUG FIX ─────────────────────────────────────────────────────────────
-    // The old filter `publishedAt: { lte: new Date() }` silently excluded posts
-    // whose publishedAt is null (e.g. published without an explicit date set).
-    // Now we only require status = PUBLISHED — no publishedAt gate needed here.
-    // ────────────────────────────────────────────────────────────────────────
     const baseWhere = { status: 'PUBLISHED' };
     const include = {
       translations: { where: { locale: lang } },
       author: true,
       category: { include: { translations: { where: { locale: lang } } } },
-      tags:     { include: { tag: { include: { translations: { where: { locale: lang } } } } } },
+      tags: { include: { tag: { include: { translations: { where: { locale: lang } } } } } },
     };
 
     // Step 1: featured posts first
     const featured = await prisma.blogPost.findMany({
-      where:   { ...baseWhere, isFeatured: true },
+      where: { ...baseWhere, isFeatured: true },
       include,
       orderBy: { publishedAt: 'desc' },
-      take:    count,
+      take: count,
     });
 
     if (featured.length >= count) return featured;
 
-    // Step 2: fill remaining slots with latest non-featured
+    // Step 2: fill remaining slots with latest non‑featured
     const featuredIds = featured.map(p => p.id);
     const latest = await prisma.blogPost.findMany({
-      where:   { ...baseWhere, id: { notIn: featuredIds.length ? featuredIds : [-1] } },
+      where: { ...baseWhere, id: { notIn: featuredIds.length ? featuredIds : [-1] } },
       include,
       orderBy: { publishedAt: 'desc' },
-      take:    count - featured.length,
+      take: count - featured.length,
     });
 
     return [...featured, ...latest];
@@ -49,25 +45,25 @@ async function getFeaturedPosts(lang, count = 3) {
 }
 
 // ============================================================================
-// Transform raw Prisma post → BlogCard-compatible shape
+// Transform raw Prisma post → BlogCard‑compatible shape
 // ============================================================================
 function transformPost(post, lang) {
   const t = post.translations?.[0] || {};
   return {
-    id:           post.id,
-    slug:         post.slug,
-    featuredImage:post.featuredImage,
-    isFeatured:   post.isFeatured,
-    publishedAt:  post.publishedAt,
-    title:        t.title   || '',
-    excerpt:      t.excerpt || '',
+    id: post.id,
+    slug: post.slug,
+    featuredImage: post.featuredImage,
+    isFeatured: post.isFeatured,
+    publishedAt: post.publishedAt,
+    title: t.title || '',
+    excerpt: t.excerpt || '',
     author: post.author ? {
-      name:   lang === 'ar' ? (post.author.nameAr || post.author.name) : post.author.name,
+      name: lang === 'ar' ? (post.author.nameAr || post.author.name) : post.author.name,
       avatar: post.author.avatar,
     } : null,
     category: post.category ? {
-      slug:  post.category.slug,
-      name:  post.category.translations?.[0]?.name || post.category.slug,
+      slug: post.category.slug,
+      name: post.category.translations?.[0]?.name || post.category.slug,
       color: post.category.color,
     } : null,
     tags: (post.tags || []).map(pt => ({
@@ -80,19 +76,28 @@ function transformPost(post, lang) {
 // ============================================================================
 // Component
 // ============================================================================
-export default async function HomepageBlogSection({ locale, count = 3 }) {
-  const lang  = locale.split('-')[0];
+export default async function HomepageBlogSection({
+  posts: preFetchedPosts, // ✅ NEW: pre‑fetched posts from parent
+  locale,
+  count = 3,
+}) {
+  const lang = locale.split('-')[0];
   const isRTL = lang === 'ar';
 
-  const posts = await getFeaturedPosts(lang, count);
-  if (!posts.length) return null;
+  // Use pre‑fetched posts if provided; otherwise fetch
+  let posts = preFetchedPosts;
+  if (!posts) {
+    posts = await getFeaturedPosts(lang, count);
+  }
+
+  if (!posts?.length) return null;
 
   const transformedPosts = posts.map(p => transformPost(p, lang));
 
   const labels = {
-    heading: lang === 'ar' ? 'أحدث المقالات والنصائح'   : 'Latest Tips & Articles',
-    sub:     lang === 'ar' ? 'نصائح توفير، مقارنات، وأفضل العروض من فريق كوبونات' : 'Saving tips, comparisons & best deals from the Cobonat team',
-    cta:     lang === 'ar' ? 'عرض جميع المقالات'         : 'View All Articles',
+    heading: lang === 'ar' ? 'أحدث المقالات والنصائح' : 'Latest Tips & Articles',
+    sub: lang === 'ar' ? 'نصائح توفير، مقارنات، وأفضل العروض من فريق كوبونات' : 'Saving tips, comparisons & best deals from the Cobonat team',
+    cta: lang === 'ar' ? 'عرض جميع المقالات' : 'View All Articles',
   };
 
   return (
