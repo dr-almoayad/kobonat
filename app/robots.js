@@ -1,69 +1,55 @@
 // app/robots.js
-// Clean, standard robots.txt for SEO best practices.
-// No explicit allow lists needed because there is no catch‑all Disallow: /.
-// We only disallow internal/admin paths and aggressive crawlers.
+// SEO‑optimised robots.txt – allows Googlebot to fetch all public content,
+// including API endpoints that power client‑side rendering.
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://cobonat.me';
 
-// ── Paths that should never be crawled ────────────────────────────────────
-const DISALLOW_INTERNAL = [
+// ── Only these exact paths are disallowed ──────────────────────────────
+// All other public API routes (stores, categories, stacks, etc.) are
+// allowed so Googlebot can see dynamically‑loaded content.
+const DISALLOW_EXACT = [
   '/admin/',
   '/api/admin/',
+  '/api/cron/',
   '/api/vouchers/track',
   '/api/store-products/track',
-  '/api/cron/',
-  '/api/stores',
-  '/api/categories',
-  '/api/vouchers',
-  '/api/countries',
-  '/api/homepage',
-  '/api/search',
-  '/api/stacks',
-  '/api/blog',
-  '/api/curated-offers',
-  '/api/seasonal/',
-  '/api/leaderboard',
-  '/api/og',
-  // Search pages with query parameters – block via standard wildcard
-  '/search',
+  '/search', // search pages with query params
 ];
 
 export default function robots() {
   return {
     rules: [
       // ── 1. Main search engines ──────────────────────────────────────
-      // No allow list needed – they can crawl everything not disallowed.
       {
         userAgent: 'Googlebot',
-        disallow: DISALLOW_INTERNAL,
+        disallow: DISALLOW_EXACT,
       },
       {
         userAgent: 'Bingbot',
-        disallow: DISALLOW_INTERNAL,
+        disallow: DISALLOW_EXACT,
       },
 
-      // ── 2. Google Images ──────────────────────────────────────────────
-      // Allow images, disallow admin/API.
+      // ── 2. Google Images – allow all images ─────────────────────────
       {
         userAgent: 'Googlebot-Image',
-        disallow: ['/admin/', '/api/'],
+        disallow: ['/admin/', '/api/admin/'],
       },
 
-      // ── 3. Social link resolvers ──────────────────────────────────────
+      // ── 3. Social link resolvers ────────────────────────────────────
       {
         userAgent: 'FacebookBot',
-        disallow: ['/admin/', '/api/'],
+        disallow: ['/admin/', '/api/admin/'],
       },
       {
         userAgent: 'Twitterbot',
-        disallow: ['/admin/', '/api/'],
+        disallow: ['/admin/', '/api/admin/'],
       },
 
-      // ── 4. AI / LLM crawlers – restrict to public content only ───────
-      // They get the same disallow list as Google.
+      // ── 4. AI / LLM crawlers – restrict to public content ──────────
+      // They still get the same disallow list (no admin/cron/track).
       {
         userAgent: 'GPTBot',
-        disallow: DISALLOW_INTERNAL,
+        disallow: DISALLOW_EXACT,
       },
       {
         userAgent: 'ChatGPT-User',
@@ -71,19 +57,19 @@ export default function robots() {
       },
       {
         userAgent: 'Google-Extended',
-        disallow: DISALLOW_INTERNAL,
+        disallow: DISALLOW_EXACT,
       },
       {
         userAgent: 'ClaudeBot',
-        disallow: DISALLOW_INTERNAL,
+        disallow: DISALLOW_EXACT,
       },
       {
         userAgent: 'Claude-Web',
-        disallow: DISALLOW_INTERNAL,
+        disallow: DISALLOW_EXACT,
       },
       {
         userAgent: 'anthropic-ai',
-        disallow: DISALLOW_INTERNAL,
+        disallow: DISALLOW_EXACT,
       },
       {
         userAgent: 'PerplexityBot',
@@ -91,7 +77,7 @@ export default function robots() {
       },
       {
         userAgent: 'CCBot',
-        disallow: DISALLOW_INTERNAL,
+        disallow: DISALLOW_EXACT,
       },
 
       // ── 5. Aggressive SEO crawlers – block entirely ────────────────
@@ -103,10 +89,9 @@ export default function robots() {
       { userAgent: 'Baiduspider', disallow: '/' },
 
       // ── 6. Fallback for all other bots ──────────────────────────────
-      // crawlDelay throttles unknown bots without affecting Google/Bing.
       {
         userAgent: '*',
-        disallow: DISALLOW_INTERNAL,
+        disallow: DISALLOW_EXACT,
         crawlDelay: 5,
       },
     ],
