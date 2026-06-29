@@ -1,3 +1,6 @@
+// components/HeroCuratedCarousel/HeroCuratedSection.jsx
+// ✅ Fully corrected – accepts pre‑fetched slides, falls back to self‑fetch.
+
 import { prisma } from '@/lib/prisma';
 import HeroCuratedCarousel from './HeroCuratedCarousel';
 
@@ -14,14 +17,15 @@ function getLocalizedImageUrl(originalUrl, isArabic) {
 // Generates cohesive, clean light background color palettes if not supplied by the DB
 function getFallbackPalette(index) {
   const palettes = [
-    { bgColor: '#f4ebe1', textColor: '#1c1917', badgeBg: 'rgba(255, 255, 255, 0.75)', badgeColor: '#44403c', btnBg: 'rgba(0, 0, 0, 0.06)', btnColor: '#1c1917' }, // Light Terracotta/Orange tone
-    { bgColor: '#f3e8ee', textColor: '#1f1d24', badgeBg: 'rgba(255, 255, 255, 0.75)', badgeColor: '#4c4556', btnBg: 'rgba(0, 0, 0, 0.06)', btnColor: '#1f1d24' }, // Muted Rose/Pink tone
-    { bgColor: '#eaf2f8', textColor: '#1a2530', badgeBg: 'rgba(255, 255, 255, 0.75)', badgeColor: '#34495e', btnBg: 'rgba(0, 0, 0, 0.06)', btnColor: '#1a2530' }, // Soft Blue tone
-    { bgColor: '#eaf5ed', textColor: '#19281e', badgeBg: 'rgba(255, 255, 255, 0.75)', badgeColor: '#2d4a36', btnBg: 'rgba(0, 0, 0, 0.06)', btnColor: '#19281e' }, // Soft Mint tone
+    { bgColor: '#f4ebe1', textColor: '#1c1917', badgeBg: 'rgba(255, 255, 255, 0.75)', badgeColor: '#44403c', btnBg: 'rgba(0, 0, 0, 0.06)', btnColor: '#1c1917' },
+    { bgColor: '#f3e8ee', textColor: '#1f1d24', badgeBg: 'rgba(255, 255, 255, 0.75)', badgeColor: '#4c4556', btnBg: 'rgba(0, 0, 0, 0.06)', btnColor: '#1f1d24' },
+    { bgColor: '#eaf2f8', textColor: '#1a2530', badgeBg: 'rgba(255, 255, 255, 0.75)', badgeColor: '#34495e', btnBg: 'rgba(0, 0, 0, 0.06)', btnColor: '#1a2530' },
+    { bgColor: '#eaf5ed', textColor: '#19281e', badgeBg: 'rgba(255, 255, 255, 0.75)', badgeColor: '#2d4a36', btnBg: 'rgba(0, 0, 0, 0.06)', btnColor: '#19281e' },
   ];
   return palettes[index % palettes.length];
 }
 
+// ── Data fetching logic (kept for fallback) ──
 async function getHeroSlides(language, countryCode) {
   const now = new Date();
   const offers = await prisma.curatedOffer.findMany({
@@ -55,11 +59,10 @@ async function getHeroSlides(language, countryCode) {
     const storeTranslation = offer.store?.translations?.[0] || {};
     const fallbackColors = getFallbackPalette(index);
 
-    // Determine context-based system badges
     let defaultBadge = isArabic ? 'متاح الآن' : 'Available now';
     if (offer.expiryDate) {
       defaultBadge = isArabic ? 'لفترة محدودة' : 'Limited time';
-    } else if (offer.isComingSoon) { // Assuming an optional column helper
+    } else if (offer.isComingSoon) {
       defaultBadge = isArabic ? 'قريباً' : 'Coming soon';
     }
 
@@ -70,41 +73,44 @@ async function getHeroSlides(language, countryCode) {
       ctaUrl: offer.ctaUrl || '#',
       title: translation.title || '',
       subtitle: translation.subtitle || (isArabic ? 'اكتشف العروض الحصرية اليوم' : 'Discover exclusive deals today'),
-      
-      // App Meta fields mapped into your layout
       appIcon: offer.store?.bigLogo || offer.store?.logo || null,
       appName: storeTranslation.name || '',
       developer: offer.developerName || storeTranslation.name || '',
       rating: offer.ratingAgeText || (isArabic ? 'مقوّم لـ +3' : 'Rated for 3+'),
-      
-      // CTA Button Translations
       ctaText: translation.ctaText || (isArabic ? 'تثبيت' : 'Install'),
       ctaSubtext: translation.ctaSubtext || (isArabic ? 'عمليات الشراء داخل التطبيق' : 'In-app purchases'),
       badgeText: translation.badgeText || defaultBadge,
-
-      // Flexible design theme hooks (prioritizes DB mappings if they exist)
       bgColor: offer.bgColor || fallbackColors.bgColor,
       textColor: offer.textColor || fallbackColors.textColor,
       badgeBg: offer.badgeBg || fallbackColors.badgeBg,
       badgeColor: offer.badgeColor || fallbackColors.badgeColor,
       btnBg: offer.btnBg || fallbackColors.btnBg,
-      btnColor: offer.btnColor || fallbackColors.btnColor
+      btnColor: offer.btnColor || fallbackColors.btnColor,
     };
   });
 }
 
-export default async function HeroCuratedSection({ locale, countryCode = 'SA' }) {
+// ── Component ──────────────────────────────────────────────────────────────
+export default async function HeroCuratedSection({
+  slides: preFetchedSlides, // ✅ NEW: pre‑fetched slides from parent
+  locale,
+  countryCode = 'SA',
+}) {
   const [language] = locale.split('-');
-  let slides = [];
-  
-  try {
-    slides = await getHeroSlides(language, countryCode);
-  } catch (err) {
-    console.error('[HeroCuratedSection]', err?.message);
-    return null;
+  let slides = preFetchedSlides;
+
+  // If no slides provided, fetch them (server‑side)
+  if (!slides) {
+    try {
+      slides = await getHeroSlides(language, countryCode);
+    } catch (err) {
+      console.error('[HeroCuratedSection] fetch error:', err?.message);
+      return null;
+    }
   }
-  
-  if (!slides.length) return null;
-  
+
+  if (!slides?.length) return null;
+
+  // Render the client carousel with the slides
   return <HeroCuratedCarousel slides={slides} locale={locale} />;
 }
