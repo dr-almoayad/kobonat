@@ -6,7 +6,8 @@
 // 3. Canonical & hreflang correct.
 // 4. generateStaticParams pre‑builds all store pages.
 // 5. Removed category slug collision check.
-// 6. Degrades gracefully on DB errors – only returns 404 when store is genuinely missing.
+// 6. Degrades gracefully on transient DB errors.
+// 7. Server‑side rendering of active bank/payment offers – Googlebot sees them.
 
 import { prisma } from '@/lib/prisma';
 import { notFound, permanentRedirect } from 'next/navigation'; 
@@ -256,14 +257,14 @@ export default async function StorePage({ params }) {
       if (newSlug) {
         return permanentRedirect(`/${locale}/stores/${newSlug}`);
       }
-      return notFound(); // Genuine 404 – store doesn't exist
+      return notFound();
     }
 
     const country = await prisma.country.findUnique({
       where: { code: countryCode, isActive: true },
       include: { translations: { where: { locale: language } } },
     });
-    if (!country) return notFound(); // Country doesn't exist – should not happen
+    if (!country) return notFound();
 
     const tStore = await getTranslations('StorePage');
     const storeTranslation = store.translations[0];
@@ -292,7 +293,6 @@ export default async function StorePage({ params }) {
     const generalFaqEntities = await getGeneralFaqSchemaEntities(locale);
 
     // ── 2. SUPPLEMENTAL: all other data – each with its own try/catch ──────
-    // Default fallback values if any query fails.
     let allVouchers = [];
     let paymentMethodsData = [];
     let faqs = [];
@@ -300,13 +300,14 @@ export default async function StorePage({ params }) {
     let storeProducts = [];
     let relatedPostsRaw = [];
     let expiredOtherPromos = [];
+    // ✅ FIX: Active bank/payment offers – fetched server‑side.
+    let activeOtherPromos = [];
 
-    // Helper to safely fetch each dataset
     const safeFetch = async (promise, fallback = []) => {
       try {
         return await promise;
       } catch (err) {
-        console.error(`[StorePage] Supplemental query failed for ${slug}:`, err.message);
+        console.error(`[StorePage] Supplemental query failed:`, err.message);
         return fallback;
       }
     };
@@ -319,6 +320,7 @@ export default async function StorePage({ params }) {
       storeProducts,
       relatedPostsRaw,
       expiredOtherPromos,
+      activeOtherPromos, // ✅ Added
     ] = await Promise.all([
       safeFetch(
         prisma.voucher.findMany({
@@ -422,10 +424,28 @@ export default async function StorePage({ params }) {
           take: 10,
         })
       ),
+      // ✅ FIX: Fetch active bank/payment offers server‑side
+      safeFetch(
+        prisma.otherPromo.findMany({
+          where: {
+            storeId: store.id,
+            countryId: country.id,
+            isActive: true,
+            OR: [{ expiryDate: null }, { expiryDate: { gte: now } }],
+          },
+          include: {
+            translations: { where: { locale: language } },
+            bank: { include: { translations: { where: { locale: language } } } },
+            paymentMethod: { include: { translations: { where: { locale: language } } } },
+            card: true,
+          },
+          orderBy: [{ order: 'asc' }, { discountPercent: 'desc' }, { verifiedAvgPercent: 'desc' }],
+          take: 20,
+        })
+      ),
     ]);
 
-    // ── 3. Process data as before ────────────────────────────────────────────
-    // (All the transformation logic remains the same)
+    // ── 3. Process data ────────────────────────────────────────────────────
     const activeVouchers = allVouchers.filter(v => !v.expiryDate || v.expiryDate >= now);
     const expiredVouchers = allVouchers.filter(v => v.expiryDate && v.expiryDate < now).slice(0, 10);
 
@@ -479,6 +499,33 @@ export default async function StorePage({ params }) {
         : null,
       card: p.card,
       voucherCode: p.voucherCode,
+    }));
+
+    // ✅ Transform active other promos (same shape as expired ones, but with a `isActive` flag)
+    const transformedActiveOtherPromos = activeOtherPromos.map(p => ({
+      id: p.id,
+      type: p.type,
+      image: p.image,
+      url: p.url,
+      startDate: p.startDate,
+      expiryDate: p.expiryDate,
+      discountPercent: p.discountPercent ?? null,
+      verifiedAvgPercent: p.verifiedAvgPercent ?? null,
+      title: p.translations[0]?.title || '',
+      description: p.translations[0]?.description || null,
+      terms: p.translations[0]?.terms || null,
+      bank: p.bank ? { name: p.bank.translations[0]?.name || '', logo: p.bank.logo } : null,
+      paymentMethod: p.paymentMethod
+        ? {
+            name: p.paymentMethod.translations[0]?.name || '',
+            logo: p.paymentMethod.logo,
+            type: p.paymentMethod.type,
+            isBnpl: p.paymentMethod.isBnpl,
+          }
+        : null,
+      card: p.card,
+      voucherCode: p.voucherCode,
+      isActive: true,
     }));
 
     const allPaymentMethods = paymentMethodsData.map(spm => ({
@@ -614,7 +661,14 @@ export default async function StorePage({ params }) {
                 )}
 
                 <StoreOfferStacks storeId={store.id} locale={locale} countryCode={countryCode || 'SA'} />
-                <OtherPromosSection storeSlug={transformedStore.slug} storeName={transformedStore.name} storeLogo={transformedStore.logo} />
+
+                {/* ✅ FIX: Active bank/payment offers are now server‑rendered */}
+                <OtherPromosSection
+                  storeSlug={transformedStore.slug}
+                  storeName={transformedStore.name}
+                  storeLogo={transformedStore.logo}
+                  offers={transformedActiveOtherPromos} // Pre‑fetched active offers
+                />
 
                 {transformedProducts.length > 0 && (
                   <FeaturedProductsCarousel
@@ -660,8 +714,7 @@ export default async function StorePage({ params }) {
       </>
     );
   } catch (error) {
-    // This outer catch only catches errors from essential data (store/country).
     console.error('[StorePage] Fatal error:', error);
-    return notFound(); // Only here if store or country couldn't be fetched.
+    return notFound();
   }
       }
