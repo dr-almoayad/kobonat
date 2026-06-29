@@ -1,6 +1,6 @@
 // components/blog/HomepageBlogSection.jsx
 // ✅ Fully corrected – accepts pre‑fetched posts, falls back to self‑fetch.
-
+ 
 import { prisma } from '@/lib/prisma';
 import Link from 'next/link';
 import BlogCard from './BlogCard';
