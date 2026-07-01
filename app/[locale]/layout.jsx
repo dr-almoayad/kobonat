@@ -41,10 +41,6 @@ const geistMono = Geist_Mono({
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://cobonat.me";
 const GA_MEASUREMENT_ID = "G-EFNHSXWE0M";
 
-// ── Material Symbols – deferred to avoid blocking render ──
-const MATERIAL_SYMBOLS_URL =
-  "https://fonts.googleapis.com/css2?family=Material+Symbols+Sharp:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap";
-
 export async function generateMetadata({ params }) {
   const { locale } = await params;
   const [language] = locale.split("-");
@@ -154,31 +150,9 @@ export default async function LocaleLayout({ children, params }) {
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
 
-        {/*
-          Material Symbols – loaded asynchronously to avoid blocking rendering.
-          The media="print" trick loads the CSS without delaying the main thread.
-          Once loaded, the media is switched to 'all', applying the styles immediately.
-        */}
-        <link
-          rel="stylesheet"
-          href={MATERIAL_SYMBOLS_URL}
-          media="print"
-          onLoad="this.media='all'"
-          crossOrigin="anonymous"
-        />
-        <noscript>
-          <link rel="stylesheet" href={MATERIAL_SYMBOLS_URL} crossOrigin="anonymous" />
-        </noscript>
+        {/* ✅ Material Symbols is now loaded via @font-face in globals.css – no external stylesheet needed */}
       </head>
-      <body
-        className={`
-          ${geistSans.variable}
-          ${geistMono.variable}
-          ${alexandria.variable}
-          ${openSans.variable}
-          antialiased
-        `}
-      >
+      <body className={`${geistSans.variable} ${geistMono.variable} ${alexandria.variable} ${openSans.variable} antialiased`}>
         <NextIntlClientProvider messages={messages} locale={locale}>
           <SessionProviderWrapper>
             <WebSiteStructuredData locale={locale} siteName={isArabic ? "كوبونات" : "Cobonat"} />
