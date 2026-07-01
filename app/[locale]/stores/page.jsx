@@ -16,6 +16,14 @@ export const revalidate = 3600;
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://cobonat.me';
 
+// ── Pre‑build both locale variants ──
+export async function generateStaticParams() {
+  return [
+    { locale: 'ar-SA' },
+    { locale: 'en-SA' },
+  ];
+}
+
 // ── Metadata ──────────────────────────────────────────────────────────────────
 export async function generateMetadata({ params }) {
   const { locale } = await params;
@@ -26,7 +34,6 @@ export async function generateMetadata({ params }) {
   const isAr = lang === 'ar';
   const now = new Date();
 
-  // Lightweight count queries
   const [storeCount, voucherCount] = await Promise.all([
     prisma.store.count({
       where: {
@@ -116,7 +123,6 @@ export default async function AllStoresPage({ params }) {
   const now = new Date();
 
   const [featuredStoresWithCovers, stores, categories] = await Promise.all([
-    // Hero carousel — featured stores that have a cover image
     prisma.store.findMany({
       where: {
         isActive: true,
@@ -188,7 +194,6 @@ export default async function AllStoresPage({ params }) {
     })),
   };
 
-  // SEO H1 (hardcoded keyword‑rich)
   const pageH1 = isAr
     ? `كوبونات وعروض ${stores.length}+ متجر في السعودية`
     : `Coupons & Deals at ${stores.length}+ Stores in Saudi Arabia`;
@@ -202,7 +207,6 @@ export default async function AllStoresPage({ params }) {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListSchema) }} />
 
       <div className="stores_page">
-        {/* Breadcrumbs - visible + schema */}
         <div style={{ maxWidth: '1312px', margin: '0 auto', padding: '1rem 1.5rem 0' }}>
           <Breadcrumbs items={breadcrumbItems} locale={locale} />
         </div>
