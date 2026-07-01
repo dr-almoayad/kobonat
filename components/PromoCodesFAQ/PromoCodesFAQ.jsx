@@ -1,20 +1,27 @@
 // components/PromoCodesFAQ/PromoCodesFAQ.jsx
-'use client';
-
-import { useTranslations } from 'next-intl';
+// ✅ Fully corrected – Server Component with server‑rendered FAQ schema.
+import { getTranslations } from 'next-intl/server';
 import './PromoCodesFAQ.css';
 
+// ── Helper: strip HTML tags for schema (clean plain text) ──
+function stripHtml(html) {
+  if (typeof html !== 'string') return '';
+  return html.replace(/<[^>]+>/g, '').trim();
+}
+
 /**
- * PromoCodesFAQ Component
+ * PromoCodesFAQ Component (Server Component)
  *
  * Two-column FAQ section with optional JSON‑LD schema injection.
  *
  * @param {boolean} includeStructuredData - If true, injects FAQPage schema.
+ * @param {string}  locale                 - Current locale (e.g., 'ar-SA', 'en-SA')
  */
-export default function PromoCodesFAQ({ includeStructuredData = false }) {
-  const t = useTranslations('faq');
-
-  // All FAQ items – keep in sync with the schema array for consistency
+export default async function PromoCodesFAQ({
+  includeStructuredData = false,
+  locale,
+}) {
+  // ── All FAQ items – keep in sync with the schema array for consistency ──
   const allQuestions = [
     // Usage
     { category: 'usage', key: 'how_to_use' },
@@ -36,11 +43,8 @@ export default function PromoCodesFAQ({ includeStructuredData = false }) {
     { category: 'general', key: 'account_needed' },
   ];
 
-  // ── Helper: strip HTML tags for schema (clean plain text) ──
-  const stripHtml = (html) => {
-    if (typeof html !== 'string') return '';
-    return html.replace(/<[^>]+>/g, '').trim();
-  };
+  // ── Get translations server‑side ──
+  const t = await getTranslations({ locale, namespace: 'faq' });
 
   // ── Build FAQPage schema entities ──
   const schemaEntities = allQuestions
@@ -50,7 +54,6 @@ export default function PromoCodesFAQ({ includeStructuredData = false }) {
       const answerRaw = t.raw(`${questionPath}.answer`);
       const answer = stripHtml(typeof answerRaw === 'string' ? answerRaw : String(answerRaw));
 
-      // Only include if both question and answer exist
       if (!question || !answer) return null;
 
       return {
@@ -71,9 +74,10 @@ export default function PromoCodesFAQ({ includeStructuredData = false }) {
     mainEntity: schemaEntities,
   };
 
+  // ── Rendered JSX ──
   return (
     <>
-      {/* ── Inject JSON‑LD if requested ── */}
+      {/* ── Inject JSON‑LD during SSR if requested ── */}
       {includeStructuredData && schemaEntities.length > 0 && (
         <script
           type="application/ld+json"
