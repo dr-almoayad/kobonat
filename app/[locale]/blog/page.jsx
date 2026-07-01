@@ -1,9 +1,17 @@
 // app/[locale]/blog/page.jsx
 import { prisma } from '@/lib/prisma';
 import Link from 'next/link';
-import BlogCard from '@/components/blog/BlogCard'; 
+import BlogCard from '@/components/blog/BlogCard';
 import BlogStructuredData from '@/components/StructuredData/BlogStructuredData';
 import './blog.css';
+
+// ── Pre‑build both locale variants ──
+export async function generateStaticParams() {
+  return [
+    { locale: 'ar-SA' },
+    { locale: 'en-SA' },
+  ];
+}
 
 // ============================================================================
 // Metadata
@@ -18,7 +26,6 @@ export async function generateMetadata({ params, searchParams }) {
   const buildUrl = (loc, extra = '') => `${baseUrl}/${loc}/blog${extra}`;
   const filterSuffix = category ? `?category=${category}` : tag ? `?tag=${tag}` : '';
 
-  // Default copy (index view)
   let title = isAr
     ? 'المدونة | نصائح التوفير والعروض والمقارنات - كوبونات'
     : 'Blog | Saving Tips, Deals & Store Comparisons - Cobonat';
@@ -27,7 +34,6 @@ export async function generateMetadata({ params, searchParams }) {
     : 'Discover the latest saving tips, store comparisons, credit card guides, and promo codes in Saudi Arabia from the Cobonat team.';
   let ogImage = `${baseUrl}/logo-512x512.png`;
 
-  // Override for filtered views
   if (category || tag) {
     try {
       if (category) {
@@ -54,7 +60,6 @@ export async function generateMetadata({ params, searchParams }) {
     } catch { /* keep defaults */ }
   }
 
-  // Use latest featured post image as og:image when available
   try {
     const latest = await prisma.blogPost.findFirst({
       where:   { status: 'PUBLISHED', isFeatured: true, featuredImage: { not: null } },
@@ -64,7 +69,6 @@ export async function generateMetadata({ params, searchParams }) {
     if (latest?.featuredImage) ogImage = latest.featuredImage;
   } catch { /* keep default */ }
 
-  // Don't index paginated/filtered views — follow links only
   const robots = (category || tag)
     ? 'noindex, follow'
     : 'index, follow, max-image-preview:large, max-snippet:-1';
