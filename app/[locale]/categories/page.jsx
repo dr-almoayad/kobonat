@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { allLocaleCodes } from '@/i18n/locales';
-import HelpBox from '@/components/help/HelpBox';
+import HelpBox from '@/components/help/HelpBox'; 
 import Breadcrumbs from '@/components/Breadcrumbs/Breadcrumbs';
 import './page.css';
 
