@@ -5,7 +5,7 @@ import Link from "next/link";
 import VouchersGrid from "@/components/VouchersGrid/VouchersGrid";
 import PromoCodesFAQ from "@/components/PromoCodesFAQ/PromoCodesFAQ";
 import HelpBox from "@/components/help/HelpBox";
-import CouponsStructuredData from "@/components/StructuredData/CouponsStructuredData";
+import CouponsStructuredData from "@/components/StructuredData/CouponsStructuredData"; 
 import Breadcrumbs from '@/components/Breadcrumbs/Breadcrumbs';
 import "./coupons-page.css";
 
