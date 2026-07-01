@@ -14,6 +14,14 @@ export const revalidate = 1800;
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://cobonat.me'; 
 const PAGE_LIMIT = 60;
 
+// ── Pre‑build both locale variants ──
+export async function generateStaticParams() {
+  return [
+    { locale: 'ar-SA' },
+    { locale: 'en-SA' },
+  ];
+}
+
 // ── Metadata ─────────────────────────────────────────────────────────────────
 
 export async function generateMetadata({ params, searchParams: rawSearchParams }) {
@@ -177,7 +185,6 @@ const CouponsPage = async ({ params, searchParams: rawSearchParams }) => {
     ]);
   } catch (error) {
     console.error('[CouponsPage] DB error:', error?.message ?? error);
-    // vouchers and totalCount remain empty arrays / 0 – page will show empty state
   }
 
   const totalPages = Math.ceil(totalCount / PAGE_LIMIT);
@@ -204,7 +211,6 @@ const CouponsPage = async ({ params, searchParams: rawSearchParams }) => {
   const isAr = language === 'ar';
   const buildPageUrl = (p) => `/${locale}/coupons${p > 1 ? `?page=${p}` : ''}`;
 
-  // Breadcrumb items
   const breadcrumbItems = [
     { name: isAr ? 'الرئيسية' : 'Home', url: `/${locale}` },
     {
@@ -222,7 +228,6 @@ const CouponsPage = async ({ params, searchParams: rawSearchParams }) => {
       />
 
       <main className="coupons_page">
-        {/* Breadcrumbs - visible + schema */}
         <div style={{ maxWidth: '1312px', margin: '0 auto', padding: '1rem 1.5rem 0' }}>
           <Breadcrumbs items={breadcrumbItems} locale={locale} />
         </div>
@@ -330,7 +335,6 @@ const CouponsPage = async ({ params, searchParams: rawSearchParams }) => {
           </div>
         )}
 
-        {/* Global FAQ with structured data (no conflict on this page) */}
         <PromoCodesFAQ includeStructuredData={true} />
         <HelpBox locale={locale} />
       </main>
