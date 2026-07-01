@@ -1,7 +1,4 @@
 // app/[locale]/categories/page.jsx
-// Lists all categories available in the current country.
-// Fully server-rendered — ISR 1 hour.
-
 import { prisma } from '@/lib/prisma';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
@@ -13,6 +10,14 @@ import './page.css';
 export const revalidate = 3600;
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://cobonat.me';
+
+// ── Pre‑build both locale variants ──
+export async function generateStaticParams() {
+  return [
+    { locale: 'ar-SA' },
+    { locale: 'en-SA' },
+  ];
+}
 
 // Default icon per common category keys (fallback when icon field is missing)
 const FALLBACK_ICONS = {
@@ -172,13 +177,11 @@ export default async function CategoriesPage({ params }) {
   const totalStores   = categories.reduce((sum, c) => sum + c.storeCount, 0);
   const totalVouchers = categories.reduce((sum, c) => sum + c.voucherCount, 0);
 
-  // Breadcrumb items
   const breadcrumbItems = [
     { name: isAr ? 'الرئيسية' : 'Home', url: `/${locale}` },
     { name: isAr ? 'الفئات' : 'Categories', url: `/${locale}/categories` },
   ];
 
-  // Structured data: ItemList for categories
   const itemListSchema = {
     '@context': 'https://schema.org',
     '@type':    'ItemList',
@@ -204,12 +207,10 @@ export default async function CategoriesPage({ params }) {
 
       <div className="categories-page" dir={isAr ? 'rtl' : 'ltr'}>
 
-        {/* Breadcrumbs - visible + schema */}
         <div style={{ maxWidth: '1312px', margin: '0 auto', padding: '1rem 1.5rem 0' }}>
           <Breadcrumbs items={breadcrumbItems} locale={locale} />
         </div>
 
-        {/* Header */}
         <header className="categories-header">
           <div className="categories-header-inner">
             <p className="categories-eyebrow">
@@ -251,7 +252,6 @@ export default async function CategoriesPage({ params }) {
           </div>
         </header>
 
-        {/* Grid */}
         <section className="categories-grid-section">
           {categories.length === 0 ? (
             <div className="categories-empty">
@@ -271,13 +271,11 @@ export default async function CategoriesPage({ params }) {
                     className="cat-card"
                     aria-label={`${cat.name} — ${cat.storeCount} ${isAr ? 'متجر' : 'stores'}`}
                   >
-                    {/* Top colour band */}
                     <div
                       className="cat-card-band"
                       style={{ background: color }}
                     />
 
-                    {/* Icon */}
                     <div className="cat-card-icon-wrap">
                       <div
                         className="cat-card-icon-bg"
@@ -287,7 +285,6 @@ export default async function CategoriesPage({ params }) {
                       </div>
                     </div>
 
-                    {/* Body */}
                     <div className="cat-card-body">
                       <h2 className="cat-card-name">{cat.name}</h2>
 
@@ -309,7 +306,6 @@ export default async function CategoriesPage({ params }) {
                       </div>
                     </div>
 
-                    {/* Arrow hint (desktop hover) */}
                     <div className="cat-card-arrow">
                       {isAr ? 'تصفح العروض' : 'Browse Deals'}
                       <span className="material-symbols-sharp">
