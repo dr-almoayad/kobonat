@@ -43,7 +43,7 @@ const nextConfig = {
         protocol: 'https',
         hostname: '**.cloudfront.net',
       },
-      // ✅ Safe wildcard
+      // ✅ Safe wildcard for any HTTPS image
       {
         protocol: 'https',
         hostname: '**',
@@ -115,15 +115,13 @@ const nextConfig = {
       { source: '/cookies', destination: '/ar-SA/cookies', permanent: true },
       { source: '/help', destination: '/ar-SA/help', permanent: true },
 
-      // ── ✅ ADDED: Explicit redirects for key routes without locale ──
+      // ── ✅ KEEP only exact‑path redirects for key routes ──
       { source: '/stacks', destination: '/ar-SA/stacks', permanent: true },
       { source: '/coupons', destination: '/ar-SA/coupons', permanent: true },
       { source: '/blog', destination: '/ar-SA/blog', permanent: true },
-      { source: '/blog/:path*', destination: '/ar-SA/blog/:path*', permanent: true },
-      { source: '/categories/:path*', destination: '/ar-SA/categories/:path*', permanent: true },
-      { source: '/stores/:path*', destination: '/ar-SA/stores/:path*', permanent: true },
 
-      // ── ❌ REMOVED: custom trailing-slash redirect (handled by Next.js automatically) ──
+      // ❌ REMOVED: /blog/:path*, /categories/:path*, /stores/:path*
+      // They break static images (logos, category icons).
 
       // ── Redirect dead locales ──
       {
