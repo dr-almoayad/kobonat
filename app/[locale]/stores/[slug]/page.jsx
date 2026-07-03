@@ -1,13 +1,13 @@
 // app/[locale]/stores/[slug]/page.jsx
-// ✅ FULLY CORRECTED VERSION
+// ✅ FULLY CORRECTED VERSION (with category noindex fix)
 // Fixes:
 // 1. Custom SEO metadata includes openGraph & twitter.
 // 2. Logo/cover images are absolute URLs.
 // 3. Canonical & hreflang correct.
 // 4. generateStaticParams pre‑builds all store pages.
-// 5. Removed category slug collision check.
+// 5. Removed category slug collision check (noindex).
 // 6. Degrades gracefully on transient DB errors.
-// 7. Server‑side rendering of active bank/payment offers – Googlebot sees them.
+// 7. Server‑side rendering of active bank/payment offers.
 
 import { prisma } from '@/lib/prisma';
 import { notFound, permanentRedirect } from 'next/navigation'; 
@@ -35,12 +35,11 @@ import ExpiredOtherPromosList from '@/components/ExpiredOtherPromosList/ExpiredO
 import { getGeneralFaqSchemaEntities } from '@/components/PromoCodesFAQ/PromoCodesFAQSchema';
 import './store-page.css';
 
-export const revalidate = 3600; // ISR: revalidate every hour
+export const revalidate = 3600;
 export const dynamicParams = true;
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://cobonat.me';
 
-// ── ✅ FIX: Pre‑build all store pages ──
 export async function generateStaticParams() {
   try {
     const stores = await prisma.store.findMany({
@@ -101,6 +100,9 @@ export async function generateMetadata({ params }) {
     const [language, countryCode] = locale.split('-');
     const isArabic = language === 'ar';
     const now = new Date();
+
+    // ✅ FIX: Category check removed – store pages no longer get noindex
+    // if a slug collides with a category.
 
     let store = await getStoreData(slug, language, countryCode);
 
@@ -170,7 +172,7 @@ export async function generateMetadata({ params }) {
       };
     }
 
-    // Dynamic metadata
+    // Dynamic metadata (no custom SEO)
     const [voucherCount, savingsAgg] = await Promise.all([
       prisma.voucher.count({
         where: {
