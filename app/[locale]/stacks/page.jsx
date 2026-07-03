@@ -132,6 +132,7 @@ function toStackShape(ds, isAr, now) {
       code: ds.codeVoucher.code || null,
       landingUrl: ds.codeVoucher.landingUrl || null,
       isExpired,
+      updatedAt: ds.codeVoucher.updatedAt,
     });
   }
 
@@ -147,6 +148,7 @@ function toStackShape(ds, isAr, now) {
       code: null,
       landingUrl: ds.dealVoucher.landingUrl || null,
       isExpired,
+      updatedAt: ds.dealVoucher.updatedAt,
     });
   }
 
@@ -164,11 +166,15 @@ function toStackShape(ds, isAr, now) {
       bankName: ds.promo.bank?.translations?.[0]?.name || null,
       bankLogo: ds.promo.bank?.logo || ds.promo.image || null,
       isExpired,
+      updatedAt: ds.promo.updatedAt,
     });
   }
 
   if (items.length < 2) return null;
 
+  const isExpired = items.some(i => i.isExpired);
+
+  // Calculate combined savings (only for non‑expired items)
   const activePercents = items
     .filter(i => !i.isExpired)
     .map(i => (i.discountPercent || 0) / 100)
@@ -181,15 +187,20 @@ function toStackShape(ds, isAr, now) {
       ? Math.round(activePercents[0] * 100)
       : null;
 
-  const isExpired = items.some(i => i.isExpired);
-
   const st = ds.store?.translations?.[0] || {};
+  // Use the latest updatedAt from any item for sorting
+  const lastModified = items.reduce((latest, item) => {
+    const date = item.updatedAt ? new Date(item.updatedAt) : new Date(0);
+    return date > latest ? date : latest;
+  }, new Date(0));
+
   return {
     storeId: ds.store?.id,
     store: { id: ds.store?.id, name: st.name || '', slug: st.slug || '', logo: ds.store?.logo || null },
     items,
     combinedSavingsPercent,
     isExpired,
+    lastModified,
   };
 }
 
@@ -221,16 +232,26 @@ async function getInitialStacks({ language, isAr }) {
 
   const all = rows
     .map(ds => toStackShape(ds, isAr, now))
-    .filter(Boolean)
-    .sort((a, b) => {
-      if (a.isExpired === b.isExpired) return 0;
+    .filter(Boolean);
+
+  // ── ✅ FIX: Sort active first (by lastModified descending), then expired ──
+  const sorted = all.sort((a, b) => {
+    // 1. Active stacks first
+    if (a.isExpired !== b.isExpired) {
       return a.isExpired ? 1 : -1;
-    });
+    }
+    // 2. Among active, newest first
+    if (!a.isExpired && !b.isExpired) {
+      return new Date(b.lastModified) - new Date(a.lastModified);
+    }
+    // 3. Among expired, newest first (still show most recent expired first)
+    return new Date(b.lastModified) - new Date(a.lastModified);
+  });
 
   return {
-    stacks: all.slice(0, PER_PAGE),
-    total: all.length,
-    hasMore: all.length > PER_PAGE,
+    stacks: sorted.slice(0, PER_PAGE),
+    total: sorted.length,
+    hasMore: sorted.length > PER_PAGE,
   };
 }
 
