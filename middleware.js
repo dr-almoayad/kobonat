@@ -4,7 +4,7 @@ import { NextResponse } from 'next/server';
 import createMiddleware from 'next-intl/middleware';
 
 const SUPPORTED_LOCALES = ['ar-SA', 'en-SA'];
-const DEFAULT_LOCALE = 'ar-SA';  
+const DEFAULT_LOCALE = 'ar-SA';
 
 const DEAD_LOCALE_PATTERNS = [
   /^\/ar-KW\//, /^\/en-AE\//, /^\/ar-AE\//, /^\/en-KW\//,
@@ -13,7 +13,6 @@ const DEAD_LOCALE_PATTERNS = [
   /^\/ar-JO\//, /^\/en-JO\//, /^\/ar-LB\//, /^\/en-LB\//,
 ];
 
-// Cleaned up to avoid intercepting legitimate dynamic Next.js routes
 const isStaticAsset = (pathname) => {
   const staticPatterns = [
     '/_next/',
@@ -28,17 +27,19 @@ const isStaticAsset = (pathname) => {
   });
 };
 
+// ✅ FIX: Use permanent redirects (301) instead of temporary (307)
 const intlMiddleware = createMiddleware({
   locales: SUPPORTED_LOCALES,
   defaultLocale: DEFAULT_LOCALE,
   localePrefix: 'always',
   localeDetection: false,
+  redirect: 'permanent', // ← KEY CHANGE
 });
 
 export async function middleware(request) {
   const { pathname } = request.nextUrl;
 
-  // FIRST: Let Next.js core assets, public config files, and standard APIs pass clean through
+  // Let Next.js core assets, public config files, and standard APIs pass clean through
   if (
     pathname.startsWith('/_next') ||
     (pathname.startsWith('/api') && !pathname.startsWith('/api/admin')) ||
@@ -49,7 +50,7 @@ export async function middleware(request) {
     return NextResponse.next();
   }
 
-  // SECOND: Return a 404 only for broken or invalid static file patterns
+  // Return a 404 for broken or invalid static file patterns
   if (isStaticAsset(pathname)) {
     return new NextResponse(null, { status: 404, statusText: 'Not Found' });
   }
