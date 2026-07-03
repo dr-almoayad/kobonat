@@ -7,7 +7,6 @@ const withNextIntl = createNextIntlPlugin('./i18n/request.js');
 const nextConfig = {
   images: {
     remotePatterns: [
-      // ── Existing trusted sources ──
       {
         protocol: 'https',
         hostname: 'images.unsplash.com',
@@ -20,12 +19,10 @@ const nextConfig = {
         protocol: 'https',
         hostname: '**.amazonaws.com',
       },
-      // ── ADD: Your own domain ──
       {
         protocol: 'https',
         hostname: 'cobonat.me',
       },
-      // ── ADD: Common CDNs used by stores ──
       {
         protocol: 'https',
         hostname: '**.cdninstagram.com',
@@ -46,10 +43,7 @@ const nextConfig = {
         protocol: 'https',
         hostname: '**.cloudfront.net',
       },
-      // ── ✅ SAFE WILDCARD: Allows any HTTPS image domain ──
-      // This prevents 400 errors from unexpected CDN sources.
-      // Security: HTTPS ensures encrypted connection; Next.js still
-      // sanitizes the image URL and prevents XSS.
+      // ✅ Safe wildcard
       {
         protocol: 'https',
         hostname: '**',
@@ -113,7 +107,7 @@ const nextConfig = {
         permanent: true,
       },
 
-      // ── Redirect root-level static pages to Arabic version (default locale) ──
+      // ── Redirect root-level static pages to Arabic version ──
       { source: '/about', destination: '/ar-SA/about', permanent: true },
       { source: '/contact', destination: '/ar-SA/contact', permanent: true },
       { source: '/privacy', destination: '/ar-SA/privacy', permanent: true },
@@ -121,21 +115,22 @@ const nextConfig = {
       { source: '/cookies', destination: '/ar-SA/cookies', permanent: true },
       { source: '/help', destination: '/ar-SA/help', permanent: true },
 
-      // ── Remove trailing slashes (if they exist) ──
-      {
-        source: '/:path*/',
-        destination: '/:path*',
-        permanent: true,
-      },
+      // ── ✅ ADDED: Explicit redirects for key routes without locale ──
+      { source: '/stacks', destination: '/ar-SA/stacks', permanent: true },
+      { source: '/coupons', destination: '/ar-SA/coupons', permanent: true },
+      { source: '/blog', destination: '/ar-SA/blog', permanent: true },
+      { source: '/blog/:path*', destination: '/ar-SA/blog/:path*', permanent: true },
+      { source: '/categories/:path*', destination: '/ar-SA/categories/:path*', permanent: true },
+      { source: '/stores/:path*', destination: '/ar-SA/stores/:path*', permanent: true },
 
-      // ── Redirect dead locales to the Arabic version ──
+      // ── ❌ REMOVED: custom trailing-slash redirect (handled by Next.js automatically) ──
+
+      // ── Redirect dead locales ──
       {
         source: '/:locale(ar-KW|en-AE|ar-AE|en-KW|ar-EG|en-EG|ar-BH|en-BH|ar-OM|en-OM|ar-QA|en-QA|ar-JO|en-JO|ar-LB|en-LB)/:path*',
         destination: '/ar-SA/:path*',
         permanent: true,
       },
-
-      // ── Also handle dead locale without any path (e.g., /ar-KW) ──
       {
         source: '/:locale(ar-KW|en-AE|ar-AE|en-KW|ar-EG|en-EG|ar-BH|en-BH|ar-OM|en-OM|ar-QA|en-QA|ar-JO|en-JO|ar-LB|en-LB)',
         destination: '/ar-SA',
@@ -160,10 +155,8 @@ const nextConfig = {
   
   productionBrowserSourceMaps: false,
   
-  // ✅ CRITICAL FIX: Removed skipTrailingSlashRedirect to eliminate duplicate URL issues.
-  // Next.js will now automatically redirect /stores/amazon/ → /stores/amazon (301).
   trailingSlash: false,
-  // skipTrailingSlashRedirect: true  ← REMOVED
+  // skipTrailingSlashRedirect: true ← REMOVED
 };
 
 export default withNextIntl(nextConfig);
