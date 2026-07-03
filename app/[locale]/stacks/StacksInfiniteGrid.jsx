@@ -32,14 +32,18 @@ export default function StacksInfiniteGrid({
       const data = await res.json();
 
       setStacks(prev => {
-        // Deduplicate by storeId + item ids to guard against edge-case overlaps
         const existingKeys = new Set(
           prev.map(s => `${s.storeId}-${s.items.map(i => i.id).join('-')}`)
         );
         const fresh = data.stacks.filter(
           s => !existingKeys.has(`${s.storeId}-${s.items.map(i => i.id).join('-')}`)
         );
-        return [...prev, ...fresh];
+        // Merge and re‑sort to maintain active-first order
+        const merged = [...prev, ...fresh];
+        return merged.sort((a, b) => {
+          if (a.isExpired !== b.isExpired) return a.isExpired ? 1 : -1;
+          return new Date(b.lastModified) - new Date(a.lastModified);
+        });
       });
       setPage(next);
       setHasMore(data.hasMore);
@@ -51,7 +55,6 @@ export default function StacksInfiniteGrid({
     }
   }, [page, hasMore, locale]);
 
-  // Observe sentinel — fires ~400px before the user reaches the bottom
   useEffect(() => {
     const sentinel = sentinelRef.current;
     if (!sentinel) return;
@@ -64,6 +67,7 @@ export default function StacksInfiniteGrid({
     return () => observer.disconnect();
   }, [loadMore]);
 
+  // Separate active and expired (both already sorted)
   const activeStacks = stacks.filter(s => !s.isExpired);
   const expiredStacks = stacks.filter(s => s.isExpired);
 
@@ -83,7 +87,7 @@ export default function StacksInfiniteGrid({
         </div>
       )}
 
-      {/* ── Expired section (rendered only once they've loaded into state) ── */}
+      {/* ── Expired section – always at the bottom, grayed out ── */}
       {expiredStacks.length > 0 && (
         <div className="sp-expired-section" aria-label={isAr ? 'عروض منتهية' : 'Expired offers'}>
           <div className="sp-expired-divider">
@@ -103,7 +107,7 @@ export default function StacksInfiniteGrid({
         </div>
       )}
 
-      {/* ── Sentinel (invisible trigger for IntersectionObserver) ── */}
+      {/* ── Sentinel ── */}
       <div ref={sentinelRef} className="sp-sentinel" aria-hidden="true" />
 
       {/* ── Loading indicator ── */}
