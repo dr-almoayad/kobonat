@@ -5,7 +5,7 @@ import Link from "next/link";
 import VouchersGrid from "@/components/VouchersGrid/VouchersGrid";
 import PromoCodesFAQ from "@/components/PromoCodesFAQ/PromoCodesFAQ";
 import HelpBox from "@/components/help/HelpBox";
-import CouponsStructuredData from "@/components/StructuredData/CouponsStructuredData"; 
+import CouponsStructuredData from "@/components/StructuredData/CouponsStructuredData";
 import Breadcrumbs from '@/components/Breadcrumbs/Breadcrumbs';
 import "./coupons-page.css";
 
@@ -125,50 +125,26 @@ const CouponsPage = async ({ params, searchParams: rawSearchParams }) => {
     : [locale, locale.toUpperCase()];
   const normalizedCountryCode = countryCode?.toUpperCase() || 'SA';
 
+  // ── Build the where clause ──
   const where = {
     store: { isActive: true },
     countries: { some: { country: { code: normalizedCountryCode } } },
-    OR: [{ expiryDate: null }, { expiryDate: { gt: now } }],
+    OR: [{ expiryDate: null }, { expiryDate: { gte: now } }],
   };
 
   let vouchers = [];
   let totalCount = 0;
 
   try {
-    [vouchers, totalCount] = await Promise.all([
+    // ✅ FIX: Use `include` instead of `select` to avoid missing field errors
+    const [voucherResults, count] = await Promise.all([
       prisma.voucher.findMany({
         where,
-        select: {
-          id: true,
-          code: true,
-          type: true,
-          discount: true,
-          discountPercent: true,
-          verifiedAvgPercent: true,
-          landingUrl: true,
-          expiryDate: true,
-          startDate: true,
-          isExclusive: true,
-          isVerified: true,
-          popularityScore: true,
-          createdAt: true,
-          updatedAt: true,
-          storeId: true,
-          translations: {
-            where: { locale: language },
-            select: { title: true, description: true },
-          },
+        include: {
+          translations: { where: { locale: language } },
           store: {
-            select: {
-              id: true,
-              logo: true,
-              websiteUrl: true,
-              isVerified: true,
-              isFeatured: true,
-              translations: {
-                where: { locale: language },
-                select: { name: true, slug: true },
-              },
+            include: {
+              translations: { where: { locale: language } },
             },
           },
           _count: { select: { clicks: true } },
@@ -183,12 +159,20 @@ const CouponsPage = async ({ params, searchParams: rawSearchParams }) => {
       }),
       prisma.voucher.count({ where }),
     ]);
+
+    vouchers = voucherResults;
+    totalCount = count;
+
+    // Debug log (visible in Vercel logs)
+    console.log(`[CouponsPage] Found ${vouchers.length} vouchers for ${locale}`);
   } catch (error) {
     console.error('[CouponsPage] DB error:', error?.message ?? error);
+    // Keep vouchers and totalCount as empty
   }
 
   const totalPages = Math.ceil(totalCount / PAGE_LIMIT);
 
+  // ── Transform vouchers (same as before) ──
   const transformVoucher = (voucher) => {
     const vt = voucher.translations?.[0] || {};
     const st = voucher.store?.translations?.[0] || {};
@@ -335,7 +319,8 @@ const CouponsPage = async ({ params, searchParams: rawSearchParams }) => {
           </div>
         )}
 
-        <PromoCodesFAQ includeStructuredData={true} />
+        {/* ✅ Pass the required `locale` prop */}
+        <PromoCodesFAQ includeStructuredData={true} locale={locale} />
         <HelpBox locale={locale} />
       </main>
     </>
