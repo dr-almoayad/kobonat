@@ -189,7 +189,10 @@ export default async function StoreIntelligenceCard({
           )}
         </h2>
         {store.translations?.[0]?.description && (
-          <p className="sic-editorial__subhead">{store.translations[0].description}</p>
+          <p
+            className="sic-editorial__subhead"
+            dangerouslySetInnerHTML={{ __html: store.translations[0].description }}
+          />
         )}
       </div>
 
