@@ -30,10 +30,15 @@
   margin: 0;
 }
 
-[dir='rtl'] .sic { font-family: var(--sic-font-ar); }
-.sic * { box-sizing: border-box; }
+[dir='rtl'] .sic {
+  font-family: var(--sic-font-ar);
+}
 
-/* ── HERO ──────────────────────────────────────────────────────────────── */
+.sic * {
+  box-sizing: border-box;
+}
+
+/* ── HEADER ──────────────────────────────────────────────────────────────── */
 .sic-editorial__header {
   padding: 2rem 2rem 1rem;
   background: var(--sic-white);
@@ -66,7 +71,9 @@
   gap: 1rem;
 }
 
-[dir='rtl'] .sic-editorial__title { letter-spacing: 0; }
+[dir='rtl'] .sic-editorial__title {
+  letter-spacing: 0;
+}
 
 .sic-editorial__logo img {
   max-height: 48px;
@@ -82,16 +89,30 @@
   max-width: 600px;
 }
 
-/* ── DYNAMIC SECTIONS GRID ────────────────────────────────────────────── */
+/* ── SECTIONS GRID ──────────────────────────────────────────────────────── */
 .sic-editorial__sections {
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
   gap: 1.5rem;
   padding: 1.5rem 2rem;
 }
 
+/* Full width sections */
+.sic-editorial__section--full {
+  flex: 0 0 100%;
+  max-width: 100%;
+}
+
+/* Half width sections */
+.sic-editorial__section--half {
+  flex: 0 0 calc(50% - 0.75rem);
+  max-width: calc(50% - 0.75rem);
+}
+
+/* Individual section */
 .sic-editorial__section {
   padding: 0;
+  margin: 0;
 }
 
 .sic-editorial__section-title {
@@ -114,7 +135,7 @@
   display: block;
 }
 
-/* ── EDITORIAL SECTION CONTENT (Rich Text) ────────────────────────────── */
+/* ── RICH TEXT CONTENT ──────────────────────────────────────────────────── */
 .sic-editorial__section-content {
   font-size: 0.95rem;
   line-height: 1.8;
@@ -176,23 +197,11 @@
   font-family: var(--sic-font-ar);
 }
 
+/* ── EMBEDDED VOUCHER / PROMO ──────────────────────────────────────────── */
 .sic-editorial__section-embed {
   margin: 0.75rem 0;
 }
 
-.sic-editorial__section-link {
-  display: inline-block;
-  margin-top: 0.5rem;
-  font-weight: 600;
-  color: var(--sic-accent);
-  text-decoration: none;
-}
-
-.sic-editorial__section-link:hover {
-  text-decoration: underline;
-}
-
-/* ── EMBEDDED VOUCHER/PROMO CARD ─────────────────────────────────────── */
 .sic-embed {
   border: 1px solid var(--sic-border);
   border-radius: 6px;
@@ -240,7 +249,20 @@
   margin-top: 0.15rem;
 }
 
-/* ── FOOTER ────────────────────────────────────────────────────────────── */
+/* ── SECTION LINK ───────────────────────────────────────────────────────── */
+.sic-editorial__section-link {
+  display: inline-block;
+  margin-top: 0.5rem;
+  font-weight: 600;
+  color: var(--sic-accent);
+  text-decoration: none;
+}
+
+.sic-editorial__section-link:hover {
+  text-decoration: underline;
+}
+
+/* ── FOOTER ──────────────────────────────────────────────────────────────── */
 .sic-editorial__footer {
   display: flex;
   align-items: center;
@@ -270,7 +292,7 @@
   color: var(--sic-muted);
 }
 
-/* ── RESPONSIVE ─────────────────────────────────────────────────────────── */
+/* ── RESPONSIVE ──────────────────────────────────────────────────────────── */
 @media (max-width: 768px) {
   .sic-editorial__header {
     padding: 1.5rem;
@@ -279,6 +301,11 @@
   .sic-editorial__sections {
     padding: 1rem 1.5rem;
     gap: 1.25rem;
+  }
+
+  .sic-editorial__section--half {
+    flex: 0 0 100%;
+    max-width: 100%;
   }
 
   .sic-editorial__section-content {
