@@ -1,5 +1,5 @@
 // app/[locale]/stores/[slug]/page.jsx
-// ✅ FULLY CORRECTED VERSION (with category noindex fix)
+// ✅ FULLY CORRECTED VERSION (with category noindex fix & integrated StoreIntelligenceCard)
 // Fixes:
 // 1. Custom SEO metadata includes openGraph & twitter.
 // 2. Logo/cover images are absolute URLs.
@@ -8,6 +8,7 @@
 // 5. Removed category slug collision check (noindex).
 // 6. Degrades gracefully on transient DB errors.
 // 7. Server‑side rendering of active bank/payment offers.
+// 8. Integrated StoreIntelligenceCard for editorial intelligence sections.
 
 import { prisma } from '@/lib/prisma';
 import { notFound, permanentRedirect } from 'next/navigation'; 
@@ -664,6 +665,9 @@ export default async function StorePage({ params }) {
 
                 <StoreOfferStacks storeId={store.id} locale={locale} countryCode={countryCode || 'SA'} />
 
+                {/* ✅ NEW: StoreIntelligenceCard – dynamic editorial sections */}
+                <StoreIntelligenceCard storeId={store.id} locale={locale} countryCode={countryCode} />
+
                 {/* ✅ FIX: Active bank/payment offers are now server‑rendered */}
                 <OtherPromosSection
                   storeSlug={transformedStore.slug}
@@ -719,4 +723,4 @@ export default async function StorePage({ params }) {
     console.error('[StorePage] Fatal error:', error);
     return notFound();
   }
-      }
+}
