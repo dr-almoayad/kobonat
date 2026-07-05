@@ -1,5 +1,5 @@
 /* components/StoreIntelligenceCard/StoreIntelligenceCard.css
-   Minimalist editorial style – matches the JSX structure exactly.
+   Minimalist editorial style – clean, clear, with dynamic section support.
    Accent: #470ae2 | Fonts: Alexandria (AR) · Open Sans (EN)
    ========================================================================== */
 
@@ -33,9 +33,10 @@
 [dir='rtl'] .sic { font-family: var(--sic-font-ar); }
 .sic * { box-sizing: border-box; }
 
-/* ── HEADER ────────────────────────────────────────────────────────────── */
+/* ── HERO ──────────────────────────────────────────────────────────────── */
 .sic-editorial__header {
   padding: 2rem 2rem 1rem;
+  background: var(--sic-white);
   border-bottom: 1px solid var(--sic-border);
 }
 
@@ -57,12 +58,12 @@
   color: var(--sic-text);
   line-height: 1.2;
   letter-spacing: -0.02em;
-  margin: 0 0 0.4rem;
+  margin: 0 0 0.6rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: 1rem;
 }
 
 [dir='rtl'] .sic-editorial__title { letter-spacing: 0; }
@@ -77,41 +78,27 @@
   font-size: 0.95rem;
   color: var(--sic-muted);
   line-height: 1.6;
-  margin: 0.5rem 0 0;
+  margin: 0;
   max-width: 600px;
 }
 
-/* ── DYNAMIC SECTIONS ─────────────────────────────────────────────────── */
+/* ── DYNAMIC SECTIONS GRID ────────────────────────────────────────────── */
 .sic-editorial__sections {
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: 1.5rem;
   padding: 1.5rem 2rem;
 }
 
-.sic-editorial__sections--half {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 2rem;
-}
-
-@media (max-width: 768px) {
-  .sic-editorial__sections--half {
-    grid-template-columns: 1fr;
-  }
-}
-
 .sic-editorial__section {
-  background: var(--sic-white);
-  border-radius: var(--sic-radius);
-  overflow: hidden;
+  padding: 0;
 }
 
 .sic-editorial__section-title {
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   font-weight: 600;
   color: var(--sic-text);
-  margin: 0 0 0.5rem;
+  margin: 0 0 0.75rem;
   line-height: 1.3;
 }
 
@@ -127,9 +114,10 @@
   display: block;
 }
 
+/* ── EDITORIAL SECTION CONTENT (Rich Text) ────────────────────────────── */
 .sic-editorial__section-content {
   font-size: 0.95rem;
-  line-height: 1.7;
+  line-height: 1.8;
   color: var(--sic-body);
 }
 
@@ -137,9 +125,55 @@
   margin: 0 0 0.75rem;
 }
 
+.sic-editorial__section-content p:last-child {
+  margin-bottom: 0;
+}
+
+.sic-editorial__section-content strong {
+  color: var(--sic-text);
+  font-weight: 600;
+}
+
+.sic-editorial__section-content a {
+  color: var(--sic-accent);
+  text-decoration: none;
+  font-weight: 500;
+  border-bottom: 1px solid var(--sic-accent-soft);
+  transition: border-color 0.15s;
+}
+
+.sic-editorial__section-content a:hover {
+  border-bottom-color: var(--sic-accent);
+}
+
 .sic-editorial__section-content ul,
 .sic-editorial__section-content ol {
   padding-inline-start: 1.5rem;
+  margin: 0.5rem 0 0.75rem;
+}
+
+.sic-editorial__section-content li {
+  margin-bottom: 0.3rem;
+}
+
+.sic-editorial__section-content h1,
+.sic-editorial__section-content h2,
+.sic-editorial__section-content h3,
+.sic-editorial__section-content h4 {
+  color: var(--sic-text);
+  font-weight: 600;
+  margin: 1.25rem 0 0.5rem;
+}
+
+.sic-editorial__section-content h1:first-child,
+.sic-editorial__section-content h2:first-child,
+.sic-editorial__section-content h3:first-child,
+.sic-editorial__section-content h4:first-child {
+  margin-top: 0;
+}
+
+[dir='rtl'] .sic-editorial__section-content {
+  font-family: var(--sic-font-ar);
 }
 
 .sic-editorial__section-embed {
@@ -158,7 +192,7 @@
   text-decoration: underline;
 }
 
-/* ── EMBEDDED VOUCHER / PROMO ────────────────────────────────────────── */
+/* ── EMBEDDED VOUCHER/PROMO CARD ─────────────────────────────────────── */
 .sic-embed {
   border: 1px solid var(--sic-border);
   border-radius: 6px;
@@ -237,52 +271,32 @@
 }
 
 /* ── RESPONSIVE ─────────────────────────────────────────────────────────── */
-@media (max-width: 600px) {
+@media (max-width: 768px) {
   .sic-editorial__header {
     padding: 1.5rem;
   }
-
-  .sic-editorial__title {
-    font-size: 1.4rem;
-    flex-direction: column;
-    align-items: flex-start;
+  
+  .sic-editorial__sections {
+    padding: 1rem 1.5rem;
+    gap: 1.25rem;
   }
 
-  .sic-editorial__sections {
+  .sic-editorial__section-content {
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .sic-editorial__header {
     padding: 1.25rem;
   }
-
-  .sic-editorial__footer {
-    padding: 0.6rem 1.25rem;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.3rem;
+  
+  .sic-editorial__sections {
+    padding: 0.75rem 1rem;
+    gap: 1rem;
   }
-}
-
-/* ── DYNAMIC SECTIONS GRID (ordered, mixed widths) ───────────────────── */
-.sic-editorial__sections {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1.5rem;
-  padding: 1.5rem 2rem;
-}
-
-/* Each section – width based on columnSpan */
-.sic-editorial__section {
-  flex: 0 0 100%;
-  max-width: 100%;
-}
-
-/* Half‑width sections (columnSpan === 1) */
-.sic-editorial__section.span-half {
-  flex: 0 0 calc(50% - 0.75rem);
-  max-width: calc(50% - 0.75rem);
-}
-
-@media (max-width: 768px) {
-  .sic-editorial__section.span-half {
-    flex: 0 0 100%;
-    max-width: 100%;
+  
+  .sic-editorial__title {
+    font-size: 1.3rem;
   }
 }
