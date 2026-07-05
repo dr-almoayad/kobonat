@@ -34,7 +34,6 @@ async function fetchIntelligence(storeId, lang, countryCode) {
           where: { locale: lang },
           select: { name: true, slug: true, description: true },
         },
-        // ── New: fetch intelligence sections ──
         intelligenceSections: {
           where: { locale: lang },
           orderBy: { order: 'asc' },
@@ -54,7 +53,6 @@ async function fetchIntelligence(storeId, lang, countryCode) {
             },
           },
         },
-        // (Keep other relations for metrics/seasonal/events if needed)
       },
     });
   } catch (e) {
@@ -117,84 +115,6 @@ function EmbedBlock({ voucher, promo, locale }) {
   return null;
 }
 
-// ── Main component ────────────────────────────────────────────────────────
-export default async function StoreIntelligenceCard({
-  storeId,
-  locale = 'ar-SA',
-  countryCode = 'SA',
-}) {
-  const lang = locale.split('-')[0];
-  const isRtl = lang === 'ar';
-  const isAr = isRtl;
-
-  const store = await fetchIntelligence(storeId, lang, countryCode);
-  if (!store) return null;
-
-  const t = store.translations?.[0] || {};
-  const storeName = t.name || '';
-
-  // ── Group sections by column span ──────────────────────────────────────
-  const sections = store.intelligenceSections || [];
-  const fullWidthSections = sections.filter(s => s.columnSpan === 2);
-  const halfWidthSections = sections.filter(s => s.columnSpan === 1);
-
-  return (
-    <div className="sic sic--editorial" dir={isRtl ? 'rtl' : 'ltr'}>
-
-      {/* ── Store Header ────────────────────────────────────────────── */}
-      <div className="sic-editorial__header">
-        <div className="sic-editorial__eyebrow">
-          <span className="material-symbols-sharp">auto_awesome</span>
-          {isAr ? 'دليل التوفير' : 'Saving Guide'}
-        </div>
-        <h2 className="sic-editorial__title">
-          {isAr ? `ما نعرفه عن ${storeName}` : `What to Expect from ${storeName}`}
-          {store.logo && (
-            <span className="sic-editorial__logo">
-              <img src={store.logo} alt={storeName} />
-            </span>
-          )}
-        </h2>
-        {store.translations?.[0]?.description && (
-          <p className="sic-editorial__subhead">{store.translations[0].description}</p>
-        )}
-      </div>
-
-      {/* ── Dynamic Sections Grid ────────────────────────────────────── */}
-      {fullWidthSections.length > 0 && (
-        <div className="sic-editorial__sections sic-editorial__sections--full">
-          {fullWidthSections.map((sec) => (
-            <Section key={sec.id} section={sec} locale={locale} />
-          ))}
-        </div>
-      )}
-
-      {halfWidthSections.length > 0 && (
-        <div className="sic-editorial__sections sic-editorial__sections--half">
-          {halfWidthSections.map((sec) => (
-            <Section key={sec.id} section={sec} locale={locale} />
-          ))}
-        </div>
-      )}
-
-      {/* ── Footer ──────────────────────────────────────────────────────── */}
-      {store.lastVerifiedAt && (
-        <div className="sic-editorial__footer">
-          <div className="sic-editorial__verified">
-            <span className="material-symbols-sharp">verified_user</span>
-            {isAr ? 'تم التحقق من البيانات' : 'Data verified'}
-          </div>
-          <span className="sic-editorial__date">
-            {new Date(store.lastVerifiedAt).toLocaleDateString(isAr ? 'ar-SA' : 'en-GB', {
-              day: 'numeric', month: 'long', year: 'numeric',
-            })}
-          </span>
-        </div>
-      )}
-    </div>
-  );
-}
-
 // ── Section Renderer ──────────────────────────────────────────────────────
 function Section({ section, locale }) {
   const lang = locale.split('-')[0];
@@ -228,6 +148,77 @@ function Section({ section, locale }) {
         >
           {section.linkText || (isAr ? 'اقرأ المزيد →' : 'Read more →')}
         </a>
+      )}
+    </div>
+  );
+}
+
+// ── Main component ────────────────────────────────────────────────────────
+export default async function StoreIntelligenceCard({
+  storeId,
+  locale = 'ar-SA',
+  countryCode = 'SA',
+}) {
+  const lang = locale.split('-')[0];
+  const isRtl = lang === 'ar';
+  const isAr = isRtl;
+
+  const store = await fetchIntelligence(storeId, lang, countryCode);
+  if (!store) return null;
+
+  const t = store.translations?.[0] || {};
+  const storeName = t.name || '';
+
+  // ── All sections sorted by order ──────────────────────────────────────
+  const sections = (store.intelligenceSections || []).sort((a, b) => a.order - b.order);
+
+  // ── Stats (for header) ── optional, can be omitted or kept minimal
+  // ...
+
+  return (
+    <div className="sic sic--editorial" dir={isRtl ? 'rtl' : 'ltr'}>
+
+      {/* ── Store Header ────────────────────────────────────────────── */}
+      <div className="sic-editorial__header">
+        <div className="sic-editorial__eyebrow">
+          <span className="material-symbols-sharp">auto_awesome</span>
+          {isAr ? 'دليل التوفير' : 'Saving Guide'}
+        </div>
+        <h2 className="sic-editorial__title">
+          {isAr ? `ما نعرفه عن ${storeName}` : `What to Expect from ${storeName}`}
+          {store.logo && (
+            <span className="sic-editorial__logo">
+              <img src={store.logo} alt={storeName} />
+            </span>
+          )}
+        </h2>
+        {store.translations?.[0]?.description && (
+          <p className="sic-editorial__subhead">{store.translations[0].description}</p>
+        )}
+      </div>
+
+      {/* ── Dynamic Sections Grid (ordered, mixed widths) ────────────────── */}
+      {sections.length > 0 && (
+        <div className="sic-editorial__sections">
+          {sections.map((sec) => (
+            <Section key={sec.id} section={sec} locale={locale} />
+          ))}
+        </div>
+      )}
+
+      {/* ── Footer ──────────────────────────────────────────────────────── */}
+      {store.lastVerifiedAt && (
+        <div className="sic-editorial__footer">
+          <div className="sic-editorial__verified">
+            <span className="material-symbols-sharp">verified_user</span>
+            {isAr ? 'تم التحقق من البيانات' : 'Data verified'}
+          </div>
+          <span className="sic-editorial__date">
+            {new Date(store.lastVerifiedAt).toLocaleDateString(isAr ? 'ar-SA' : 'en-GB', {
+              day: 'numeric', month: 'long', year: 'numeric',
+            })}
+          </span>
+        </div>
       )}
     </div>
   );
