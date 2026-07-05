@@ -1,5 +1,5 @@
 /* components/StoreIntelligenceCard/StoreIntelligenceCard.css
-   Editorial / Magazine layout — inspired by authoritative coupon guides.
+   Minimalist editorial style – clean, clear, with dynamic section support.
    Accent: #470ae2 | Fonts: Alexandria (AR) · Open Sans (EN)
    ========================================================================== */
 
@@ -7,16 +7,16 @@
   --sic-accent:      #470ae2;
   --sic-accent-soft: rgba(71, 10, 226, 0.06);
   --sic-accent-mid:  rgba(71, 10, 226, 0.12);
-  --sic-text:        #0f041c;
+  --sic-text:        #1a1a2e;
   --sic-body:        #2d2d3a;
   --sic-muted:       #6b7280;
-  --sic-border:      #ebebf0;
-  --sic-surface:     #f8f8fb;
+  --sic-border:      #e8e8ef;
+  --sic-surface:     #f9f9fc;
   --sic-white:       #ffffff;
   --sic-green:       #059669;
   --sic-amber:       #d97706;
   --sic-red:         #dc2626;
-  --sic-radius:      14px;
+  --sic-radius:      12px;
   --sic-font-en:     var(--font-open-sans, 'Segoe UI', sans-serif);
   --sic-font-ar:     var(--font-alexandria, 'Noto Sans Arabic', sans-serif);
 
@@ -26,6 +26,8 @@
   border: 1px solid var(--sic-border);
   border-radius: var(--sic-radius);
   overflow: hidden;
+  padding: 0;
+  margin: 0;
 }
 
 [dir='rtl'] .sic { font-family: var(--sic-font-ar); }
@@ -35,10 +37,10 @@
 .sic-hero {
   display: grid;
   grid-template-columns: 1fr auto;
-  gap: 1.5rem;
+  gap: 2rem;
   align-items: center;
-  padding: 2rem 1.75rem;
-  background: var(--sic-surface);
+  padding: 2rem 2rem 1.5rem;
+  background: var(--sic-white);
   border-bottom: 1px solid var(--sic-border);
 }
 
@@ -48,21 +50,21 @@
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  font-size: 0.65rem;
-  font-weight: 700;
+  font-size: 0.7rem;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.1em;
   color: var(--sic-accent);
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.3rem;
 }
 
 .sic-hero__title {
-  font-size: clamp(1.25rem, 3.5vw, 1.75rem);
-  font-weight: 900;
+  font-size: clamp(1.6rem, 4vw, 2.2rem);
+  font-weight: 700;
   color: var(--sic-text);
-  line-height: 1.15;
+  line-height: 1.2;
   letter-spacing: -0.02em;
-  margin: 0 0 0.875rem;
+  margin: 0 0 0.6rem;
 }
 
 [dir='rtl'] .sic-hero__title { letter-spacing: 0; }
@@ -70,39 +72,37 @@
 .sic-hero__title span { color: var(--sic-accent); }
 
 .sic-hero__intro {
-  font-size: 0.875rem;
+  font-size: 0.95rem;
   color: var(--sic-muted);
-  line-height: 1.7;
+  line-height: 1.6;
   margin: 0;
-  max-width: 480px;
+  max-width: 600px;
 }
 
-/* Logo block */
 .sic-hero__brand {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.4rem;
   flex-shrink: 0;
 }
 
 .sic-hero__logo-wrap {
-  position: relative;
-  width: 88px;
-  height: 88px;
+  width: 80px;
+  height: 80px;
 }
 
 .sic-hero__logo-bg {
-  width: 88px;
-  height: 88px;
-  border-radius: 14px;
+  width: 80px;
+  height: 80px;
+  border-radius: 12px;
   border: 1px solid var(--sic-border);
   background: var(--sic-white);
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  padding: 8px;
+  padding: 6px;
 }
 
 .sic-hero__logo-bg img {
@@ -114,43 +114,44 @@
 .sic-hero__rank {
   display: flex;
   align-items: center;
-  gap: 0.3rem;
+  gap: 0.25rem;
   background: var(--sic-accent);
   color: #fff;
-  font-size: 0.62rem;
-  font-weight: 800;
-  padding: 0.22rem 0.6rem;
+  font-size: 0.6rem;
+  font-weight: 700;
+  padding: 0.15rem 0.6rem;
   border-radius: 99px;
   white-space: nowrap;
 }
 
-.sic-hero__rank .material-symbols-sharp { font-size: 0.75rem; }
+.sic-hero__rank .material-symbols-sharp { font-size: 0.7rem; }
 
-/* ── QUICK STATS BAR ────────────────────────────────────────────────────── */
+/* ── QUICK STATS BAR ── simplified ─────────────────────────────────────── */
 .sic-statsbar {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 0;
   border-bottom: 1px solid var(--sic-border);
+  background: var(--sic-surface);
 }
 
 .sic-stat {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 1.125rem 0.5rem;
-  border-inline-end: 1px solid var(--sic-border);
+  padding: 0.8rem 0.5rem;
   text-align: center;
-  gap: 0.25rem;
+  gap: 0.15rem;
+  border-inline-end: 1px solid var(--sic-border);
 }
 
 .sic-stat:last-child { border-inline-end: none; }
 
 .sic-stat__num {
-  font-size: 1.375rem;
-  font-weight: 900;
+  font-size: 1.3rem;
+  font-weight: 700;
   color: var(--sic-text);
-  line-height: 1;
-  letter-spacing: -0.03em;
+  line-height: 1.1;
 }
 
 .sic-stat__num--accent { color: var(--sic-accent); }
@@ -158,64 +159,141 @@
 .sic-stat__num--amber  { color: var(--sic-amber); }
 
 .sic-stat__icon {
-  font-size: 1rem;
+  font-size: 0.9rem;
   color: var(--sic-muted);
-  margin-bottom: 0.125rem;
 }
 
 .sic-stat__label {
   font-size: 0.6rem;
-  font-weight: 700;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.07em;
+  letter-spacing: 0.05em;
   color: var(--sic-muted);
 }
 
-/* ── SECTION FRAME ──────────────────────────────────────────────────────── */
-.sic-section {
-  padding: 1.5rem 1.75rem;
-  border-bottom: 1px solid var(--sic-border);
-}
-
-.sic-section:last-child { border-bottom: none; }
-
-.sic-section__head {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 1.25rem;
-}
-
-.sic-section__icon {
-  width: 30px;
-  height: 30px;
-  border-radius: 8px;
-  background: var(--sic-accent-soft);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.sic-section__icon .material-symbols-sharp {
-  font-size: 1rem;
-  color: var(--sic-accent);
-}
-
-.sic-section__title {
-  font-size: 0.8125rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
-  color: var(--sic-text);
-  margin: 0;
-}
-
-/* ── EDITORIAL ITEMS (numbered guide sections) ──────────────────────────── */
-.sic-editorial {
+/* ── EDITORIAL SECTIONS (DYNAMIC) ────────────────────────────────────── */
+.sic-editorial__sections {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: 2rem;
+  padding: 1.5rem 2rem;
+}
+
+.sic-editorial__sections--half {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+}
+
+@media (max-width: 768px) {
+  .sic-editorial__sections--half {
+    grid-template-columns: 1fr;
+  }
+}
+
+.sic-editorial__section {
+  background: var(--sic-white);
+  border-radius: var(--sic-radius);
+  overflow: hidden;
+}
+
+.sic-editorial__section-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--sic-text);
+  margin: 0 0 0.5rem;
+  line-height: 1.3;
+}
+
+.sic-editorial__section-image {
+  margin-bottom: 0.75rem;
+  border-radius: 6px;
+  overflow: hidden;
+}
+.sic-editorial__section-image img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.sic-editorial__section-content {
+  font-size: 0.95rem;
+  line-height: 1.7;
+  color: var(--sic-body);
+}
+.sic-editorial__section-content p { margin: 0 0 0.75rem; }
+.sic-editorial__section-content ul,
+.sic-editorial__section-content ol { padding-inline-start: 1.5rem; }
+
+.sic-editorial__section-embed {
+  margin: 0.75rem 0;
+}
+
+.sic-editorial__section-link {
+  display: inline-block;
+  margin-top: 0.5rem;
+  font-weight: 600;
+  color: var(--sic-accent);
+  text-decoration: none;
+}
+.sic-editorial__section-link:hover {
+  text-decoration: underline;
+}
+
+/* ── EMBEDDED VOUCHER/PROMO CARD ─────────────────────────────────────── */
+.sic-embed {
+  border: 1px solid var(--sic-border);
+  border-radius: 6px;
+  padding: 0.75rem 1rem;
+  background: var(--sic-surface);
+}
+
+.sic-embed__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.6rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--sic-accent);
+  background: var(--sic-accent-soft);
+  padding: 0.1rem 0.5rem;
+  border-radius: 20px;
+  margin-bottom: 0.3rem;
+}
+
+.sic-embed__title {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--sic-text);
+}
+
+.sic-embed__discount {
+  font-weight: 700;
+  color: var(--sic-green);
+}
+
+.sic-embed__code {
+  background: var(--sic-white);
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 0.8rem;
+  border: 1px solid var(--sic-border);
+}
+
+.sic-embed__meta {
+  font-size: 0.75rem;
+  color: var(--sic-muted);
+  margin-top: 0.15rem;
+}
+
+/* ── LEGACY EDITORIAL ITEMS (numbered guide sections) ──────────────────── */
+.sic-editorial {
+  padding: 0 2rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
 }
 
 .sic-item {
@@ -225,13 +303,13 @@
 }
 
 .sic-item__num {
-  width: 26px;
-  height: 26px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   background: var(--sic-accent);
   color: #fff;
-  font-size: 0.7rem;
-  font-weight: 800;
+  font-size: 0.75rem;
+  font-weight: 700;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -242,69 +320,67 @@
 .sic-item__body { flex: 1; min-width: 0; }
 
 .sic-item__heading {
-  font-size: 0.875rem;
-  font-weight: 700;
+  font-size: 1rem;
+  font-weight: 600;
   color: var(--sic-text);
-  margin: 0 0 0.35rem;
+  margin: 0 0 0.3rem;
   line-height: 1.3;
 }
 
 .sic-item__text {
-  font-size: 0.82rem;
+  font-size: 0.92rem;
   color: var(--sic-body);
-  line-height: 1.65;
+  line-height: 1.7;
   margin: 0;
 }
-
 .sic-item__text strong {
   color: var(--sic-text);
-  font-weight: 700;
+  font-weight: 600;
 }
 
 /* ── PILL CHIPS ─────────────────────────────────────────────────────────── */
 .sic-chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-top: 0.75rem;
+  gap: 0.4rem;
+  margin-top: 0.5rem;
 }
 
 .sic-chip {
   display: inline-flex;
   align-items: center;
   gap: 0.3rem;
-  padding: 0.3rem 0.7rem;
+  padding: 0.2rem 0.6rem;
   border-radius: 99px;
-  font-size: 0.73rem;
-  font-weight: 600;
+  font-size: 0.7rem;
+  font-weight: 500;
   border: 1px solid;
   white-space: nowrap;
 }
 
-.sic-chip .material-symbols-sharp { font-size: 0.8rem; }
+.sic-chip .material-symbols-sharp { font-size: 0.75rem; }
 
 .sic-chip--accent  { background: var(--sic-accent-soft); color: var(--sic-accent); border-color: var(--sic-accent-mid); }
 .sic-chip--green   { background: #ecfdf5; color: #065f46; border-color: #a7f3d0; }
 .sic-chip--amber   { background: #fffbeb; color: #92400e; border-color: #fde68a; }
 .sic-chip--neutral { background: var(--sic-surface); color: var(--sic-muted); border-color: var(--sic-border); }
 
-/* ── SEASONS GRID ───────────────────────────────────────────────────────── */
+/* ── SEASONS ───────────────────────────────────────────────────────────── */
 .sic-seasons {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 0.875rem;
+  gap: 0.75rem;
+  padding: 0 2rem 1.5rem;
 }
-
 @media (min-width: 560px) {
   .sic-seasons { grid-template-columns: repeat(2, 1fr); }
 }
 
 .sic-season {
   border: 1px solid var(--sic-border);
-  border-radius: 10px;
-  padding: 1rem 1.125rem;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
   background: var(--sic-white);
-  position: relative;
   border-inline-start: 3px solid var(--sic-accent);
 }
 
@@ -312,41 +388,31 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.3rem;
 }
 
 .sic-season__name {
-  font-size: 0.875rem;
-  font-weight: 700;
+  font-size: 0.9rem;
+  font-weight: 600;
   color: var(--sic-text);
 }
 
-.sic-season__icon {
-   display: flex;
-   align-items: center;
-   justify-content: center;
-   position: absolute;
-   left: 0.5rem;
-   top: 0.5rem;
-}
-
-.sic-season__icon .material-symbols-sharp {
-   font-size: 5rem;
-   color: #470ae20f;
-}
+/* Remove large decorative icon */
+.sic-season__icon { display: none; }
 
 .sic-season__desc {
-  font-size: 0.78rem;
+  font-size: 0.8rem;
   color: var(--sic-muted);
-  line-height: 1.55;
+  line-height: 1.5;
   margin: 0;
 }
 
-/* ── EVENTS LIST ────────────────────────────────────────────────────────── */
+/* ── EVENTS ────────────────────────────────────────────────────────────── */
 .sic-events {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.6rem;
+  padding: 0 2rem 1.5rem;
 }
 
 .sic-event {
@@ -354,9 +420,9 @@
   grid-template-columns: auto 1fr auto;
   gap: 1rem;
   align-items: start;
-  padding: 0.875rem 1rem;
+  padding: 0.7rem 0.9rem;
   background: var(--sic-surface);
-  border-radius: 10px;
+  border-radius: 8px;
   border: 1px solid var(--sic-border);
 }
 
@@ -366,41 +432,40 @@
   align-items: center;
   background: var(--sic-accent);
   color: #fff;
-  border-radius: 8px;
-  width: 44px;
+  border-radius: 6px;
+  width: 40px;
   overflow: hidden;
   flex-shrink: 0;
 }
 
 .sic-event__cal-month {
-  background: rgba(0,0,0,0.2);
-  font-size: 0.55rem;
-  font-weight: 800;
+  background: rgba(0,0,0,0.15);
+  font-size: 0.5rem;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
   width: 100%;
   text-align: center;
-  padding: 0.2rem 0;
+  padding: 0.15rem 0;
 }
 
 .sic-event__cal-year {
-  font-size: 0.75rem;
-  font-weight: 800;
-  padding: 0.35rem 0;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.25rem 0;
 }
 
 .sic-event__body { min-width: 0; }
 
 .sic-event__name {
-  font-size: 0.875rem;
-  font-weight: 700;
+  font-size: 0.85rem;
+  font-weight: 600;
   color: var(--sic-text);
   line-height: 1.2;
-  margin: 0 0 0.3rem;
+  margin: 0 0 0.2rem;
 }
 
 .sic-event__desc {
-  font-size: 0.775rem;
+  font-size: 0.75rem;
   color: var(--sic-muted);
   line-height: 1.5;
   margin: 0;
@@ -410,17 +475,17 @@
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 0.375rem;
+  gap: 0.25rem;
   flex-shrink: 0;
 }
 
 .sic-event__forecast {
-  font-size: 0.78rem;
-  font-weight: 800;
+  font-size: 0.7rem;
+  font-weight: 700;
   color: var(--sic-green);
   background: #ecfdf5;
-  padding: 0.2rem 0.5rem;
-  border-radius: 5px;
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
   white-space: nowrap;
 }
 
@@ -430,21 +495,21 @@
 }
 
 .sic-conf-pip {
-  width: 5px;
-  height: 5px;
+  width: 4px;
+  height: 4px;
   border-radius: 50%;
   background: var(--sic-border);
 }
-
 .sic-conf-pip--on { background: var(--sic-accent); }
 
-/* ── LOGISTICS TABLE ────────────────────────────────────────────────────── */
+/* ── LOGISTICS ──────────────────────────────────────────────────────────── */
 .sic-logistics {
   display: flex;
   flex-direction: column;
   gap: 0;
+  margin: 0 2rem 1.5rem;
   border: 1px solid var(--sic-border);
-  border-radius: 10px;
+  border-radius: 8px;
   overflow: hidden;
 }
 
@@ -453,46 +518,43 @@
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  padding: 0.875rem 1rem;
+  padding: 0.6rem 0.9rem;
   border-bottom: 1px solid var(--sic-border);
 }
-
 .sic-logrow:last-child { border-bottom: none; }
-
 .sic-logrow:nth-child(even) { background: var(--sic-surface); }
 
 .sic-logrow__left {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.4rem;
 }
-
 .sic-logrow__left .material-symbols-sharp {
-  font-size: 1rem;
+  font-size: 0.9rem;
   color: var(--sic-accent);
 }
 
 .sic-logrow__label {
-  font-size: 0.8125rem;
+  font-size: 0.8rem;
   color: var(--sic-body);
   font-weight: 500;
 }
 
 .sic-logrow__value {
-  font-size: 0.8125rem;
-  font-weight: 700;
+  font-size: 0.8rem;
+  font-weight: 600;
   color: var(--sic-text);
   display: flex;
   align-items: center;
-  gap: 0.375rem;
+  gap: 0.3rem;
 }
 
 .sic-logrow__badge {
-  font-size: 0.6rem;
-  font-weight: 700;
+  font-size: 0.55rem;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  padding: 0.18rem 0.45rem;
+  letter-spacing: 0.05em;
+  padding: 0.1rem 0.4rem;
   border-radius: 4px;
   background: #ecfdf5;
   color: #065f46;
@@ -502,72 +564,71 @@
 .sic-payments {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: 0.4rem;
+  padding: 0 2rem 1.5rem;
 }
 
 .sic-pay {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
-  padding: 0.4rem 0.7rem;
+  gap: 0.3rem;
+  padding: 0.25rem 0.6rem;
   background: var(--sic-white);
   border: 1px solid var(--sic-border);
-  border-radius: 8px;
+  border-radius: 6px;
   transition: border-color 0.15s;
 }
-
 .sic-pay:hover { border-color: var(--sic-accent-mid); }
 .sic-pay--bnpl { border-style: dashed; }
 
 .sic-pay__logo {
-  height: 20px;
-  max-width: 60px;
+  height: 18px;
+  max-width: 50px;
   object-fit: contain;
 }
 
 .sic-pay__name {
-  font-size: 0.74rem;
-  font-weight: 600;
+  font-size: 0.7rem;
+  font-weight: 500;
   color: var(--sic-body);
 }
 
 .sic-pay__bnpl-tag {
-  font-size: 0.58rem;
-  font-weight: 700;
+  font-size: 0.55rem;
+  font-weight: 600;
   text-transform: uppercase;
   background: var(--sic-accent-soft);
   color: var(--sic-accent);
-  padding: 0.1rem 0.35rem;
+  padding: 0.05rem 0.3rem;
   border-radius: 3px;
 }
 
-/* ── VERIFIED FOOTER ────────────────────────────────────────────────────── */
+/* ── FOOTER ────────────────────────────────────────────────────────────── */
 .sic-footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  padding: 0.875rem 1.75rem;
+  padding: 0.6rem 2rem;
   background: var(--sic-surface);
   border-top: 1px solid var(--sic-border);
+  font-size: 0.7rem;
+  color: var(--sic-muted);
 }
 
 .sic-footer__verified {
   display: flex;
   align-items: center;
-  gap: 0.35rem;
-  font-size: 0.72rem;
-  font-weight: 600;
+  gap: 0.3rem;
   color: var(--sic-green);
+  font-weight: 600;
 }
-
 .sic-footer__verified .material-symbols-sharp {
-  font-size: 0.875rem;
+  font-size: 0.85rem;
   font-variation-settings: 'FILL' 1;
 }
 
 .sic-footer__date {
-  font-size: 0.72rem;
   color: var(--sic-muted);
 }
 
@@ -575,16 +636,14 @@
 @media (max-width: 600px) {
   .sic-hero {
     grid-template-columns: 1fr;
-    gap: 1.25rem;
-    padding: 1.5rem 1.25rem;
+    gap: 1rem;
+    padding: 1.5rem;
   }
-
   .sic-hero__brand {
     flex-direction: row;
     align-items: center;
-    gap: 0.75rem;
+    gap: 0.5rem;
   }
-
   .sic-hero__logo-wrap,
   .sic-hero__logo-bg { width: 64px; height: 64px; }
 
@@ -593,13 +652,20 @@
   .sic-stat:nth-child(2n) { border-inline-end: none; }
   .sic-stat:nth-last-child(-n+2) { border-bottom: none; }
 
-  .sic-section { padding: 1.25rem; }
+  .sic-editorial__sections,
+  .sic-editorial,
+  .sic-seasons,
+  .sic-events,
+  .sic-logistics,
+  .sic-payments {
+    padding-left: 1.25rem;
+    padding-right: 1.25rem;
+  }
 
   .sic-event {
     grid-template-columns: auto 1fr;
     grid-template-rows: auto auto;
   }
-
   .sic-event__right {
     grid-column: 2;
     flex-direction: row;
