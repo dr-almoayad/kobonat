@@ -1,7 +1,8 @@
 'use client';
 // app/admin/stores/[id]/intelligence/page.jsx
 // Full intelligence editor for one store:
-//   — Description (rich text, EN + AR)  ← NEW
+//   — Description (rich text, EN + AR)
+//   — Sections (dynamic editorial blocks with images, links, embedded vouchers/promos)
 //   — Logistics & delivery info
 //   — Offer cadence
 //   — Peak seasons
@@ -38,7 +39,7 @@ function ScoreBar({ label, value, weight }) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Description editor  ← NEW
+// Description editor
 // ─────────────────────────────────────────────────────────────────────────────
 
 function DescriptionEditor({ storeId, initialEn, initialAr, flash }) {
@@ -46,7 +47,6 @@ function DescriptionEditor({ storeId, initialEn, initialAr, flash }) {
   const [descAr,  setDescAr]  = useState(initialAr || '');
   const [saving,  setSaving]  = useState(false);
 
-  // Sync if parent re-loads data (e.g. after triggerCron)
   useEffect(() => { setDescEn(initialEn || ''); }, [initialEn]);
   useEffect(() => { setDescAr(initialAr || ''); }, [initialAr]);
 
@@ -502,10 +502,270 @@ function MetricsHistory({ metrics }) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// ★ NEW: SECTION MANAGER (Intelligence Sections)
+// ─────────────────────────────────────────────────────────────────────────────
+
+const SECTION_BLANK = {
+  id: null,
+  locale: 'en',
+  title: '',
+  content: '',
+  image: '',
+  linkUrl: '',
+  linkText: '',
+  order: 0,
+  columnSpan: 1,
+  voucherId: null,
+  promoId: null,
+};
+
+function SectionsManager({ storeId, flash, onChanged }) {
+  const [sections, setSections] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [editing, setEditing] = useState(null); // null or section object
+
+  // ── Fetch sections ──
+  const fetchSections = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/admin/stores/${storeId}/intelligence-sections`);
+      if (res.ok) setSections(await res.json());
+      else throw new Error('Failed to load sections');
+    } catch (e) {
+      flash('error', e.message);
+    } finally {
+      setLoading(false);
+    }
+  }, [storeId, flash]);
+
+  useEffect(() => {
+    fetchSections();
+  }, [fetchSections]);
+
+  // ── Save section (create or update) ──
+  async function saveSection(data) {
+    const isUpdate = !!data.id;
+    const url = `/api/admin/stores/${storeId}/intelligence-sections${isUpdate ? `/${data.id}` : ''}`;
+    const method = isUpdate ? 'PUT' : 'POST';
+    try {
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) throw new Error((await res.json()).error);
+      flash('success', isUpdate ? 'Section updated' : 'Section added');
+      setEditing(null);
+      onChanged();
+      await fetchSections(); // refresh list
+    } catch (e) {
+      flash('error', e.message);
+    }
+  }
+
+  // ── Delete section ──
+  async function deleteSection(id) {
+    if (!confirm('Delete this section?')) return;
+    try {
+      const res = await fetch(`/api/admin/stores/${storeId}/intelligence-sections/${id}`, {
+        method: 'DELETE',
+      });
+      if (!res.ok) throw new Error((await res.json()).error);
+      flash('success', 'Section deleted');
+      await fetchSections();
+      onChanged();
+    } catch (e) {
+      flash('error', e.message);
+    }
+  }
+
+  if (loading) return <div className="ap-empty">Loading sections...</div>;
+
+  return (
+    <div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
+        <h3 style={{ margin: 0 }}>Custom Intelligence Sections</h3>
+        <button className="ap-btn ap-btn--primary ap-btn--sm" onClick={() => setEditing({ ...SECTION_BLANK })}>
+          + Add Section
+        </button>
+      </div>
+
+      {sections.length === 0 && !editing && (
+        <div className="ap-empty">No custom sections yet. Add one to appear in the store intelligence card.</div>
+      )}
+
+      {/* ── List existing sections ── */}
+      {sections.length > 0 && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1rem' }}>
+          {sections.map((sec) => (
+            <div key={sec.id} className="ap-list-item" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.5rem 0.75rem', border: '1px solid var(--ap-border)', borderRadius: 6 }}>
+              <div>
+                <strong>{sec.title}</strong>
+                <span className="ap-badge" style={{ fontSize: '0.6rem', background: sec.locale === 'en' ? '#dbeafe' : '#fef3c7' }}>
+                  {sec.locale === 'en' ? 'EN' : 'AR'}
+                </span>
+                <span style={{ marginLeft: '0.5rem', fontSize: '0.7rem', color: 'var(--ap-text-muted)' }}>
+                  Order: {sec.order} | Span: {sec.columnSpan === 2 ? 'Full' : 'Half'}
+                </span>
+                {sec.voucherId && <span className="ap-badge" style={{ marginLeft: '0.25rem', background: '#d1fae5' }}>💳 Voucher</span>}
+                {sec.promoId && <span className="ap-badge" style={{ marginLeft: '0.25rem', background: '#fef3c7' }}>🏦 Promo</span>}
+              </div>
+              <div>
+                <button className="ap-btn ap-btn--ghost ap-btn--xs" onClick={() => setEditing({ ...sec })}>Edit</button>
+                <button className="ap-btn ap-btn--danger ap-btn--xs" onClick={() => deleteSection(sec.id)}>Delete</button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* ── Edit / Add form ── */}
+      {editing && (
+        <SectionForm
+          section={editing}
+          storeId={storeId}
+          onSave={saveSection}
+          onCancel={() => setEditing(null)}
+          flash={flash}
+        />
+      )}
+    </div>
+  );
+}
+
+// ─── Section Form ────────────────────────────────────────────────────────────
+
+function SectionForm({ section, storeId, onSave, onCancel, flash }) {
+  const [form, setForm] = useState({
+    id: section.id || null,
+    locale: section.locale || 'en',
+    title: section.title || '',
+    content: section.content || '',
+    image: section.image || '',
+    linkUrl: section.linkUrl || '',
+    linkText: section.linkText || '',
+    order: section.order || 0,
+    columnSpan: section.columnSpan || 1,
+    voucherId: section.voucherId || '',
+    promoId: section.promoId || '',
+  });
+
+  const [vouchers, setVouchers] = useState([]);
+  const [promos, setPromos] = useState([]);
+
+  // Fetch store's vouchers and promos for embedding
+  useEffect(() => {
+    (async () => {
+      const [vRes, pRes] = await Promise.all([
+        fetch(`/api/admin/stores/${storeId}/vouchers?limit=100`),
+        fetch(`/api/admin/stores/${storeId}/other-promos?limit=100`),
+      ]);
+      if (vRes.ok) setVouchers(await vRes.json());
+      if (pRes.ok) setPromos(await pRes.json());
+    })();
+  }, [storeId]);
+
+  function setField(k, v) { setForm(f => ({ ...f, [k]: v })); }
+
+  function handleSubmit(e) {
+    e.preventDefault();
+    if (!form.locale || !form.title || !form.content) {
+      flash('error', 'Title, content and locale are required');
+      return;
+    }
+    onSave(form);
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="ap-form" style={{ borderTop: '1px solid var(--ap-border)', paddingTop: '1.5rem' }}>
+      <div className="ap-form-grid">
+        <div className="ap-field">
+          <label className="ap-label">Locale *</label>
+          <select className="ap-select" value={form.locale} onChange={(e) => setField('locale', e.target.value)}>
+            <option value="en">English</option>
+            <option value="ar">العربية</option>
+          </select>
+        </div>
+        <div className="ap-field">
+          <label className="ap-label">Order *</label>
+          <input type="number" className="ap-input" min="0" value={form.order} onChange={(e) => setField('order', parseInt(e.target.value) || 0)} />
+        </div>
+        <div className="ap-field">
+          <label className="ap-label">Column Span</label>
+          <select className="ap-select" value={form.columnSpan} onChange={(e) => setField('columnSpan', parseInt(e.target.value))}>
+            <option value="1">Half width</option>
+            <option value="2">Full width</option>
+          </select>
+        </div>
+      </div>
+
+      <div className="ap-field">
+        <label className="ap-label">Title *</label>
+        <input className="ap-input" value={form.title} onChange={(e) => setField('title', e.target.value)} placeholder="Section heading" />
+      </div>
+
+      <div className="ap-field">
+        <label className="ap-label">Content (HTML / rich text) *</label>
+        <RichTextEditor
+          key={`${form.id || 'new'}-${form.locale}`}
+          value={form.content}
+          onChange={(val) => setField('content', val)}
+          dir={form.locale === 'ar' ? 'rtl' : 'ltr'}
+          placeholder="Write your editorial content here…"
+          minHeight={200}
+        />
+      </div>
+
+      <div className="ap-form-grid">
+        <div className="ap-field">
+          <label className="ap-label">Image URL</label>
+          <input className="ap-input" value={form.image} onChange={(e) => setField('image', e.target.value)} placeholder="https://example.com/image.jpg" />
+        </div>
+        <div className="ap-field">
+          <label className="ap-label">Link URL</label>
+          <input className="ap-input" value={form.linkUrl} onChange={(e) => setField('linkUrl', e.target.value)} placeholder="https://..." />
+        </div>
+        <div className="ap-field">
+          <label className="ap-label">Link text</label>
+          <input className="ap-input" value={form.linkText} onChange={(e) => setField('linkText', e.target.value)} placeholder="Read more" />
+        </div>
+      </div>
+
+      <div className="ap-form-grid">
+        <div className="ap-field">
+          <label className="ap-label">Embed Voucher (optional)</label>
+          <select className="ap-select" value={form.voucherId} onChange={(e) => setField('voucherId', e.target.value ? parseInt(e.target.value) : '')}>
+            <option value="">— None —</option>
+            {vouchers.map(v => (
+              <option key={v.id} value={v.id}>{v.translations?.[0]?.title || v.code || `Voucher #${v.id}`}</option>
+            ))}
+          </select>
+        </div>
+        <div className="ap-field">
+          <label className="ap-label">Embed Promo (optional)</label>
+          <select className="ap-select" value={form.promoId} onChange={(e) => setField('promoId', e.target.value ? parseInt(e.target.value) : '')}>
+            <option value="">— None —</option>
+            {promos.map(p => (
+              <option key={p.id} value={p.id}>{p.translations?.[0]?.title || `Promo #${p.id}`}</option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end', marginTop: '1rem' }}>
+        <button type="button" className="ap-btn ap-btn--ghost" onClick={onCancel}>Cancel</button>
+        <button type="submit" className="ap-btn ap-btn--primary">
+          {form.id ? 'Update Section' : 'Add Section'}
+        </button>
+      </div>
+    </form>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Main page
 // ─────────────────────────────────────────────────────────────────────────────
 
-const TABS = ['Description', 'Logistics', 'Upcoming Events', 'Peak Seasons', 'Metrics History'];
+const TABS = ['Description', 'Sections', 'Logistics', 'Upcoming Events', 'Peak Seasons', 'Metrics History'];
 
 export default function StoreIntelligencePage() {
   const params  = useParams();
@@ -689,6 +949,15 @@ export default function StoreIntelligencePage() {
                 initialEn={enTranslation.description || ''}
                 initialAr={arTranslation.description || ''}
                 flash={flash}
+              />
+            )}
+
+            {/* ── Sections tab ─────────────────────────────────────────── */}
+            {tab === 'Sections' && (
+              <SectionsManager
+                storeId={storeId}
+                flash={flash}
+                onChanged={fetchData}
               />
             )}
 
