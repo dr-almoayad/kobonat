@@ -5,7 +5,6 @@ import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 
-// ── GET all sections for a store ──
 export async function GET(request, { params }) {
   try {
     const session = await getServerSession(authOptions);
@@ -13,31 +12,26 @@ export async function GET(request, { params }) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // ✅ Ensure params is awaited
     const { id } = await params;
     const storeId = Number(id);
-
     if (!storeId || isNaN(storeId)) {
       return NextResponse.json({ error: 'Invalid store ID' }, { status: 400 });
     }
 
-    // ✅ FIX: Explicitly include storeId in the where clause
     const sections = await prisma.storeIntelligenceSection.findMany({
       where: { storeId },
       orderBy: { order: 'asc' },
     });
 
-    return NextResponse.json(sections);
+    // ✅ Always return an array, even if empty
+    return NextResponse.json(sections || []);
   } catch (error) {
     console.error('[GET /intelligence-sections]', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch sections', detail: error.message },
-      { status: 500 }
-    );
+    // ✅ On error, return an empty array to prevent client-side crashes
+    return NextResponse.json([], { status: 500 });
   }
 }
 
-// ── POST – create a new section ──
 export async function POST(request, { params }) {
   try {
     const session = await getServerSession(authOptions);
@@ -65,7 +59,6 @@ export async function POST(request, { params }) {
       promoId,
     } = body;
 
-    // Validate required fields
     if (!locale || !title || !content) {
       return NextResponse.json(
         { error: 'Missing required fields: locale, title, content' },
