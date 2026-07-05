@@ -13,13 +13,15 @@ export async function GET(request, { params }) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    // ✅ Ensure params is awaited
     const { id } = await params;
     const storeId = Number(id);
+
     if (!storeId || isNaN(storeId)) {
       return NextResponse.json({ error: 'Invalid store ID' }, { status: 400 });
     }
 
-    // ✅ FIX: Use storeId in where clause
+    // ✅ FIX: Explicitly include storeId in the where clause
     const sections = await prisma.storeIntelligenceSection.findMany({
       where: { storeId },
       orderBy: { order: 'asc' },
