@@ -1,4 +1,5 @@
 // prisma/schema.prisma
+// FULL UPDATED SCHEMA – includes StoreIntelligenceSection for dynamic editorial content
 
 generator client {
   provider = "prisma-client-js"
@@ -173,8 +174,8 @@ enum SectionBlockType {
   STORE
   BANK
   CARD
-  VOUCHER   // NEW
-  PROMO     // NEW
+  VOUCHER
+  PROMO
 }
 
 // ============================================================================
@@ -199,7 +200,7 @@ model Country {
   otherPromos         OtherPromo[]
   curatedOffers       CuratedOfferCountry[]
   storeProducts       StoreProductCountry[]
-  seasonalPages       SeasonalPageCountry[] // ADDED
+  seasonalPages       SeasonalPageCountry[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -272,13 +273,14 @@ model Store {
   peakSeasons         StorePeakSeason[]
   offerStacks         OfferStack[]
 
-  // NEW back‑relation for comparison tables
+  // NEW: Intelligence sections for dynamic editorial content
+  intelligenceSections StoreIntelligenceSection[]
+
   comparisonColumns   ComparisonTableColumn[]
 
-  // Section block embeds
   embeddedInSectionBlocks SectionBlock[] @relation("SectionEmbeddedStores")
 
-  seasonalPages       SeasonalPageStore[] // ADDED
+  seasonalPages       SeasonalPageStore[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -327,7 +329,6 @@ model Category {
   savingsSnapshots StoreSavingsSnapshot[]
   bankNicheSnapshots BankNicheSnapshot[]
 
-  // STEP 1 — ADDED BACK-RELATIONS
   voucherCategories       VoucherCategory[]
   offerStackCategories    OfferStackCategory[]
   storeProductCategories  StoreProductCategory[]
@@ -401,18 +402,17 @@ model Voucher {
   stackAsCode  OfferStack[] @relation("StackCode")
   stackAsDeal  OfferStack[] @relation("StackDeal")
 
-  // NEW back‑relation for comparison tables
+  // NEW: Intelligence sections that embed this voucher
+  intelligenceSections StoreIntelligenceSection[] @relation("VoucherIntelligenceSections")
+
   comparisonColumns ComparisonTableColumn[]
 
-  seasonalPages SeasonalPageVoucher[] // ADDED
+  seasonalPages SeasonalPageVoucher[]
 
-  // STEP 1 — ADDED BACK-RELATION
   directCategories VoucherCategory[]
 
-  // STEP 2 — Section block embeds (NEW)
   embeddedInSectionBlocks SectionBlock[] @relation("SectionEmbeddedVouchers")
 
-  // NEW: Products that link to this voucher
   linkedProducts StoreProduct[] @relation("ProductLinkedVoucher")
 
   createdAt DateTime @default(now())
@@ -450,8 +450,8 @@ model StoreProduct {
   storeId Int
 
   image         String
-  originalPrice Float?        // ← NEW: the "was" / struck-through price
-  currentPrice  Float?        // ← NEW: the live selling price (bold, prominent)
+  originalPrice Float?
+  currentPrice  Float?
   discountValue Float?
   discountType  DiscountType @default(PERCENTAGE)
 
@@ -469,16 +469,12 @@ model StoreProduct {
   blogProducts BlogPostProduct[]
   blogSectionProducts BlogPostSectionProduct[]
 
-  // NEW back‑relation for comparison tables
   comparisonColumns ComparisonTableColumn[]
 
-  // Section block embeds
   embeddedInSectionBlocks SectionBlock[] @relation("SectionEmbeddedProducts")
 
-  // STEP 1 — ADDED BACK-RELATION
   directCategories StoreProductCategory[]
 
-  // NEW: Direct link to a voucher (coupon/deal) or bank/payment promo
   linkedVoucherId Int?
   linkedPromoId   Int?
   linkedVoucher   Voucher?    @relation("ProductLinkedVoucher", fields: [linkedVoucherId], references: [id], onDelete: SetNull)
@@ -569,15 +565,15 @@ model OtherPromo {
   paymentMethod PaymentMethod? @relation(fields: [paymentMethodId], references: [id], onDelete: SetNull)
   offerStacks  OfferStack[]   @relation("StackPromo")
 
+  // NEW: Intelligence sections that embed this promo
+  intelligenceSections StoreIntelligenceSection[] @relation("PromoIntelligenceSections")
+
   comparisonColumns ComparisonTableColumn[]
 
-  // STEP 1 — ADDED BACK-RELATION
   directCategories OtherPromoCategory[]
 
-  // STEP 2 — Section block embeds (NEW)
   embeddedInSectionBlocks SectionBlock[] @relation("SectionEmbeddedPromos")
 
-  // NEW: Products that link to this promo
   linkedProducts StoreProduct[] @relation("ProductLinkedPromo")
 
   createdAt DateTime @default(now())
@@ -633,7 +629,6 @@ model OfferStack {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  // STEP 1 — ADDED BACK-RELATION
   directCategories OfferStackCategory[]
 
   @@index([storeId])
@@ -666,7 +661,7 @@ model CuratedOffer {
   store        Store               @relation(fields: [storeId], references: [id], onDelete: Cascade)
   countries    CuratedOfferCountry[]
 
-  seasonalPages SeasonalPageCuratedOffer[] // ADDED
+  seasonalPages SeasonalPageCuratedOffer[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1011,13 +1006,11 @@ model BlogPost {
   relatedPosts     BlogPostRelated[] @relation("PostToRelated")
   relatedTo        BlogPostRelated[] @relation("RelatedToPost")
 
-  // NEW back‑relation for comparison tables
   comparisonTables ComparisonTable[]
 
-  // Section block embeds
   embeddedInSectionBlocks SectionBlock[] @relation("SectionEmbeddedPosts")
 
-  seasonalPages SeasonalPageBlogPost[] // ADDED
+  seasonalPages SeasonalPageBlogPost[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1267,6 +1260,44 @@ model StorePeakSeason {
 }
 
 // ============================================================================
+// STORE INTELLIGENCE – DYNAMIC EDITORIAL SECTIONS
+// ============================================================================
+
+model StoreIntelligenceSection {
+  id        Int    @id @default(autoincrement())
+  storeId   Int
+  locale    Locale  // 'ar' or 'en'
+
+  title     String
+  content   String  @db.Text   // Rich HTML content from the admin editor
+
+  image     String? // Optional image URL for the section
+  linkUrl   String? // Optional link URL
+  linkText  String? // Optional link text (defaults to "Read more" if omitted)
+
+  // ── Embed a voucher or promo directly in the section ──
+  voucherId Int?
+  promoId   Int?
+
+  // ── Layout & ordering ──
+  order       Int @default(0)       // Order within the store/locale
+  columnSpan  Int @default(1)       // 1 = half width, 2 = full width
+
+  // ── Relations ──
+  store   Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  voucher Voucher? @relation("VoucherIntelligenceSections", fields: [voucherId], references: [id], onDelete: SetNull)
+  promo   OtherPromo? @relation("PromoIntelligenceSections", fields: [promoId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([storeId, locale, order])
+  @@index([storeId, locale])
+  @@index([order])
+  @@map("store_intelligence_sections")
+}
+
+// ============================================================================
 // BANK MODELS
 // ============================================================================
 
@@ -1285,10 +1316,8 @@ model Bank {
   nicheSnapshots BankNicheSnapshot[]
   otherPromos    OtherPromo[]
 
-  // NEW back‑relation for comparison tables
   comparisonColumns ComparisonTableColumn[]
 
-  // Section block embeds
   embeddedInSectionBlocks SectionBlock[] @relation("SectionEmbeddedBanks")
 
   createdAt DateTime @default(now())
@@ -1348,10 +1377,8 @@ model BankCard {
   translations BankCardTranslation[]
   otherPromos  OtherPromo[]
 
-  // NEW back‑relation for comparison tables
   comparisonColumns ComparisonTableColumn[]
 
-  // Section block embeds
   embeddedInSectionBlocks SectionBlock[] @relation("SectionEmbeddedCards")
 
   createdAt DateTime @default(now())
@@ -1404,7 +1431,7 @@ model BankNicheSnapshot {
 }
 
 // ============================================================================
-// COMPARISON TABLES (NEW)
+// COMPARISON TABLES
 // ============================================================================
 
 model ComparisonTable {
@@ -1420,7 +1447,6 @@ model ComparisonTable {
   columns      ComparisonTableColumn[]
   rows         ComparisonTableRow[]
 
-  // Section block embeds
   embeddedInSectionBlocks SectionBlock[] @relation("SectionEmbeddedTables")
 
   createdAt DateTime @default(now())
@@ -1464,7 +1490,6 @@ model ComparisonTableColumn {
   translations ComparisonTableColumnTranslation[]
   cells        ComparisonTableCell[]
 
-  // Entity relations
   store    Store?        @relation(fields: [storeId],    references: [id], onDelete: SetNull)
   bank     Bank?         @relation(fields: [bankId],     references: [id], onDelete: SetNull)
   bankCard BankCard?     @relation(fields: [bankCardId], references: [id], onDelete: SetNull)
@@ -1546,7 +1571,7 @@ model ComparisonTableCell {
 }
 
 // ============================================================================
-// SECTION BLOCKS — UPDATED with Voucher & Promo support
+// SECTION BLOCKS
 // ============================================================================
 
 model SectionBlock {
@@ -1566,8 +1591,8 @@ model SectionBlock {
   storeId   Int?
   bankId    Int?
   cardId    Int?
-  voucherId Int?   // NEW — for VOUCHER type
-  promoId   Int?   // NEW — for PROMO type
+  voucherId Int?
+  promoId   Int?
 
   section BlogPostSection  @relation(fields: [sectionId], references: [id], onDelete: Cascade)
   post    BlogPost?        @relation("SectionEmbeddedPosts",    fields: [postId],    references: [id], onDelete: SetNull)
@@ -1576,33 +1601,29 @@ model SectionBlock {
   store   Store?           @relation("SectionEmbeddedStores",   fields: [storeId],   references: [id], onDelete: SetNull)
   bank    Bank?            @relation("SectionEmbeddedBanks",    fields: [bankId],    references: [id], onDelete: SetNull)
   card    BankCard?        @relation("SectionEmbeddedCards",    fields: [cardId],    references: [id], onDelete: SetNull)
-  voucher Voucher?         @relation("SectionEmbeddedVouchers", fields: [voucherId], references: [id], onDelete: SetNull)  // NEW
-  promo   OtherPromo?      @relation("SectionEmbeddedPromos",   fields: [promoId],   references: [id], onDelete: SetNull)  // NEW
+  voucher Voucher?         @relation("SectionEmbeddedVouchers", fields: [voucherId], references: [id], onDelete: SetNull)
+  promo   OtherPromo?      @relation("SectionEmbeddedPromos",   fields: [promoId],   references: [id], onDelete: SetNull)
 
   @@index([sectionId, order])
   @@index([type])
 }
 
 // ============================================================================
-// SEASONAL PAGES (NEW)
+// SEASONAL PAGES
 // ============================================================================
 
 model SeasonalPage {
   id        Int    @id @default(autoincrement())
-  slug      String @unique // e.g. "white_friday", "ramadan" — matches StorePeakSeason.seasonKey
-  seasonKey String         // soft-link to StorePeakSeason.seasonKey (no FK — different scope)
+  slug      String @unique
+  seasonKey String
 
   heroImage String?
 
-  // Annual recurrence window (month 1–12, day 1–31, no year — repeats every year)
-  // Null = no date restriction (always "live")
   startMonth Int?
   startDay   Int?
   endMonth   Int?
   endDay     Int?
 
-  // When true, stores that have this seasonKey in StorePeakSeason are
-  // automatically included alongside any manually pinned stores
   useStorePeakSeasonData Boolean @default(true)
 
   showInFooter Boolean @default(false)
@@ -1629,13 +1650,11 @@ model SeasonalPageTranslation {
   seasonalPageId Int
   locale         Locale
 
-  // Copy shown when the season is LIVE (within start/end window)
   title          String
   description    String? @db.Text
   seoTitle       String?
   seoDescription String? @db.Text
 
-  // Copy shown OUTSIDE the season window (year-round preview mode)
   offSeasonTitle          String?
   offSeasonDescription    String? @db.Text
   offSeasonSeoTitle       String?
