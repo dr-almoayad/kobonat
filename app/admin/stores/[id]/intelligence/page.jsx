@@ -502,7 +502,7 @@ function MetricsHistory({ metrics }) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// ★ NEW: SECTION MANAGER (Intelligence Sections)
+// ★ SECTION MANAGER (Intelligence Sections)
 // ─────────────────────────────────────────────────────────────────────────────
 
 const SECTION_BLANK = {
@@ -522,9 +522,8 @@ const SECTION_BLANK = {
 function SectionsManager({ storeId, flash, onChanged }) {
   const [sections, setSections] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [editing, setEditing] = useState(null); // null or section object
+  const [editing, setEditing] = useState(null);
 
-  // ── Fetch sections ──
   const fetchSections = useCallback(async () => {
     try {
       const res = await fetch(`/api/admin/stores/${storeId}/intelligence-sections`);
@@ -541,7 +540,6 @@ function SectionsManager({ storeId, flash, onChanged }) {
     fetchSections();
   }, [fetchSections]);
 
-  // ── Save section (create or update) ──
   async function saveSection(data) {
     const isUpdate = !!data.id;
     const url = `/api/admin/stores/${storeId}/intelligence-sections${isUpdate ? `/${data.id}` : ''}`;
@@ -556,13 +554,12 @@ function SectionsManager({ storeId, flash, onChanged }) {
       flash('success', isUpdate ? 'Section updated' : 'Section added');
       setEditing(null);
       onChanged();
-      await fetchSections(); // refresh list
+      await fetchSections();
     } catch (e) {
       flash('error', e.message);
     }
   }
 
-  // ── Delete section ──
   async function deleteSection(id) {
     if (!confirm('Delete this section?')) return;
     try {
@@ -593,7 +590,6 @@ function SectionsManager({ storeId, flash, onChanged }) {
         <div className="ap-empty">No custom sections yet. Add one to appear in the store intelligence card.</div>
       )}
 
-      {/* ── List existing sections ── */}
       {sections.length > 0 && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1rem' }}>
           {sections.map((sec) => (
@@ -618,7 +614,6 @@ function SectionsManager({ storeId, flash, onChanged }) {
         </div>
       )}
 
-      {/* ── Edit / Add form ── */}
       {editing && (
         <SectionForm
           section={editing}
@@ -651,16 +646,22 @@ function SectionForm({ section, storeId, onSave, onCancel, flash }) {
 
   const [vouchers, setVouchers] = useState([]);
   const [promos, setPromos] = useState([]);
+  const [fetchError, setFetchError] = useState(false);
 
-  // Fetch store's vouchers and promos for embedding
+  // Fetch vouchers and promos for dropdowns
   useEffect(() => {
     (async () => {
-      const [vRes, pRes] = await Promise.all([
-        fetch(`/api/admin/stores/${storeId}/vouchers?limit=100`),
-        fetch(`/api/admin/stores/${storeId}/other-promos?limit=100`),
-      ]);
-      if (vRes.ok) setVouchers(await vRes.json());
-      if (pRes.ok) setPromos(await pRes.json());
+      try {
+        const [vRes, pRes] = await Promise.all([
+          fetch(`/api/admin/stores/${storeId}/vouchers?limit=100`),
+          fetch(`/api/admin/stores/${storeId}/other-promos?limit=100`),
+        ]);
+        if (vRes.ok) setVouchers(await vRes.json());
+        if (pRes.ok) setPromos(await pRes.json());
+      } catch (e) {
+        console.error('Failed to fetch embeddable items:', e);
+        setFetchError(true);
+      }
     })();
   }, [storeId]);
 
@@ -673,6 +674,35 @@ function SectionForm({ section, storeId, onSave, onCancel, flash }) {
       return;
     }
     onSave(form);
+  }
+
+  // Helper to render rich text editor with fallback
+  function renderContentEditor() {
+    try {
+      // Attempt to use RichTextEditor; if it fails, fallback to textarea
+      return (
+        <RichTextEditor
+          key={`${form.id || 'new'}-${form.locale}`}
+          value={form.content}
+          onChange={(val) => setField('content', val)}
+          dir={form.locale === 'ar' ? 'rtl' : 'ltr'}
+          placeholder="Write your editorial content here…"
+          minHeight={200}
+        />
+      );
+    } catch (e) {
+      console.warn('RichTextEditor not available, using textarea fallback');
+      return (
+        <textarea
+          className="ap-input"
+          value={form.content}
+          onChange={(e) => setField('content', e.target.value)}
+          rows={6}
+          placeholder="Write your content here (HTML supported)…"
+          dir={form.locale === 'ar' ? 'rtl' : 'ltr'}
+        />
+      );
+    }
   }
 
   return (
@@ -705,14 +735,7 @@ function SectionForm({ section, storeId, onSave, onCancel, flash }) {
 
       <div className="ap-field">
         <label className="ap-label">Content (HTML / rich text) *</label>
-        <RichTextEditor
-          key={`${form.id || 'new'}-${form.locale}`}
-          value={form.content}
-          onChange={(val) => setField('content', val)}
-          dir={form.locale === 'ar' ? 'rtl' : 'ltr'}
-          placeholder="Write your editorial content here…"
-          minHeight={200}
-        />
+        {renderContentEditor()}
       </div>
 
       <div className="ap-form-grid">
@@ -733,21 +756,29 @@ function SectionForm({ section, storeId, onSave, onCancel, flash }) {
       <div className="ap-form-grid">
         <div className="ap-field">
           <label className="ap-label">Embed Voucher (optional)</label>
-          <select className="ap-select" value={form.voucherId} onChange={(e) => setField('voucherId', e.target.value ? parseInt(e.target.value) : '')}>
-            <option value="">— None —</option>
-            {vouchers.map(v => (
-              <option key={v.id} value={v.id}>{v.translations?.[0]?.title || v.code || `Voucher #${v.id}`}</option>
-            ))}
-          </select>
+          {fetchError ? (
+            <div className="ap-text-muted" style={{ fontSize: '0.8rem', color: 'var(--ap-text-muted)' }}>Could not load vouchers</div>
+          ) : (
+            <select className="ap-select" value={form.voucherId} onChange={(e) => setField('voucherId', e.target.value ? parseInt(e.target.value) : '')}>
+              <option value="">— None —</option>
+              {vouchers.map(v => (
+                <option key={v.id} value={v.id}>{v.translations?.[0]?.title || v.code || `Voucher #${v.id}`}</option>
+              ))}
+            </select>
+          )}
         </div>
         <div className="ap-field">
           <label className="ap-label">Embed Promo (optional)</label>
-          <select className="ap-select" value={form.promoId} onChange={(e) => setField('promoId', e.target.value ? parseInt(e.target.value) : '')}>
-            <option value="">— None —</option>
-            {promos.map(p => (
-              <option key={p.id} value={p.id}>{p.translations?.[0]?.title || `Promo #${p.id}`}</option>
-            ))}
-          </select>
+          {fetchError ? (
+            <div className="ap-text-muted" style={{ fontSize: '0.8rem', color: 'var(--ap-text-muted)' }}>Could not load promos</div>
+          ) : (
+            <select className="ap-select" value={form.promoId} onChange={(e) => setField('promoId', e.target.value ? parseInt(e.target.value) : '')}>
+              <option value="">— None —</option>
+              {promos.map(p => (
+                <option key={p.id} value={p.id}>{p.translations?.[0]?.title || `Promo #${p.id}`}</option>
+              ))}
+            </select>
+          )}
         </div>
       </div>
 
@@ -760,7 +791,6 @@ function SectionForm({ section, storeId, onSave, onCancel, flash }) {
     </form>
   );
 }
-
 // ─────────────────────────────────────────────────────────────────────────────
 // Main page
 // ─────────────────────────────────────────────────────────────────────────────
