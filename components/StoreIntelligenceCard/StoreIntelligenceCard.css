@@ -259,3 +259,30 @@
     gap: 0.3rem;
   }
 }
+
+/* ── DYNAMIC SECTIONS GRID (ordered, mixed widths) ───────────────────── */
+.sic-editorial__sections {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  padding: 1.5rem 2rem;
+}
+
+/* Each section – width based on columnSpan */
+.sic-editorial__section {
+  flex: 0 0 100%;
+  max-width: 100%;
+}
+
+/* Half‑width sections (columnSpan === 1) */
+.sic-editorial__section.span-half {
+  flex: 0 0 calc(50% - 0.75rem);
+  max-width: calc(50% - 0.75rem);
+}
+
+@media (max-width: 768px) {
+  .sic-editorial__section.span-half {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+}
