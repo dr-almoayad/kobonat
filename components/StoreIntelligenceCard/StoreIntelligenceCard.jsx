@@ -1,6 +1,5 @@
 // components/StoreIntelligenceCard/StoreIntelligenceCard.jsx
 import { prisma } from '@/lib/prisma';
-import { getCurrentMonthIdentifier } from '@/lib/intelligence/calculateStoreScore.js';
 import './StoreIntelligenceCard.css';
 
 // ── Helpers ──────────────────────────────────────────────────────────────
@@ -116,12 +115,12 @@ function EmbedBlock({ voucher, promo, locale }) {
 }
 
 // ── Section Renderer ──────────────────────────────────────────────────────
-function Section({ section, locale }) {
+function Section({ section, locale, isHalf }) {
   const lang = locale.split('-')[0];
   const isAr = lang === 'ar';
 
   return (
-    <div className="sic-editorial__section">
+    <div className={`sic-editorial__section ${isHalf ? 'sic-editorial__section--half' : 'sic-editorial__section--full'}`}>
       {section.title && <h3 className="sic-editorial__section-title">{section.title}</h3>}
       {section.image && (
         <div className="sic-editorial__section-image">
@@ -172,9 +171,6 @@ export default async function StoreIntelligenceCard({
   // ── All sections sorted by order ──────────────────────────────────────
   const sections = (store.intelligenceSections || []).sort((a, b) => a.order - b.order);
 
-  // ── Stats (for header) ── optional, can be omitted or kept minimal
-  // ...
-
   return (
     <div className="sic sic--editorial" dir={isRtl ? 'rtl' : 'ltr'}>
 
@@ -197,11 +193,16 @@ export default async function StoreIntelligenceCard({
         )}
       </div>
 
-      {/* ── Dynamic Sections Grid (ordered, mixed widths) ────────────────── */}
+      {/* ── Dynamic Sections Grid (ordered, mixed widths) ────────────── */}
       {sections.length > 0 && (
         <div className="sic-editorial__sections">
           {sections.map((sec) => (
-            <Section key={sec.id} section={sec} locale={locale} />
+            <Section
+              key={sec.id}
+              section={sec}
+              locale={locale}
+              isHalf={sec.columnSpan === 1}
+            />
           ))}
         </div>
       )}
