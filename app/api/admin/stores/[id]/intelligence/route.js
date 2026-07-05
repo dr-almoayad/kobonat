@@ -30,9 +30,18 @@ export async function GET(request, { params }) {
         refundProcessingDaysMax: true,
         offerFrequencyDays:      true,
         lastVerifiedAt:          true,
+        // ✅ FIX: Fetch all translations (both EN and AR)
         translations: {
-          where:  { locale: 'en' },
-          select: { name: true, slug: true },
+          select: {
+            id:          true,
+            locale:      true,
+            name:        true,
+            slug:        true,
+            description: true,
+            seoTitle:    true,
+            seoDescription: true,
+            showOffer:   true,
+          },
         },
         savingsMetrics: {
           orderBy: { monthIdentifier: 'desc' },
@@ -80,6 +89,23 @@ export async function GET(request, { params }) {
             seasonKey: true,
             nameEn:    true,
             nameAr:    true,
+          },
+        },
+        // ✅ NEW: Include intelligence sections (optional but useful for admin UI)
+        intelligenceSections: {
+          orderBy: { order: 'asc' },
+          select: {
+            id:          true,
+            locale:      true,
+            title:       true,
+            content:     true,
+            image:       true,
+            linkUrl:     true,
+            linkText:    true,
+            order:       true,
+            columnSpan:  true,
+            voucherId:   true,
+            promoId:     true,
           },
         },
       },
