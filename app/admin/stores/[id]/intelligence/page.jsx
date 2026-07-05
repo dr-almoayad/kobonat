@@ -650,6 +650,7 @@ function SectionForm({ section, storeId, onSave, onCancel, flash }) {
     promoId: section.promoId || '',
   });
 
+  // ✅ Always initialize as empty arrays
   const [vouchers, setVouchers] = useState([]);
   const [promos, setPromos] = useState([]);
   const [fetchError, setFetchError] = useState(false);
@@ -662,11 +663,28 @@ function SectionForm({ section, storeId, onSave, onCancel, flash }) {
           fetch(`/api/admin/stores/${storeId}/vouchers?limit=100`),
           fetch(`/api/admin/stores/${storeId}/other-promos?limit=100`),
         ]);
-        if (vRes.ok) setVouchers(await vRes.json());
-        if (pRes.ok) setPromos(await pRes.json());
+
+        // ✅ Extract arrays from response; default to empty array
+        let vouchersData = [];
+        let promosData = [];
+        if (vRes.ok) {
+          const vJson = await vRes.json();
+          // If response is an object with a 'vouchers' key, use that; else assume array
+          vouchersData = Array.isArray(vJson) ? vJson : (vJson.vouchers || []);
+        }
+        if (pRes.ok) {
+          const pJson = await pRes.json();
+          promosData = Array.isArray(pJson) ? pJson : (pJson.promos || []);
+        }
+
+        setVouchers(vouchersData);
+        setPromos(promosData);
+        setFetchError(false);
       } catch (e) {
         console.error('Failed to fetch embeddable items:', e);
         setFetchError(true);
+        setVouchers([]);
+        setPromos([]);
       }
     })();
   }, [storeId]);
@@ -765,7 +783,8 @@ function SectionForm({ section, storeId, onSave, onCancel, flash }) {
           ) : (
             <select className="ap-select" value={form.voucherId} onChange={(e) => setField('voucherId', e.target.value ? parseInt(e.target.value) : '')}>
               <option value="">— None —</option>
-              {vouchers.map(v => (
+              {/* ✅ Safe map: ensure vouchers is an array */}
+              {Array.isArray(vouchers) && vouchers.map(v => (
                 <option key={v.id} value={v.id}>{v.translations?.[0]?.title || v.code || `Voucher #${v.id}`}</option>
               ))}
             </select>
@@ -778,7 +797,8 @@ function SectionForm({ section, storeId, onSave, onCancel, flash }) {
           ) : (
             <select className="ap-select" value={form.promoId} onChange={(e) => setField('promoId', e.target.value ? parseInt(e.target.value) : '')}>
               <option value="">— None —</option>
-              {promos.map(p => (
+              {/* ✅ Safe map: ensure promos is an array */}
+              {Array.isArray(promos) && promos.map(p => (
                 <option key={p.id} value={p.id}>{p.translations?.[0]?.title || `Promo #${p.id}`}</option>
               ))}
             </select>
@@ -795,7 +815,6 @@ function SectionForm({ section, storeId, onSave, onCancel, flash }) {
     </form>
   );
 }
-
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Main page
