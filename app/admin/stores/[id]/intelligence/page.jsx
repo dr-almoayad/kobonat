@@ -525,12 +525,18 @@ function SectionsManager({ storeId, flash, onChanged }) {
   const [editing, setEditing] = useState(null);
 
   const fetchSections = useCallback(async () => {
+    setLoading(true);
     try {
       const res = await fetch(`/api/admin/stores/${storeId}/intelligence-sections`);
-      if (res.ok) setSections(await res.json());
-      else throw new Error('Failed to load sections');
+      const data = await res.json();
+      // ✅ Ensure we always have an array
+      setSections(Array.isArray(data) ? data : []);
+      if (!res.ok) {
+        flash('error', data.error || 'Failed to load sections');
+      }
     } catch (e) {
       flash('error', e.message);
+      setSections([]);
     } finally {
       setLoading(false);
     }
@@ -676,10 +682,8 @@ function SectionForm({ section, storeId, onSave, onCancel, flash }) {
     onSave(form);
   }
 
-  // Helper to render rich text editor with fallback
   function renderContentEditor() {
     try {
-      // Attempt to use RichTextEditor; if it fails, fallback to textarea
       return (
         <RichTextEditor
           key={`${form.id || 'new'}-${form.locale}`}
@@ -791,6 +795,8 @@ function SectionForm({ section, storeId, onSave, onCancel, flash }) {
     </form>
   );
 }
+
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Main page
 // ─────────────────────────────────────────────────────────────────────────────
