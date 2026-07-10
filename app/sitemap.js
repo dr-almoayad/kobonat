@@ -1,10 +1,10 @@
 // app/sitemap.js
 // FULLY CORRECTED VERSION
 // Changes:
-// 1. Removed voucher filter for stores – includes ALL active stores.
-// 2. Store lastModified uses store.updatedAt (real date).
-// 3. On ANY DB error, re‑throws to trigger 500 status – preserves Google's cached sitemap.
-// 4. Removed all .catch() fallbacks – no silent omissions; errors bubble up.
+// 1. Re-introduced a strict filter for stores: Only includes stores if they have > 0 active vouchers OR a text description.
+// 2. Synchronized sitemap inclusion logic with page-level noindex metadata rules to prevent conflicting Googlebot signals.
+// 3. Store lastModified uses store.updatedAt (real date).
+// 4. On ANY DB error, re‑throws to trigger 500 status – preserves Google's cached sitemap.
 
 import { prisma } from '@/lib/prisma';
 
@@ -71,8 +71,6 @@ export default async function sitemap() {
 
   try {
     // ── All DB queries in one parallel batch ───────────────────────────────
-    // ❌ REMOVED all .catch() fallbacks – any query error will bubble up
-    //    and trigger the top‑level catch, returning a 500.
     const [
       latestVoucher,
       latestStore,
@@ -142,7 +140,7 @@ export default async function sitemap() {
         },
       }),
 
-      // ✅ FIX: Removed voucher filter – include ALL active stores.
+      // ✅ FIX: Added _count for active vouchers and fetched the description field.
       prisma.store.findMany({
         where: {
           isActive: true,
@@ -154,7 +152,16 @@ export default async function sitemap() {
           isFeatured: true,
           translations: {
             where: { locale: { in: ['ar', 'en'] } },
-            select: { slug: true, locale: true },
+            select: { slug: true, locale: true, description: true }, // Needed to check for thin content
+          },
+          _count: {
+            select: {
+              vouchers: {
+                where: {
+                  OR: [{ expiryDate: null }, { expiryDate: { gte: NOW } }],
+                },
+              },
+            },
           },
         },
       }),
@@ -302,32 +309,45 @@ export default async function sitemap() {
       }
     }
 
-    // ── 9. Store pages (ALL active stores) ────────────────────────────────
-    // ✅ FIX: lastModified uses the actual store.updatedAt.
+    // ── 9. Store pages (Thin Content Filter Applied) ───────────────────────
     for (const store of stores) {
-      const arSlug = store.translations?.find(t => t.locale === 'ar')?.slug;
-      const enSlug = store.translations?.find(t => t.locale === 'en')?.slug;
+      const arTranslation = store.translations?.find(t => t.locale === 'ar');
+      const enTranslation = store.translations?.find(t => t.locale === 'en');
+      
+      const arSlug = arTranslation?.slug;
+      const enSlug = enTranslation?.slug;
+      
       const alternates = slugAlternates(arSlug, enSlug, '/stores');
-
       const lastModified = safeDate(store.updatedAt);
+      
+      // Check active voucher count
+      const activeVouchers = store._count?.vouchers || 0;
 
+      // ✅ FIX: Only push to sitemap if the store has active vouchers OR a unique description
       if (arSlug) {
-        urls.push({
-          url: `${BASE_URL}/ar-SA/stores/${arSlug}`,
-          lastModified,
-          changeFrequency: 'daily',
-          priority: store.isFeatured ? 0.85 : 0.75,
-          alternates: { languages: alternates },
-        });
+        const hasArDescription = !!arTranslation?.description?.trim();
+        if (activeVouchers > 0 || hasArDescription) {
+          urls.push({
+            url: `${BASE_URL}/ar-SA/stores/${arSlug}`,
+            lastModified,
+            changeFrequency: 'daily',
+            priority: store.isFeatured ? 0.85 : 0.75,
+            alternates: { languages: alternates },
+          });
+        }
       }
+
       if (enSlug) {
-        urls.push({
-          url: `${BASE_URL}/en-SA/stores/${enSlug}`,
-          lastModified,
-          changeFrequency: 'daily',
-          priority: store.isFeatured ? 0.85 : 0.75,
-          alternates: { languages: alternates },
-        });
+        const hasEnDescription = !!enTranslation?.description?.trim();
+        if (activeVouchers > 0 || hasEnDescription) {
+          urls.push({
+            url: `${BASE_URL}/en-SA/stores/${enSlug}`,
+            lastModified,
+            changeFrequency: 'daily',
+            priority: store.isFeatured ? 0.85 : 0.75,
+            alternates: { languages: alternates },
+          });
+        }
       }
     }
 
@@ -405,10 +425,7 @@ export default async function sitemap() {
     });
 
   } catch (error) {
-    // ── ✅ CRITICAL FIX: Re‑throw the error ──────────────────────────────
-    // Returning a partial sitemap with a 200 OK tells Google you deleted pages.
-    // A 500 status tells Google "server error, retry later" – preserves your index.
     console.error('[sitemap] generation error:', error);
     throw new Error(`Sitemap generation failed: ${error.message}`);
   }
-                       }
+}
