@@ -1,17 +1,4 @@
 // app/[locale]/stores/[slug]/page.jsx
-// ✅ FULLY CORRECTED VERSION – All Audit Issues Fixed
-// Fixes:
-// 1. Custom SEO metadata includes openGraph & twitter.
-// 2. Logo/cover images are absolute URLs.
-// 3. Canonical & hreflang correct.
-// 4. generateStaticParams pre‑builds all store pages.
-// 5. Removed category slug collision check (noindex).
-// 6. Degrades gracefully on transient DB errors – returns 200, not 404.
-// 7. Server‑side rendering of active bank/payment offers.
-// 8. Removed PromoCodesFAQ visual component – duplicate content eliminated.
-// 9. Removed getGeneralFaqSchemaEntities – no more identical FAQ JSON‑LD on every page.
-// 10. Noindex for zero‑voucher stores with no description – prevents thin page crawling.
-
 import { prisma } from '@/lib/prisma';
 import { notFound, permanentRedirect } from 'next/navigation'; 
 import { getTranslations } from 'next-intl/server';
@@ -73,11 +60,15 @@ export async function generateStaticParams() {
 async function handleLegacySlugFallback(slug, language) {
   const hasArabic = /[\u0600-\u06FF]/.test(slug);
   if (!hasArabic) return null;
-  const normalized = slug.replace(/-/g, ' ');
+  
+  // Extract the last word (usually the brand name, e.g., "نون" from "كود-خصم-نون")
+  const keywords = slug.split('-');
+  const likelyBrandName = keywords[keywords.length - 1]; 
+  
   const fallback = await prisma.storeTranslation.findFirst({
     where: {
       locale: language,
-      name: { contains: normalized, mode: 'insensitive' },
+      name: { contains: likelyBrandName, mode: 'insensitive' },
       store: { isActive: true },
     },
     select: { slug: true },
@@ -118,25 +109,7 @@ export async function generateMetadata({ params }) {
     const storeTranslation = store.translations[0];
     const storeName = storeTranslation?.name || slug;
 
-    // ── Count active vouchers for this store ──
-    const voucherCount = await prisma.voucher.count({
-      where: {
-        storeId: store.id,
-        countries: { some: { country: { code: countryCode } } },
-        OR: [{ expiryDate: null }, { expiryDate: { gte: now } }],
-      },
-    });
-
-    // ✅ FIX: Noindex zero‑voucher stores with no description
-    const hasDescription = storeTranslation?.description && storeTranslation.description.length > 50;
-    if (voucherCount === 0 && !hasDescription) {
-      return {
-        robots: { index: false, follow: true },
-        alternates: { canonical: `${BASE_URL}/${locale}/stores/${slug}` },
-      };
-    }
-
-    // Build hreflang
+    // Build hreflang parameters first to handle English noindex canonicals
     const otherLocale = language === 'ar' ? 'en' : 'ar';
     const otherTranslation = await prisma.storeTranslation.findFirst({
       where: { storeId: store.id, locale: otherLocale },
@@ -146,10 +119,40 @@ export async function generateMetadata({ params }) {
     const arSlug = language === 'ar' ? slug : (otherTranslation?.slug || null);
     const enSlug = language === 'en' ? slug : (otherTranslation?.slug || null);
 
+    // ✅ FIX 3: Restore English noindex to prevent duplicate content indexing
+    if (language === 'en') {
+      return {
+        robots: { index: false, follow: true },
+        title: `${storeName} Coupons`,
+        description: `Find the latest ${storeName} discount codes and deals. Updated daily.`,
+        alternates: {
+          canonical: `${BASE_URL}/ar-SA/stores/${arSlug || slug}`,
+        },
+      };
+    }
+
     const hreflangLanguages = {};
     if (arSlug) hreflangLanguages['ar-SA'] = `${BASE_URL}/ar-SA/stores/${arSlug}`;
     if (enSlug) hreflangLanguages['en-SA'] = `${BASE_URL}/en-SA/stores/${enSlug}`;
     hreflangLanguages['x-default'] = `${BASE_URL}/ar-SA/stores/${arSlug || enSlug || slug}`;
+
+    // ── Count active vouchers for this store ──
+    const voucherCount = await prisma.voucher.count({
+      where: {
+        storeId: store.id,
+        countries: { some: { country: { code: countryCode } } },
+        OR: [{ expiryDate: null }, { expiryDate: { gte: now } }],
+      },
+    });
+
+    // Noindex zero‑voucher stores with no description
+    const hasDescription = storeTranslation?.description && storeTranslation.description.length > 50;
+    if (voucherCount === 0 && !hasDescription) {
+      return {
+        robots: { index: false, follow: true },
+        alternates: { canonical: `${BASE_URL}/${locale}/stores/${slug}` },
+      };
+    }
 
     const ogImage = store.coverImage || store.logo || `${BASE_URL}/logo-512x512.png`;
     const finalOgImage = ogImage.startsWith('http') ? ogImage : `${BASE_URL}${ogImage.startsWith('/') ? '' : '/'}${ogImage}`;
@@ -300,27 +303,10 @@ export default async function StorePage({ params }) {
     })),
   };
 
-  // ── 2. SUPPLEMENTAL: all other data – each with its own try/catch ──────────
-  // ✅ FIX: No single catch that returns 404 – instead, degraded page on error.
-  let allVouchers = [];
-  let paymentMethodsData = [];
-  let faqs = [];
-  let relatedStores = [];
-  let storeProducts = [];
-  let relatedPostsRaw = [];
-  let expiredOtherPromos = [];
-  let activeOtherPromos = [];
-
-  const safeFetch = async (promise, fallback = []) => {
-    try {
-      return await promise;
-    } catch (err) {
-      console.error(`[StorePage] Supplemental query failed:`, err.message);
-      return fallback;
-    }
-  };
-
-  [
+  // ── 2. SUPPLEMENTAL: all other data ─────────────────────────────────────────
+  // ✅ FIX 1: safeFetch removed. If Prisma times out, the page throws 500.
+  // Next.js ISR preserves the last good HTML in cache instead of saving a blank page.
+  const [
     allVouchers,
     paymentMethodsData,
     faqs,
@@ -330,126 +316,112 @@ export default async function StorePage({ params }) {
     expiredOtherPromos,
     activeOtherPromos,
   ] = await Promise.all([
-    safeFetch(
-      prisma.voucher.findMany({
-        where: { storeId: store.id, countries: { some: { country: { code: countryCode } } } },
-        include: {
-          translations: { where: { locale: language } },
-          _count: { select: { clicks: true } },
-          store: { include: { translations: { where: { locale: language } } } },
-        },
-        orderBy: [{ expiryDate: 'desc' }, { isExclusive: 'desc' }, { isVerified: 'desc' }, { popularityScore: 'desc' }],
-        take: 50,
-      })
-    ),
-    safeFetch(
-      prisma.storePaymentMethod.findMany({
-        where: { storeId: store.id, countryId: country.id },
-        include: { paymentMethod: { include: { translations: { where: { locale: language } } } } },
-      })
-    ),
-    safeFetch(
-      prisma.storeFAQ.findMany({
-        where: { storeId: store.id, countryId: country.id, isActive: true },
-        include: { translations: { where: { locale: language } } },
-        orderBy: { order: 'asc' },
-      })
-    ),
-    safeFetch(
-      prisma.store.findMany({
-        where: {
-          id: { not: store.id },
-          isActive: true,
-          countries: { some: { country: { code: countryCode } } },
-          categories: { some: { categoryId: { in: store.categories.map(sc => sc.categoryId) } } },
-        },
-        include: {
-          translations: { where: { locale: language } },
-          _count: { select: { vouchers: { where: { OR: [{ expiryDate: null }, { expiryDate: { gte: now } }] } } } },
-        },
-        take: 6,
-        orderBy: { isFeatured: 'desc' },
-      })
-    ),
-    safeFetch(
-      prisma.storeProduct.findMany({
-        where: { storeId: store.id },
-        select: {
-          id: true,
-          image: true,
-          productUrl: true,
-          originalPrice: true,
-          currentPrice: true,
-          discountValue: true,
-          discountType: true,
-          translations: { where: { locale: language }, select: { title: true } },
-          linkedVoucher: {
-            select: {
-              id: true,
-              code: true,
-              type: true,
-              discount: true,
-              discountPercent: true,
-              verifiedAvgPercent: true,
-              translations: { where: { locale: language }, select: { title: true } },
-            },
-          },
-          linkedPromo: {
-            select: {
-              id: true,
-              type: true,
-              url: true,
-              discountPercent: true,
-              verifiedAvgPercent: true,
-              installmentMonths: true,
-              translations: { where: { locale: language }, select: { title: true } },
-              bank: { select: { logo: true, translations: { where: { locale: language }, select: { name: true } } } },
-              paymentMethod: { select: { logo: true, isBnpl: true, translations: { where: { locale: language }, select: { name: true } } } },
-              card: { select: { maxInstallmentMonths: true } },
-            },
+    prisma.voucher.findMany({
+      where: { storeId: store.id, countries: { some: { country: { code: countryCode } } } },
+      include: {
+        translations: { where: { locale: language } },
+        _count: { select: { clicks: true } },
+        store: { include: { translations: { where: { locale: language } } } },
+      },
+      orderBy: [{ expiryDate: 'desc' }, { isExclusive: 'desc' }, { isVerified: 'desc' }, { popularityScore: 'desc' }],
+      take: 50,
+    }),
+    prisma.storePaymentMethod.findMany({
+      where: { storeId: store.id, countryId: country.id },
+      include: { paymentMethod: { include: { translations: { where: { locale: language } } } } },
+    }),
+    prisma.storeFAQ.findMany({
+      where: { storeId: store.id, countryId: country.id, isActive: true },
+      include: { translations: { where: { locale: language } } },
+      orderBy: { order: 'asc' },
+    }),
+    prisma.store.findMany({
+      where: {
+        id: { not: store.id },
+        isActive: true,
+        countries: { some: { country: { code: countryCode } } },
+        categories: { some: { categoryId: { in: store.categories.map(sc => sc.categoryId) } } },
+      },
+      include: {
+        translations: { where: { locale: language } },
+        _count: { select: { vouchers: { where: { OR: [{ expiryDate: null }, { expiryDate: { gte: now } }] } } } },
+      },
+      take: 6,
+      orderBy: { isFeatured: 'desc' },
+    }),
+    prisma.storeProduct.findMany({
+      where: { storeId: store.id },
+      select: {
+        id: true,
+        image: true,
+        productUrl: true,
+        originalPrice: true,
+        currentPrice: true,
+        discountValue: true,
+        discountType: true,
+        translations: { where: { locale: language }, select: { title: true } },
+        linkedVoucher: {
+          select: {
+            id: true,
+            code: true,
+            type: true,
+            discount: true,
+            discountPercent: true,
+            verifiedAvgPercent: true,
+            translations: { where: { locale: language }, select: { title: true } },
           },
         },
-        orderBy: [{ order: 'asc' }, { createdAt: 'desc' }],
-        take: 24,
-      })
-    ),
-    safeFetch(getStoreRelatedPosts(store.id, language, 6)),
-    safeFetch(
-      prisma.otherPromo.findMany({
-        where: {
-          storeId: store.id,
-          countryId: country.id,
-          isActive: true,
-          expiryDate: { lt: now },
+        linkedPromo: {
+          select: {
+            id: true,
+            type: true,
+            url: true,
+            discountPercent: true,
+            verifiedAvgPercent: true,
+            installmentMonths: true,
+            translations: { where: { locale: language }, select: { title: true } },
+            bank: { select: { logo: true, translations: { where: { locale: language }, select: { name: true } } } },
+            paymentMethod: { select: { logo: true, isBnpl: true, translations: { where: { locale: language }, select: { name: true } } } },
+            card: { select: { maxInstallmentMonths: true } },
+          },
         },
-        include: {
-          translations: { where: { locale: language } },
-          bank: { include: { translations: { where: { locale: language } } } },
-          paymentMethod: { include: { translations: { where: { locale: language } } } },
-          card: true,
-        },
-        orderBy: { order: 'asc' },
-        take: 10,
-      })
-    ),
-    safeFetch(
-      prisma.otherPromo.findMany({
-        where: {
-          storeId: store.id,
-          countryId: country.id,
-          isActive: true,
-          OR: [{ expiryDate: null }, { expiryDate: { gte: now } }],
-        },
-        include: {
-          translations: { where: { locale: language } },
-          bank: { include: { translations: { where: { locale: language } } } },
-          paymentMethod: { include: { translations: { where: { locale: language } } } },
-          card: true,
-        },
-        orderBy: [{ order: 'asc' }, { discountPercent: 'desc' }, { verifiedAvgPercent: 'desc' }],
-        take: 20,
-      })
-    ),
+      },
+      orderBy: [{ order: 'asc' }, { createdAt: 'desc' }],
+      take: 24,
+    }),
+    getStoreRelatedPosts(store.id, language, 6),
+    prisma.otherPromo.findMany({
+      where: {
+        storeId: store.id,
+        countryId: country.id,
+        isActive: true,
+        expiryDate: { lt: now },
+      },
+      include: {
+        translations: { where: { locale: language } },
+        bank: { include: { translations: { where: { locale: language } } } },
+        paymentMethod: { include: { translations: { where: { locale: language } } } },
+        card: true,
+      },
+      orderBy: { order: 'asc' },
+      take: 10,
+    }),
+    prisma.otherPromo.findMany({
+      where: {
+        storeId: store.id,
+        countryId: country.id,
+        isActive: true,
+        OR: [{ expiryDate: null }, { expiryDate: { gte: now } }],
+      },
+      include: {
+        translations: { where: { locale: language } },
+        bank: { include: { translations: { where: { locale: language } } } },
+        paymentMethod: { include: { translations: { where: { locale: language } } } },
+        card: true,
+      },
+      orderBy: [{ order: 'asc' }, { discountPercent: 'desc' }, { verifiedAvgPercent: 'desc' }],
+      take: 20,
+    }),
   ]);
 
   // ── 3. Process data ──────────────────────────────────────────────────────
@@ -613,7 +585,6 @@ export default async function StorePage({ params }) {
     latestVoucherDate,
   };
 
-  // ✅ FIX: Only store‑specific FAQs – no general FAQ component
   const hasStoreFaqs = faqs.length > 0;
 
   return (
@@ -628,7 +599,7 @@ export default async function StorePage({ params }) {
         maxSavings={maxSavings}
         updatedAt={store.updatedAt}
         faqs={faqs}
-        generalFaqs={[]} // ✅ FIX: No generic FAQ items
+        generalFaqs={[]}
         breadcrumbs={breadcrumbItems}
       />
 
@@ -718,9 +689,8 @@ export default async function StorePage({ params }) {
           </div>
         </div>
 
-        {/* ✅ FIX: PromoCodesFAQ completely removed from store pages */}
         <HelpBox locale={locale} />
       </div>
     </>
   );
-    }
+}
