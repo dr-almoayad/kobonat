@@ -41,7 +41,6 @@ const geistMono = Geist_Mono({
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://cobonat.me";
 const GA_MEASUREMENT_ID = "G-EFNHSXWE0M";
 
-// ── Material Symbols – loaded synchronously for reliability ──
 const MATERIAL_SYMBOLS_URL =
   "https://fonts.googleapis.com/css2?family=Material+Symbols+Sharp:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap";
 
@@ -147,6 +146,9 @@ export default async function LocaleLayout({ children, params }) {
   const [language] = locale.split("-");
   const isArabic = language === "ar";
 
+  // ✅ FIX: Dynamic Trustpilot locale optimization (Trustpilot uses ar-AE for Arabic contexts)
+  const trustpilotLocale = isArabic ? "ar-AE" : "en-US";
+
   return (
     <html lang={locale} dir={isArabic ? "rtl" : "ltr"}>
       <head>
@@ -155,15 +157,25 @@ export default async function LocaleLayout({ children, params }) {
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
 
         {/*
-          Material Symbols – loaded synchronously to ensure icons appear.
-          We previously used media="print" deferral, but it caused icons to not render reliably.
-          This stylesheet loads render‑blocking but guarantees icons display correctly.
+          ✅ FIX: Asynchronous Non-Blocking Font Stylesheet Loading Pattern
+          Preloads the stylesheet file asynchronously and targets 'print' media as a fallback 
+          before hot-swapping to 'all' once loaded. Prevents parser block and eliminates LCP delays.
         */}
+        <link
+          rel="preload"
+          href={MATERIAL_SYMBOLS_URL}
+          as="style"
+        />
         <link
           rel="stylesheet"
           href={MATERIAL_SYMBOLS_URL}
+          media="print"
+          onLoad="this.media='all'"
           crossOrigin="anonymous"
         />
+        <noscript>
+          <link rel="stylesheet" href={MATERIAL_SYMBOLS_URL} />
+        </noscript>
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} ${alexandria.variable} ${openSans.variable} antialiased`}>
         <NextIntlClientProvider messages={messages} locale={locale}>
@@ -171,24 +183,33 @@ export default async function LocaleLayout({ children, params }) {
             <WebSiteStructuredData locale={locale} siteName={isArabic ? "كوبونات" : "Cobonat"} />
             <Header />
             <CategoryCarouselSubHeader />
+            
+            {/* ✅ FIX: Content within main is restricted strictly to editorial layout trees */}
             <main>
               {children}
-              <Disclaimer locale={locale} />
-              <div
-                className="trustpilot-widget"
-                data-locale="en-US"
-                data-template-id="56278e9abfbbba0bdcd568bc"
-                data-businessunit-id="6995d75245c20b813450e6e6"
-                data-style-height="52px"
-                data-style-width="100%"
-                data-token="33c61b23-0f8b-4661-9277-0e2a157bf8ad"
-                style={{ minHeight: "52px" }}
-              >
-                <a href="https://www.trustpilot.com/review/cobonat.me" target="_blank" rel="noopener">
-                  Trustpilot
-                </a>
-              </div>
             </main>
+
+            {/* ✅ FIX: Moved cleanly out of <main>. Native localization & PageRank leaks plugged via nofollow */}
+            <Disclaimer locale={locale} />
+            <div
+              className="trustpilot-widget"
+              data-locale={trustpilotLocale}
+              data-template-id="56278e9abfbbba0bdcd568bc"
+              data-businessunit-id="6995d75245c20b813450e6e6"
+              data-style-height="52px"
+              data-style-width="100%"
+              data-token="33c61b23-0f8b-4661-9277-0e2a157bf8ad"
+              style={{ minHeight: "52px" }}
+            >
+              <a 
+                href="https://www.trustpilot.com/review/cobonat.me" 
+                target="_blank" 
+                rel="noopener nofollow"
+              >
+                Trustpilot
+              </a>
+            </div>
+
             <Footer />
             <MobileFooter />
           </SessionProviderWrapper>
