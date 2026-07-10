@@ -3,6 +3,7 @@
 // - Pre‑fetches all data for sections: HeroCurated, OfferStacks, Blog
 // - Passes data as props to child components
 // - Retains all existing metadata and structured data
+// - ✅ Affiliate network verification tags are now scoped strictly to the homepage
 
 import { prisma } from "@/lib/prisma";
 import { getTranslations } from 'next-intl/server';
@@ -82,6 +83,12 @@ export async function generateMetadata({ params }) {
         'max-image-preview': 'large',
         'max-snippet': -1,
       },
+    },
+    // ✅ FIX: Affiliate verification tags added here so they only render on the root page
+    other: {
+      "Takeads-verification": "ac9f8039-eeff-43ac-8757-df8d658ef91b",
+      "tradetracker-site-verification": "813f3ae64e317d77ca412f3741e5d24b3c977369",
+      "verify-admitad": "95d170f413",
     },
   };
 }
@@ -462,4 +469,4 @@ export default async function Home({ params }) {
       </main>
     </>
   );
-  }
+}
