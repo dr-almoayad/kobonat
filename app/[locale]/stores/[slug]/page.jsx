@@ -599,7 +599,6 @@ export default async function StorePage({ params }) {
         maxSavings={maxSavings}
         updatedAt={store.updatedAt}
         faqs={faqs}
-        generalFaqs={[]}
         breadcrumbs={breadcrumbItems}
       />
 
