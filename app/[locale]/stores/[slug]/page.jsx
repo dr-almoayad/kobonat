@@ -287,8 +287,12 @@ export default async function StorePage({ params }) {
     ? store.coverImage
     : `${BASE_URL}${store.coverImage?.startsWith('/') ? '' : '/'}${store.coverImage || ''}`;
 
-  const transformedStore = {
+const transformedStore = {
     ...store,
+    // ✅ FIX: Serialize Date objects to ISO strings before crossing the RSC boundary
+    updatedAt: store.updatedAt?.toISOString() ?? null,
+    createdAt: store.createdAt?.toISOString() ?? null,
+    
     name: storeTranslation?.name || slug,
     slug: storeTranslation?.slug || slug,
     description: storeTranslation?.description || null,
