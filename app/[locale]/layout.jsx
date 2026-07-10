@@ -125,9 +125,6 @@ export async function generateMetadata({ params }) {
 
     other: {
       "msapplication-TileColor": "#470ae2",
-      "Takeads-verification": "ac9f8039-eeff-43ac-8757-df8d658ef91b",
-      "tradetracker-site-verification": "813f3ae64e317d77ca412f3741e5d24b3c977369",
-      "verify-admitad": "95d170f413",
     },
   };
 }
