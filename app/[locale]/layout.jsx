@@ -48,15 +48,13 @@ const MATERIAL_SYMBOLS_URL =
   "https://fonts.googleapis.com/css2?family=Material+Symbols+Sharp:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap";
 
 // ── Server‑side category fetch with ISR caching ──────────────────────
-async function getCategories(locale, region) {
+async function getCategories(locale) {
   try {
     const lang = locale.split('-')[0];
 
-    // Build where clause – if region is missing, fetch all categories
-    const whereClause = region ? { countryCode: region } : {};
-
+    // Fetch top 18 categories based on how many stores they have
     const categories = await prisma.category.findMany({
-      where: whereClause,
+      // Removed the 'countryCode' where clause that was likely crashing Prisma
       include: {
         translations: {
           where: { locale: lang },
@@ -72,24 +70,25 @@ async function getCategories(locale, region) {
       take: 18,
     });
 
-    // If no categories for this country, fallback to all categories
-    if (categories.length === 0 && region) {
-      console.warn(`[Layout] No categories for country "${region}", falling back to all.`);
-      const allCategories = await prisma.category.findMany({
-        include: {
-          translations: { where: { locale: lang }, select: { name: true, slug: true } },
-          _count: { select: { stores: true } },
-        },
-        orderBy: { stores: { _count: 'desc' } },
-        take: 18,
-      });
-      return mapCategories(allCategories);
+    if (!categories || categories.length === 0) {
+      console.warn('[Layout] Prisma returned 0 categories.');
+      return [];
     }
 
-    return mapCategories(categories);
+    return categories.map((cat) => {
+      const t = cat.translations[0] || {};
+      return {
+        id: cat.id,
+        slug: t.slug || cat.slug || `category-${cat.id}`,
+        name: t.name || cat.name || 'Category',
+        image: cat.image,
+        icon: cat.icon,
+      };
+    });
   } catch (error) {
-    console.error('[Layout] Failed to fetch categories:', error);
-    return []; // graceful fallback – hides the carousel
+    // This will now print the EXACT reason it's failing to your terminal
+    console.error('[Layout] CRITICAL ERROR fetching categories:', error.message);
+    return []; 
   }
 }
 
