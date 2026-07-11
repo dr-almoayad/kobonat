@@ -13,7 +13,9 @@ import CategoryCarouselSubHeader from "@/components/headers/CategoryCarouselSubH
 import Disclaimer from "@/components/Disclaimer/Disclaimer";
 import WebSiteStructuredData from "@/components/StructuredData/WebSiteStructuredData";
 import Script from 'next/script';
+import { prisma } from '@/lib/prisma'; // 👈 direct database access
 
+// ── Fonts ──────────────────────────────────────────────────────────────
 const alexandria = Alexandria({
   subsets: ["arabic"],
   variable: "--font-alexandria",
@@ -38,12 +40,57 @@ const geistMono = Geist_Mono({
   display: "swap",
 });
 
+// ── Constants ─────────────────────────────────────────────────────────
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://cobonat.me";
 const GA_MEASUREMENT_ID = "G-EFNHSXWE0M";
 
 const MATERIAL_SYMBOLS_URL =
   "https://fonts.googleapis.com/css2?family=Material+Symbols+Sharp:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap";
 
+// ── Server‑side category fetch (cached via ISR) ──────────────────────
+async function getCategories(locale, region) {
+  try {
+    const lang = locale.split('-')[0];
+    // Direct Prisma query – no HTTP overhead, and Next.js caches the result
+    const categories = await prisma.category.findMany({
+      where: {
+        countryCode: region,
+        // Add any other filters you need (e.g., only categories with stores)
+      },
+      include: {
+        translations: {
+          where: { locale: lang },
+          select: { name: true, slug: true },
+        },
+        _count: {
+          select: { stores: true },
+        },
+      },
+      orderBy: {
+        stores: { _count: 'desc' }, // most popular first
+      },
+      take: 18, // limit for the carousel
+    });
+
+    // Transform the data to match the component’s expected shape
+    return categories.map((cat) => {
+      const t = cat.translations[0] || {};
+      return {
+        id: cat.id,
+        slug: t.slug || cat.slug || `category-${cat.id}`,
+        name: t.name || cat.name || 'Category',
+        image: cat.image,
+        icon: cat.icon,
+        // preserve any other fields you need
+      };
+    });
+  } catch (error) {
+    console.error('[Layout] Failed to fetch categories:', error);
+    return []; // graceful fallback – carousel will be hidden
+  }
+}
+
+// ── Metadata ──────────────────────────────────────────────────────────
 export async function generateMetadata({ params }) {
   const { locale } = await params;
   const [language] = locale.split("-");
@@ -136,33 +183,31 @@ export const viewport = {
   themeColor: "#470ae2",
 };
 
+// ── Layout Component ──────────────────────────────────────────────────
 export default async function LocaleLayout({ children, params }) {
   const { locale } = await params;
   setRequestLocale(locale);
   const messages = await getMessages();
-  const [language] = locale.split("-");
+  const [language, region] = locale.split("-");
   const isArabic = language === "ar";
 
-  // ✅ FIX: Dynamic Trustpilot locale optimization (Trustpilot uses ar-AE for Arabic contexts)
+  // ✅ FIX: Fetch categories server‑side with ISR caching
+  const categories = await getCategories(locale, region);
+
+  // Dynamic Trustpilot locale
   const trustpilotLocale = isArabic ? "ar-AE" : "en-US";
 
   return (
     <html lang={locale} dir={isArabic ? "rtl" : "ltr"}>
       <head>
-        {/* Preconnect to Google Fonts servers */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
 
         {/*
-          ✅ FIX: Asynchronous Non-Blocking Font Stylesheet Loading Pattern
-          Preloads the stylesheet file asynchronously and targets 'print' media as a fallback 
-          before hot-swapping to 'all' once loaded. Prevents parser block and eliminates LCP delays.
+          ✅ Asynchronous Non-Blocking Font Stylesheet Loading
+          Preloads the stylesheet and uses 'print' media until loaded.
         */}
-        <link
-          rel="preload"
-          href={MATERIAL_SYMBOLS_URL}
-          as="style"
-        />
+        <link rel="preload" href={MATERIAL_SYMBOLS_URL} as="style" />
         <link
           rel="stylesheet"
           href={MATERIAL_SYMBOLS_URL}
@@ -174,20 +219,30 @@ export default async function LocaleLayout({ children, params }) {
           <link rel="stylesheet" href={MATERIAL_SYMBOLS_URL} />
         </noscript>
       </head>
-      <body className={`${geistSans.variable} ${geistMono.variable} ${alexandria.variable} ${openSans.variable} antialiased`}>
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} ${alexandria.variable} ${openSans.variable} antialiased`}
+      >
         <NextIntlClientProvider messages={messages} locale={locale}>
           <SessionProviderWrapper>
-            <WebSiteStructuredData locale={locale} siteName={isArabic ? "كوبونات" : "Cobonat"} />
-            <Header />
-            <CategoryCarouselSubHeader />
-            
-            {/* ✅ FIX: Content within main is restricted strictly to editorial layout trees */}
-            <main>
-              {children}
-            </main>
+            <WebSiteStructuredData
+              locale={locale}
+              siteName={isArabic ? "كوبونات" : "Cobonat"}
+            />
 
-            {/* ✅ FIX: Moved cleanly out of <main>. Native localization & PageRank leaks plugged via nofollow */}
+            <Header />
+
+            {/*
+              ✅ FIX: Pass pre‑fetched categories to the carousel component.
+              This eliminates the client‑side `no‑store` fetch and prevents
+              database connection pool exhaustion.
+            */}
+            <CategoryCarouselSubHeader initialCategories={categories} />
+
+            <main>{children}</main>
+
+            {/* Disclaimer and Trustpilot – now outside <main> for cleaner semantics */}
             <Disclaimer locale={locale} />
+
             <div
               className="trustpilot-widget"
               data-locale={trustpilotLocale}
@@ -198,9 +253,9 @@ export default async function LocaleLayout({ children, params }) {
               data-token="33c61b23-0f8b-4661-9277-0e2a157bf8ad"
               style={{ minHeight: "52px" }}
             >
-              <a 
-                href="https://www.trustpilot.com/review/cobonat.me" 
-                target="_blank" 
+              <a
+                href="https://www.trustpilot.com/review/cobonat.me"
+                target="_blank"
                 rel="noopener nofollow"
               >
                 Trustpilot
@@ -212,6 +267,7 @@ export default async function LocaleLayout({ children, params }) {
           </SessionProviderWrapper>
         </NextIntlClientProvider>
 
+        {/* Google Analytics */}
         <Script
           src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
           strategy="lazyOnload"
@@ -225,6 +281,7 @@ export default async function LocaleLayout({ children, params }) {
           `}
         </Script>
 
+        {/* Trustpilot widget script */}
         <Script
           src="https://widget.trustpilot.com/bootstrap/v5/tp.widget.bootstrap.min.js"
           strategy="lazyOnload"
