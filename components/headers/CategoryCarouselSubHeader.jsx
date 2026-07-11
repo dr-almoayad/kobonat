@@ -11,16 +11,6 @@ const CategoryCarouselSubHeader = ({ initialCategories = [] }) => {
   const locale = useLocale();
   const isAr = locale?.startsWith('ar');
 
-  // Ensure categories is always an array
-  const [categories] = useState(() => {
-    if (Array.isArray(initialCategories) && initialCategories.length > 0) {
-      return initialCategories;
-    }
-    // Fallback: if empty or not array, return empty array
-    console.warn('[CategoryCarouselSubHeader] No categories received, hiding component.');
-    return [];
-  });
-
   const [isVisible, setIsVisible] = useState(true);
   const lastScrollYRef = useRef(0);
 
@@ -44,8 +34,9 @@ const CategoryCarouselSubHeader = ({ initialCategories = [] }) => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // If no categories, render nothing
-  if (categories.length === 0) {
+  // ✅ Check the prop directly. No useState trapping.
+  if (!initialCategories || initialCategories.length === 0) {
+    console.warn('[CategoryCarouselSubHeader] No categories received, hiding component.');
     return null;
   }
 
@@ -60,7 +51,8 @@ const CategoryCarouselSubHeader = ({ initialCategories = [] }) => {
           scrollSlides={7}
           className="ccs-embla"
         >
-          {categories.map((category) => (
+          {/* ✅ Map directly over the prop */}
+          {initialCategories.map((category) => (
             <div key={category.id} className="ccs-slide">
               <Link href={`/${locale}/categories/${category.slug}`} className="ccs-item">
                 <div className="ccs-icon-wrap">
