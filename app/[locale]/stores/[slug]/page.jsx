@@ -1,4 +1,3 @@
-// app/[locale]/stores/[slug]/page.jsx
 import { prisma } from '@/lib/prisma';
 import { notFound, permanentRedirect } from 'next/navigation'; 
 import { getTranslations } from 'next-intl/server';
@@ -61,7 +60,6 @@ async function handleLegacySlugFallback(slug, language) {
   const hasArabic = /[\u0600-\u06FF]/.test(slug);
   if (!hasArabic) return null;
   
-  // Extract the last word (usually the brand name, e.g., "نون" from "كود-خصم-نون")
   const keywords = slug.split('-');
   const likelyBrandName = keywords[keywords.length - 1]; 
   
@@ -92,6 +90,7 @@ export async function generateMetadata({ params }) {
     const [language, countryCode] = locale.split('-');
     const isArabic = language === 'ar';
     const now = new Date();
+    const currentYear = now.getFullYear();
 
     let store = await getStoreData(slug, language, countryCode);
 
@@ -106,10 +105,23 @@ export async function generateMetadata({ params }) {
       return {};
     }
 
-    const storeTranslation = store.translations[0];
-    const storeName = storeTranslation?.name || slug;
+    const storeTranslation = store.translations[0] || {};
+    const storeName = storeTranslation.name || slug;
 
-    // Build hreflang parameters first to handle English noindex canonicals
+    // ── 1. KSA-Targeted SEO Titles & Descriptions ──
+    const generatedTitle = isArabic
+      ? `كود خصم ${storeName} السعودية ${currentYear} - كوبونات وعروض مجربة`
+      : `Verified ${storeName} Promo Codes KSA - ${currentYear} Offers & Deals`;
+      
+    const finalTitle = storeTranslation.seoTitle || generatedTitle;
+
+    const generatedDescription = isArabic 
+      ? `تسوق بذكاء ووفر أكثر! اكتشف أقوى أكواد خصم وعروض ${storeName} الفعالة والمجربة في السعودية. انسخ الكود واستمتع بخصم فوري على مشترياتك الآن.` 
+      : `Shop smarter with verified ${storeName} promo codes and exclusive KSA offers. Apply our tested coupons at checkout for instant savings on your next order.`;
+
+    const finalDescription = storeTranslation.seoDescription || storeTranslation.description || generatedDescription;
+
+    // ── 2. Hreflang and English Canonical Logic ──
     const otherLocale = language === 'ar' ? 'en' : 'ar';
     const otherTranslation = await prisma.storeTranslation.findFirst({
       where: { storeId: store.id, locale: otherLocale },
@@ -119,24 +131,12 @@ export async function generateMetadata({ params }) {
     const arSlug = language === 'ar' ? slug : (otherTranslation?.slug || null);
     const enSlug = language === 'en' ? slug : (otherTranslation?.slug || null);
 
-    // ✅ FIX 3: Restore English noindex to prevent duplicate content indexing
-    if (language === 'en') {
-      return {
-        robots: { index: false, follow: true },
-        title: `${storeName} Coupons`,
-        description: `Find the latest ${storeName} discount codes and deals. Updated daily.`,
-        alternates: {
-          canonical: `${BASE_URL}/ar-SA/stores/${arSlug || slug}`,
-        },
-      };
-    }
-
     const hreflangLanguages = {};
     if (arSlug) hreflangLanguages['ar-SA'] = `${BASE_URL}/ar-SA/stores/${arSlug}`;
     if (enSlug) hreflangLanguages['en-SA'] = `${BASE_URL}/en-SA/stores/${enSlug}`;
     hreflangLanguages['x-default'] = `${BASE_URL}/ar-SA/stores/${arSlug || enSlug || slug}`;
 
-    // ── Count active vouchers for this store ──
+    // ── 3. Count active vouchers for this store ──
     const voucherCount = await prisma.voucher.count({
       where: {
         storeId: store.id,
@@ -145,107 +145,54 @@ export async function generateMetadata({ params }) {
       },
     });
 
-    // Noindex zero‑voucher stores with no description
-    const hasDescription = storeTranslation?.description && storeTranslation.description.length > 50;
-    if (voucherCount === 0 && !hasDescription) {
-      return {
-        robots: { index: false, follow: true },
-        alternates: { canonical: `${BASE_URL}/${locale}/stores/${slug}` },
-      };
-    }
+    // ── 4. Thin-Content Guard & Indexing Logic ──
+    const hasDescription = !!(storeTranslation.description && storeTranslation.description.trim().length > 0);
+    const isThinContent = voucherCount === 0 && !hasDescription;
+    
+    // Per previous codebase rules: English pages are noindexed to prevent duplicate content,
+    // AND pages are noindexed if they are thin content.
+    const shouldIndex = !isThinContent && language !== 'en';
+    const canonicalUrl = language === 'en' 
+      ? `${BASE_URL}/ar-SA/stores/${arSlug || slug}` 
+      : `${BASE_URL}/${locale}/stores/${slug}`;
 
     const ogImage = store.coverImage || store.logo || `${BASE_URL}/logo-512x512.png`;
     const finalOgImage = ogImage.startsWith('http') ? ogImage : `${BASE_URL}${ogImage.startsWith('/') ? '' : '/'}${ogImage}`;
 
-    // Custom SEO
-    if (storeTranslation?.seoTitle || storeTranslation?.seoDescription) {
-      return {
-        metadataBase: new URL(BASE_URL),
-        title: storeTranslation.seoTitle || storeName,
-        description: storeTranslation.seoDescription || storeTranslation?.description || '',
-        alternates: {
-          canonical: `${BASE_URL}/${locale}/stores/${slug}`,
-          languages: hreflangLanguages,
-        },
-        openGraph: {
-          siteName: isArabic ? 'كوبونات' : 'Cobonat',
-          title: storeTranslation.seoTitle || storeName,
-          description: storeTranslation.seoDescription || storeTranslation?.description || '',
-          type: 'website',
-          locale,
-          url: `${BASE_URL}/${locale}/stores/${slug}`,
-          images: [{ url: finalOgImage, width: 1200, height: 630 }],
-        },
-        twitter: {
-          card: 'summary_large_image',
-          site: '@cobonat',
-          title: storeTranslation.seoTitle || storeName,
-          description: storeTranslation.seoDescription || storeTranslation?.description || '',
-          images: [finalOgImage],
-        },
-        robots: {
-          index: true,
-          follow: true,
-          googleBot: { index: true, follow: true, 'max-image-preview': 'large', 'max-snippet': -1 },
-        },
-      };
-    }
-
-    // Dynamic metadata (no custom SEO)
-    const [savingsAgg] = await Promise.all([
-      prisma.voucher.findMany({
-        where: {
-          storeId: store.id,
-          countries: { some: { country: { code: countryCode } } },
-          OR: [{ expiryDate: null }, { expiryDate: { gte: now } }],
-          AND: [{ OR: [{ verifiedAvgPercent: { gt: 0 } }, { discountPercent: { gt: 0 } }] }],
-        },
-        select: { discountPercent: true, verifiedAvgPercent: true },
-      }),
-    ]);
-
-    const maxSavings = savingsAgg.reduce((max, v) => {
-      const pct = v.verifiedAvgPercent ?? v.discountPercent ?? 0;
-      return pct > max ? pct : max;
-    }, 0);
-
-    const { title, description: autoDescription } = generateStorePageTitle({
-      storeName,
-      locale,
-      codeCount: voucherCount,
-      maxSavings,
-    });
-
-    const description = storeTranslation?.description || autoDescription;
-
+    // ── 5. Unified Metadata Return ──
     return {
       metadataBase: new URL(BASE_URL),
-      title,
-      description,
+      title: finalTitle,
+      description: finalDescription,
       alternates: {
-        canonical: `${BASE_URL}/${locale}/stores/${slug}`,
+        canonical: canonicalUrl,
         languages: hreflangLanguages,
       },
       openGraph: {
         siteName: isArabic ? 'كوبونات' : 'Cobonat',
-        title,
-        description,
+        title: finalTitle, // ✅ Explicitly sets the OG Title to the rich KSA version
+        description: finalDescription,
         type: 'website',
         locale,
         url: `${BASE_URL}/${locale}/stores/${slug}`,
-        images: [{ url: finalOgImage, width: 1200, height: 630 }],
+        images: [{ url: finalOgImage, width: 1200, height: 630, alt: storeName }],
       },
       twitter: {
         card: 'summary_large_image',
         site: '@cobonat',
-        title,
-        description,
+        title: finalTitle, // ✅ Explicitly sets the Twitter Title
+        description: finalDescription,
         images: [finalOgImage],
       },
       robots: {
-        index: true,
+        index: shouldIndex, // ✅ Thin content & English canonical guard applied
         follow: true,
-        googleBot: { index: true, follow: true, 'max-image-preview': 'large', 'max-snippet': -1 },
+        googleBot: { 
+          index: shouldIndex, 
+          follow: true, 
+          'max-image-preview': 'large', 
+          'max-snippet': -1 
+        },
       },
     };
   } catch (error) {
@@ -256,7 +203,6 @@ export async function generateMetadata({ params }) {
 
 // ── Page Component ─────────────────────────────────────────────────────────────
 export default async function StorePage({ params }) {
-  // ── 1. ESSENTIAL: store + country (outside try/catch for proper 404 handling) ──
   const { slug: rawSlug, locale } = await params;
   let slug = decodeURIComponent(rawSlug);
   const [language, countryCode] = locale.split('-');
@@ -287,12 +233,10 @@ export default async function StorePage({ params }) {
     ? store.coverImage
     : `${BASE_URL}${store.coverImage?.startsWith('/') ? '' : '/'}${store.coverImage || ''}`;
 
-const transformedStore = {
+  const transformedStore = {
     ...store,
-    // ✅ FIX: Serialize Date objects to ISO strings before crossing the RSC boundary
     updatedAt: store.updatedAt?.toISOString() ?? null,
     createdAt: store.createdAt?.toISOString() ?? null,
-    
     name: storeTranslation?.name || slug,
     slug: storeTranslation?.slug || slug,
     description: storeTranslation?.description || null,
@@ -307,9 +251,6 @@ const transformedStore = {
     })),
   };
 
-  // ── 2. SUPPLEMENTAL: all other data ─────────────────────────────────────────
-  // ✅ FIX 1: safeFetch removed. If Prisma times out, the page throws 500.
-  // Next.js ISR preserves the last good HTML in cache instead of saving a blank page.
   const [
     allVouchers,
     paymentMethodsData,
@@ -428,7 +369,6 @@ const transformedStore = {
     }),
   ]);
 
-  // ── 3. Process data ──────────────────────────────────────────────────────
   const activeVouchers = allVouchers.filter(v => !v.expiryDate || v.expiryDate >= now);
   const expiredVouchers = allVouchers.filter(v => v.expiryDate && v.expiryDate < now).slice(0, 10);
 
