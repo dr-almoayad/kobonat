@@ -7,23 +7,20 @@ import Image from 'next/image';
 import EmblaCarousel from '@/components/EmblaCarousel/EmblaCarousel';
 import './CategoryCarouselSubHeader.css';
 
-/**
- * CategoryCarouselSubHeader – Sticky category navigation bar
- * 
- * ✅ FIXED: Now receives `initialCategories` as a prop from the parent server component.
- *           No more client‑side data fetching, no `{ cache: 'no-store' }` API calls.
- *           This eliminates ISR cache poisoning and database connection pool exhaustion.
- * 
- * @param {Array} initialCategories – Pre‑fetched categories (server‑side, with ISR caching)
- */
 const CategoryCarouselSubHeader = ({ initialCategories = [] }) => {
   const locale = useLocale();
   const isAr = locale?.startsWith('ar');
 
-  // Use the pre‑fetched data directly – no loading state needed
-  const [categories] = useState(initialCategories);
+  // Ensure categories is always an array
+  const [categories] = useState(() => {
+    if (Array.isArray(initialCategories) && initialCategories.length > 0) {
+      return initialCategories;
+    }
+    // Fallback: if empty or not array, return empty array
+    console.warn('[CategoryCarouselSubHeader] No categories received, hiding component.');
+    return [];
+  });
 
-  // Scroll hide/show logic (unchanged)
   const [isVisible, setIsVisible] = useState(true);
   const lastScrollYRef = useRef(0);
 
@@ -47,8 +44,8 @@ const CategoryCarouselSubHeader = ({ initialCategories = [] }) => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // If no categories, render nothing (graceful fallback)
-  if (!categories || categories.length === 0) {
+  // If no categories, render nothing
+  if (categories.length === 0) {
     return null;
   }
 
@@ -60,7 +57,7 @@ const CategoryCarouselSubHeader = ({ initialCategories = [] }) => {
           slideWidth="auto"
           slideGap="0.2rem"
           freeScroll={true}
-          scrollSlides={7}        // scroll 7 slides per click
+          scrollSlides={7}
           className="ccs-embla"
         >
           {categories.map((category) => (
