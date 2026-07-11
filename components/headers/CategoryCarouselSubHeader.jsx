@@ -1,4 +1,5 @@
 "use client";
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useLocale } from 'next-intl';
 import Link from 'next/link';
@@ -6,32 +7,25 @@ import Image from 'next/image';
 import EmblaCarousel from '@/components/EmblaCarousel/EmblaCarousel';
 import './CategoryCarouselSubHeader.css';
 
-const CategoryCarouselSubHeader = () => {
+/**
+ * CategoryCarouselSubHeader – Sticky category navigation bar
+ * 
+ * ✅ FIXED: Now receives `initialCategories` as a prop from the parent server component.
+ *           No more client‑side data fetching, no `{ cache: 'no-store' }` API calls.
+ *           This eliminates ISR cache poisoning and database connection pool exhaustion.
+ * 
+ * @param {Array} initialCategories – Pre‑fetched categories (server‑side, with ISR caching)
+ */
+const CategoryCarouselSubHeader = ({ initialCategories = [] }) => {
   const locale = useLocale();
   const isAr = locale?.startsWith('ar');
-  const [categories, setCategories] = useState([]);
-  const [loading, setLoading] = useState(true);
+
+  // Use the pre‑fetched data directly – no loading state needed
+  const [categories] = useState(initialCategories);
+
+  // Scroll hide/show logic (unchanged)
   const [isVisible, setIsVisible] = useState(true);
   const lastScrollYRef = useRef(0);
-
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const [language, region] = locale.split('-');
-        const res = await fetch(
-          `/api/categories?locale=${language}&country=${region}`,
-          { cache: 'no-store' }
-        );
-        if (!res.ok) throw new Error('Failed to load');
-        setCategories(await res.json());
-      } catch (err) {
-        console.error('CategoryCarousel:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchCategories();
-  }, [locale]);
 
   useEffect(() => {
     let ticking = false;
@@ -40,8 +34,11 @@ const CategoryCarouselSubHeader = () => {
       ticking = true;
       window.requestAnimationFrame(() => {
         const y = window.scrollY;
-        if (y > lastScrollYRef.current && y > 60) setIsVisible(false);
-        else if (y < lastScrollYRef.current || y < 40) setIsVisible(true);
+        if (y > lastScrollYRef.current && y > 60) {
+          setIsVisible(false);
+        } else if (y < lastScrollYRef.current || y < 40) {
+          setIsVisible(true);
+        }
         lastScrollYRef.current = y;
         ticking = false;
       });
@@ -50,7 +47,10 @@ const CategoryCarouselSubHeader = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  if (loading || categories.length === 0) return null;
+  // If no categories, render nothing (graceful fallback)
+  if (!categories || categories.length === 0) {
+    return null;
+  }
 
   return (
     <div className={`ccs-wrapper ${isVisible ? 'ccs-visible' : 'ccs-hidden'}`}>
@@ -60,7 +60,7 @@ const CategoryCarouselSubHeader = () => {
           slideWidth="auto"
           slideGap="0.2rem"
           freeScroll={true}
-          scrollSlides={7}        // ✅ scroll 7 slides per click
+          scrollSlides={7}        // scroll 7 slides per click
           className="ccs-embla"
         >
           {categories.map((category) => (
