@@ -13,9 +13,9 @@ import CategoryCarouselSubHeader from "@/components/headers/CategoryCarouselSubH
 import Disclaimer from "@/components/Disclaimer/Disclaimer";
 import WebSiteStructuredData from "@/components/StructuredData/WebSiteStructuredData";
 import Script from 'next/script';
-import { prisma } from '@/lib/prisma'; // 👈 direct database access
+import { prisma } from '@/lib/prisma'; // ✅ Direct Prisma access
 
-// ── Fonts ──────────────────────────────────────────────────────────────
+// ── Fonts ───────────────────────────────────────────────────────────────
 const alexandria = Alexandria({
   subsets: ["arabic"],
   variable: "--font-alexandria",
@@ -40,23 +40,23 @@ const geistMono = Geist_Mono({
   display: "swap",
 });
 
-// ── Constants ─────────────────────────────────────────────────────────
+// ── Constants ──────────────────────────────────────────────────────────
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://cobonat.me";
 const GA_MEASUREMENT_ID = "G-EFNHSXWE0M";
 
 const MATERIAL_SYMBOLS_URL =
   "https://fonts.googleapis.com/css2?family=Material+Symbols+Sharp:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap";
 
-// ── Server‑side category fetch (cached via ISR) ──────────────────────
+// ── Server‑side category fetch with ISR caching ──────────────────────
 async function getCategories(locale, region) {
   try {
     const lang = locale.split('-')[0];
-    // Direct Prisma query – no HTTP overhead, and Next.js caches the result
+
+    // Build where clause – if region is missing, fetch all categories
+    const whereClause = region ? { countryCode: region } : {};
+
     const categories = await prisma.category.findMany({
-      where: {
-        countryCode: region,
-        // Add any other filters you need (e.g., only categories with stores)
-      },
+      where: whereClause,
       include: {
         translations: {
           where: { locale: lang },
@@ -67,30 +67,47 @@ async function getCategories(locale, region) {
         },
       },
       orderBy: {
-        stores: { _count: 'desc' }, // most popular first
+        stores: { _count: 'desc' },
       },
-      take: 18, // limit for the carousel
+      take: 18,
     });
 
-    // Transform the data to match the component’s expected shape
-    return categories.map((cat) => {
-      const t = cat.translations[0] || {};
-      return {
-        id: cat.id,
-        slug: t.slug || cat.slug || `category-${cat.id}`,
-        name: t.name || cat.name || 'Category',
-        image: cat.image,
-        icon: cat.icon,
-        // preserve any other fields you need
-      };
-    });
+    // If no categories for this country, fallback to all categories
+    if (categories.length === 0 && region) {
+      console.warn(`[Layout] No categories for country "${region}", falling back to all.`);
+      const allCategories = await prisma.category.findMany({
+        include: {
+          translations: { where: { locale: lang }, select: { name: true, slug: true } },
+          _count: { select: { stores: true } },
+        },
+        orderBy: { stores: { _count: 'desc' } },
+        take: 18,
+      });
+      return mapCategories(allCategories);
+    }
+
+    return mapCategories(categories);
   } catch (error) {
     console.error('[Layout] Failed to fetch categories:', error);
-    return []; // graceful fallback – carousel will be hidden
+    return []; // graceful fallback – hides the carousel
   }
 }
 
-// ── Metadata ──────────────────────────────────────────────────────────
+// Helper to transform Prisma result to the shape expected by the component
+function mapCategories(cats) {
+  return cats.map((cat) => {
+    const t = cat.translations[0] || {};
+    return {
+      id: cat.id,
+      slug: t.slug || cat.slug || `category-${cat.id}`,
+      name: t.name || cat.name || 'Category',
+      image: cat.image,
+      icon: cat.icon,
+    };
+  });
+}
+
+// ── Metadata ───────────────────────────────────────────────────────────
 export async function generateMetadata({ params }) {
   const { locale } = await params;
   const [language] = locale.split("-");
@@ -191,7 +208,7 @@ export default async function LocaleLayout({ children, params }) {
   const [language, region] = locale.split("-");
   const isArabic = language === "ar";
 
-  // ✅ FIX: Fetch categories server‑side with ISR caching
+  // ✅ Fetch categories server‑side (cached by Next.js)
   const categories = await getCategories(locale, region);
 
   // Dynamic Trustpilot locale
@@ -203,10 +220,7 @@ export default async function LocaleLayout({ children, params }) {
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
 
-        {/*
-          ✅ Asynchronous Non-Blocking Font Stylesheet Loading
-          Preloads the stylesheet and uses 'print' media until loaded.
-        */}
+        {/* Asynchronous Material Symbols loading */}
         <link rel="preload" href={MATERIAL_SYMBOLS_URL} as="style" />
         <link
           rel="stylesheet"
@@ -232,15 +246,13 @@ export default async function LocaleLayout({ children, params }) {
             <Header />
 
             {/*
-              ✅ FIX: Pass pre‑fetched categories to the carousel component.
-              This eliminates the client‑side `no‑store` fetch and prevents
-              database connection pool exhaustion.
+              ✅ Pass pre‑fetched categories to the carousel.
+              The component will render nothing if the array is empty.
             */}
             <CategoryCarouselSubHeader initialCategories={categories} />
 
             <main>{children}</main>
 
-            {/* Disclaimer and Trustpilot – now outside <main> for cleaner semantics */}
             <Disclaimer locale={locale} />
 
             <div
