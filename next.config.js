@@ -1,4 +1,4 @@
-// next.config.js - FINAL CORRECTED VERSION
+// next.config.js
 import createNextIntlPlugin from 'next-intl/plugin';
 
 const withNextIntl = createNextIntlPlugin('./i18n/request.js');
@@ -85,6 +85,13 @@ const nextConfig = {
   
   async redirects() {
     return [
+      // ── ✅ CRITICAL FIX: Intercept root domain for 301 PageRank transfer ──
+      {
+        source: '/',
+        destination: '/ar-SA',
+        permanent: true,
+      },
+
       // ── Handle old 2-letter locale format ──
       {
         source: '/ar',
@@ -115,13 +122,10 @@ const nextConfig = {
       { source: '/cookies', destination: '/ar-SA/cookies', permanent: true },
       { source: '/help', destination: '/ar-SA/help', permanent: true },
 
-      // ── ✅ KEEP only exact‑path redirects for key routes ──
+      // ── KEEP only exact‑path redirects for key routes ──
       { source: '/stacks', destination: '/ar-SA/stacks', permanent: true },
       { source: '/coupons', destination: '/ar-SA/coupons', permanent: true },
       { source: '/blog', destination: '/ar-SA/blog', permanent: true },
-
-      // ❌ REMOVED: /blog/:path*, /categories/:path*, /stores/:path*
-      // They break static images (logos, category icons).
 
       // ── Redirect dead locales ──
       {
@@ -137,14 +141,7 @@ const nextConfig = {
     ];
   },
   
-  async rewrites() {
-    return [
-      {
-        source: '/api/:path*',
-        destination: '/api/:path*',
-      },
-    ];
-  },
+  // ❌ REMOVED: rewrites() block containing the self-referential /api/:path* mapping
   
   experimental: {
     optimizeCss: true,
@@ -154,7 +151,6 @@ const nextConfig = {
   productionBrowserSourceMaps: false,
   
   trailingSlash: false,
-  // skipTrailingSlashRedirect: true ← REMOVED
 };
 
 export default withNextIntl(nextConfig);
