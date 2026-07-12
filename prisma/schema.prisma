@@ -1,5 +1,5 @@
 // prisma/schema.prisma
-// FULL UPDATED SCHEMA – includes StoreIntelligenceSection for dynamic editorial content
+// FULL UPDATED SCHEMA – includes StoreIntelligenceSection and Slug Redirects
 
 generator client {
   provider = "prisma-client-js"
@@ -178,6 +178,12 @@ enum SectionBlockType {
   PROMO
 }
 
+// ── NEW: Redirect type ──────────────────────────────────────────────────────
+enum RedirectType {
+  PERMANENT  // 301
+  TEMPORARY  // 302
+}
+
 // ============================================================================
 // CORE MODELS
 // ============================================================================
@@ -281,6 +287,9 @@ model Store {
   embeddedInSectionBlocks SectionBlock[] @relation("SectionEmbeddedStores")
 
   seasonalPages       SeasonalPageStore[]
+
+  // ── NEW: Slug redirects ──
+  slugRedirects StoreSlugRedirect[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1011,6 +1020,9 @@ model BlogPost {
   embeddedInSectionBlocks SectionBlock[] @relation("SectionEmbeddedPosts")
 
   seasonalPages SeasonalPageBlogPost[]
+
+  // ── NEW: Slug redirects ──
+  slugRedirects BlogSlugRedirect[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1782,4 +1794,44 @@ model OtherPromoCategory {
   @@id([promoId, categoryId])
   @@index([categoryId, isFeatured, order])
   @@index([promoId])
+}
+
+// ============================================================================
+// ── NEW: SLUG REDIRECTS (SEO preservation) ──────────────────────────────────
+// ============================================================================
+
+model StoreSlugRedirect {
+  id        Int    @id @default(autoincrement())
+  oldSlug   String @unique
+  newSlug   String
+  locale    String            // 'ar' or 'en' – keeps redirects language‑specific
+  storeId   Int
+  store     Store  @relation(fields: [storeId], references: [id], onDelete: Cascade)
+
+  redirectType RedirectType @default(PERMANENT)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([oldSlug])
+  @@index([storeId])
+  @@index([locale])
+}
+
+model BlogSlugRedirect {
+  id        Int    @id @default(autoincrement())
+  oldSlug   String @unique
+  newSlug   String
+  locale    String            // 'ar' or 'en'
+  postId    Int
+  post      BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  redirectType RedirectType @default(PERMANENT)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([oldSlug])
+  @@index([postId])
+  @@index([locale])
 }
