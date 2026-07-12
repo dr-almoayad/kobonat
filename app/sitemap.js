@@ -1,11 +1,4 @@
 // app/sitemap.js
-// FULLY CORRECTED VERSION
-// Changes:
-// 1. Re-introduced a strict filter for stores: Only includes stores if they have > 0 active vouchers OR a text description.
-// 2. Synchronized sitemap inclusion logic with page-level noindex metadata rules to prevent conflicting Googlebot signals.
-// 3. Store lastModified uses store.updatedAt (real date).
-// 4. On ANY DB error, re‑throws to trigger 500 status – preserves Google's cached sitemap.
-
 import { prisma } from '@/lib/prisma';
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://cobonat.me';
@@ -70,7 +63,6 @@ export default async function sitemap() {
   const NOW = new Date();
 
   try {
-    // ── All DB queries in one parallel batch ───────────────────────────────
     const [
       latestVoucher,
       latestStore,
@@ -83,24 +75,20 @@ export default async function sitemap() {
       seasonal,
       blogPosts,
     ] = await Promise.all([
-
       prisma.voucher.findFirst({
         orderBy: { updatedAt: 'desc' },
         select: { updatedAt: true },
       }),
-
       prisma.store.findFirst({
         where: { isActive: true },
         orderBy: { updatedAt: 'desc' },
         select: { updatedAt: true },
       }),
-
       prisma.otherPromo.findFirst({
         where: { isActive: true },
         orderBy: { updatedAt: 'desc' },
         select: { updatedAt: true },
       }),
-
       prisma.voucher.count({
         where: {
           store: { isActive: true },
@@ -108,18 +96,15 @@ export default async function sitemap() {
           OR: [{ expiryDate: null }, { expiryDate: { gte: NOW } }],
         },
       }),
-
       prisma.offerStack.count({
         where: {
           isActive: true,
           store: { countries: { some: { country: { code: 'SA' } } } },
         },
       }),
-
       prisma.blogPost.count({
         where: { status: 'PUBLISHED' },
       }),
-
       prisma.category.findMany({
         where: {
           stores: {
@@ -139,8 +124,6 @@ export default async function sitemap() {
           },
         },
       }),
-
-      // ✅ FIX: Added _count for active vouchers and fetched the description field.
       prisma.store.findMany({
         where: {
           isActive: true,
@@ -152,7 +135,7 @@ export default async function sitemap() {
           isFeatured: true,
           translations: {
             where: { locale: { in: ['ar', 'en'] } },
-            select: { slug: true, locale: true, description: true }, // Needed to check for thin content
+            select: { slug: true, locale: true, description: true },
           },
           _count: {
             select: {
@@ -165,7 +148,6 @@ export default async function sitemap() {
           },
         },
       }),
-
       prisma.seasonalPage.findMany({
         where: {
           isActive: true,
@@ -180,7 +162,6 @@ export default async function sitemap() {
           },
         },
       }),
-
       prisma.blogPost.findMany({
         where: { status: 'PUBLISHED' },
         select: {
@@ -319,11 +300,8 @@ export default async function sitemap() {
       
       const alternates = slugAlternates(arSlug, enSlug, '/stores');
       const lastModified = safeDate(store.updatedAt);
-      
-      // Check active voucher count
       const activeVouchers = store._count?.vouchers || 0;
 
-      // ✅ FIX: Only push to sitemap if the store has active vouchers OR a unique description
       if (arSlug) {
         const hasArDescription = !!arTranslation?.description?.trim();
         if (activeVouchers > 0 || hasArDescription) {
