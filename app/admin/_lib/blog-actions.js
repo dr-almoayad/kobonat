@@ -5,7 +5,7 @@
 //           contentType, searchIntent, readingTime, faqJson, primaryStoreId,
 //           authorId, categoryId
 //   relations: translations (en + ar), tags, relatedPosts, linkedStores, relatedProducts
-
+  
 import { prisma } from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
 
