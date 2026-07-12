@@ -27,13 +27,12 @@ const isStaticAsset = (pathname) => {
   });
 };
 
-// ✅ FIX: Use permanent redirects (301) instead of temporary (307)
 const intlMiddleware = createMiddleware({
   locales: SUPPORTED_LOCALES,
   defaultLocale: DEFAULT_LOCALE,
   localePrefix: 'always',
   localeDetection: false,
-  redirect: 'permanent', // ← KEY CHANGE
+  alternateLinks: false, // ✅ KEY FIX: Disables automatic HTTP Link headers, delegating hreflang entirely to generateMetadata
 });
 
 export async function middleware(request) {
@@ -91,7 +90,8 @@ export async function middleware(request) {
       const newPathname = pathname.replace(`/${localeFromUrl}`, `/${DEFAULT_LOCALE}`);
       const url = request.nextUrl.clone();
       url.pathname = newPathname;
-      return NextResponse.redirect(url, 301);
+      // ✅ This custom 301 is correct and stays for malformed locale routing
+      return NextResponse.redirect(url, 301); 
     }
   }
 
