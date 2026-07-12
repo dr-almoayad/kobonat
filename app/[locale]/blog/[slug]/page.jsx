@@ -1,11 +1,11 @@
 // app/[locale]/blog/[slug]/page.jsx
 // FULLY CORRECTED VERSION
-// ✅ Added generateStaticParams to pre‑build all published blog posts (both locales).
-// Keeps all metadata, data fetching, and rendering logic unchanged.
+// ✅ Added blog slug redirect handling (301) – preserves SEO equity for renamed posts.
+// ✅ generateStaticParams pre‑builds all published blog posts (both locales).
 // Revalidate: 12 hours, dynamic params allowed.
 
 import { prisma } from '@/lib/prisma';
-import { notFound } from 'next/navigation';
+import { notFound, permanentRedirect } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import BlogPostStructuredData from '@/components/StructuredData/BlogPostStructuredData';
@@ -19,7 +19,15 @@ export const dynamicParams = true;
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://cobonat.me';
 
-// ── ✅ FIX: Pre‑build all published blog posts ──
+// ── ✅ FIX: Strict 301 redirect using the BlogSlugRedirect table ──
+async function handleBlogSlugRedirect(slug) {
+  const redirect = await prisma.blogSlugRedirect.findUnique({
+    where: { oldSlug: slug },
+  });
+  return redirect?.newSlug ?? null;
+}
+
+// ── ✅ Pre‑build all published blog posts ──
 export async function generateStaticParams() {
   try {
     const posts = await prisma.blogPost.findMany({
@@ -319,8 +327,15 @@ export default async function BlogPostPage({ params }) {
   const isRTL   = lang === 'ar';
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://cobonat.me';
 
-  const post = await getPost(slug, lang);
-  if (!post) notFound();
+  // ── ✅ FIX: Check redirect before notFound ──
+  let post = await getPost(slug, lang);
+  if (!post) {
+    const newSlug = await handleBlogSlugRedirect(slug);
+    if (newSlug) {
+      return permanentRedirect(`/${locale}/blog/${newSlug}`);
+    }
+    return notFound();
+  }
 
   const t          = post.translations[0] || {};
   const authorName = lang === 'ar' ? (post.author?.nameAr || post.author?.name) : post.author?.name;
