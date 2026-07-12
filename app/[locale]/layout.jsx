@@ -13,7 +13,9 @@ import CategoryCarouselSubHeader from "@/components/headers/CategoryCarouselSubH
 import Disclaimer from "@/components/Disclaimer/Disclaimer";
 import WebSiteStructuredData from "@/components/StructuredData/WebSiteStructuredData";
 import Script from 'next/script';
-import { prisma } from '@/lib/prisma'; // ✅ Direct Prisma access
+import { prisma } from '@/lib/prisma';
+import { cache } from 'react';
+import { unstable_cache } from 'next/cache';
 
 // ── Fonts ───────────────────────────────────────────────────────────────
 const alexandria = Alexandria({
@@ -47,64 +49,52 @@ const GA_MEASUREMENT_ID = "G-EFNHSXWE0M";
 const MATERIAL_SYMBOLS_URL =
   "https://fonts.googleapis.com/css2?family=Material+Symbols+Sharp:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap";
 
-// ── Server‑side category fetch with ISR caching ──────────────────────
-async function getCategories(locale) {
-  try {
-    const lang = locale.split('-')[0];
+// ── Server‑side category fetch with React cache and ISR caching ──────
+const getCategories = unstable_cache(
+  cache(async (locale) => {
+    try {
+      const lang = locale.split('-')[0];
 
-    // Fetch top 18 categories based on how many stores they have
-    const categories = await prisma.category.findMany({
-      // Removed the 'countryCode' where clause that was likely crashing Prisma
-      include: {
-        translations: {
-          where: { locale: lang },
-          select: { name: true, slug: true },
+      // Fetch top 18 categories based on how many stores they have
+      const categories = await prisma.category.findMany({
+        include: {
+          translations: {
+            where: { locale: lang },
+            select: { name: true, slug: true },
+          },
+          _count: {
+            select: { stores: true },
+          },
         },
-        _count: {
-          select: { stores: true },
+        orderBy: {
+          stores: { _count: 'desc' },
         },
-      },
-      orderBy: {
-        stores: { _count: 'desc' },
-      },
-      take: 18,
-    });
+        take: 18,
+      });
 
-    if (!categories || categories.length === 0) {
-      console.warn('[Layout] Prisma returned 0 categories.');
-      return [];
+      if (!categories || categories.length === 0) {
+        console.warn('[Layout] Prisma returned 0 categories.');
+        return [];
+      }
+
+      return categories.map((cat) => {
+        const t = cat.translations[0] || {};
+        return {
+          id: cat.id,
+          slug: t.slug || cat.slug || `category-${cat.id}`,
+          name: t.name || cat.name || 'Category',
+          image: cat.image,
+          icon: cat.icon,
+        };
+      });
+    } catch (error) {
+      console.error('[Layout] CRITICAL ERROR fetching categories:', error.message);
+      return []; 
     }
-
-    return categories.map((cat) => {
-      const t = cat.translations[0] || {};
-      return {
-        id: cat.id,
-        slug: t.slug || cat.slug || `category-${cat.id}`,
-        name: t.name || cat.name || 'Category',
-        image: cat.image,
-        icon: cat.icon,
-      };
-    });
-  } catch (error) {
-    // This will now print the EXACT reason it's failing to your terminal
-    console.error('[Layout] CRITICAL ERROR fetching categories:', error.message);
-    return []; 
-  }
-}
-
-// Helper to transform Prisma result to the shape expected by the component
-function mapCategories(cats) {
-  return cats.map((cat) => {
-    const t = cat.translations[0] || {};
-    return {
-      id: cat.id,
-      slug: t.slug || cat.slug || `category-${cat.id}`,
-      name: t.name || cat.name || 'Category',
-      image: cat.image,
-      icon: cat.icon,
-    };
-  });
-}
+  }),
+  ['layout-categories'],
+  { revalidate: 3600 } // Cache for 1 hour across ISR rebuilds
+);
 
 // ── Metadata ───────────────────────────────────────────────────────────
 export async function generateMetadata({ params }) {
@@ -207,8 +197,8 @@ export default async function LocaleLayout({ children, params }) {
   const [language, region] = locale.split("-");
   const isArabic = language === "ar";
 
-  // ✅ Fetch categories server‑side (cached by Next.js)
-  const categories = await getCategories(locale, region);
+  // ✅ Fetch categories (now aggressively cached to protect the DB)
+  const categories = await getCategories(locale);
 
   // Dynamic Trustpilot locale
   const trustpilotLocale = isArabic ? "ar-AE" : "en-US";
@@ -225,7 +215,7 @@ export default async function LocaleLayout({ children, params }) {
           rel="stylesheet"
           href={MATERIAL_SYMBOLS_URL}
           media="print"
-          onLoad="this.media='all'"
+          onLoad={(e) => { e.currentTarget.media = 'all'; }}
           crossOrigin="anonymous"
         />
         <noscript>
@@ -244,10 +234,6 @@ export default async function LocaleLayout({ children, params }) {
 
             <Header />
 
-            {/*
-              ✅ Pass pre‑fetched categories to the carousel.
-              The component will render nothing if the array is empty.
-            */}
             <CategoryCarouselSubHeader initialCategories={categories} />
 
             <main>{children}</main>
