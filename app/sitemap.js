@@ -1,4 +1,11 @@
 // app/sitemap.js
+// FULLY CORRECTED VERSION
+// Changes:
+// 1. Store inclusion now checks ALL content types: vouchers, FAQs, promos, products, description.
+// 2. Prisma query for stores includes _count for FAQs, promos, products.
+// 3. Filtering logic matches the "hasSubstantialContent" used in generateMetadata.
+// 4. No other changes – pagination, alternates, static pages remain the same.
+
 import { prisma } from '@/lib/prisma';
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://cobonat.me';
@@ -124,6 +131,7 @@ export default async function sitemap() {
           },
         },
       }),
+      // ── ✅ FIX: Expanded store query to include all content counts ──
       prisma.store.findMany({
         where: {
           isActive: true,
@@ -144,6 +152,13 @@ export default async function sitemap() {
                   OR: [{ expiryDate: null }, { expiryDate: { gte: NOW } }],
                 },
               },
+              faqs: {
+                where: { isActive: true },
+              },
+              otherPromos: {
+                where: { isActive: true },
+              },
+              products: true,
             },
           },
         },
@@ -290,7 +305,7 @@ export default async function sitemap() {
       }
     }
 
-    // ── 9. Store pages (Thin Content Filter Applied) ───────────────────────
+    // ── 9. Store pages (using the expanded content check) ─────────────────
     for (const store of stores) {
       const arTranslation = store.translations?.find(t => t.locale === 'ar');
       const enTranslation = store.translations?.find(t => t.locale === 'en');
@@ -300,32 +315,36 @@ export default async function sitemap() {
       
       const alternates = slugAlternates(arSlug, enSlug, '/stores');
       const lastModified = safeDate(store.updatedAt);
-      const activeVouchers = store._count?.vouchers || 0;
 
-      if (arSlug) {
-        const hasArDescription = !!arTranslation?.description?.trim();
-        if (activeVouchers > 0 || hasArDescription) {
-          urls.push({
-            url: `${BASE_URL}/ar-SA/stores/${arSlug}`,
-            lastModified,
-            changeFrequency: 'daily',
-            priority: store.isFeatured ? 0.85 : 0.75,
-            alternates: { languages: alternates },
-          });
-        }
+      // ── ✅ FIX: Check ALL content types ──
+      const activeVouchers = store._count?.vouchers || 0;
+      const faqCount       = store._count?.faqs || 0;
+      const promoCount     = store._count?.otherPromos || 0;
+      const productCount   = store._count?.products || 0;
+      const hasArDescription = !!arTranslation?.description?.trim();
+      const hasEnDescription = !!enTranslation?.description?.trim();
+
+      const hasArSubstantial = activeVouchers > 0 || faqCount > 0 || promoCount > 0 || productCount > 0 || hasArDescription;
+      const hasEnSubstantial = activeVouchers > 0 || faqCount > 0 || promoCount > 0 || productCount > 0 || hasEnDescription;
+
+      if (arSlug && hasArSubstantial) {
+        urls.push({
+          url: `${BASE_URL}/ar-SA/stores/${arSlug}`,
+          lastModified,
+          changeFrequency: 'daily',
+          priority: store.isFeatured ? 0.85 : 0.75,
+          alternates: { languages: alternates },
+        });
       }
 
-      if (enSlug) {
-        const hasEnDescription = !!enTranslation?.description?.trim();
-        if (activeVouchers > 0 || hasEnDescription) {
-          urls.push({
-            url: `${BASE_URL}/en-SA/stores/${enSlug}`,
-            lastModified,
-            changeFrequency: 'daily',
-            priority: store.isFeatured ? 0.85 : 0.75,
-            alternates: { languages: alternates },
-          });
-        }
+      if (enSlug && hasEnSubstantial) {
+        urls.push({
+          url: `${BASE_URL}/en-SA/stores/${enSlug}`,
+          lastModified,
+          changeFrequency: 'daily',
+          priority: store.isFeatured ? 0.85 : 0.75,
+          alternates: { languages: alternates },
+        });
       }
     }
 
