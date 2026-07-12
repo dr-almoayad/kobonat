@@ -209,18 +209,12 @@ export default async function LocaleLayout({ children, params }) {
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
 
-        {/* Asynchronous Material Symbols loading */}
-        <link rel="preload" href={MATERIAL_SYMBOLS_URL} as="style" />
+        {/* Standard, safe stylesheet loading for Server Components */}
         <link
           rel="stylesheet"
           href={MATERIAL_SYMBOLS_URL}
-          media="print"
-          onLoad={(e) => { e.currentTarget.media = 'all'; }}
           crossOrigin="anonymous"
         />
-        <noscript>
-          <link rel="stylesheet" href={MATERIAL_SYMBOLS_URL} />
-        </noscript>
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${alexandria.variable} ${openSans.variable} antialiased`}
