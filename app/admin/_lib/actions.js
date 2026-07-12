@@ -1,7 +1,29 @@
-'use server';
+"use server";
 
 import { prisma } from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
+
+// ============================================================================
+// ── HELPER: Revalidate public store routes across locales ────────────────
+// ============================================================================
+
+/**
+ * List of all locale variants used on the public site.
+ * Adjust these to match your actual locale patterns (e.g., 'ar', 'en', 'ar-SA', 'en-US', etc.)
+ */
+const SUPPORTED_LOCALES = ['ar-SA', 'en-SA'];
+
+/**
+ * Clears the Next.js cache for all public store pages across all locales.
+ * Call this whenever a store's slug changes, or after any store-related update.
+ */
+function revalidatePublicStore(slug) {
+  if (!slug) return;
+  for (const locale of SUPPORTED_LOCALES) {
+    revalidatePath(`/${locale}/stores/${slug}`);
+    revalidatePath(`/${locale}/stores`); // also invalidate listing pages
+  }
+}
 
 // ============================================================================
 // STORES
@@ -21,10 +43,7 @@ export async function createStore(formData) {
         trackingUrl: formData.get('trackingUrl'),
         isActive: formData.get('isActive') === 'on',
         isFeatured: formData.get('isFeatured') === 'on',
-        
-        // ✅ UPDATED: showOfferType as ENUM
         showOfferType: formData.get('showOfferType') || null,
-        
         translations: {
           create: [
             {
@@ -34,7 +53,7 @@ export async function createStore(formData) {
               description: formData.get('description_en'),
               seoTitle: formData.get('seoTitle_en'),
               seoDescription: formData.get('seoDescription_en'),
-              showOffer: formData.get('showOffer_en') // ✅ NEW
+              showOffer: formData.get('showOffer_en')
             },
             {
               locale: 'ar',
@@ -43,7 +62,7 @@ export async function createStore(formData) {
               description: formData.get('description_ar'),
               seoTitle: formData.get('seoTitle_ar'),
               seoDescription: formData.get('seoDescription_ar'),
-              showOffer: formData.get('showOffer_ar') // ✅ NEW
+              showOffer: formData.get('showOffer_ar')
             }
           ]
         },
@@ -61,6 +80,11 @@ export async function createStore(formData) {
     });
 
     revalidatePath('/admin/stores');
+    for (const locale of ['en', 'ar']) {
+      const slug = formData.get(`slug_${locale}`);
+      if (slug) revalidatePublicStore(slug);
+    }
+
     return { success: true, id: store.id };
   } catch (error) {
     console.error('Create store error:', error);
@@ -68,22 +92,41 @@ export async function createStore(formData) {
   }
 }
 
-
 export async function updateStore(id, formData) {
   try {
-    // First, get the current store to preserve missing fields
     const currentStore = await prisma.store.findUnique({
       where: { id: parseInt(id) },
-      include: {
-        translations: true
-      }
+      include: { translations: true }
     });
 
     if (!currentStore) {
       return { error: `Store with ID ${id} not found` };
     }
 
-    // Build update data object with fallbacks to current values
+    const slugEn = formData.get('slug_en');
+    const slugAr = formData.get('slug_ar');
+
+    // ── Slug redirect history ──
+    const currentEn = currentStore.translations.find(t => t.locale === 'en')?.slug;
+    const currentAr = currentStore.translations.find(t => t.locale === 'ar')?.slug;
+
+    if (currentEn && slugEn && currentEn !== slugEn) {
+      await prisma.storeSlugRedirect.upsert({
+        where: { oldSlug: currentEn },
+        update: { newSlug: slugEn, locale: 'en' },
+        create: { oldSlug: currentEn, newSlug: slugEn, locale: 'en', storeId: currentStore.id }
+      });
+    }
+
+    if (currentAr && slugAr && currentAr !== slugAr) {
+      await prisma.storeSlugRedirect.upsert({
+        where: { oldSlug: currentAr },
+        update: { newSlug: slugAr, locale: 'ar' },
+        create: { oldSlug: currentAr, newSlug: slugAr, locale: 'ar', storeId: currentStore.id }
+      });
+    }
+
+    // ── Core fields ──
     const updateData = {
       logo: formData.get('logo') || currentStore.logo,
       bigLogo: formData.get('bigLogo') || currentStore.bigLogo,
@@ -98,18 +141,16 @@ export async function updateStore(id, formData) {
       showOfferType: formData.has('showOfferType') ? formData.get('showOfferType') : currentStore.showOfferType,
     };
 
-    // Validate required fields
     if (!updateData.websiteUrl) {
       return { error: 'Website URL is required' };
     }
 
-    // Update store
     await prisma.store.update({
       where: { id: parseInt(id) },
       data: updateData
     });
 
-    // ✅ FIXED: Update translations including showOffer
+    // ── Translations ──
     for (const locale of ['en', 'ar']) {
       const name = formData.get(`name_${locale}`);
       const slug = formData.get(`slug_${locale}`);
@@ -117,16 +158,13 @@ export async function updateStore(id, formData) {
       const seoTitle = formData.get(`seoTitle_${locale}`);
       const seoDescription = formData.get(`seoDescription_${locale}`);
       const showOffer = formData.get(`showOffer_${locale}`);
-      
-      // Check if we have any translation data to update
-      const hasTranslationData = name !== null || slug !== null || 
-                                description !== null || seoTitle !== null || 
+
+      const hasTranslationData = name !== null || slug !== null ||
+                                description !== null || seoTitle !== null ||
                                 seoDescription !== null || showOffer !== null;
-      
+
       if (hasTranslationData) {
-        // Get current translation if exists
         const currentTranslation = currentStore.translations?.find(t => t.locale === locale);
-        
         const upsertData = {
           name: name !== null ? name : (currentTranslation?.name || ''),
           slug: slug !== null ? slug : (currentTranslation?.slug || ''),
@@ -153,26 +191,25 @@ export async function updateStore(id, formData) {
       }
     }
 
+    // ── Cache invalidation ──
+    currentStore.translations?.forEach(t => revalidatePublicStore(t.slug));
+    if (slugEn) revalidatePublicStore(slugEn);
+    if (slugAr) revalidatePublicStore(slugAr);
+
     revalidatePath(`/admin/stores/${id}`);
     revalidatePath('/admin/stores');
+
     return { success: true };
   } catch (error) {
     console.error('Update store error:', error);
-    console.error('Full error details:', {
-      message: error.message,
-      code: error.code,
-      meta: error.meta
-    });
     return { error: error.message };
   }
 }
 
-
 export async function deleteStore(id) {
   try {
     const storeId = parseInt(id);
-    
-    // Check all dependencies
+
     const [voucherCount, productCount, faqCount, promoCount] = await Promise.all([
       prisma.voucher.count({ where: { storeId } }),
       prisma.storeProduct.count({ where: { storeId } }),
@@ -181,41 +218,44 @@ export async function deleteStore(id) {
     ]);
 
     const totalDeps = voucherCount + productCount + faqCount + promoCount;
-    
+
     if (totalDeps > 0) {
       const deps = [];
       if (voucherCount) deps.push(`${voucherCount} voucher(s)`);
       if (productCount) deps.push(`${productCount} product(s)`);
       if (faqCount) deps.push(`${faqCount} FAQ(s)`);
       if (promoCount) deps.push(`${promoCount} promo(s)`);
-      
-      return { 
+
+      return {
         error: `Cannot delete store. Please delete its ${deps.join(', ')} first.`
       };
     }
 
-    await prisma.store.delete({
-      where: { id: storeId }
+    const store = await prisma.store.findUnique({
+      where: { id: storeId },
+      include: { translations: { select: { slug: true } } }
     });
 
+    await prisma.store.delete({ where: { id: storeId } });
+
+    store?.translations?.forEach(t => revalidatePublicStore(t.slug));
     revalidatePath('/admin/stores');
+
     return { success: true };
-    
   } catch (error) {
     console.error('Delete store error:', error);
-    return { error: error.message || 'Failed to delete store' };
+    return { error: error.message };
   }
-    }
-
+}
 
 export async function updateStoreCountries(id, formData) {
   try {
     const countryIds = formData.getAll('countryIds').map(id => parseInt(id));
-    
+
     await prisma.storeCountry.deleteMany({
       where: { storeId: parseInt(id) }
     });
-    
+
     if (countryIds.length > 0) {
       await prisma.storeCountry.createMany({
         data: countryIds.map(countryId => ({
@@ -226,6 +266,12 @@ export async function updateStoreCountries(id, formData) {
     }
 
     revalidatePath(`/admin/stores/${id}`);
+    const store = await prisma.store.findUnique({
+      where: { id: parseInt(id) },
+      include: { translations: { select: { slug: true } } }
+    });
+    store?.translations?.forEach(t => revalidatePublicStore(t.slug));
+
     return { success: true };
   } catch (error) {
     return { error: error.message };
@@ -235,11 +281,11 @@ export async function updateStoreCountries(id, formData) {
 export async function updateStoreCategories(id, formData) {
   try {
     const categoryIds = formData.getAll('categoryIds').map(id => parseInt(id));
-    
+
     await prisma.storeCategory.deleteMany({
       where: { storeId: parseInt(id) }
     });
-    
+
     if (categoryIds.length > 0) {
       await prisma.storeCategory.createMany({
         data: categoryIds.map(categoryId => ({
@@ -250,12 +296,17 @@ export async function updateStoreCategories(id, formData) {
     }
 
     revalidatePath(`/admin/stores/${id}`);
+    const store = await prisma.store.findUnique({
+      where: { id: parseInt(id) },
+      include: { translations: { select: { slug: true } } }
+    });
+    store?.translations?.forEach(t => revalidatePublicStore(t.slug));
+
     return { success: true };
   } catch (error) {
     return { error: error.message };
   }
 }
-
 
 // ============================================================================
 // STORE PRODUCTS
@@ -263,57 +314,54 @@ export async function updateStoreCategories(id, formData) {
 
 export async function createStoreProduct(formData) {
   try {
-    const storeId     = parseInt(formData.get('storeId'));
- 
-    // ── Prices (new) ──────────────────────────────────────────────────────────
-    const rawCurrent  = formData.get('currentPrice');
+    const storeId = parseInt(formData.get('storeId'));
+
+    const rawCurrent = formData.get('currentPrice');
     const rawOriginal = formData.get('originalPrice');
-    const currentPrice  = rawCurrent  && rawCurrent  !== '' ? parseFloat(rawCurrent)  : null;
+    const currentPrice = rawCurrent && rawCurrent !== '' ? parseFloat(rawCurrent) : null;
     const originalPrice = rawOriginal && rawOriginal !== '' ? parseFloat(rawOriginal) : null;
- 
-    // ── Legacy discount badge ─────────────────────────────────────────────────
+
     const rawDiscountValue = formData.get('discountValue');
     const discountValue = rawDiscountValue && rawDiscountValue !== '' ? parseFloat(rawDiscountValue) : null;
-    const discountType  = formData.get('discountType') || 'PERCENTAGE';
- 
+    const discountType = formData.get('discountType') || 'PERCENTAGE';
+
     const isFeatured = formData.get('isFeatured') === 'on';
- 
-    // ── Promo ribbon links (optional) ─────────────────────────────────────────
-    const rawVoucherId    = formData.get('linkedVoucherId');
-    const rawPromoId      = formData.get('linkedPromoId');
+
+    const rawVoucherId = formData.get('linkedVoucherId');
+    const rawPromoId = formData.get('linkedPromoId');
     const linkedVoucherId = rawVoucherId ? parseInt(rawVoucherId) : null;
-    const linkedPromoId   = rawPromoId   ? parseInt(rawPromoId)   : null;
- 
+    const linkedPromoId = rawPromoId ? parseInt(rawPromoId) : null;
+
     const product = await prisma.storeProduct.create({
       data: {
         storeId,
-        image:          formData.get('image'),
-        originalPrice,           // ← NEW
-        currentPrice,            // ← NEW
+        image: formData.get('image'),
+        originalPrice,
+        currentPrice,
         discountValue,
         discountType,
-        productUrl:     formData.get('productUrl'),
+        productUrl: formData.get('productUrl'),
         isFeatured,
-        order:          parseInt(formData.get('order') || '0'),
+        order: parseInt(formData.get('order') || '0'),
         linkedVoucherId,
         linkedPromoId,
         translations: {
           create: [
             {
-              locale:      'en',
-              title:       formData.get('title_en'),
+              locale: 'en',
+              title: formData.get('title_en'),
               description: formData.get('description_en'),
             },
             {
-              locale:      'ar',
-              title:       formData.get('title_ar'),
+              locale: 'ar',
+              title: formData.get('title_ar'),
               description: formData.get('description_ar'),
             },
           ],
         },
       },
     });
- 
+
     revalidatePath(`/admin/stores/${storeId}`);
     return { success: true, id: product.id };
   } catch (error) {
@@ -321,61 +369,57 @@ export async function createStoreProduct(formData) {
     return { error: error.message };
   }
 }
- 
+
 export async function updateStoreProduct(id, formData) {
   try {
-    // ── Prices (new) ──────────────────────────────────────────────────────────
-    const rawCurrent  = formData.get('currentPrice');
+    const rawCurrent = formData.get('currentPrice');
     const rawOriginal = formData.get('originalPrice');
-    const currentPrice  = rawCurrent  && rawCurrent  !== '' ? parseFloat(rawCurrent)  : null;
+    const currentPrice = rawCurrent && rawCurrent !== '' ? parseFloat(rawCurrent) : null;
     const originalPrice = rawOriginal && rawOriginal !== '' ? parseFloat(rawOriginal) : null;
- 
-    // ── Legacy discount badge ─────────────────────────────────────────────────
+
     const rawDiscountValue = formData.get('discountValue');
     const discountValue = rawDiscountValue && rawDiscountValue !== '' ? parseFloat(rawDiscountValue) : null;
-    const discountType  = formData.get('discountType') || 'PERCENTAGE';
- 
+    const discountType = formData.get('discountType') || 'PERCENTAGE';
+
     const isFeatured = formData.get('isFeatured') === 'on';
- 
-    // ── Promo ribbon links ────────────────────────────────────────────────────
-    const rawVoucherId    = formData.get('linkedVoucherId');
-    const rawPromoId      = formData.get('linkedPromoId');
+
+    const rawVoucherId = formData.get('linkedVoucherId');
+    const rawPromoId = formData.get('linkedPromoId');
     const linkedVoucherId = rawVoucherId ? parseInt(rawVoucherId) : null;
-    const linkedPromoId   = rawPromoId   ? parseInt(rawPromoId)   : null;
- 
+    const linkedPromoId = rawPromoId ? parseInt(rawPromoId) : null;
+
     const updatedProduct = await prisma.storeProduct.update({
       where: { id: parseInt(id) },
       data: {
-        image:         formData.get('image'),
-        originalPrice,           // ← NEW
-        currentPrice,            // ← NEW
+        image: formData.get('image'),
+        originalPrice,
+        currentPrice,
         discountValue,
         discountType,
-        productUrl:    formData.get('productUrl'),
+        productUrl: formData.get('productUrl'),
         isFeatured,
-        order:         parseInt(formData.get('order') || '0'),
+        order: parseInt(formData.get('order') || '0'),
         linkedVoucherId,
         linkedPromoId,
       },
     });
- 
-    // Translations
+
     for (const locale of ['en', 'ar']) {
       await prisma.storeProductTranslation.upsert({
-        where:  { productId_locale: { productId: parseInt(id), locale } },
+        where: { productId_locale: { productId: parseInt(id), locale } },
         create: {
-          productId:   parseInt(id),
+          productId: parseInt(id),
           locale,
-          title:       formData.get(`title_${locale}`),
+          title: formData.get(`title_${locale}`),
           description: formData.get(`description_${locale}`),
         },
         update: {
-          title:       formData.get(`title_${locale}`),
+          title: formData.get(`title_${locale}`),
           description: formData.get(`description_${locale}`),
         },
       });
     }
- 
+
     revalidatePath(`/admin/stores/${updatedProduct.storeId}`);
     return { success: true };
   } catch (error) {
@@ -383,9 +427,6 @@ export async function updateStoreProduct(id, formData) {
     return { error: error.message };
   }
 }
-
-
-
 
 export async function deleteStoreProduct(id) {
   try {
@@ -406,9 +447,6 @@ export async function deleteStoreProduct(id) {
     return { error: error.message };
   }
 }
-
-
-// app/admin/_lib/actions.js - ADD THESE TO YOUR EXISTING FILE
 
 // ============================================================================
 // CURATED OFFERS
@@ -480,7 +518,6 @@ export async function updateCuratedOffer(id, formData) {
       }
     });
 
-    // Update translations
     for (const locale of ['en', 'ar']) {
       await prisma.curatedOfferTranslation.upsert({
         where: {
@@ -526,7 +563,6 @@ export async function deleteCuratedOffer(id) {
   }
 }
 
-
 // ============================================================================
 // VOUCHERS
 // ============================================================================
@@ -569,7 +605,7 @@ async function handleVoucherSave(id, formData) {
         where: { id: voucherId },
         data: coreData
       });
-      
+
       await prisma.voucherCountry.deleteMany({ where: { voucherId } });
       if (countryIds.length > 0) {
         await prisma.voucherCountry.createMany({
@@ -587,7 +623,6 @@ async function handleVoucherSave(id, formData) {
       });
     }
 
-    // Update Translations
     for (const locale of ['en', 'ar']) {
       const title = formData.get(`title_${locale}`);
       const description = formData.get(`description_${locale}`);
@@ -636,16 +671,11 @@ export async function deleteVoucher(id) {
 // CATEGORIES
 // ============================================================================
 
-// PATCH: app/admin/_lib/actions.js
-// Replace the existing upsertCategory function with this version.
-// Only change: reads bankScoringWeights from formData and saves it to the Category row.
-
 export async function upsertCategory(id, formData) {
   try {
-    const isUpdate   = id && id !== 'undefined' && id !== '';
+    const isUpdate = id && id !== 'undefined' && id !== '';
     const categoryId = isUpdate ? parseInt(id) : undefined;
 
-    // Parse bankScoringWeights — empty string or missing → null (not a bank niche)
     const rawWeights = formData.get('bankScoringWeights');
     let bankScoringWeights = null;
     if (rawWeights) {
@@ -658,10 +688,10 @@ export async function upsertCategory(id, formData) {
     }
 
     const data = {
-      icon:               formData.get('icon')  || null,
-      image:              formData.get('image') || null,
-      color:              formData.get('color') || null,
-      bankScoringWeights,   // ← new
+      icon: formData.get('icon') || null,
+      image: formData.get('image') || null,
+      color: formData.get('color') || null,
+      bankScoringWeights,
     };
 
     let category;
@@ -671,17 +701,16 @@ export async function upsertCategory(id, formData) {
       category = await prisma.category.create({ data });
     }
 
-    // Translations (unchanged)
     for (const locale of ['en', 'ar']) {
-      const name         = formData.get(`name_${locale}`);
-      const slug         = formData.get(`slug_${locale}`);
-      const description  = formData.get(`description_${locale}`);
-      const seoTitle     = formData.get(`seoTitle_${locale}`);
+      const name = formData.get(`name_${locale}`);
+      const slug = formData.get(`slug_${locale}`);
+      const description = formData.get(`description_${locale}`);
+      const seoTitle = formData.get(`seoTitle_${locale}`);
       const seoDescription = formData.get(`seoDescription_${locale}`);
 
       if (name && slug) {
         await prisma.categoryTranslation.upsert({
-          where:  { categoryId_locale: { categoryId: category.id, locale } },
+          where: { categoryId_locale: { categoryId: category.id, locale } },
           create: { categoryId: category.id, locale, name, slug, description, seoTitle, seoDescription },
           update: { name, slug, description, seoTitle, seoDescription },
         });
@@ -763,7 +792,6 @@ export async function updateCountry(id, formData) {
       }
     });
 
-    // Update translations
     for (const locale of ['en', 'ar']) {
       await prisma.countryTranslation.upsert({
         where: {
@@ -820,7 +848,7 @@ export async function upsertPaymentMethod(formData) {
   try {
     const id = formData.get('id');
     const isUpdate = id && id !== 'undefined';
-    
+
     const data = {
       slug: formData.get('slug'),
       type: formData.get('type'),
@@ -838,7 +866,6 @@ export async function upsertPaymentMethod(formData) {
       paymentMethod = await prisma.paymentMethod.create({ data });
     }
 
-    // Update translations
     for (const locale of ['en', 'ar']) {
       await prisma.paymentMethodTranslation.upsert({
         where: {
@@ -888,64 +915,55 @@ export async function deletePaymentMethod(id) {
   }
 }
 
-
 // ============================================================================
 // OTHER PROMOS
 // ============================================================================
 
-// PATCH: app/admin/_lib/actions.js
-// Replace the existing createOtherPromo function with this version.
-// Adds bankId, cardId, cardNetwork, installmentMonths — all nullable/optional.
-
 export async function createOtherPromo(formData) {
   try {
-    const storeId   = parseInt(formData.get('storeId'));
+    const storeId = parseInt(formData.get('storeId'));
     const countryId = parseInt(formData.get('countryId'));
-    const startDate  = formData.get('startDate')  ? new Date(formData.get('startDate'))  : null;
+    const startDate = formData.get('startDate') ? new Date(formData.get('startDate')) : null;
     const expiryDate = formData.get('expiryDate') ? new Date(formData.get('expiryDate')) : null;
 
-    // ── Bank / card fields (all nullable) ──────────────────────────────────
-    const rawBankId     = formData.get('bankId');
-    const rawCardId     = formData.get('cardId');
-    const rawNetwork    = formData.get('cardNetwork');
-    const rawInstall    = formData.get('installmentMonths');
+    const rawBankId = formData.get('bankId');
+    const rawCardId = formData.get('cardId');
+    const rawNetwork = formData.get('cardNetwork');
+    const rawInstall = formData.get('installmentMonths');
 
-    const bankId            = rawBankId  ? parseInt(rawBankId)  : null;
-    const cardId            = rawCardId  ? parseInt(rawCardId)  : null;
-    const cardNetwork       = rawNetwork || null;
+    const bankId = rawBankId ? parseInt(rawBankId) : null;
+    const cardId = rawCardId ? parseInt(rawCardId) : null;
+    const cardNetwork = rawNetwork || null;
     const installmentMonths = rawInstall ? parseInt(rawInstall) : null;
 
     const promo = await prisma.otherPromo.create({
       data: {
         storeId,
         countryId,
-        image:    formData.get('image')    || null,
-        type:     formData.get('type'),
-        url:      formData.get('url')      || null,
+        image: formData.get('image') || null,
+        type: formData.get('type'),
+        url: formData.get('url') || null,
         startDate,
         expiryDate,
         isActive: formData.get('isActive') === 'on',
-        order:    parseInt(formData.get('order') || '0'),
-
-        // ← new fields
+        order: parseInt(formData.get('order') || '0'),
         bankId,
         cardId,
         cardNetwork,
         installmentMonths,
-
         translations: {
           create: [
             {
-              locale:      'en',
-              title:       formData.get('title_en'),
+              locale: 'en',
+              title: formData.get('title_en'),
               description: formData.get('description_en'),
-              terms:       formData.get('terms_en'),
+              terms: formData.get('terms_en'),
             },
             {
-              locale:      'ar',
-              title:       formData.get('title_ar'),
+              locale: 'ar',
+              title: formData.get('title_ar'),
               description: formData.get('description_ar'),
-              terms:       formData.get('terms_ar'),
+              terms: formData.get('terms_ar'),
             },
           ],
         },
@@ -979,7 +997,6 @@ export async function updateOtherPromo(id, formData) {
       }
     });
 
-    // Update translations
     for (const locale of ['en', 'ar']) {
       await prisma.otherPromoTranslation.upsert({
         where: {
@@ -1040,15 +1057,14 @@ export async function upsertFAQ(formData) {
     const faqId = formData.get('faqId');
     const storeId = formData.get('storeId');
     const isUpdate = faqId && faqId !== 'undefined';
-    
+
     const data = {
       storeId: parseInt(storeId),
       countryId: parseInt(formData.get('countryId')),
       order: parseInt(formData.get('order') || '0'),
-      // ✅ FIX: Default to true if not explicitly set
-      isActive: formData.has('isActive') 
-        ? formData.get('isActive') === 'on' 
-        : true  // Default to active for new FAQs
+      isActive: formData.has('isActive')
+        ? formData.get('isActive') === 'on'
+        : true
     };
 
     let faq;
@@ -1061,7 +1077,6 @@ export async function upsertFAQ(formData) {
       faq = await prisma.storeFAQ.create({ data });
     }
 
-    // Update translations
     for (const locale of ['en', 'ar']) {
       await prisma.storeFAQTranslation.upsert({
         where: {
@@ -1095,7 +1110,7 @@ export async function deleteFAQ(formData) {
   try {
     const id = formData.get('id');
     const storeId = formData.get('storeId');
-    
+
     await prisma.storeFAQ.delete({
       where: { id: parseInt(id) }
     });
@@ -1107,42 +1122,39 @@ export async function deleteFAQ(formData) {
   }
 }
 
-
-
-
-
-
-
-
-
 // ============================================================================
-// ── NEW: STORE INTELLIGENCE — LOGISTICS
+// ── STORE INTELLIGENCE — LOGISTICS ────────────────────────────────────────
 // ============================================================================
 
-/**
- * Update all logistics / cadence fields for a store.
- * Automatically stamps lastVerifiedAt on every save.
- */
 export async function updateStoreLogistics(storeId, formData) {
   try {
-    const n = (k) => { const v = formData.get(k); return v === '' || v === null ? null : Number(v); };
+    const n = (k) => {
+      const v = formData.get(k);
+      return v === '' || v === null ? null : Number(v);
+    };
 
     await prisma.store.update({
       where: { id: parseInt(storeId) },
-      data:  {
-        averageDeliveryDaysMin:  n('averageDeliveryDaysMin'),
-        averageDeliveryDaysMax:  n('averageDeliveryDaysMax'),
-        freeShippingThreshold:   n('freeShippingThreshold'),
-        returnWindowDays:        n('returnWindowDays'),
-        freeReturns:             formData.get('freeReturns') === 'on',
+      data: {
+        averageDeliveryDaysMin: n('averageDeliveryDaysMin'),
+        averageDeliveryDaysMax: n('averageDeliveryDaysMax'),
+        freeShippingThreshold: n('freeShippingThreshold'),
+        returnWindowDays: n('returnWindowDays'),
+        freeReturns: formData.get('freeReturns') === 'on',
         refundProcessingDaysMin: n('refundProcessingDaysMin'),
         refundProcessingDaysMax: n('refundProcessingDaysMax'),
-        offerFrequencyDays:      n('offerFrequencyDays'),
-        lastVerifiedAt:          new Date(),   // always stamp on save
+        offerFrequencyDays: n('offerFrequencyDays'),
+        lastVerifiedAt: new Date(),
       }
     });
 
     revalidatePath(`/admin/stores/${storeId}/intelligence`);
+    const store = await prisma.store.findUnique({
+      where: { id: parseInt(storeId) },
+      include: { translations: { select: { slug: true } } }
+    });
+    store?.translations?.forEach(t => revalidatePublicStore(t.slug));
+
     return { success: true };
   } catch (error) {
     console.error('Update store logistics error:', error);
@@ -1151,26 +1163,32 @@ export async function updateStoreLogistics(storeId, formData) {
 }
 
 // ============================================================================
-// ── NEW: STORE INTELLIGENCE — UPCOMING EVENTS
+// ── STORE INTELLIGENCE — UPCOMING EVENTS ──────────────────────────────────
 // ============================================================================
 
 export async function createUpcomingEvent(formData) {
   try {
     const storeId = parseInt(formData.get('storeId'));
-    const raw     = formData.get('expectedMaxDiscount');
+    const raw = formData.get('expectedMaxDiscount');
 
     const event = await prisma.storeUpcomingEvent.create({
       data: {
         storeId,
-        eventName:           formData.get('eventName'),
-        expectedMonth:       formData.get('expectedMonth'),
-        confidenceLevel:     formData.get('confidenceLevel') || 'MEDIUM',
+        eventName: formData.get('eventName'),
+        expectedMonth: formData.get('expectedMonth'),
+        confidenceLevel: formData.get('confidenceLevel') || 'MEDIUM',
         expectedMaxDiscount: raw ? parseFloat(raw) : null,
-        notes:               formData.get('notes') || null,
+        notes: formData.get('notes') || null,
       }
     });
 
     revalidatePath(`/admin/stores/${storeId}/intelligence`);
+    const store = await prisma.store.findUnique({
+      where: { id: storeId },
+      include: { translations: { select: { slug: true } } }
+    });
+    store?.translations?.forEach(t => revalidatePublicStore(t.slug));
+
     return { success: true, id: event.id };
   } catch (error) {
     return { error: error.message };
@@ -1181,6 +1199,12 @@ export async function deleteUpcomingEvent(id, storeId) {
   try {
     await prisma.storeUpcomingEvent.delete({ where: { id: parseInt(id) } });
     revalidatePath(`/admin/stores/${storeId}/intelligence`);
+    const store = await prisma.store.findUnique({
+      where: { id: storeId },
+      include: { translations: { select: { slug: true } } }
+    });
+    store?.translations?.forEach(t => revalidatePublicStore(t.slug));
+
     return { success: true };
   } catch (error) {
     return { error: error.message };
@@ -1188,21 +1212,27 @@ export async function deleteUpcomingEvent(id, storeId) {
 }
 
 // ============================================================================
-// ── NEW: STORE INTELLIGENCE — PEAK SEASONS
+// ── STORE INTELLIGENCE — PEAK SEASONS ─────────────────────────────────────
 // ============================================================================
 
 export async function createPeakSeason(formData) {
   try {
     const storeId = parseInt(formData.get('storeId'));
-    const season  = await prisma.storePeakSeason.create({
+    const season = await prisma.storePeakSeason.create({
       data: {
         storeId,
         seasonKey: formData.get('seasonKey'),
-        nameEn:    formData.get('nameEn'),
-        nameAr:    formData.get('nameAr'),
+        nameEn: formData.get('nameEn'),
+        nameAr: formData.get('nameAr'),
       }
     });
     revalidatePath(`/admin/stores/${storeId}/intelligence`);
+    const store = await prisma.store.findUnique({
+      where: { id: storeId },
+      include: { translations: { select: { slug: true } } }
+    });
+    store?.translations?.forEach(t => revalidatePublicStore(t.slug));
+
     return { success: true, id: season.id };
   } catch (error) {
     return { error: error.message };
@@ -1213,6 +1243,12 @@ export async function deletePeakSeason(id, storeId) {
   try {
     await prisma.storePeakSeason.delete({ where: { id: parseInt(id) } });
     revalidatePath(`/admin/stores/${storeId}/intelligence`);
+    const store = await prisma.store.findUnique({
+      where: { id: storeId },
+      include: { translations: { select: { slug: true } } }
+    });
+    store?.translations?.forEach(t => revalidatePublicStore(t.slug));
+
     return { success: true };
   } catch (error) {
     return { error: error.message };
@@ -1220,12 +1256,12 @@ export async function deletePeakSeason(id, storeId) {
 }
 
 // ============================================================================
-// ── NEW: SAVINGS METHODOLOGY (FORMULA VERSIONS)
+// ── SAVINGS METHODOLOGY (FORMULA VERSIONS) ────────────────────────────────
 // ============================================================================
 
 export async function createMethodology(formData) {
   try {
-    const version     = formData.get('version')?.trim();
+    const version = formData.get('version')?.trim();
     const description = formData.get('description')?.trim();
     if (!version || !description) return { error: 'Version and description are required' };
 
@@ -1234,13 +1270,14 @@ export async function createMethodology(formData) {
 
     const m = await prisma.savingsMethodology.create({
       data: {
-        version, description,
-        isActive:            false,   // must be activated deliberately
-        maxSavingsCap:       parseFloat(formData.get('maxSavingsCap')       || '75'),
+        version,
+        description,
+        isActive: false,
+        maxSavingsCap: parseFloat(formData.get('maxSavingsCap') || '75'),
         referenceBasketSize: parseFloat(formData.get('referenceBasketSize') || '500'),
-        multiplierExact:     parseFloat(formData.get('multiplierExact')     || '1.00'),
-        multiplierVerified:  parseFloat(formData.get('multiplierVerified')  || '1.00'),
-        multiplierTypical:   parseFloat(formData.get('multiplierTypical')   || '0.80'),
+        multiplierExact: parseFloat(formData.get('multiplierExact') || '1.00'),
+        multiplierVerified: parseFloat(formData.get('multiplierVerified') || '1.00'),
+        multiplierTypical: parseFloat(formData.get('multiplierTypical') || '0.80'),
         multiplierEstimated: parseFloat(formData.get('multiplierEstimated') || '0.35'),
       }
     });
@@ -1252,10 +1289,6 @@ export async function createMethodology(formData) {
   }
 }
 
-/**
- * Atomically activates one version and deactivates all others.
- * Call with the methodology's numeric id.
- */
 export async function activateMethodology(id) {
   try {
     await prisma.$transaction([
@@ -1288,13 +1321,9 @@ export async function deleteMethodology(id) {
 }
 
 // ============================================================================
-// ── NEW: LEADERBOARD — MANUAL SAVINGS OVERRIDE
+// ── LEADERBOARD — MANUAL SAVINGS OVERRIDE ─────────────────────────────────
 // ============================================================================
 
-/**
- * Set or clear a manual savings override on a leaderboard snapshot.
- * Pass overrideValue as a number (0–100) to set, or null to clear.
- */
 export async function setLeaderboardOverride(snapshotId, overrideValue) {
   try {
     if (overrideValue !== null) {
@@ -1303,7 +1332,7 @@ export async function setLeaderboardOverride(snapshotId, overrideValue) {
     }
     await prisma.storeSavingsSnapshot.update({
       where: { id: parseInt(snapshotId) },
-      data:  { savingsOverridePercent: overrideValue }
+      data: { savingsOverridePercent: overrideValue }
     });
     revalidatePath('/admin/leaderboard');
     return { success: true };
