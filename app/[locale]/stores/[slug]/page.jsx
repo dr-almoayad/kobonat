@@ -1,5 +1,6 @@
+// app/[locale]/stores/[slug]/page.jsx
 import { prisma } from '@/lib/prisma';
-import { notFound, permanentRedirect } from 'next/navigation'; 
+import { notFound, permanentRedirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import StorePageShell from '@/components/headers/StorePageShell';
 import VouchersGrid from '@/components/VouchersGrid/VouchersGrid';
@@ -55,23 +56,15 @@ export async function generateStaticParams() {
   }
 }
 
-// ── Helper: fallback for legacy Arabic slugs ──
-async function handleLegacySlugFallback(slug, language) {
-  const hasArabic = /[\u0600-\u06FF]/.test(slug);
-  if (!hasArabic) return null;
-  
-  const keywords = slug.split('-');
-  const likelyBrandName = keywords[keywords.length - 1]; 
-  
-  const fallback = await prisma.storeTranslation.findFirst({
-    where: {
-      locale: language,
-      name: { contains: likelyBrandName, mode: 'insensitive' },
-      store: { isActive: true },
-    },
-    select: { slug: true },
+// ── Helper: Strict 301 redirect using the redirect table ──
+async function handleSlugRedirect(slug, language) {
+  const redirect = await prisma.storeSlugRedirect.findUnique({
+    where: { oldSlug: slug }
   });
-  return fallback?.slug || null;
+  if (redirect && redirect.locale === language) {
+    return redirect.newSlug;
+  }
+  return null;
 }
 
 // ── Helper: get a valid logo URL ──
@@ -94,9 +87,13 @@ export async function generateMetadata({ params }) {
 
     let store = await getStoreData(slug, language, countryCode);
 
+    // Redirect if slug exists in redirect table
     if (!store) {
-      const newSlug = await handleLegacySlugFallback(slug, language);
+      const newSlug = await handleSlugRedirect(slug, language);
       if (newSlug) {
+        // Return metadata that signals a redirect (or we could do a permanentRedirect here,
+        // but metadata can't do that; we'll handle it in the page component)
+        // We'll set robots noindex and canonical to new URL.
         return {
           robots: { index: false, follow: true },
           alternates: { canonical: `${BASE_URL}/${locale}/stores/${newSlug}` },
@@ -108,20 +105,42 @@ export async function generateMetadata({ params }) {
     const storeTranslation = store.translations[0] || {};
     const storeName = storeTranslation.name || slug;
 
-    // ── 1. KSA-Targeted SEO Titles & Descriptions ──
+    // ── Check all content types for thin content ──────────────────────────
+    const [voucherCount, faqCount, promoCount, productCount] = await Promise.all([
+      prisma.voucher.count({
+        where: {
+          storeId: store.id,
+          countries: { some: { country: { code: countryCode } } },
+          OR: [{ expiryDate: null }, { expiryDate: { gte: now } }],
+        },
+      }),
+      prisma.storeFAQ.count({
+        where: { storeId: store.id, countryId: country.id, isActive: true },
+      }),
+      prisma.otherPromo.count({
+        where: { storeId: store.id, countryId: country.id, isActive: true },
+      }),
+      prisma.storeProduct.count({ where: { storeId: store.id } }),
+    ]);
+
+    const hasDescription = !!(storeTranslation.description && storeTranslation.description.trim().length > 0);
+    const hasSubstantialContent = voucherCount > 0 || faqCount > 0 || promoCount > 0 || productCount > 0 || hasDescription;
+    const isThinContent = !hasSubstantialContent;
+
+    // ── SEO title/description ──────────────────────────────────────────────
     const generatedTitle = isArabic
       ? `كود خصم ${storeName} السعودية ${currentYear} - كوبونات وعروض مجربة`
       : `Verified ${storeName} Promo Codes KSA - ${currentYear} Offers & Deals`;
-      
+
     const finalTitle = storeTranslation.seoTitle || generatedTitle;
 
-    const generatedDescription = isArabic 
-      ? `تسوق بذكاء ووفر أكثر! اكتشف أقوى أكواد خصم وعروض ${storeName} الفعالة والمجربة في السعودية. انسخ الكود واستمتع بخصم فوري على مشترياتك الآن.` 
+    const generatedDescription = isArabic
+      ? `تسوق بذكاء ووفر أكثر! اكتشف أقوى أكواد خصم وعروض ${storeName} الفعالة والمجربة في السعودية. انسخ الكود واستمتع بخصم فوري على مشترياتك الآن.`
       : `Shop smarter with verified ${storeName} promo codes and exclusive KSA offers. Apply our tested coupons at checkout for instant savings on your next order.`;
 
     const finalDescription = storeTranslation.seoDescription || storeTranslation.description || generatedDescription;
 
-    // ── 2. Hreflang and English Canonical Logic ──
+    // ── Hreflang ─────────────────────────────────────────────────────────────
     const otherLocale = language === 'ar' ? 'en' : 'ar';
     const otherTranslation = await prisma.storeTranslation.findFirst({
       where: { storeId: store.id, locale: otherLocale },
@@ -136,30 +155,15 @@ export async function generateMetadata({ params }) {
     if (enSlug) hreflangLanguages['en-SA'] = `${BASE_URL}/en-SA/stores/${enSlug}`;
     hreflangLanguages['x-default'] = `${BASE_URL}/ar-SA/stores/${arSlug || enSlug || slug}`;
 
-    // ── 3. Count active vouchers for this store ──
-    const voucherCount = await prisma.voucher.count({
-      where: {
-        storeId: store.id,
-        countries: { some: { country: { code: countryCode } } },
-        OR: [{ expiryDate: null }, { expiryDate: { gte: now } }],
-      },
-    });
-
-    // ── 4. Thin-Content Guard & Indexing Logic ──
-    const hasDescription = !!(storeTranslation.description && storeTranslation.description.trim().length > 0);
-    const isThinContent = voucherCount === 0 && !hasDescription;
-    
-    // Per previous codebase rules: English pages are noindexed to prevent duplicate content,
-    // AND pages are noindexed if they are thin content.
-    const shouldIndex = !isThinContent && language !== 'en';
-    const canonicalUrl = language === 'en' 
-      ? `${BASE_URL}/ar-SA/stores/${arSlug || slug}` 
-      : `${BASE_URL}/${locale}/stores/${slug}`;
+    // ── Canonical: self-canonicalise for all languages (no forced to Arabic) ──
+    const canonicalUrl = `${BASE_URL}/${locale}/stores/${slug}`;
 
     const ogImage = store.coverImage || store.logo || `${BASE_URL}/logo-512x512.png`;
     const finalOgImage = ogImage.startsWith('http') ? ogImage : `${BASE_URL}${ogImage.startsWith('/') ? '' : '/'}${ogImage}`;
 
-    // ── 5. Unified Metadata Return ──
+    // ── Indexing: only thin content pages are noindexed ──────────────────
+    const shouldIndex = !isThinContent;
+
     return {
       metadataBase: new URL(BASE_URL),
       title: finalTitle,
@@ -170,7 +174,7 @@ export async function generateMetadata({ params }) {
       },
       openGraph: {
         siteName: isArabic ? 'كوبونات' : 'Cobonat',
-        title: finalTitle, // ✅ Explicitly sets the OG Title to the rich KSA version
+        title: finalTitle,
         description: finalDescription,
         type: 'website',
         locale,
@@ -180,18 +184,18 @@ export async function generateMetadata({ params }) {
       twitter: {
         card: 'summary_large_image',
         site: '@cobonat',
-        title: finalTitle, // ✅ Explicitly sets the Twitter Title
+        title: finalTitle,
         description: finalDescription,
         images: [finalOgImage],
       },
       robots: {
-        index: shouldIndex, // ✅ Thin content & English canonical guard applied
+        index: shouldIndex,
         follow: true,
-        googleBot: { 
-          index: shouldIndex, 
-          follow: true, 
-          'max-image-preview': 'large', 
-          'max-snippet': -1 
+        googleBot: {
+          index: shouldIndex,
+          follow: true,
+          'max-image-preview': 'large',
+          'max-snippet': -1,
         },
       },
     };
@@ -210,9 +214,9 @@ export default async function StorePage({ params }) {
 
   let store = await getStoreData(slug, language, countryCode);
 
-  // Fallback redirect for legacy slugs
+  // ── Strict 301 redirect for old slugs ──
   if (!store) {
-    const newSlug = await handleLegacySlugFallback(slug, language);
+    const newSlug = await handleSlugRedirect(slug, language);
     if (newSlug) {
       return permanentRedirect(`/${locale}/stores/${newSlug}`);
     }
