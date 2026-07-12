@@ -85,15 +85,14 @@ export async function generateMetadata({ params }) {
     const now = new Date();
     const currentYear = now.getFullYear();
 
+    // ── 1. Fetch store ──────────────────────────────────────────────────────
     let store = await getStoreData(slug, language, countryCode);
 
     // Redirect if slug exists in redirect table
     if (!store) {
       const newSlug = await handleSlugRedirect(slug, language);
       if (newSlug) {
-        // Return metadata that signals a redirect (or we could do a permanentRedirect here,
-        // but metadata can't do that; we'll handle it in the page component)
-        // We'll set robots noindex and canonical to new URL.
+        // Return minimal metadata – page component will handle the actual redirect
         return {
           robots: { index: false, follow: true },
           alternates: { canonical: `${BASE_URL}/${locale}/stores/${newSlug}` },
@@ -102,10 +101,44 @@ export async function generateMetadata({ params }) {
       return {};
     }
 
+    // ── 2. Fetch country (needed for faq/promo counts) ─────────────────────
+    const country = await prisma.country.findUnique({
+      where: { code: countryCode, isActive: true },
+    });
+    if (!country) {
+      // If country not found, we can't reliably check FAQ/promo counts – return minimal metadata
+      // but we still need to provide some metadata to avoid crashes.
+      // We'll fall back to voucher-only check.
+      const storeTranslation = store.translations[0] || {};
+      const storeName = storeTranslation.name || slug;
+      const hasDescription = !!(storeTranslation.description && storeTranslation.description.trim().length > 0);
+      const voucherCount = await prisma.voucher.count({
+        where: {
+          storeId: store.id,
+          countries: { some: { country: { code: countryCode } } },
+          OR: [{ expiryDate: null }, { expiryDate: { gte: now } }],
+        },
+      });
+      const isThinContent = voucherCount === 0 && !hasDescription;
+      const shouldIndex = !isThinContent;
+      const canonicalUrl = `${BASE_URL}/${locale}/stores/${slug}`;
+      const ogImage = store.coverImage || store.logo || `${BASE_URL}/logo-512x512.png`;
+      const finalOgImage = ogImage.startsWith('http') ? ogImage : `${BASE_URL}${ogImage.startsWith('/') ? '' : '/'}${ogImage}`;
+
+      return {
+        metadataBase: new URL(BASE_URL),
+        title: isArabic ? `كود خصم ${storeName} السعودية ${currentYear}` : `Verified ${storeName} Promo Codes KSA - ${currentYear}`,
+        description: isArabic ? `أكواد خصم ${storeName} مجربة وفعالة في السعودية` : `Verified ${storeName} promo codes and KSA offers.`,
+        alternates: { canonical: canonicalUrl },
+        robots: { index: shouldIndex, follow: true },
+        openGraph: { images: [{ url: finalOgImage }] },
+      };
+    }
+
     const storeTranslation = store.translations[0] || {};
     const storeName = storeTranslation.name || slug;
 
-    // ── Check all content types for thin content ──────────────────────────
+    // ── 3. Check all content types for thin content ──────────────────────────
     const [voucherCount, faqCount, promoCount, productCount] = await Promise.all([
       prisma.voucher.count({
         where: {
@@ -127,7 +160,7 @@ export async function generateMetadata({ params }) {
     const hasSubstantialContent = voucherCount > 0 || faqCount > 0 || promoCount > 0 || productCount > 0 || hasDescription;
     const isThinContent = !hasSubstantialContent;
 
-    // ── SEO title/description ──────────────────────────────────────────────
+    // ── 4. SEO title/description ──────────────────────────────────────────────
     const generatedTitle = isArabic
       ? `كود خصم ${storeName} السعودية ${currentYear} - كوبونات وعروض مجربة`
       : `Verified ${storeName} Promo Codes KSA - ${currentYear} Offers & Deals`;
@@ -140,7 +173,7 @@ export async function generateMetadata({ params }) {
 
     const finalDescription = storeTranslation.seoDescription || storeTranslation.description || generatedDescription;
 
-    // ── Hreflang ─────────────────────────────────────────────────────────────
+    // ── 5. Hreflang ─────────────────────────────────────────────────────────────
     const otherLocale = language === 'ar' ? 'en' : 'ar';
     const otherTranslation = await prisma.storeTranslation.findFirst({
       where: { storeId: store.id, locale: otherLocale },
@@ -155,13 +188,13 @@ export async function generateMetadata({ params }) {
     if (enSlug) hreflangLanguages['en-SA'] = `${BASE_URL}/en-SA/stores/${enSlug}`;
     hreflangLanguages['x-default'] = `${BASE_URL}/ar-SA/stores/${arSlug || enSlug || slug}`;
 
-    // ── Canonical: self-canonicalise for all languages (no forced to Arabic) ──
+    // ── 6. Canonical: self-canonicalise for all languages ──────────────────
     const canonicalUrl = `${BASE_URL}/${locale}/stores/${slug}`;
 
     const ogImage = store.coverImage || store.logo || `${BASE_URL}/logo-512x512.png`;
     const finalOgImage = ogImage.startsWith('http') ? ogImage : `${BASE_URL}${ogImage.startsWith('/') ? '' : '/'}${ogImage}`;
 
-    // ── Indexing: only thin content pages are noindexed ──────────────────
+    // ── 7. Indexing: only thin content pages are noindexed ──────────────────
     const shouldIndex = !isThinContent;
 
     return {
@@ -201,7 +234,11 @@ export async function generateMetadata({ params }) {
     };
   } catch (error) {
     console.error('[stores/[slug] generateMetadata]', error);
-    return {};
+    // Return minimal metadata to avoid crashing the page
+    return {
+      title: 'Store',
+      robots: { index: false, follow: true },
+    };
   }
 }
 
