@@ -187,11 +187,27 @@ export async function updateBlogPost(id, formData) {
     const readingTime = computeReadingTime(contentEn, contentAr);
     const faqJson    = parseFaqJson(formData.get('faqJson'));
 
-    // ── 1. Scalar update ─────────────────────────────────────────────────
+    // ── 1. Extract new slug for redirect handling ─────────────────────
+    const newSlug = formData.get('slug');
+    const oldSlug = current.slug;
+    const slugChanged = newSlug && newSlug !== oldSlug;
+
+    // ── 2. Handle Slug Redirect History (prevents 404 churn) ──────────
+    if (slugChanged) {
+      // Since BlogPost.slug is unique (not locale-specific), we store one redirect per post.
+      // We'll use locale 'en' as a default; adjust if you have per-locale slugs.
+      await prisma.blogSlugRedirect.upsert({
+        where: { oldSlug },
+        update: { newSlug, postId },
+        create: { oldSlug, newSlug, locale: 'en', postId },
+      });
+    }
+
+    // ── 3. Scalar update ─────────────────────────────────────────────────
     await prisma.blogPost.update({
       where: { id: postId },
       data: {
-        slug:          formData.get('slug')         || current.slug,
+        slug:          newSlug || oldSlug, // fallback to old if empty
         featuredImage: formData.get('featuredImage') || current.featuredImage || null,
         isFeatured:    formData.has('isFeatured')
           ? formData.get('isFeatured') === 'on'
@@ -208,7 +224,7 @@ export async function updateBlogPost(id, formData) {
       },
     });
 
-    // ── 2. Translations ──────────────────────────────────────────────────
+    // ── 4. Translations ──────────────────────────────────────────────────
     for (const locale of ['en', 'ar']) {
       const title           = formData.get(`title_${locale}`);
       const excerpt         = formData.get(`excerpt_${locale}`);
@@ -223,7 +239,7 @@ export async function updateBlogPost(id, formData) {
       });
     }
 
-    // ── 3. Tags ───────────────────────────────────────────────────────────
+    // ── 5. Tags ───────────────────────────────────────────────────────────
     if (formData.has('tagSlugs')) {
       const tagIds = await resolveTagIds(tagSlugs, [], []);
       await prisma.blogPostTag.deleteMany({ where: { postId } });
@@ -234,7 +250,7 @@ export async function updateBlogPost(id, formData) {
       }
     }
 
-    // ── 4. Related posts ──────────────────────────────────────────────────
+    // ── 6. Related posts ──────────────────────────────────────────────────
     if (formData.has('relatedPostIds')) {
       const relatedIds = parseIntList(formData, 'relatedPostIds');
       await prisma.blogPostRelated.deleteMany({ where: { postId } });
@@ -246,7 +262,7 @@ export async function updateBlogPost(id, formData) {
       }
     }
 
-    // ── 5. Linked stores ──────────────────────────────────────────────────
+    // ── 7. Linked stores ──────────────────────────────────────────────────
     if (formData.has('linkedStoreIds')) {
       const storeIds = parseIntList(formData, 'linkedStoreIds');
       await prisma.blogPostStore.deleteMany({ where: { postId } });
@@ -258,7 +274,7 @@ export async function updateBlogPost(id, formData) {
       }
     }
 
-    // ── 6. Related products ───────────────────────────────────────────────
+    // ── 8. Related products ───────────────────────────────────────────────
     if (formData.has('relatedProductIds')) {
       const productIds = parseIntList(formData, 'relatedProductIds');
       await prisma.blogPostProduct.deleteMany({ where: { postId } });
@@ -270,17 +286,16 @@ export async function updateBlogPost(id, formData) {
       }
     }
 
-    // ── 7. CACHE INVALIDATION ──────────────────────────────────────────────
+    // ── 9. CACHE INVALIDATION ──────────────────────────────────────────────
     // Revalidate admin paths
     revalidatePath('/admin/blog');
     revalidatePath(`/admin/blog/${id}`);
 
     // Revalidate public pages for the OLD slug (to purge stale pages)
-    revalidateBlogPost(current.slug);
+    revalidateBlogPost(oldSlug);
 
     // Revalidate public pages for the NEW slug (if it changed)
-    const newSlug = formData.get('slug');
-    if (newSlug && newSlug !== current.slug) {
+    if (slugChanged) {
       revalidateBlogPost(newSlug);
     }
 
@@ -303,6 +318,11 @@ export async function deleteBlogPost(id) {
     const post = await prisma.blogPost.findUnique({
       where: { id: postId },
       select: { slug: true },
+    });
+
+    // Optionally clean up redirects (optional)
+    await prisma.blogSlugRedirect.deleteMany({
+      where: { postId },
     });
 
     await prisma.blogPost.delete({ where: { id: postId } });
@@ -343,8 +363,6 @@ export async function createSection(postId, { image, subtitleEn, subtitleAr, con
       include: { translations: true },
     });
     revalidatePath(`/admin/blog/${postId}`);
-    // Revalidate the post page (we don't have the slug here, but we can fetch it or just revalidate the index)
-    // For simplicity, revalidate both admin and public paths generically.
     const post = await prisma.blogPost.findUnique({ where: { id: parseInt(postId) }, select: { slug: true } });
     if (post?.slug) revalidateBlogPost(post.slug);
     return { success: true, section };
@@ -446,7 +464,6 @@ export async function upsertBlogCategory(formData) {
     }
 
     revalidatePath('/admin/blog/categories');
-    // Revalidate blog index as categories appear on blog listing pages
     revalidatePath('/ar-SA/blog');
     revalidatePath('/en-SA/blog');
     return { success: true, id: category.id };
@@ -491,7 +508,6 @@ export async function upsertBlogAuthor(formData) {
     }
 
     revalidatePath('/admin/blog/authors');
-    // Authors appear on blog posts, so revalidate index
     revalidatePath('/ar-SA/blog');
     revalidatePath('/en-SA/blog');
     return { success: true };
