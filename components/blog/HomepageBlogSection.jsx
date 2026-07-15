@@ -1,16 +1,9 @@
 // components/blog/HomepageBlogSection.jsx
-// ✅ Fully corrected – now uses EmblaCarousel for horizontal scrolling.
-// ✅ Handles both raw (Prisma) posts and pre‑transformed posts.
-// ✅ Max-width: 1312px, increased vertical padding, taller cards.
- 
 import { prisma } from '@/lib/prisma';
 import Link from 'next/link';
 import BlogCard from './BlogCard';
 import EmblaCarousel from '@/components/EmblaCarousel/EmblaCarousel';
 
-// ============================================================================
-// Fetch up to `count` published posts; featured ones first, then latest.
-// ============================================================================
 async function getFeaturedPosts(lang, count = 8) {
   try {
     const baseWhere = { status: 'PUBLISHED' };
@@ -21,7 +14,6 @@ async function getFeaturedPosts(lang, count = 8) {
       tags: { include: { tag: { include: { translations: { where: { locale: lang } } } } } },
     };
 
-    // Step 1: featured posts first
     const featured = await prisma.blogPost.findMany({
       where: { ...baseWhere, isFeatured: true },
       include,
@@ -31,7 +23,6 @@ async function getFeaturedPosts(lang, count = 8) {
 
     if (featured.length >= count) return featured;
 
-    // Step 2: fill remaining slots with latest non‑featured
     const featuredIds = featured.map(p => p.id);
     const latest = await prisma.blogPost.findMany({
       where: { ...baseWhere, id: { notIn: featuredIds.length ? featuredIds : [-1] } },
@@ -47,9 +38,6 @@ async function getFeaturedPosts(lang, count = 8) {
   }
 }
 
-// ============================================================================
-// Transform raw Prisma post → BlogCard‑compatible shape
-// ============================================================================
 function transformPost(post, lang) {
   const t = post.translations?.[0] || {};
   return {
@@ -76,11 +64,8 @@ function transformPost(post, lang) {
   };
 }
 
-// ============================================================================
-// Component
-// ============================================================================
 export default async function HomepageBlogSection({
-  posts: preFetchedPosts, // can be raw Prisma posts OR already transformed
+  posts: preFetchedPosts,
   locale,
   count = 8,
 }) {
@@ -88,16 +73,12 @@ export default async function HomepageBlogSection({
   const isRTL = lang === 'ar';
 
   let posts = preFetchedPosts;
-
-  // If no posts provided, fetch them
   if (!posts) {
     posts = await getFeaturedPosts(lang, count);
   }
 
   if (!posts?.length) return null;
 
-  // ── ✅ Smart transform: if posts are already flat (have `title`), use them directly.
-  // Otherwise, transform from Prisma raw shape.
   const isAlreadyTransformed = posts[0]?.title !== undefined;
   const transformedPosts = isAlreadyTransformed
     ? posts
@@ -115,11 +96,10 @@ export default async function HomepageBlogSection({
     <section
       dir={isRTL ? 'rtl' : 'ltr'}
       aria-label={labels.heading}
-      style={{ padding: '64px 16px', background: '#fafafa' }}
+      style={{ padding: '56px 0', background: '#fafafa' }} // ✅ horizontal padding removed (0)
     >
-      <div style={{ maxWidth: 1312, margin: '0 auto' }}>
+      <div style={{ maxWidth: 1312, margin: '0 auto', padding: '0 16px' }}> {/* inner padding only to keep content from touching edge */}
 
-        {/* ── Section header ── */}
         <div style={{
           display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end',
           marginBottom: 32, flexWrap: 'wrap', gap: 16,
@@ -143,17 +123,16 @@ export default async function HomepageBlogSection({
           </Link>
         </div>
 
-        {/* ── Carousel with vertical padding ── */}
         <div style={{ padding: '0.5rem 0' }}>
           <EmblaCarousel
             locale={locale}
             slideWidth={slideWidth}
-            slideGap="1rem"
+            slideGap="1.25rem"
             freeScroll={true}
             scrollSlides={2}
           >
             {transformedPosts.map(post => (
-              <div key={post.id} style={{ height: '100%', minHeight: '420px' }}>
+              <div key={post.id} style={{ height: '100%', minHeight: '380px' }}> {/* ✅ shortened slightly */}
                 <BlogCard
                   post={post}
                   locale={locale}
