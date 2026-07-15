@@ -114,8 +114,8 @@ export default function BlogCard({ post, locale, variant = 'default' }) {
           e.currentTarget.style.boxShadow = '0 2px 16px rgba(0,0,0,0.08)';
         }}
       >
-        {/* Image */}
-        <Link href={postUrl} style={{ display: 'block', position: 'relative', paddingTop: '56.25%' /* 16:9 */ }}>
+        {/* Image – 4:3 aspect ratio (taller) */}
+        <Link href={postUrl} style={{ display: 'block', position: 'relative', paddingTop: '75%' }}>
           {post.featuredImage ? (
             <Image
               src={post.featuredImage}
@@ -152,17 +152,17 @@ export default function BlogCard({ post, locale, variant = 'default' }) {
           )}
         </Link>
 
-        {/* Content */}
-        <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', flex: 1 }}>
+        {/* Content – more spacing */}
+        <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', flex: 1 }}>
           <Link href={postUrl} style={{ textDecoration: 'none' }}>
             <h3 style={{
-              margin: '0 0 10px',
-              fontSize: '1.1rem',
+              margin: '0 0 12px',
+              fontSize: '1.2rem',
               fontWeight: 700,
               color: '#1a1a1a',
               lineHeight: 1.4,
               display: '-webkit-box',
-              WebkitLineClamp: 2,
+              WebkitLineClamp: 3,        // ✅ show up to 3 lines
               WebkitBoxOrient: 'vertical',
               overflow: 'hidden'
             }}>
@@ -170,12 +170,12 @@ export default function BlogCard({ post, locale, variant = 'default' }) {
             </h3>
           </Link>
           <p style={{
-            margin: '0 0 16px',
-            fontSize: '0.875rem',
+            margin: '0 0 20px',
+            fontSize: '0.9rem',
             color: '#555',
             lineHeight: 1.6,
             display: '-webkit-box',
-            WebkitLineClamp: 3,
+            WebkitLineClamp: 4,        // ✅ show up to 4 lines
             WebkitBoxOrient: 'vertical',
             overflow: 'hidden',
             flex: 1
@@ -188,7 +188,7 @@ export default function BlogCard({ post, locale, variant = 'default' }) {
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            paddingTop: 12,
+            paddingTop: 14,
             borderTop: '1px solid #f0f0f0',
             gap: 8
           }}>
@@ -202,7 +202,7 @@ export default function BlogCard({ post, locale, variant = 'default' }) {
                   style={{ borderRadius: '50%', objectFit: 'cover' }}
                 />
               )}
-              <span style={{ fontSize: '0.75rem', color: '#777', fontWeight: 500 }}>
+              <span style={{ fontSize: '0.8rem', color: '#777', fontWeight: 500 }}>
                 {post.author?.name}
               </span>
             </div>
