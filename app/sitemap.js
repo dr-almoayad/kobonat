@@ -131,7 +131,7 @@ export default async function sitemap() {
           },
         },
       }),
-      // ── ✅ FIX: Expanded store query to include all content counts ──
+      // ── ✅ Expanded store query to include all content counts ──
       prisma.store.findMany({
         where: {
           isActive: true,
@@ -316,7 +316,7 @@ export default async function sitemap() {
       const alternates = slugAlternates(arSlug, enSlug, '/stores');
       const lastModified = safeDate(store.updatedAt);
 
-      // ── ✅ FIX: Check ALL content types ──
+      // ── ✅ Check ALL content types before adding to sitemap ──
       const activeVouchers = store._count?.vouchers || 0;
       const faqCount       = store._count?.faqs || 0;
       const promoCount     = store._count?.otherPromos || 0;
