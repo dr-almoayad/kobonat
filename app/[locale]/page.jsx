@@ -1,6 +1,6 @@
 // app/[locale]/page.jsx
 // FULLY CORRECTED VERSION
-// - Pre‑fetches all data for sections: HeroCurated, OfferStacks, Blog
+// - Pre‑fetches all data for sections: HeroCurated, OfferStacks, Blog (8 posts)
 // - Passes data as props to child components
 // - Retains all existing metadata and structured data
 // - ✅ Affiliate network verification tags are now scoped strictly to the homepage
@@ -84,7 +84,7 @@ export async function generateMetadata({ params }) {
         'max-snippet': -1,
       },
     },
-    // ✅ FIX: Affiliate verification tags added here so they only render on the root page
+    // ✅ Affiliate verification tags only on the root page
     other: {
       "Takeads-verification": "ac9f8039-eeff-43ac-8757-df8d658ef91b",
       "tradetracker-site-verification": "813f3ae64e317d77ca412f3741e5d24b3c977369",
@@ -170,7 +170,7 @@ async function getCuratedSlides(language, countryCode) {
 }
 
 // ── Helper: fetch blog posts (mirrors HomepageBlogSection) ──
-async function getFeaturedBlogPosts(lang, count = 3) {
+async function getFeaturedBlogPosts(lang, count = 8) {
   try {
     const baseWhere = { status: 'PUBLISHED' };
     const include = {
@@ -257,9 +257,9 @@ export default async function Home({ params }) {
     allActiveBrands,
     leaderboardSnapshots,
     rawTopStores,
-    curatedSlides,        // ✅ New: pre‑fetch HeroCuratedSection data
-    offerStacks,          // ✅ New: pre‑fetch OfferStacksSection data
-    blogPostsRaw,         // ✅ New: pre‑fetch HomepageBlogSection data
+    curatedSlides,
+    offerStacks,
+    blogPostsRaw,          // ✅ Now fetches 8 posts
   ] = await Promise.all([
     // 1. Hero stores (color slots 1–5)
     prisma.store.findMany({
@@ -366,18 +366,18 @@ export default async function Home({ params }) {
       take: 27,
     }),
 
-    // 5. ✅ HeroCuratedSection slides
+    // 5. HeroCuratedSection slides
     getCuratedSlides(language, country),
 
-    // 6. ✅ OfferStacksSection stacks
+    // 6. OfferStacksSection stacks
     buildOfferStacks({
       countryCode: country,
       language: language,
       limit: 10,
     }),
 
-    // 7. ✅ HomepageBlogSection posts
-    getFeaturedBlogPosts(language, 3),
+    // 7. HomepageBlogSection posts (8)
+    getFeaturedBlogPosts(language, 8),
   ]);
 
   // ── Transform data ──────────────────────────────────────────────────────
@@ -413,7 +413,7 @@ export default async function Home({ params }) {
 
   const carouselTitle = isArabic ? 'متاجر مميزة' : 'Featured Stores with Discounts';
 
-  // Transform blog posts
+  // Transform blog posts (already transformed in the component, but we can pre-transform)
   const blogPosts = blogPostsRaw.map(p => transformBlogPost(p, language));
 
   // ── Structured data ────────────────────────────────────────────────────
