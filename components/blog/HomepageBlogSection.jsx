@@ -1,8 +1,7 @@
 // components/blog/HomepageBlogSection.jsx
 // ✅ Fully corrected – now uses EmblaCarousel for horizontal scrolling.
-// Accepts pre‑fetched posts, falls back to self‑fetch if needed.
-// ✅ Max-width aligned with homepage (1312px)
-// ✅ Increased vertical padding around cards and section.
+// ✅ Handles both raw (Prisma) posts and pre‑transformed posts.
+// ✅ Max-width: 1312px, increased vertical padding, taller cards.
  
 import { prisma } from '@/lib/prisma';
 import Link from 'next/link';
@@ -81,22 +80,28 @@ function transformPost(post, lang) {
 // Component
 // ============================================================================
 export default async function HomepageBlogSection({
-  posts: preFetchedPosts, // ✅ pre‑fetched posts from parent
+  posts: preFetchedPosts, // can be raw Prisma posts OR already transformed
   locale,
   count = 8,
 }) {
   const lang = locale.split('-')[0];
   const isRTL = lang === 'ar';
 
-  // Use pre‑fetched posts if provided; otherwise fetch
   let posts = preFetchedPosts;
+
+  // If no posts provided, fetch them
   if (!posts) {
     posts = await getFeaturedPosts(lang, count);
   }
 
   if (!posts?.length) return null;
 
-  const transformedPosts = posts.map(p => transformPost(p, lang));
+  // ── ✅ Smart transform: if posts are already flat (have `title`), use them directly.
+  // Otherwise, transform from Prisma raw shape.
+  const isAlreadyTransformed = posts[0]?.title !== undefined;
+  const transformedPosts = isAlreadyTransformed
+    ? posts
+    : posts.map(p => transformPost(p, lang));
 
   const labels = {
     heading: lang === 'ar' ? 'أحدث المقالات والنصائح' : 'Latest Tips & Articles',
@@ -104,16 +109,15 @@ export default async function HomepageBlogSection({
     cta: lang === 'ar' ? 'عرض جميع المقالات' : 'View All Articles',
   };
 
-  // ── Slide width: each card ~300px, with gap ──
   const slideWidth = '300px';
 
   return (
     <section
       dir={isRTL ? 'rtl' : 'ltr'}
       aria-label={labels.heading}
-      style={{ padding: '64px 16px', background: '#fafafa' }} // ✅ increased vertical padding
+      style={{ padding: '64px 16px', background: '#fafafa' }}
     >
-      <div style={{ maxWidth: 1312, margin: '0 auto' }}> {/* ✅ matches homepage max-width */}
+      <div style={{ maxWidth: 1312, margin: '0 auto' }}>
 
         {/* ── Section header ── */}
         <div style={{
@@ -139,12 +143,12 @@ export default async function HomepageBlogSection({
           </Link>
         </div>
 
-        {/* ── Carousel wrapper with vertical padding ── */}
-        <div style={{ padding: '0.5rem 0' }}> {/* ✅ adds vertical breathing room around the carousel */}
+        {/* ── Carousel with vertical padding ── */}
+        <div style={{ padding: '0.5rem 0' }}>
           <EmblaCarousel
             locale={locale}
             slideWidth={slideWidth}
-            slideGap="1.25rem"
+            slideGap="1rem"
             freeScroll={true}
             scrollSlides={2}
           >
