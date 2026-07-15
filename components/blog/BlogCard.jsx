@@ -103,14 +103,17 @@ export default function BlogCard({ post, locale, variant = 'default' }) {
           display: 'flex',
           flexDirection: 'column',
           height: '100%',
-          transition: 'transform 0.2s, box-shadow 0.2s'
+          transition: 'transform 0.25s, box-shadow 0.25s',
+          willChange: 'transform', // ✅ prevents clipping on transform
+          transform: 'translateZ(0)', // ✅ forces hardware acceleration
+          backfaceVisibility: 'hidden',
         }}
         onMouseEnter={e => {
-          e.currentTarget.style.transform = 'translateY(-4px)';
+          e.currentTarget.style.transform = 'translateY(-2px) scale(1.005)'; // ✅ gentler lift
           e.currentTarget.style.boxShadow = '0 8px 32px rgba(0,0,0,0.12)';
         }}
         onMouseLeave={e => {
-          e.currentTarget.style.transform = 'translateY(0)';
+          e.currentTarget.style.transform = 'translateY(0) scale(1)';
           e.currentTarget.style.boxShadow = '0 2px 16px rgba(0,0,0,0.08)';
         }}
       >
@@ -162,7 +165,7 @@ export default function BlogCard({ post, locale, variant = 'default' }) {
               color: '#1a1a1a',
               lineHeight: 1.4,
               display: '-webkit-box',
-              WebkitLineClamp: 3,        // ✅ show up to 3 lines
+              WebkitLineClamp: 3,
               WebkitBoxOrient: 'vertical',
               overflow: 'hidden'
             }}>
@@ -175,7 +178,7 @@ export default function BlogCard({ post, locale, variant = 'default' }) {
             color: '#555',
             lineHeight: 1.6,
             display: '-webkit-box',
-            WebkitLineClamp: 4,        // ✅ show up to 4 lines
+            WebkitLineClamp: 4,
             WebkitBoxOrient: 'vertical',
             overflow: 'hidden',
             flex: 1
