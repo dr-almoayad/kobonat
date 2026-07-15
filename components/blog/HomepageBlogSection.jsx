@@ -1,14 +1,16 @@
 // components/blog/HomepageBlogSection.jsx
-// ✅ Fully corrected – accepts pre‑fetched posts, falls back to self‑fetch.
+// ✅ Fully corrected – now uses EmblaCarousel for horizontal scrolling.
+// Accepts pre‑fetched posts, falls back to self‑fetch if needed.
  
 import { prisma } from '@/lib/prisma';
 import Link from 'next/link';
 import BlogCard from './BlogCard';
+import EmblaCarousel from '@/components/EmblaCarousel/EmblaCarousel';
 
 // ============================================================================
 // Fetch up to `count` published posts; featured ones first, then latest.
 // ============================================================================
-async function getFeaturedPosts(lang, count = 3) {
+async function getFeaturedPosts(lang, count = 8) {
   try {
     const baseWhere = { status: 'PUBLISHED' };
     const include = {
@@ -77,9 +79,9 @@ function transformPost(post, lang) {
 // Component
 // ============================================================================
 export default async function HomepageBlogSection({
-  posts: preFetchedPosts, // ✅ NEW: pre‑fetched posts from parent
+  posts: preFetchedPosts, // ✅ pre‑fetched posts from parent
   locale,
-  count = 3,
+  count = 8, // ✅ increased to 8
 }) {
   const lang = locale.split('-')[0];
   const isRTL = lang === 'ar';
@@ -99,6 +101,9 @@ export default async function HomepageBlogSection({
     sub: lang === 'ar' ? 'نصائح توفير، مقارنات، وأفضل العروض من فريق كوبونات' : 'Saving tips, comparisons & best deals from the Cobonat team',
     cta: lang === 'ar' ? 'عرض جميع المقالات' : 'View All Articles',
   };
+
+  // ── Slide width: each card ~280px, with gap ──
+  const slideWidth = '280px';
 
   return (
     <section
@@ -132,12 +137,27 @@ export default async function HomepageBlogSection({
           </Link>
         </div>
 
-        {/* ── Posts grid ── */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 24 }}>
+        {/* ── Embla Carousel ── */}
+        <EmblaCarousel
+          locale={locale}
+          slideWidth={slideWidth}
+          slideGap="1.25rem"
+          freeScroll={true}
+          scrollSlides={2} // scroll 2 slides per click
+        >
           {transformedPosts.map(post => (
-            <BlogCard key={post.id} post={post} locale={locale} variant="featured" />
+            // ✅ Wrap each card in a div that enforces consistent height
+            <div key={post.id} style={{ height: '100%' }}>
+              <BlogCard
+                post={post}
+                locale={locale}
+                variant="featured"
+                // ✅ Optional: pass a custom className to elongate cards
+                // We'll rely on CSS in BlogCard or we can add inline styles
+              />
+            </div>
           ))}
-        </div>
+        </EmblaCarousel>
 
       </div>
     </section>
