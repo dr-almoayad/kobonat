@@ -4,21 +4,6 @@
 import Image from 'next/image';
 import Link from 'next/link';
 
-// ============================================================================
-// PROPS
-// post: {
-//   slug, featuredImage, title, excerpt, publishedAt,
-//   author: { name, avatar },
-//   category: { slug, name, color },
-//   tags: [{ slug, name }]
-// }
-// locale: 'ar-SA' | 'en-SA'
-// variant: 'default' | 'compact' | 'featured'
-//   - default  → blog index grid
-//   - compact  → sidebar / store page
-//   - featured → homepage hero card (larger)
-// ============================================================================
-
 export default function BlogCard({ post, locale, variant = 'default' }) {
   if (!post) return null;
 
@@ -92,6 +77,9 @@ export default function BlogCard({ post, locale, variant = 'default' }) {
   // FEATURED variant — homepage hero (large card)
   // ------------------------------------------------------------------
   if (variant === 'featured') {
+    // Primary highlight color: use category color or brand color
+    const highlightColor = post.category?.color || '#470ae2';
+
     return (
       <article
         dir={isRTL ? 'rtl' : 'ltr'}
@@ -103,21 +91,10 @@ export default function BlogCard({ post, locale, variant = 'default' }) {
           display: 'flex',
           flexDirection: 'column',
           height: '100%',
-          transition: 'transform 0.25s, box-shadow 0.25s',
-          willChange: 'transform', // ✅ prevents clipping on transform
-          transform: 'translateZ(0)', // ✅ forces hardware acceleration
-          backfaceVisibility: 'hidden',
-        }}
-        onMouseEnter={e => {
-          e.currentTarget.style.transform = 'translateY(-2px) scale(1.005)'; // ✅ gentler lift
-          e.currentTarget.style.boxShadow = '0 8px 32px rgba(0,0,0,0.12)';
-        }}
-        onMouseLeave={e => {
-          e.currentTarget.style.transform = 'translateY(0) scale(1)';
-          e.currentTarget.style.boxShadow = '0 2px 16px rgba(0,0,0,0.08)';
+          // ✅ Removed transform, so no clipping
         }}
       >
-        {/* Image – 4:3 aspect ratio (taller) */}
+        {/* Image – 4:3 aspect ratio */}
         <Link href={postUrl} style={{ display: 'block', position: 'relative', paddingTop: '75%' }}>
           {post.featuredImage ? (
             <Image
@@ -131,7 +108,7 @@ export default function BlogCard({ post, locale, variant = 'default' }) {
           ) : (
             <div style={{
               position: 'absolute', inset: 0,
-              background: post.category?.color || '#470ae2',
+              background: highlightColor,
               display: 'flex', alignItems: 'center', justifyContent: 'center'
             }}>
               <span style={{ fontSize: 40 }}>📝</span>
@@ -142,7 +119,7 @@ export default function BlogCard({ post, locale, variant = 'default' }) {
             <span style={{
               position: 'absolute',
               top: 12, [isRTL ? 'right' : 'left']: 12,
-              background: post.category.color || '#470ae2',
+              background: highlightColor,
               color: '#fff',
               padding: '3px 10px',
               borderRadius: 20,
@@ -155,26 +132,44 @@ export default function BlogCard({ post, locale, variant = 'default' }) {
           )}
         </Link>
 
-        {/* Content – more spacing */}
-        <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', flex: 1 }}>
+        {/* Content – slightly reduced padding */}
+        <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', flex: 1 }}>
           <Link href={postUrl} style={{ textDecoration: 'none' }}>
             <h3 style={{
-              margin: '0 0 12px',
-              fontSize: '1.2rem',
+              margin: '0 0 10px',
+              fontSize: '1.15rem',
               fontWeight: 700,
               color: '#1a1a1a',
               lineHeight: 1.4,
               display: '-webkit-box',
               WebkitLineClamp: 3,
               WebkitBoxOrient: 'vertical',
-              overflow: 'hidden'
-            }}>
-              {post.title}
-            </h3>
-          </Link>
+              overflow: 'hidden',
+              // ✅ Hover effect: underline with highlight color, smooth transition
+              transition: 'color 0.2s, text-decoration-color 0.2s, background-size 0.2s',
+              textDecoration: 'underline transparent',
+              textDecorationThickness: '3px',
+              textUnderlineOffset: '4px',
+              backgroundImage: `linear-gradient(${highlightColor}, ${highlightColor})`,
+              backgroundRepeat: 'no-repeat',
+              backgroundPosition: 'bottom left',
+              backgroundSize: '0% 3px', // start hidden
+            }}
+            onMouseEnter={e => {
+              e.currentTarget.style.backgroundSize = '100% 3px';
+              e.currentTarget.style.textDecorationColor = highlightColor;
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.backgroundSize = '0% 3px';
+              e.currentTarget.style.textDecorationColor = 'transparent';
+            }}
+          >
+            {post.title}
+          </h3>
+        </Link>
           <p style={{
-            margin: '0 0 20px',
-            fontSize: '0.9rem',
+            margin: '0 0 16px',
+            fontSize: '0.85rem',
             color: '#555',
             lineHeight: 1.6,
             display: '-webkit-box',
@@ -191,7 +186,7 @@ export default function BlogCard({ post, locale, variant = 'default' }) {
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            paddingTop: 14,
+            paddingTop: 12,
             borderTop: '1px solid #f0f0f0',
             gap: 8
           }}>
@@ -205,11 +200,11 @@ export default function BlogCard({ post, locale, variant = 'default' }) {
                   style={{ borderRadius: '50%', objectFit: 'cover' }}
                 />
               )}
-              <span style={{ fontSize: '0.8rem', color: '#777', fontWeight: 500 }}>
+              <span style={{ fontSize: '0.75rem', color: '#777', fontWeight: 500 }}>
                 {post.author?.name}
               </span>
             </div>
-            <span style={{ fontSize: '0.75rem', color: '#aaa' }}>{formattedDate}</span>
+            <span style={{ fontSize: '0.72rem', color: '#aaa' }}>{formattedDate}</span>
           </div>
         </div>
       </article>
@@ -217,7 +212,7 @@ export default function BlogCard({ post, locale, variant = 'default' }) {
   }
 
   // ------------------------------------------------------------------
-  // DEFAULT variant — blog index grid
+  // DEFAULT variant — blog index grid (unchanged, but we can add highlight too)
   // ------------------------------------------------------------------
   return (
     <article
@@ -259,7 +254,6 @@ export default function BlogCard({ post, locale, variant = 'default' }) {
 
       {/* Content */}
       <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', flex: 1 }}>
-        {/* Category + Date */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, flexWrap: 'wrap', gap: 4 }}>
           {post.category && (
             <Link
@@ -280,7 +274,7 @@ export default function BlogCard({ post, locale, variant = 'default' }) {
           <time style={{ fontSize: '0.72rem', color: '#aaa' }}>{formattedDate}</time>
         </div>
 
-        {/* Title */}
+        {/* Title with hover effect (underline) */}
         <Link href={postUrl} style={{ textDecoration: 'none' }}>
           <h3 style={{
             margin: '0 0 8px',
@@ -291,13 +285,19 @@ export default function BlogCard({ post, locale, variant = 'default' }) {
             display: '-webkit-box',
             WebkitLineClamp: 2,
             WebkitBoxOrient: 'vertical',
-            overflow: 'hidden'
-          }}>
+            overflow: 'hidden',
+            transition: 'text-decoration-color 0.2s',
+            textDecoration: 'underline transparent',
+            textDecorationThickness: '2px',
+            textUnderlineOffset: '3px',
+          }}
+          onMouseEnter={e => e.currentTarget.style.textDecorationColor = '#470ae2'}
+          onMouseLeave={e => e.currentTarget.style.textDecorationColor = 'transparent'}
+          >
             {post.title}
           </h3>
         </Link>
 
-        {/* Excerpt */}
         <p style={{
           margin: '0 0 16px',
           fontSize: '0.85rem',
@@ -312,7 +312,6 @@ export default function BlogCard({ post, locale, variant = 'default' }) {
           {post.excerpt}
         </p>
 
-        {/* Read More */}
         <Link
           href={postUrl}
           style={{
