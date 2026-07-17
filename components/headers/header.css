@@ -8,7 +8,7 @@
   --header-bg:           rgba(255, 255, 255, 0.97);
   --header-border:       rgba(0, 0, 0, 0.06);
   --dropdown-shadow:     0 12px 40px rgba(0, 0, 0, 0.16);
-  --dropdown-radius:     14px;
+  --dropdown-radius:     14px; 
   --drawer-width:        320px;
 }
 
