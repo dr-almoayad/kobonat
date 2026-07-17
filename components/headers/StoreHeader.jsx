@@ -92,7 +92,7 @@ const StoreHeader = ({
   if (!store) return null;
 
   return (
-    <header className="sh-container" dir={dir} ref={sentinelRef}>
+    <section className="sh-container" dir={dir} ref={sentinelRef}>
       {/* Visual Banner Background */}
       <div className="sh-banner-wrapper">
         {storeCover ? (
@@ -222,7 +222,7 @@ const StoreHeader = ({
           </div>
         </div>
       </div>
-    </header>
+    </section>
   );
 };
 
