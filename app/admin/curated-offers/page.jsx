@@ -112,6 +112,7 @@ function CuratedOfferForm({ stores, countries, editing, action }) {
               placeholder="https://cdn.cobonat.me/offers/..."
               helpText="Square image shown in the squircle. Recommended: 600×600px"
             />
+            
 
             <FormField
               label="CTA URL"
@@ -138,6 +139,28 @@ function CuratedOfferForm({ stores, countries, editing, action }) {
             <FormRow>
               <FormField label="Active"   name="isActive"   type="checkbox" defaultValue={editing?.isActive   ?? true}  helpText="Show on frontend" />
               <FormField label="Featured" name="isFeatured" type="checkbox" defaultValue={editing?.isFeatured ?? false} helpText="Pin to top" />
+            </FormRow>
+          </FormSection>
+
+           <FormSection title="Appearance">
+            <p style={{ fontSize: 12, color: '#888', marginBottom: 8 }}>
+              Controls the overlay gradient and text color on the homepage hero carousel card.
+            </p>
+            <FormRow>
+              <FormField
+                label="Gradient / Background Color"
+                name="bgColor"
+                type="color"
+                defaultValue={editing?.bgColor || '#f4ebe1'}
+                helpText="Overlay gradient behind the title"
+              />
+              <FormField
+                label="Text Color"
+                name="textColor"
+                type="color"
+                defaultValue={editing?.textColor || '#1c1917'}
+                helpText="Title and subtitle color"
+              />
             </FormRow>
           </FormSection>
 
