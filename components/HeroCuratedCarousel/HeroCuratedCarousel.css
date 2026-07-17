@@ -7,25 +7,23 @@
   padding: 1rem;
   margin: 0 auto;
 }
- 
-/* Base Carousel Setup */ 
+
 .hcc-root {
   width: 100%;
 }
 
-.hcc-carousel-wrapper .ec-viewport { 
-    flex: 1 1;
-    overflow: hidden;
-    padding: 0;
-    transform: translateZ(0);
+.hcc-carousel-wrapper .ec-viewport {
+  flex: 1 1;
+  overflow: hidden;
+  padding: 0;
+  transform: translateZ(0);
 }
 
-
-/* Responsive Slide Sizing Constraints */
+/* ── Slide sizing ─────────────────────────────────────────────────── */
 .hcc-carousel-wrapper .ec-slide {
   flex: 0 0 auto !important;
   width: 85% !important;
-  max-width: 500px !important; /* Forces strict ceiling layout boundary */
+  max-width: 500px !important;
   max-height: 550px;
   background: none;
   border-radius: 8px;
@@ -40,13 +38,13 @@
 }
 
 @media (min-width: 640px) {
- .hcc-carousel-wrapper .ec-slide {
+  .hcc-carousel-wrapper .ec-slide {
     width: 65% !important;
   }
 }
 
 @media (min-width: 1024px) {
-.hcc-carousel-wrapper  .ec-slide {
+  .hcc-carousel-wrapper .ec-slide {
     width: 45% !important;
   }
 }
@@ -57,165 +55,119 @@
   height: 100%;
 }
 
-/* ============================
-   Card Frame Layout
-============================ */
+/* ── Card ────────────────────────────────────────────────────────── */
 .hcc-card {
-  display: flex;
-  flex-direction: column;
-  background-color: var(--card-bg);
-  color: var(--card-text);
+  position: relative;
   border-radius: 8px;
   overflow: hidden;
   height: 100%;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
   transition: box-shadow 0.2s ease;
+  background-color: var(--card-bg); /* fallback if image fails */
 }
 
-/* ============================
-   Top Full-Bleed Image Handling
-============================ */
-.hcc-img-container {
+/* ── Image wrapper ──────────────────────────────────────────────── */
+.hcc-image-wrapper {
   position: relative;
   width: 100%;
-  aspect-ratio: 2/1;
+  aspect-ratio: 2 / 1;
   overflow: hidden;
 }
 
 .hcc-img {
-  width: 100%;
-  height: 100%;
   object-fit: cover;
-  display: block;
 }
 
-/* Gradient now fades from the admin-controlled bgColor at the TOP down to transparent,
-   so the overlaid title stays readable against the image. */
-.hcc-img-overlay {
+/* ── Overlay (full card background) ────────────────────────────── */
+.hcc-overlay {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 65%;
-  background: linear-gradient(to top, transparent 25%, var(--card-bg) 95%);
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    var(--card-bg) 20%,
+    rgba(0, 0, 0, 0.4) 100%
+  );
+  /* This ensures the overlay has the same color as the card background,
+     fading to a dark gradient for readability */
   pointer-events: none;
 }
 
-/* Title/subtitle overlay on top of the image */
-.hcc-body--overlay {
+/* ── Content on top of image ───────────────────────────────────── */
+.hcc-content {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 2;
-  padding: 16px;
-}
-
-.hcc-body--overlay .hcc-title,
-.hcc-body--overlay .hcc-subtitle {
-  color: var(--card-text) !important;
-}
-/* Info Badges (Coming Soon, Expires in X, etc.) */
-.hcc-badge {
-  position: absolute;
-  top: 12px;
-  left: 12px;
-  z-index: 2;
-  background-color: var(--badge-bg);
-  color: var(--badge-text);
-  font-size: 0.75rem;
-  font-weight: 600;
-  padding: 4px 10px;
-  border-radius: 4px;
-  backdrop-filter: blur(4px);
-}
-
-/* ============================
-   Card Typography & Content
-============================ */
-.hcc-card-details {
-  padding: 20px 16px;
+  inset: 0;
   display: flex;
   flex-direction: column;
-  flex-grow: 1;
+  justify-content: space-between;
+  padding: 16px;
+  color: var(--card-text);
 }
 
-.hcc-body {
-  margin-bottom: 10px;
+/* Title & subtitle */
+.hcc-header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .hcc-title {
   font-size: 1.2rem;
-  font-weight: 500;
+  font-weight: 700;
   line-height: 1.25;
-  margin: 0 0 6px 0;
+  margin: 0;
   color: var(--card-text);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
 }
 
 .hcc-subtitle {
   font-size: 0.85rem;
-  opacity: 0.85;
+  opacity: 0.9;
   margin: 0;
   color: var(--card-text);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
-/* ============================
-   Footer Metadata Elements
-============================ */
+/* ── Footer: app icon + CTA ─────────────────────────────────────── */
 .hcc-footer {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-top: auto;
-  gap: 16px;
+  align-items: flex-end;
+  gap: 12px;
 }
 
+/* App info (logo + name) – positioned bottom left (LTR) / bottom right (RTL) */
 .hcc-app-info {
   display: flex;
   align-items: center;
-  gap: 12px;
-  min-width: 0; /* Protect flex texts from overflowing */
-}
-
-.hcc-app-icon {
-  width: 54px;
-  height: 54px;
-  border-radius: 16px;
-  object-fit: cover;
-  flex-shrink: 0;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.08);
-}
-
-.hcc-app-meta-wrap {
-  display: flex;
-  flex-direction: column;
+  gap: 10px;
   min-width: 0;
 }
 
+.hcc-app-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  object-fit: cover;
+  flex-shrink: 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
 .hcc-app-name {
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   font-weight: 600;
   color: var(--card-text);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.hcc-app-meta {
-  font-size: 0.8rem;
-  opacity: 0.7;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  color: var(--card-text);
-}
-
-/* Action Button Formatting */
+/* ── CTA ─────────────────────────────────────────────────────────── */
 .hcc-cta-wrap {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 2px;
   flex-shrink: 0;
 }
 
@@ -230,6 +182,7 @@
   cursor: pointer;
   white-space: nowrap;
   transition: opacity 0.15s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .hcc-card-link:hover .hcc-cta {
@@ -237,15 +190,38 @@
 }
 
 .hcc-cta-subtext {
-  font-size: 0.65rem;
-  opacity: 0.65;
+  font-size: 0.6rem;
+  opacity: 0.7;
   font-weight: 500;
   color: var(--card-text);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
-/* ============================
-   Floating Carousel Navigation Controls
-============================ */
+/* ── Badge (optional) ───────────────────────────────────────────── */
+.hcc-badge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 2;
+  background-color: var(--badge-bg);
+  color: var(--badge-text);
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 4px;
+  backdrop-filter: blur(4px);
+}
+
+/* ── RTL overrides ───────────────────────────────────────────────── */
+[dir="rtl"] .hcc-footer {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .hcc-app-info {
+  flex-direction: row-reverse;
+}
+
+/* ── Navigation arrows (unchanged) ─────────────────────────────── */
 .hcc-nav-arrow {
   position: absolute;
   top: 50%;
@@ -253,7 +229,7 @@
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  background-color: #ffffff;
+  background: #ffffff;
   border: none;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
   display: flex;
@@ -261,7 +237,7 @@
   justify-content: center;
   cursor: pointer;
   z-index: 10;
-  color: #333333;
+  color: #333;
   transition: transform 0.2s ease, opacity 0.2s ease;
 }
 
@@ -274,7 +250,6 @@
   height: 20px;
 }
 
-/* Standardized configuration targeting right visual edge offset */
 .hcc-nav-next {
   right: -24px;
 }
@@ -288,16 +263,13 @@
   transform: translateY(-50%) scaleX(-1) scale(1.05);
 }
 
-/* Hide floating arrows on compact/touch displays */
 @media (max-width: 768px) {
   .hcc-nav-arrow {
     display: none;
   }
-
   .hcc-carousel-wrapper {
     padding: 0.5rem 0;
   }
-
   .hcc-carousel-wrapper .ec-viewport {
     padding: 0 0.6rem;
   }
