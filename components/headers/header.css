@@ -13,13 +13,14 @@
 }
 
 /* ── STICKY WRAPPER ──────────────────────────────────────────────────────────── */
-header {
+.global-site-header {
   position: sticky;
   top: 0;
   z-index: 999;
   background: var(--header-bg);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
+  width: 100%; /* Add this to ensure it spans the full viewport */
 }
 
 /* ── MAIN BAR ────────────────────────────────────────────────────────────────── */
