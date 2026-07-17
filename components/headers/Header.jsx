@@ -223,7 +223,7 @@ const Header = () => {
 
   return (
     <>
-      <header>
+      <header className="global-site-header">
         {/* ── Main bar ── */}
         <div className="main_header">
           <div className="header_container">
