@@ -21,7 +21,11 @@ function extractFields(formData, current = null) {
   const startDate  = formData.get('startDate')  ? new Date(formData.get('startDate'))  : null;
   const expiryDate = formData.get('expiryDate') ? new Date(formData.get('expiryDate')) : null;
 
-  return { offerImage, code, type, ctaUrl, order, isActive, isFeatured, startDate, expiryDate };
+  // ── NEW ──
+  const bgColor    = formData.get('bgColor')   || current?.bgColor   || null;
+  const textColor  = formData.get('textColor') || current?.textColor || null;
+
+  return { offerImage, code, type, ctaUrl, order, isActive, isFeatured, startDate, expiryDate, bgColor, textColor };
 }
 
 // ── CREATE ────────────────────────────────────────────────────────────────────
