@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import EmblaCarousel from '@/components/EmblaCarousel/EmblaCarousel';
@@ -15,12 +15,10 @@ function SlideCard({ slide, priority = false }) {
     subtitle,
     appIcon,
     appName,
-    developer,
-    rating,
     ctaText = "Install",
     ctaSubtext = "In-app purchases",
-    badgeText = "Update available",
-    bgColor = "#f3e8ee", 
+    badgeText,
+    bgColor = "#f3e8ee",
     textColor = "#1f2937",
     badgeBg = "rgba(255, 255, 255, 0.6)",
     badgeColor = "#111111",
@@ -48,41 +46,48 @@ function SlideCard({ slide, priority = false }) {
   };
 
   const inner = (
-    <div className={`hcc-card ${!hasLink ? 'hcc-card--no-link' : ''}`} style={cardStyles}>
-
-      <div className="hcc-img-container">
+    <div className="hcc-card" style={cardStyles}>
+      <div className="hcc-image-wrapper">
         {mainImage && (
-          <>
-            <Image
-              src={imgSrc}
-              alt={title}
-              fill
-              sizes="(max-width: 640px) 85vw, (max-width: 1024px) 65vw, 45vw"
-              quality={80}
-              className="hcc-img"
-              onError={handleImageError}
-              priority={priority}
-            />
-            <div className="hcc-img-overlay" />
-          </>
+          <Image
+            src={imgSrc}
+            alt={title}
+            fill
+            sizes="(max-width: 640px) 85vw, (max-width: 1024px) 65vw, 45vw"
+            quality={80}
+            className="hcc-img"
+            onError={handleImageError}
+            priority={priority}
+          />
         )}
-
-        {/* ── Title/subtitle now sit on top of the image ── */}
-        <div className="hcc-body hcc-body--overlay">
-          <h2 className="hcc-title">{title}</h2>
-          {subtitle && <p className="hcc-subtitle">{subtitle}</p>}
-        </div>
-      </div>
-
-      <div className="hcc-card-details">
-        <div className="hcc-footer">
-          <div className="hcc-app-info">
-            {appIcon && <img src={appIcon} alt={appName} className="hcc-app-icon" />}
-            <div className="hcc-app-meta-wrap">
+        {/* Overlay with the same background color */}
+        <div className="hcc-overlay" />
+        {/* Content overlay */}
+        <div className="hcc-content">
+          <div className="hcc-header">
+            <h2 className="hcc-title">{title}</h2>
+            {subtitle && <p className="hcc-subtitle">{subtitle}</p>}
+          </div>
+          <div className="hcc-footer">
+            <div className="hcc-app-info">
+              {appIcon && (
+                <img src={appIcon} alt={appName} className="hcc-app-icon" />
+              )}
               <span className="hcc-app-name">{appName}</span>
+            </div>
+            <div className="hcc-cta-wrap">
+              <button className="hcc-cta" type="button">
+                {ctaText}
+              </button>
+              {ctaSubtext && <span className="hcc-cta-subtext">{ctaSubtext}</span>}
             </div>
           </div>
         </div>
+        {badgeText && (
+          <div className="hcc-badge" style={{ backgroundColor: badgeBg, color: badgeColor }}>
+            {badgeText}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -106,29 +111,21 @@ export default function HeroCuratedCarousel({ slides, locale }) {
   const isAr = locale?.split('-')[0] === 'ar';
   if (!slides?.length) return null;
 
-  // ── Dynamic preload for LCP image ──
   useEffect(() => {
     const firstSlide = slides[0];
     if (!firstSlide?.mainImage) return;
-
-    // Check if preload already exists to avoid duplicates
     const existingPreload = document.querySelector(
       `link[rel="preload"][as="image"][href="${firstSlide.mainImage}"]`
     );
     if (existingPreload) return;
-
     const link = document.createElement('link');
     link.rel = 'preload';
     link.as = 'image';
     link.href = firstSlide.mainImage;
     link.fetchPriority = 'high';
     document.head.appendChild(link);
-
-    // Cleanup: remove the link when component unmounts (optional)
     return () => {
-      if (link.parentNode) {
-        link.parentNode.removeChild(link);
-      }
+      if (link.parentNode) link.parentNode.removeChild(link);
     };
   }, [slides]);
 
