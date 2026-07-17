@@ -89,17 +89,32 @@
   display: block;
 }
 
-/* Bottom gradient blend transition into background color */
+/* Gradient now fades from the admin-controlled bgColor at the TOP down to transparent,
+   so the overlaid title stays readable against the image. */
 .hcc-img-overlay {
   position: absolute;
-  bottom: 0;
+  top: 0;
   left: 0;
   right: 0;
-  height: 50%;
-  background: linear-gradient(to bottom, transparent 25%, var(--card-bg) 95%);
+  height: 65%;
+  background: linear-gradient(to top, transparent 25%, var(--card-bg) 95%);
   pointer-events: none;
 }
 
+/* Title/subtitle overlay on top of the image */
+.hcc-body--overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 2;
+  padding: 16px;
+}
+
+.hcc-body--overlay .hcc-title,
+.hcc-body--overlay .hcc-subtitle {
+  color: var(--card-text) !important;
+}
 /* Info Badges (Coming Soon, Expires in X, etc.) */
 .hcc-badge {
   position: absolute;
