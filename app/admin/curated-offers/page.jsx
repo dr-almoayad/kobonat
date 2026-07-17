@@ -5,7 +5,7 @@ import { prisma } from '@/lib/prisma';
 import { DataTable } from '@/app/admin/_components/DataTable';
 import { FormField, FormRow, FormSection } from '@/app/admin/_components/FormField';
 import {
-  createCuratedOffer,
+  createCuratedOffer, 
   updateCuratedOffer,
   deleteCuratedOffer,
 } from '@/app/admin/_lib/curated-offer-actions';
