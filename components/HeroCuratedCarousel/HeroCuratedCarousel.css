@@ -13,7 +13,7 @@
   width: 100%;
 }
 
-.hcc-carousel-wrapper .ec-viewport {
+.hcc-carousel-wrapper .ec-viewport { 
     flex: 1 1;
     overflow: hidden;
     padding: 0;
