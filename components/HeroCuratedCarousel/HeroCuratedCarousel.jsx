@@ -49,7 +49,7 @@ function SlideCard({ slide, priority = false }) {
 
   const inner = (
     <div className={`hcc-card ${!hasLink ? 'hcc-card--no-link' : ''}`} style={cardStyles}>
-      
+
       <div className="hcc-img-container">
         {mainImage && (
           <>
@@ -66,14 +66,15 @@ function SlideCard({ slide, priority = false }) {
             <div className="hcc-img-overlay" />
           </>
         )}
-      </div>
 
-      <div className="hcc-card-details">
-        <div className="hcc-body">
+        {/* ── Title/subtitle now sit on top of the image ── */}
+        <div className="hcc-body hcc-body--overlay">
           <h2 className="hcc-title">{title}</h2>
           {subtitle && <p className="hcc-subtitle">{subtitle}</p>}
         </div>
+      </div>
 
+      <div className="hcc-card-details">
         <div className="hcc-footer">
           <div className="hcc-app-info">
             {appIcon && <img src={appIcon} alt={appName} className="hcc-app-icon" />}
