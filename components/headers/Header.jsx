@@ -1,6 +1,6 @@
 'use client';
 // components/headers/Header.jsx
-// Updates:
+// Updates: 
 //  - Fixed: /api/translate-slug → /api/slug-translate (actual endpoint)
 //  - Fallback: if translation fails, redirect to homepage instead of staying on broken page
 
