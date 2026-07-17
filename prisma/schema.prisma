@@ -666,6 +666,10 @@ model CuratedOffer {
   isActive   Boolean @default(true)
   order      Int     @default(0)
 
+  // ── NEW: admin-controlled appearance for the hero carousel card ──
+  bgColor    String?  // gradient/background color behind the overlaid title
+  textColor  String?  // title + subtitle text color
+
   translations CuratedOfferTranslation[]
   store        Store               @relation(fields: [storeId], references: [id], onDelete: Cascade)
   countries    CuratedOfferCountry[]
