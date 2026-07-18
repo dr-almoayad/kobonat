@@ -10,8 +10,8 @@ export default function FeaturedStoresCarousel({ title, stores = [], locale = 'e
 
   const isAr = locale?.startsWith('ar') ?? false;
 
-  // Limit to max 8 stores
-  const limitedStores = stores.slice(0, 8);
+  // Limit to max 12 stores
+  const limitedStores = stores.slice(0, 12);
 
   return (
     <section className="fsc" dir={isAr ? 'rtl' : 'ltr'}>
