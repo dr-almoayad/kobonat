@@ -25,6 +25,8 @@ export default function FeaturedStoresCarousel({ title, stores = [], locale = 'e
           locale={locale}
           slideWidth="144px"
           slideGap="1px"
+          freeScroll={true}
+          scrollSlides={4}
           className="fsc-embla"
           // freeScroll={true}  ← remove or set to false
         >
