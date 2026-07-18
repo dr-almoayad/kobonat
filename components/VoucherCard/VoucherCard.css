@@ -1,751 +1,298 @@
 /* components/VoucherCard/VoucherCard.css */
 
-/* ── Variables ──────────────────────────────────────────────────── */
 :root {
-  --vc-primary:       #470ae2;
-  --vc-primary-dark:  #3508b8;
-  --vc-primary-light: #f0ebff;
-  --vc-primary-muted: #ede9fe;
-  --vc-success:       #059669;
-  --vc-success-bg:    #d1fae5;
-  --vc-warning:       #d97706;
-  --vc-warning-bg:    #fef3c7;
-  --vc-danger:        #dc2626;
-  --vc-danger-bg:     #fee2e2;
-  --vc-blue-bg:       #dbeafe;
-  --vc-purple-bg:     #f5f3ff;
-
-  /* Best deal — teal */
-  --vc-best:          #0891b2;
-  --vc-best-dark:     #0e7490;
-  --vc-best-border:   #06b6d4;
-  --vc-best-bg:       #cffafe;
-  --vc-best-text:     #0e7490;
-  --vc-best-glow:     rgba(6, 182, 212, 0.15);
-
-  --vc-bg:            #ffffff;
-  --vc-border:        #e4e9f0;
-  --vc-border-hover:  #c9d2df;
-  --vc-shadow:        0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
-  --vc-shadow-hover:  0 4px 12px rgba(0,0,0,0.09), 0 2px 4px rgba(0,0,0,0.05);
-
-  --vc-text:          #0f172a;
-  --vc-text-secondary:#475569;
-  --vc-text-muted:    #94a3b8;
-  --vc-bg-subtle:     #f8fafc;
-  --vc-bg-section:    #f1f5f9;
+  --vc-brand-main: #470ae2;
+  --vc-brand-hover: #3508b8;
+  --vc-brand-surface: #f4f1ff;
+  
+  --vc-accent-best: #0891b2;
+  --vc-accent-surface: #ecfeff;
+  
+  --vc-text-strong: #0f172a;
+  --vc-text-body: #475569;
+  --vc-text-faint: #94a3b8;
+  
+  --vc-surface-card: #ffffff;
+  --vc-stroke-light: #e2e8f0;
+  
+  --vc-shadow-base: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.03);
+  --vc-shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
 }
 
-.vc-card, .vc-card *,
-.vc-overlay, .vc-modal, .vc-modal * {
-  font-family: 'Alexandria', 'Segoe UI', system-ui, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  box-sizing: border-box;
-}
-
-
-/* ════════════════════════════════════════════════════════════════
-   CARD
-════════════════════════════════════════════════════════════════ */
-
-.vc-card {
-  display: flex;
-  flex-direction: row;
-  align-items: stretch;
-  width: 100%;
-  max-width: 100%;
-  background: var(--vc-bg);
-  border: 1px solid var(--vc-border);
-  border-radius: 12px;
-  box-shadow: var(--vc-shadow);
-  overflow: hidden;
+/* ─────────────────────────────────────────────────────────────────
+   MAIN CARD CONTAINER
+───────────────────────────────────────────────────────────────── */
+.vc-modern-card {
   position: relative;
-  transition: box-shadow 0.22s ease, border-color 0.22s ease;
-  cursor: default; /* desktop: default; JS handles mobile */
+  width: 100%;
+  max-width: 550px; /* Constrained max-width */
+  background: var(--vc-surface-card);
+  border: 1px solid var(--vc-stroke-light);
+  border-radius: 16px;
+  padding: 1.25rem;
+  box-shadow: var(--vc-shadow-base);
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  font-family: 'Alexandria', 'Segoe UI', system-ui, sans-serif;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.vc-card:hover {
+.vc-modern-card:hover {
+  transform: translateY(-2px);
   box-shadow: var(--vc-shadow-hover);
-  border-color: var(--vc-border-hover);
+  border-color: var(--vc-brand-main);
 }
 
-.vc-card.vc-expired {
-  opacity: 0.55;
-  filter: grayscale(0.6);
+.vc-modern-card.is-expired {
+  opacity: 0.6;
+  filter: grayscale(1);
   pointer-events: none;
 }
 
-.vc-card.vc-featured {
-  border-color: var(--vc-primary);
-  border-width: 1.5px;
-  box-shadow: 0 0 0 3px rgba(71,10,226,0.07), var(--vc-shadow);
+.vc-modern-card.is-best-deal {
+  border-color: var(--vc-accent-best);
+  background: linear-gradient(to bottom right, #ffffff, var(--vc-accent-surface));
 }
 
-/* ── Best deal variant ────────────────────────────────────────── */
-.vc-card--best-deal {
-  border-color: var(--vc-best-border);
-  border-width: 1.5px;
-  box-shadow: 0 0 0 3px var(--vc-best-glow), var(--vc-shadow);
+/* ─────────────────────────────────────────────────────────────────
+   CREATIVE GRAPHIC ELEMENT
+───────────────────────────────────────────────────────────────── */
+.vc-graphic-bg {
+  position: absolute;
+  top: -15%;
+  inset-inline-end: -5%;
+  font-size: 180px;
+  font-weight: 900;
+  color: var(--vc-brand-main);
+  opacity: 0.03;
+  line-height: 1;
+  pointer-events: none;
+  user-select: none;
+  transform: rotate(-10deg);
+  z-index: 0;
 }
-.vc-card--best-deal:hover {
-  box-shadow: 0 0 0 3px var(--vc-best-glow), var(--vc-shadow-hover);
-  border-color: var(--vc-best-dark);
-}
-.vc-card--best-deal .vc-left         { background: var(--vc-best-bg); }
-.vc-card--best-deal .vc-discount     { color: var(--vc-best-text); }
 
-/* ── Ribbons ─────────────────────────────────────────────────── */
-.vc-ribbon {
+.vc-modern-card.is-best-deal .vc-graphic-bg {
+    color: var(--vc-accent-best);
+    opacity: 0.05;
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   LAYOUT ELEMENTS
+───────────────────────────────────────────────────────────────── */
+.vc-content-wrapper {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+}
+
+/* Top Row */
+.vc-top-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.vc-store-logo {
+  height: 48px;
+  max-width: 120px;
+  object-fit: contain;
+  border-radius: 8px;
+  background: #fff; /* Ensure visibility on tinted backgrounds */
+}
+
+.vc-discount-display {
+  background: var(--vc-brand-surface);
+  color: var(--vc-brand-main);
+  padding: 0.5rem 0.875rem;
+  border-radius: 12px;
+  font-weight: 800;
+  font-size: 1.125rem;
+  letter-spacing: -0.02em;
+  text-align: center;
+  border: 1px dashed rgba(71, 10, 226, 0.2);
+}
+
+.vc-modern-card.is-best-deal .vc-discount-display {
+  background: var(--vc-accent-best);
+  color: #fff;
+  border-color: rgba(255,255,255,0.4);
+}
+
+/* Text Content */
+.vc-text-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.vc-offer-title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--vc-text-strong);
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.vc-offer-desc {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--vc-text-body);
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Bottom Action Row */
+.vc-action-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-top: 0.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--vc-stroke-light);
+}
+
+.vc-meta-info {
+  display: flex;
+  align-items: center;
+}
+
+.vc-status-verified {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #059669;
+  background: #d1fae5;
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+
+.vc-status-verified .material-symbols-sharp {
+  font-size: 0.875rem;
+}
+
+/* Call to Action Button */
+.vc-cta-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0.625rem 1.25rem;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 700;
+  border-radius: 10px;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s ease;
+  min-width: 140px;
+}
+
+.vc-cta-btn .material-symbols-sharp {
+  font-size: 1.125rem;
+}
+
+/* Deal Button Style */
+.vc-cta-btn.btn-deal {
+  background: transparent;
+  color: var(--vc-brand-main);
+  border: 2px solid var(--vc-brand-main);
+}
+
+.vc-cta-btn.btn-deal:hover {
+  background: var(--vc-brand-surface);
+}
+
+/* Code Button Style */
+.vc-cta-btn.btn-code {
+  background: var(--vc-brand-main);
+  color: #ffffff;
+}
+
+.vc-cta-btn.btn-code:hover {
+  background: var(--vc-brand-hover);
+}
+
+.vc-cta-btn.is-copied {
+  background: #059669;
+  color: #ffffff;
+  border-color: #059669;
+}
+
+/* Ribbon */
+.vc-badge-ribbon {
   position: absolute;
   top: 0;
-  inset-inline-end: 0;
-  display: flex;
-  align-items: center;
-  gap: 3px;
-  background: var(--vc-primary);
+  inset-inline-start: 1rem;
+  background: var(--vc-accent-best);
   color: #fff;
-  font-size: 0.6875rem;
+  font-size: 0.7rem;
   font-weight: 700;
-  letter-spacing: 0.3px;
-  padding: 3px 10px 3px 8px;
-  border-end-start-radius: 8px;
-  z-index: 2;
-  pointer-events: none;
-}
-.vc-ribbon .material-symbols-sharp { font-size: 0.875rem; }
-.vc-ribbon--best { background: var(--vc-best); }
-
-/* ── Left panel ──────────────────────────────────────────────── */
-.vc-left {
-  flex: 0 0 108px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  padding: 1.25rem 0.75rem;
-  background: var(--vc-primary);
-}
-
-.vc-best-bolt {
-  font-size: 1.125rem;
-  color: var(--vc-best-text);
-  opacity: 0.55;
-  font-variation-settings: 'FILL' 1;
-}
-
-.vc-discount {
-  font-size: 1.875rem;
-  font-weight: 800;
-  line-height: 1;
-  letter-spacing: -0.03em;
-  color: #fff;
-  text-align: center;
-  white-space: pre-line;
-}
-
-/* ── Body ────────────────────────────────────────────────────── */
-.vc-body {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 6px;
-  padding: 0.875rem 1rem;
-  min-width: 0;
-  border-inline-end: 1px solid var(--vc-border);
-}
-
-/* Store logo row — always visible, own line */
-.vc-logo-row {
-  display: block;
-  text-decoration: none;
-  line-height: 0; /* remove inline gap */
-}
-
-.vc-logo {
-  display: block;
-  height: 44px;
-  width: auto;
-  max-width: 116px;
-  object-fit: contain;
-}
-
-/* Title */
-.vc-title {
-  margin: 0;
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: var(--vc-text);
-  line-height: 1.35;
-  /* two-line clamp */
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-/* Description */
-.vc-desc {
-  margin: 0;
-  font-size: 0.8125rem;
-  color: var(--vc-text-secondary);
-  line-height: 1.4;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* Badges */
-.vc-badges {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-}
-
-.vc-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  font-size: 0.6875rem;
-  font-weight: 600;
-  padding: 2px 8px;
-  border-radius: 20px;
-  white-space: nowrap;
-}
-.vc-badge .material-symbols-sharp { font-size: 0.8125rem; }
-
-.vc-badge-active    { background: var(--vc-success-bg); color: #065f46; }
-.vc-badge-urgent    { background: var(--vc-warning-bg); color: #92400e; }
-.vc-badge-expired   { background: var(--vc-danger-bg);  color: #991b1b; }
-.vc-badge-verified  { background: var(--vc-blue-bg);    color: #1e40af; }
-.vc-badge-exclusive { background: var(--vc-purple-bg);  color: #6d28d9; }
-
-/* Meta line */
-.vc-meta-line {
+  padding: 4px 10px;
+  border-radius: 0 0 8px 8px;
   display: flex;
   align-items: center;
-  gap: 5px;
-  font-size: 0.75rem;
-  color: var(--vc-text-muted);
-}
-.vc-meta-item { display: inline-flex; align-items: center; gap: 3px; }
-.vc-meta-dot  { color: var(--vc-text-muted); }
-
-/* ── Right — action buttons (desktop) ───────────────────────── */
-.vc-actions {
-  flex: 0 0 auto;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 1rem 1.125rem;
-}
-
-.vc-btn-primary {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  padding: 0.5rem 1.125rem;
-  background: var(--vc-primary);
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  font-size: 0.875rem;
-  font-weight: 700;
-  font-family: inherit;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: background 0.18s ease, transform 0.12s ease;
-  min-width: 130px;
-}
-.vc-btn-primary:hover:not(:disabled)  { background: var(--vc-primary-dark); }
-.vc-btn-primary:active:not(:disabled) { transform: scale(0.98); }
-.vc-btn-primary:disabled { opacity: 0.45; cursor: not-allowed; }
-.vc-btn-primary .material-symbols-sharp { font-size: 1rem; }
-.vc-btn-primary.vc-copied { background: var(--vc-success); }
-
-.vc-btn-deal {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  padding: 0.5rem 1.125rem;
-  background: #fff;
-  color: var(--vc-primary);
-  border: 1.5px solid var(--vc-primary);
-  border-radius: 8px;
-  font-size: 0.875rem;
-  font-weight: 700;
-  font-family: inherit;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: background 0.18s ease, color 0.18s ease, transform 0.12s ease;
-  min-width: 130px;
-}
-.vc-btn-deal:hover:not(:disabled)  { background: var(--vc-primary); color: #fff; }
-.vc-btn-deal:active:not(:disabled) { transform: scale(0.98); }
-.vc-btn-deal:disabled { opacity: 0.45; cursor: not-allowed; }
-.vc-btn-deal .material-symbols-sharp { font-size: 1rem; }
-
-.vc-details-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  padding: 0;
-  background: none;
-  border: none;
-  font-size: 0.8125rem;
-  font-weight: 500;
-  font-family: inherit;
-  color: var(--vc-text-muted);
-  cursor: pointer;
-  transition: color 0.15s ease;
-}
-.vc-details-btn:hover { color: var(--vc-primary); }
-.vc-details-btn .material-symbols-sharp { font-size: 0.9375rem; }
-
-/* RTL flip */
-[dir="rtl"] .vc-btn-deal .material-symbols-sharp { transform: scaleX(-1); }
-
-
-/* ════════════════════════════════════════════════════════════════
-   MODAL OVERLAY
-════════════════════════════════════════════════════════════════ */
-
-.vc-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
-  background: rgba(15,23,42,0.5);
-  backdrop-filter: blur(4px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 1rem;
-  animation: vc-fade-in 0.18s ease;
-}
-
-@keyframes vc-fade-in {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
-
-
-/* ════════════════════════════════════════════════════════════════
-   MODAL — centred (desktop)
-════════════════════════════════════════════════════════════════ */
-
-.vc-modal {
-  background: var(--vc-bg);
-  border-radius: 16px;
-  border: 1px solid var(--vc-border);
-  box-shadow: 0 24px 64px rgba(0,0,0,0.2), 0 8px 16px rgba(0,0,0,0.08);
-  width: 100%;
-  max-width: 460px;
-  max-height: 88dvh;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  animation: vc-modal-in 0.22s cubic-bezier(0.34,1.3,0.64,1);
-}
-
-@keyframes vc-modal-in {
-  from { opacity: 0; transform: translateY(10px) scale(0.97); }
-  to   { opacity: 1; transform: translateY(0)   scale(1);    }
-}
-
-/* Drag handle — only visible on mobile */
-.vc-modal-handle {
-  display: none;
-}
-
-/* Header */
-.vc-modal-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  padding: 1.125rem 1.25rem;
-  border-bottom: 1px solid var(--vc-border);
-  flex-shrink: 0;
-}
-
-.vc-modal-identity {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  min-width: 0;
-  flex: 1;
-}
-
-.vc-modal-logo {
-  max-width: 100px;
-  width: auto;
-  height: 46px;
-  object-fit: contain;
-  border-radius: 8px;
-  flex-shrink: 0;
-}
-
-.vc-modal-title-block {
-  display: flex;
-  flex-direction: column;
   gap: 2px;
-  min-width: 0;
+  z-index: 2;
 }
 
-.vc-modal-store-name {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--vc-text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+.vc-badge-ribbon .material-symbols-sharp {
+  font-size: 0.875rem;
 }
 
-.vc-modal-title {
-  font-size: 0.9375rem;
-  font-weight: 700;
-  color: var(--vc-text);
-  line-height: 1.3;
-  /* clamp at 2 lines */
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+/* RTL Adjustments */
+[dir="rtl"] .vc-cta-btn.btn-deal .material-symbols-sharp {
+  transform: scaleX(-1);
 }
 
-.vc-modal-close {
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 34px;
-  height: 34px;
-  background: var(--vc-bg-subtle);
-  border: 1px solid var(--vc-border);
-  border-radius: 50%;
-  cursor: pointer;
-  color: var(--vc-text-secondary);
-  transition: background 0.15s ease;
-}
-.vc-modal-close:hover { background: var(--vc-bg-section); }
-.vc-modal-close .material-symbols-sharp { font-size: 1.125rem; }
-
-/* Scrollable body */
-.vc-modal-body {
-  flex: 1;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  -webkit-overflow-scrolling: touch;
-}
-.vc-modal-body::-webkit-scrollbar { width: 4px; }
-.vc-modal-body::-webkit-scrollbar-track { background: transparent; }
-.vc-modal-body::-webkit-scrollbar-thumb { background: var(--vc-border); border-radius: 4px; }
-
-/* Sections */
-.vc-modal-section {
-  padding: 1.125rem 1.25rem;
-  border-bottom: 1px solid var(--vc-border);
-}
-.vc-modal-section:last-child { border-bottom: none; }
-
-.vc-modal-section-heading {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.8125rem;
-  font-weight: 700;
-  color: var(--vc-text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin: 0 0 1rem;
-}
-.vc-modal-section-heading .material-symbols-sharp { font-size: 1rem; color: var(--vc-primary); }
-
-/* Steps (CODE) */
-.vc-steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 1rem; }
-
-.vc-step { display: flex; align-items: flex-start; gap: 0.875rem; }
-
-.vc-step-num {
-  flex-shrink: 0;
-  width: 28px; height: 28px;
-  background: var(--vc-primary);
-  color: #fff;
-  font-size: 0.875rem; font-weight: 700;
-  border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  margin-top: 1px;
-}
-
-.vc-step-content { display: flex; flex-direction: column; gap: 3px; flex: 1; min-width: 0; }
-.vc-step-content strong { font-size: 0.9rem; font-weight: 700; color: var(--vc-text); }
-.vc-step-content span   { font-size: 0.8125rem; color: var(--vc-text-secondary); line-height: 1.5; }
-
-/* Deal info block */
-.vc-deal-info-block {
-  display: flex; align-items: flex-start; gap: 0.875rem;
-  padding: 1rem;
-  background: var(--vc-primary-light);
-  border-radius: 10px;
-  border: 1px solid rgba(71,10,226,0.1);
-}
-.vc-deal-icon-wrap {
-  flex-shrink: 0; width: 40px; height: 40px;
-  border-radius: 10px; background: var(--vc-primary);
-  display: flex; align-items: center; justify-content: center;
-}
-.vc-deal-icon-wrap .material-symbols-sharp { font-size: 1.375rem; color: #fff; }
-.vc-deal-description { flex: 1; display: flex; flex-direction: column; gap: 5px; }
-.vc-deal-description strong { font-size: 0.9rem; font-weight: 700; color: var(--vc-primary); }
-.vc-deal-description span   { font-size: 0.8125rem; color: var(--vc-text-secondary); line-height: 1.5; }
-
-/* Stats grid */
-.vc-modal-stats-grid {
-  display: grid;
-  grid-template-columns: repeat(2,1fr);
-  border: 1px solid var(--vc-border);
-  border-radius: 10px;
-  overflow: hidden;
-}
-.vc-stat-cell {
-  display: flex; flex-direction: column; align-items: flex-start; gap: 3px;
-  padding: 0.875rem 1rem;
-  border-inline-end: 1px solid var(--vc-border);
-  border-bottom: 1px solid var(--vc-border);
-}
-.vc-stat-cell:nth-child(2n)         { border-inline-end: none; }
-.vc-stat-cell:nth-last-child(-n+2)  { border-bottom: none; }
-.vc-stat-cell:last-child:nth-child(odd) { grid-column: span 2; border-inline-end: none; }
-
-.vc-stat-icon  { font-size: 1rem; color: var(--vc-primary); margin-bottom: 2px; }
-.vc-stat-value { font-size: 1rem; font-weight: 700; color: var(--vc-text); line-height: 1.2; }
-.vc-stat-label { font-size: 0.6875rem; color: var(--vc-text-muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.4px; }
-
-/* Terms */
-.vc-terms-list { display: flex; flex-direction: column; gap: 0.625rem; }
-.vc-term-item  {
-  display: flex; align-items: flex-start; gap: 0.625rem;
-  font-size: 0.8125rem; color: var(--vc-text-secondary); line-height: 1.5;
-}
-.vc-term-item .material-symbols-sharp { font-size: 1rem; color: var(--vc-text-muted); flex-shrink: 0; margin-top: 1px; }
-
-/* Footer */
-.vc-modal-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  padding: 1rem 1.25rem;
-  border-top: 1px solid var(--vc-border);
-  background: var(--vc-bg-subtle);
-  flex-shrink: 0;
-}
-
-.vc-modal-store-link {
-  display: inline-flex; align-items: center; gap: 5px;
-  font-size: 0.8125rem; font-weight: 600; color: var(--vc-primary);
-  text-decoration: none; transition: opacity 0.15s ease;
-  white-space: nowrap;
-}
-.vc-modal-store-link:hover { opacity: 0.75; }
-.vc-modal-store-link .material-symbols-sharp { font-size: 1rem; }
-.vc-chevron { font-size: 1.125rem !important; }
-
-[dir="rtl"] .vc-modal-store-link .vc-chevron { transform: scaleX(-1); }
-
-.vc-modal-cta { flex-shrink: 0; }
-
-
-/* ── Mobile chevron (display:none on desktop) ───────────────── */
-.vc-mobile-chevron {
-  display: none;
-}
-
-/* ════════════════════════════════════════════════════════════════
-   MOBILE  ≤ 640px
-════════════════════════════════════════════════════════════════ */
-
+/* ─────────────────────────────────────────────────────────────────
+   MOBILE OPTIMIZATIONS (≤ 640px)
+───────────────────────────────────────────────────────────────── */
 @media (max-width: 640px) {
-
-  /* ── Card — tap anywhere to open modal ─────────── */
-  .vc-card {
-    cursor: pointer;
-    min-height: 90px;
-    border-radius: 10px;
-    /* Gentle press feedback */
-    -webkit-tap-highlight-color: transparent;
+  .vc-modern-card {
+    padding: 1rem;
+    gap: 0.75rem;
   }
-  .vc-card:active { opacity: 0.92; }
-
-  /* ── Left panel ─────────────────────────────────── */
-  .vc-left {
-    flex: 0 0 84px;
-    padding: 1rem 0.625rem;
-    gap: 4px;
+  
+  .vc-graphic-bg {
+    font-size: 140px;
+    top: -10%;
   }
 
-  .vc-discount { font-size: 1.625rem; }
-
-  /* ── Body ───────────────────────────────────────── */
-  .vc-body {
-    padding: 0.75rem 0.875rem;
-    border-inline-end: none;
-    gap: 5px;
-    justify-content: center;
-  }
-
-  /* Logo */
-  .vc-logo {
-    height: 40px;
-    max-width: 100px;
-  }
-
-  /* Title: allow 2-line wrap */
-  .vc-title {
-    font-size: 0.8rem;
-    -webkit-line-clamp: 2;
-  }
-
-  /* Hide description on mobile */
-  .vc-desc { display: none; }
-
-  /* Badges — strip icons for brevity */
-  .vc-badge { font-size: 0.625rem; padding: 2px 7px; }
-  .vc-badge .material-symbols-sharp { display: none; }
-
-  /* Meta */
-  .vc-meta-line { font-size: 0.6875rem; }
-
-  /* ── Action buttons: hidden on mobile ──────────── */
-  .vc-actions { display: none; }
-
-  /* ── Mobile chevron: shown on mobile ────────────── */
-  .vc-mobile-chevron {
-    display: flex;
-    flex: 0 0 auto;
-    align-items: center;
-    justify-content: center;
-    width: 36px;
-    align-self: stretch;
-    color: var(--vc-text-muted);
-    pointer-events: none; /* card itself handles the tap */
-  }
-  .vc-mobile-chevron .material-symbols-sharp {
-    font-size: 1.375rem;
-  }
-  .vc-card--best-deal .vc-mobile-chevron { color: var(--vc-best); }
-
-  /* ─────────────────────────────────────────────────
-     MODAL — bottom sheet on mobile
-  ───────────────────────────────────────────────── */
-
-  .vc-overlay {
-    align-items: flex-end;
-    padding: 0;
-    /* Allow tapping the backdrop to close */
-  }
-
-  .vc-modal {
-    max-width: 100%;
-    width: 100%;
-    border-radius: 20px 20px 0 0;
-    border-bottom: none;
-    /* Respect notch / home indicator */
-    padding-bottom: env(safe-area-inset-bottom, 0px);
-    max-height: 92dvh;
-    animation: vc-sheet-up 0.28s cubic-bezier(0.32, 0.72, 0, 1);
-  }
-
-  @keyframes vc-sheet-up {
-    from { transform: translateY(100%); }
-    to   { transform: translateY(0); }
-  }
-
-  /* Drag handle indicator */
-  .vc-modal-handle {
-    display: block;
-    width: 36px;
-    height: 4px;
-    background: var(--vc-border);
-    border-radius: 2px;
-    margin: 10px auto 0;
-    flex-shrink: 0;
-  }
-
-  /* Header */
-  .vc-modal-header {
-    padding: 0.875rem 1.125rem 0.875rem;
-  }
-
-  .vc-modal-logo {
-    max-width: 90px;
-    width: auto;
+  .vc-store-logo {
     height: 40px;
   }
 
-  .vc-modal-store-name { font-size: 0.6875rem; }
-  .vc-modal-title      { font-size: 0.875rem; }
-
-  /* Body sections */
-  .vc-modal-section { padding: 1rem 1.125rem; }
-
-  .vc-modal-section-heading {
-    font-size: 0.75rem;
-    margin-bottom: 0.875rem;
-  }
-
-  /* Steps */
-  .vc-step-num {
-    width: 26px;
-    height: 26px;
-    font-size: 0.8125rem;
-  }
-  .vc-step-content strong { font-size: 0.875rem; }
-  .vc-step-content span   { font-size: 0.8rem; }
-
-  /* Deal block */
-  .vc-deal-icon-wrap { width: 36px; height: 36px; }
-  .vc-deal-icon-wrap .material-symbols-sharp { font-size: 1.125rem; }
-  .vc-deal-description strong { font-size: 0.875rem; }
-  .vc-deal-description span   { font-size: 0.8rem; }
-
-  /* Stats */
-  .vc-stat-value { font-size: 0.9375rem; }
-  .vc-stat-label { font-size: 0.625rem; }
-
-  /* Footer — CTA takes full width, store link above */
-  .vc-modal-footer {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 0.625rem;
-    padding: 0.875rem 1.125rem;
-    padding-bottom: max(0.875rem, env(safe-area-inset-bottom, 0px));
-  }
-
-  .vc-modal-store-link {
-    justify-content: center;
-    font-size: 0.875rem;
-  }
-
-  .vc-modal-cta {
-    width: 100%;
-    padding: 0.75rem 1rem;
+  .vc-discount-display {
     font-size: 1rem;
-    border-radius: 10px;
+    padding: 0.375rem 0.625rem;
   }
-}
 
-@media (max-width: 380px) {
-  .vc-left     { flex: 0 0 72px; padding: 0.75rem 0.5rem; }
-  .vc-discount { font-size: 1.375rem; }
-}
+  .vc-offer-title {
+    font-size: 0.95rem;
+  }
+  
+  .vc-action-row {
+    padding-top: 0.75rem;
+  }
 
-@media (prefers-reduced-motion: reduce) {
-  .vc-card, .vc-btn-primary, .vc-btn-deal,
-  .vc-overlay, .vc-modal { animation: none; transition: none; }
+  .vc-cta-btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    min-width: 120px;
+  }
 }
