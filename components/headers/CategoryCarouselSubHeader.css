@@ -122,6 +122,13 @@
   color: #470ae2;
 }
 
+
+@media (max-width: 768px) {
+    .ccs-wrapper .ec-viewport {
+        min-height: 0;
+    }
+}
+
 /* Tablet: slightly larger slides */
 @media (min-width: 640px) {
   .ccs-slide {
