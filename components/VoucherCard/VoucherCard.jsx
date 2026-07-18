@@ -12,25 +12,22 @@ const VoucherCard = ({ voucher, featured = false, bestDeal = false, expired = fa
   const [copied, setCopied] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const isMobileRef = useRef(false);
 
   useEffect(() => {
     setMounted(true);
-    const check = () => { isMobileRef.current = window.innerWidth <= 640; };
-    check();
-    window.addEventListener('resize', check);
-    return () => window.removeEventListener('resize', check);
   }, []);
 
   const currentLanguage = locale.split('-')[0];
   const isRtl = currentLanguage === 'ar';
+  const isFreeShipping = voucher.type === 'FREE_SHIPPING';
 
+  // Extractors
   const getVoucherTitle = () => {
     if (voucher.title) return voucher.title;
     if (voucher.translations?.[0]?.title) return voucher.translations[0].title;
+    if (isFreeShipping) return t('labels.freeDelivery');
     if (voucher.type === 'CODE') return t('labels.code');
     if (voucher.type === 'DEAL') return t('labels.deal');
-    if (voucher.type === 'FREE_SHIPPING') return t('labels.freeDelivery');
     return t('labels.specialDeal');
   };
 
@@ -55,16 +52,30 @@ const VoucherCard = ({ voucher, featured = false, bestDeal = false, expired = fa
   const getDiscountText = () => {
     if (voucher.discount) return voucher.discount;
     if (voucher.discountPercent != null) return `${Math.round(voucher.discountPercent)}%`;
-    if (voucher.type === 'FREE_SHIPPING') return isRtl ? 'شحن\nمجاني' : 'FREE\nSHIP';
+    if (isFreeShipping) return isRtl ? 'شحن مجاني' : 'FREE SHIP';
     if (voucher.type === 'DEAL') return isRtl ? 'عرض' : 'DEAL';
     return isRtl ? 'خصم' : 'SALE';
   };
 
+  // Time & Status Data
   const isExpiredByDate = voucher.expiryDate ? new Date(voucher.expiryDate) < new Date() : false;
   const isExpiredCard = expired || isExpiredByDate;
+  const isActive = !isExpiredByDate && (!voucher.startDate || new Date(voucher.startDate) <= new Date());
+  const timesUsed = voucher.clickCount ?? voucher._count?.clicks ?? 0;
 
-  const handleAction = async (e) => {
-    e?.stopPropagation();
+  const getLastUpdatedTime = () => {
+    if (!voucher.updatedAt) return null;
+    const diffHours = Math.floor((new Date() - new Date(voucher.updatedAt)) / (1000 * 60 * 60));
+    if (diffHours < 1) return isRtl ? 'محدث للتو' : 'Updated just now';
+    if (diffHours < 24) return isRtl ? `محدث قبل ${diffHours} ساعة` : `Updated ${diffHours}h ago`;
+    const diffDays = Math.floor(diffHours / 24);
+    if (diffDays === 1) return isRtl ? 'محدث أمس' : 'Updated yesterday';
+    return isRtl ? `محدث قبل ${diffDays} أيام` : `Updated ${diffDays}d ago`;
+  };
+
+  // Actions
+  const handleActionClick = async (e) => {
+    e.stopPropagation(); // Prevents the card's modal from opening
     if (isExpiredCard) return;
 
     if (voucher.type === 'CODE' && voucher.code) {
@@ -76,23 +87,21 @@ const VoucherCard = ({ voucher, featured = false, bestDeal = false, expired = fa
         console.error('Failed to copy:', err);
       }
     }
-    
+
     const [, countryCode] = locale.split('-');
     await fetch('/api/vouchers/track', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ voucherId: voucher.id, countryCode }),
     });
-    
-    // Slight delay for code copy before redirecting
+
     setTimeout(() => {
-        window.open(voucher.landingUrl || voucher.store?.websiteUrl, '_blank');
+      window.open(voucher.landingUrl || voucher.store?.websiteUrl, '_blank');
     }, voucher.type === 'CODE' ? 600 : 0);
   };
 
   const handleCardClick = () => {
-    if (isExpiredCard) return;
-    setModalOpen(true);
+    if (!isExpiredCard) setModalOpen(true);
   };
 
   const storeName = getStoreName();
@@ -100,89 +109,108 @@ const VoucherCard = ({ voucher, featured = false, bestDeal = false, expired = fa
   const title = getVoucherTitle();
   const description = getVoucherDescription();
   const discountText = getDiscountText();
+  const lastUpdated = getLastUpdatedTime();
 
   return (
     <>
       <article
-        className={`vc-modern-card ${isExpiredCard ? 'is-expired' : ''} ${bestDeal ? 'is-best-deal' : ''}`}
+        className={[
+          'vc-modern-card',
+          isExpiredCard ? 'is-expired' : '',
+          bestDeal ? 'is-best-deal' : '',
+          isFreeShipping ? 'is-free-shipping' : ''
+        ].filter(Boolean).join(' ')}
         dir={isRtl ? 'rtl' : 'ltr'}
         onClick={handleCardClick}
         role="button"
         tabIndex={isExpiredCard ? -1 : 0}
-        onKeyDown={(e) => { if (!isExpiredCard && (e.key === 'Enter' || e.key === ' ')) handleCardClick(); }}
-        aria-label={`${title} at ${storeName}`}
         aria-disabled={isExpiredCard}
       >
-        {/* Creative Percentage Graphic Background */}
-        <div className="vc-graphic-bg" aria-hidden="true">%</div>
-
-        {bestDeal && (
-          <div className="vc-badge-ribbon">
-             <span className="material-symbols-sharp">bolt</span>
-             {isRtl ? 'أفضل عرض' : 'Top Deal'}
+        {/* ── TOP ROW ── */}
+        <div className="vc-top-row">
+          
+          {/* 1. Logo (Left) */}
+          <div className="vc-col-logo">
+            {voucher.store && (
+              <Link href={`/${locale}/stores/${storeSlug}`} onClick={(e) => e.stopPropagation()}>
+                <img
+                  src={voucher.store.logo || '/placeholder_store.png'}
+                  alt={storeName}
+                  className="vc-store-logo"
+                  loading="lazy"
+                />
+              </Link>
+            )}
           </div>
-        )}
 
-        <div className="vc-content-wrapper">
-            {/* Top Row: Logo & Discount */}
-            <div className="vc-top-row">
-                {voucher.store && (
-                    <Link
-                    href={`/${locale}/stores/${storeSlug}`}
-                    className="vc-store-link"
-                    onClick={(e) => e.stopPropagation()}
-                    aria-label={`Visit ${storeName} store page`}
-                    >
-                    <img
-                        src={voucher.store.logo || '/placeholder_store.png'}
-                        alt={`${storeName} logo`}
-                        className="vc-store-logo"
-                        loading="lazy"
-                    />
-                    </Link>
-                )}
-                <div className="vc-discount-display">
-                    <span className="vc-discount-value">{discountText}</span>
-                </div>
+          {/* 2. Unframed Discount Value (Center) */}
+          <div className="vc-col-center">
+            {isFreeShipping ? (
+               <span className="vc-bg-graphic material-symbols-sharp" aria-hidden="true">local_shipping</span>
+            ) : (
+               <span className="vc-bg-graphic" aria-hidden="true">%</span>
+            )}
+            <span className="vc-discount-value">{discountText}</span>
+          </div>
+
+          {/* 3. Promo Code + CTA (Right) */}
+          <div className="vc-col-action">
+            {voucher.type === 'CODE' && voucher.code && (
+              <div className="vc-promo-code-box">
+                {voucher.code}
+              </div>
+            )}
+            <button
+              className={`vc-cta-btn ${copied ? 'is-copied' : ''}`}
+              onClick={handleActionClick}
+              disabled={isExpiredCard}
+            >
+              {voucher.type === 'CODE' ? (
+                copied ? (
+                  <><span className="material-symbols-sharp">check</span>{isRtl ? 'تم النسخ' : 'Copied'}</>
+                ) : (
+                  <><span className="material-symbols-sharp">content_copy</span>{isRtl ? 'نسخ' : 'Copy'}</>
+                )
+              ) : (
+                <><span className="material-symbols-sharp">arrow_forward</span>{isRtl ? 'تفعيل' : 'Get Deal'}</>
+              )}
+            </button>
+          </div>
+        </div>
+
+        {/* ── BOTTOM ROW ── */}
+        <div className="vc-bottom-row">
+          <div className="vc-info-block">
+             <h3 className="vc-offer-title">{title}</h3>
+             {description && <p className="vc-offer-desc">{description}</p>}
+          </div>
+
+          <div className="vc-meta-bar">
+            <div className="vc-badges">
+              {isActive && (
+                <span className="vc-badge vc-badge-active">
+                  <span className="material-symbols-sharp">check_circle</span>
+                  {t('badges.active')}
+                </span>
+              )}
+              {voucher.isVerified && (
+                <span className="vc-badge vc-badge-verified">
+                  <span className="material-symbols-sharp">verified</span>
+                  {t('badges.verified')}
+                </span>
+              )}
             </div>
 
-            {/* Middle Row: Title & Description */}
-            <div className="vc-text-content">
-                <h3 className="vc-offer-title">{title}</h3>
-                {description && <p className="vc-offer-desc">{description}</p>}
+            <div className="vc-stats">
+              {timesUsed > 0 && <span>{timesUsed.toLocaleString()} {t('meta.timesUsed')}</span>}
+              {timesUsed > 0 && lastUpdated && <span className="vc-dot">·</span>}
+              {lastUpdated && <span>{lastUpdated}</span>}
             </div>
-
-            {/* Bottom Row: Action Area */}
-            <div className="vc-action-row">
-                <div className="vc-meta-info">
-                   {voucher.isVerified && (
-                    <span className="vc-status-verified">
-                        <span className="material-symbols-sharp">verified</span>
-                        {t('badges.verified')}
-                    </span>
-                   )}
-                </div>
-
-                <button
-                    className={`vc-cta-btn ${voucher.type === 'CODE' ? 'btn-code' : 'btn-deal'} ${copied ? 'is-copied' : ''}`}
-                    onClick={handleAction}
-                    disabled={isExpiredCard}
-                    aria-label={voucher.type === 'CODE' ? 'Copy coupon code' : 'Activate deal'}
-                >
-                    {voucher.type === 'CODE' ? (
-                        copied ? (
-                            <><span className="material-symbols-sharp">check</span>{isRtl ? 'تم النسخ' : 'Copied'}</>
-                        ) : (
-                            <><span className="material-symbols-sharp">content_copy</span>{isRtl ? 'نسخ الكود' : 'Get Code'}</>
-                        )
-                    ) : (
-                        <><span className="material-symbols-sharp">arrow_forward</span>{isRtl ? 'تفعيل العرض' : 'Get Deal'}</>
-                    )}
-                </button>
-            </div>
+          </div>
         </div>
       </article>
 
+      {/* ── MODAL ── */}
       {mounted && !isExpiredCard && (
         <VoucherModal
           isOpen={modalOpen}
