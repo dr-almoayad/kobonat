@@ -164,7 +164,7 @@
 
 .hcc-cta {
   background-color: var(--btn-bg);
-  color: var(--btn-text);
+  color: var(--card-text) !important;
   font-size: 0.85rem;
   font-weight: 700;
   padding: 8px 18px;
