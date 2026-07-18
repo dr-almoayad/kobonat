@@ -3,47 +3,43 @@
 :root {
   --vc-brand-main: #470ae2;
   --vc-brand-hover: #3508b8;
-  --vc-brand-surface: #f4f1ff;
+  --vc-brand-light: #f0ebff;
   
-  --vc-accent-best: #0891b2;
-  --vc-accent-surface: #ecfeff;
-  
-  --vc-text-strong: #0f172a; 
+  --vc-shipping-main: #059669; /* Emerald Green */
+  --vc-shipping-light: #d1fae5;
+  --vc-shipping-hover: #047857;
+
+  --vc-text-strong: #0f172a;
   --vc-text-body: #475569;
   --vc-text-faint: #94a3b8;
   
   --vc-surface-card: #ffffff;
   --vc-stroke-light: #e2e8f0;
-  
-  --vc-shadow-base: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.03);
-  --vc-shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
 }
 
-/* ─────────────────────────────────────────────────────────────────
-   MAIN CARD CONTAINER
-───────────────────────────────────────────────────────────────── */
+/* ── MAIN CARD CONTAINER ────────────────────────────────────────── */
 .vc-modern-card {
   position: relative;
   width: 100%;
-  max-width: 550px; /* Constrained max-width */
+  max-width: 550px;
   background: var(--vc-surface-card);
   border: 1px solid var(--vc-stroke-light);
   border-radius: 16px;
-  padding: 1.25rem;
-  box-shadow: var(--vc-shadow-base);
+  padding: 1.25rem 1.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
   overflow: hidden;
   cursor: pointer;
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 1.25rem;
   font-family: 'Alexandria', 'Segoe UI', system-ui, sans-serif;
   -webkit-tap-highlight-color: transparent;
 }
 
 .vc-modern-card:hover {
   transform: translateY(-2px);
-  box-shadow: var(--vc-shadow-hover);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08);
   border-color: var(--vc-brand-main);
 }
 
@@ -53,95 +49,157 @@
   pointer-events: none;
 }
 
-.vc-modern-card.is-best-deal {
-  border-color: var(--vc-accent-best);
-  background: linear-gradient(to bottom right, #ffffff, var(--vc-accent-surface));
+/* Free Shipping Hover State Override */
+.vc-modern-card.is-free-shipping:hover {
+  border-color: var(--vc-shipping-main);
 }
 
-/* ─────────────────────────────────────────────────────────────────
-   CREATIVE GRAPHIC ELEMENT
-───────────────────────────────────────────────────────────────── */
-.vc-graphic-bg {
-  position: absolute;
-  top: -15%;
-  inset-inline-end: -5%;
-  font-size: 180px;
-  font-weight: 900;
-  color: var(--vc-brand-main);
-  opacity: 0.03;
-  line-height: 1;
-  pointer-events: none;
-  user-select: none;
-  transform: rotate(-10deg);
-  z-index: 0;
-}
-
-.vc-modern-card.is-best-deal .vc-graphic-bg {
-    color: var(--vc-accent-best);
-    opacity: 0.05;
-}
-
-/* ─────────────────────────────────────────────────────────────────
-   LAYOUT ELEMENTS
-───────────────────────────────────────────────────────────────── */
-.vc-content-wrapper {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 0.875rem;
-}
-
-/* Top Row */
+/* ── TOP ROW: GRID LAYOUT ───────────────────────────────────────── */
 .vc-top-row {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: minmax(80px, 1fr) auto minmax(80px, 1fr);
   align-items: center;
+  gap: 1rem;
+}
+
+/* 1. Logo */
+.vc-col-logo {
+  justify-self: start;
 }
 
 .vc-store-logo {
-  height: 48px;
-  max-width: 120px;
+  height: 42px;
+  max-width: 110px;
   object-fit: contain;
-  border-radius: 8px;
-  background: #fff; /* Ensure visibility on tinted backgrounds */
+  border-radius: 6px;
 }
 
-.vc-discount-display {
-  background: var(--vc-brand-surface);
-  color: var(--vc-brand-main);
-  padding: 0.5rem 0.875rem;
-  border-radius: 12px;
-  font-weight: 800;
-  font-size: 1.125rem;
-  letter-spacing: -0.02em;
+/* 2. Center Discount (Unframed & Popping) */
+.vc-col-center {
+  justify-self: center;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 120px;
   text-align: center;
-  border: 1px dashed rgba(71, 10, 226, 0.2);
 }
 
-.vc-modern-card.is-best-deal .vc-discount-display {
-  background: var(--vc-accent-best);
+.vc-discount-value {
+  font-size: 1.875rem;
+  font-weight: 900;
+  color: var(--vc-brand-main);
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  z-index: 1;
+  white-space: pre-line; /* Allows line breaks if passed */
+}
+
+.vc-bg-graphic {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 4rem;
+  font-weight: 900;
+  color: var(--vc-brand-main);
+  opacity: 0.06;
+  z-index: 0;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* 3. Action Group */
+.vc-col-action {
+  justify-self: end;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.vc-promo-code-box {
+  background: var(--vc-brand-light);
+  color: var(--vc-brand-main);
+  border: 1px dashed rgba(71, 10, 226, 0.4);
+  padding: 0.4rem 0.75rem;
+  border-radius: 8px;
+  font-family: monospace;
+  font-weight: 700;
+  font-size: 0.95rem;
+  letter-spacing: 1px;
+}
+
+.vc-cta-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0.5rem 1rem;
+  background: var(--vc-brand-main);
   color: #fff;
-  border-color: rgba(255,255,255,0.4);
+  border: none;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  white-space: nowrap;
 }
 
-/* Text Content */
-.vc-text-content {
+.vc-cta-btn:hover {
+  background: var(--vc-brand-hover);
+}
+
+.vc-cta-btn.is-copied {
+  background: #059669; /* Success Green */
+}
+
+.vc-cta-btn .material-symbols-sharp {
+  font-size: 1.125rem;
+}
+
+/* ── FREE SHIPPING VARIANT ──────────────────────────────────────── */
+.vc-modern-card.is-free-shipping .vc-discount-value {
+  color: var(--vc-shipping-main);
+  font-size: 1.5rem; /* Slightly smaller to accommodate text */
+}
+
+.vc-modern-card.is-free-shipping .vc-bg-graphic {
+  color: var(--vc-shipping-main);
+  font-size: 4.5rem;
+  opacity: 0.08;
+}
+
+.vc-modern-card.is-free-shipping .vc-promo-code-box {
+  background: var(--vc-shipping-light);
+  color: var(--vc-shipping-main);
+  border-color: rgba(5, 150, 105, 0.4);
+}
+
+.vc-modern-card.is-free-shipping .vc-cta-btn {
+  background: var(--vc-shipping-main);
+}
+
+.vc-modern-card.is-free-shipping .vc-cta-btn:hover {
+  background: var(--vc-shipping-hover);
+}
+
+/* ── BOTTOM ROW ─────────────────────────────────────────────────── */
+.vc-bottom-row {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 0.875rem;
+  border-top: 1px solid var(--vc-stroke-light);
+  padding-top: 1rem;
 }
 
 .vc-offer-title {
-  margin: 0;
-  font-size: 1.05rem;
+  margin: 0 0 0.25rem 0;
+  font-size: 1rem;
   font-weight: 700;
   color: var(--vc-text-strong);
   line-height: 1.3;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
 }
 
 .vc-offer-desc {
@@ -149,150 +207,92 @@
   font-size: 0.875rem;
   color: var(--vc-text-body);
   display: -webkit-box;
-  -webkit-line-clamp: 1;
+  -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
 
-/* Bottom Action Row */
-.vc-action-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  margin-top: 0.25rem;
-  padding-top: 1rem;
-  border-top: 1px solid var(--vc-stroke-light);
-}
-
-.vc-meta-info {
+.vc-meta-bar {
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
 }
 
-.vc-status-verified {
+.vc-badges {
   display: flex;
+  gap: 6px;
+}
+
+.vc-badge {
+  display: inline-flex;
   align-items: center;
   gap: 4px;
   font-size: 0.75rem;
   font-weight: 600;
-  color: #059669;
-  background: #d1fae5;
-  padding: 4px 8px;
+  padding: 3px 8px;
   border-radius: 6px;
 }
 
-.vc-status-verified .material-symbols-sharp {
-  font-size: 0.875rem;
-}
+.vc-badge-active { background: #d1fae5; color: #065f46; }
+.vc-badge-verified { background: #dbeafe; color: #1e40af; }
+.vc-badge .material-symbols-sharp { font-size: 0.875rem; }
 
-/* Call to Action Button */
-.vc-cta-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  padding: 0.625rem 1.25rem;
-  font-family: inherit;
-  font-size: 0.9rem;
-  font-weight: 700;
-  border-radius: 10px;
-  cursor: pointer;
-  border: none;
-  transition: all 0.2s ease;
-  min-width: 140px;
-}
-
-.vc-cta-btn .material-symbols-sharp {
-  font-size: 1.125rem;
-}
-
-/* Deal Button Style */
-.vc-cta-btn.btn-deal {
-  background: transparent;
-  color: var(--vc-brand-main);
-  border: 2px solid var(--vc-brand-main);
-}
-
-.vc-cta-btn.btn-deal:hover {
-  background: var(--vc-brand-surface);
-}
-
-/* Code Button Style */
-.vc-cta-btn.btn-code {
-  background: var(--vc-brand-main);
-  color: #ffffff;
-}
-
-.vc-cta-btn.btn-code:hover {
-  background: var(--vc-brand-hover);
-}
-
-.vc-cta-btn.is-copied {
-  background: #059669;
-  color: #ffffff;
-  border-color: #059669;
-}
-
-/* Ribbon */
-.vc-badge-ribbon {
-  position: absolute;
-  top: 0;
-  inset-inline-start: 1rem;
-  background: var(--vc-accent-best);
-  color: #fff;
-  font-size: 0.7rem;
-  font-weight: 700;
-  padding: 4px 10px;
-  border-radius: 0 0 8px 8px;
+.vc-stats {
   display: flex;
   align-items: center;
-  gap: 2px;
-  z-index: 2;
-}
-
-.vc-badge-ribbon .material-symbols-sharp {
-  font-size: 0.875rem;
+  gap: 6px;
+  font-size: 0.75rem;
+  color: var(--vc-text-faint);
+  font-weight: 500;
 }
 
 /* RTL Adjustments */
-[dir="rtl"] .vc-cta-btn.btn-deal .material-symbols-sharp {
+[dir="rtl"] .vc-cta-btn .material-symbols-sharp {
   transform: scaleX(-1);
 }
 
-/* ─────────────────────────────────────────────────────────────────
-   MOBILE OPTIMIZATIONS (≤ 640px)
-───────────────────────────────────────────────────────────────── */
+/* ── MOBILE OPTIMIZATIONS (≤ 640px) ─────────────────────────────── */
 @media (max-width: 640px) {
   .vc-modern-card {
     padding: 1rem;
-    gap: 0.75rem;
-  }
-  
-  .vc-graphic-bg {
-    font-size: 140px;
-    top: -10%;
+    gap: 1rem;
   }
 
-  .vc-store-logo {
-    height: 40px;
+  /* Break the 3-column grid so Center text drops down below the Logo and CTA */
+  .vc-top-row {
+    grid-template-columns: 1fr auto; /* Only 2 columns on mobile */
+    grid-template-rows: auto auto;   /* 2 rows */
+    row-gap: 1rem;
   }
 
-  .vc-discount-display {
-    font-size: 1rem;
-    padding: 0.375rem 0.625rem;
+  .vc-col-logo {
+    grid-column: 1 / 2;
+    grid-row: 1 / 2;
   }
 
-  .vc-offer-title {
-    font-size: 0.95rem;
+  .vc-col-action {
+    grid-column: 2 / 3;
+    grid-row: 1 / 2;
+    /* Hide the code box entirely on small screens to save space */
   }
-  
-  .vc-action-row {
+
+  .vc-promo-code-box {
+    display: none; 
+  }
+
+  .vc-col-center {
+    grid-column: 1 / 3;
+    grid-row: 2 / 3;
+    justify-self: center;
+  }
+
+  .vc-discount-value {
+    font-size: 1.75rem;
+  }
+
+  .vc-bottom-row {
     padding-top: 0.75rem;
-  }
-
-  .vc-cta-btn {
-    padding: 0.5rem 1rem;
-    font-size: 0.875rem;
-    min-width: 120px;
   }
 }
