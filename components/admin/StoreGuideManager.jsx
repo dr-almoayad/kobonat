@@ -71,11 +71,11 @@ export default function StoreGuideManager({ storeId }) {
     try {
       const result = await upsertGuideStep(storeId, {
         id: editingStep?.id,
-        locale: 'en', // or make it toggleable
+        locale: 'en',
         type: formType,
         title: formData.title,
         description: formData.description,
-        images: formData.images ? formData.images.split(',').map(s => s.trim()) : [],
+        images: formData.images ? formData.images.split(',').map(s => s.trim()).filter(Boolean) : [],
         order: editingStep?.order,
         bnplPartner: formData.bnplPartner || null,
       });
@@ -115,14 +115,9 @@ export default function StoreGuideManager({ storeId }) {
     }
   };
 
-  // Flatten steps for DataTable if needed, but we'll display grouped by type
-
   if (loading) {
     return <div className={styles.loading}>Loading guide steps...</div>;
   }
-
-  // Render each type section
-  const typeKeys = Object.keys(stepsByType).sort();
 
   return (
     <div className={styles.section}>
@@ -131,50 +126,54 @@ export default function StoreGuideManager({ storeId }) {
         Each step type appears as a separate tab on the store page. Steps are ordered within each type.
       </p>
 
-      {typeKeys.length === 0 && (
-        <div className={styles.emptyState}>
-          <span className="material-symbols-sharp" style={{ fontSize: 48, color: '#ccc' }}>help_outline</span>
-          <p>No guide steps yet. Add a step to get started.</p>
-        </div>
-      )}
+      {/* ── Always render ALL type sections, even if empty ── */}
+      {STEP_TYPES.map(({ value: type, label }) => {
+        const steps = stepsByType[type] || [];
+        const hasSteps = steps.length > 0;
 
-      {typeKeys.map(type => (
-        <div key={type} className={styles.card} style={{ marginBottom: '1.5rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-            <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <span className="material-symbols-sharp">{TYPE_ICONS[type] || 'help'}</span>
-              {STEP_TYPES.find(t => t.value === type)?.label || type}
-              <span style={{ fontSize: '0.7rem', color: 'var(--ap-text-muted)', fontWeight: 400 }}>
-                ({stepsByType[type].length})
-              </span>
-            </h4>
-            <button className={styles.btnPrimary} onClick={() => handleAdd(type)}>
-              + Add Step
-            </button>
+        return (
+          <div key={type} className={styles.card} style={{ marginBottom: '1.5rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+              <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span className="material-symbols-sharp">{TYPE_ICONS[type] || 'help'}</span>
+                {label}
+                <span style={{ fontSize: '0.7rem', color: 'var(--ap-text-muted)', fontWeight: 400 }}>
+                  ({steps.length})
+                </span>
+              </h4>
+              <button className={styles.btnPrimary} onClick={() => handleAdd(type)}>
+                + Add Step
+              </button>
+            </div>
+
+            {hasSteps ? (
+              <DataTable
+                data={steps}
+                columns={[
+                  { key: 'order', label: 'Order', sortable: true },
+                  { key: 'title', label: 'Title' },
+                  { key: 'description', label: 'Description', render: (v) => v ? v.substring(0, 60) + (v.length > 60 ? '…' : '') : '—' },
+                  { key: 'images', label: 'Images', render: (v) => Array.isArray(v) ? v.length : 0 },
+                  { key: 'bnplPartner', label: 'BNPL Partner', render: (v) => v || '—' },
+                ]}
+                onEdit={(id) => {
+                  const step = steps.find(s => s.id === id);
+                  if (step) handleEdit(step);
+                }}
+                onDelete={(id) => handleDelete(id)}
+                searchable={true}
+                searchPlaceholder="Search steps…"
+              />
+            ) : (
+              <div style={{ padding: '1rem', color: 'var(--ap-text-muted)', fontSize: '0.85rem', textAlign: 'center', border: '1px dashed var(--ap-border)', borderRadius: 4 }}>
+                No steps yet. Click <strong>+ Add Step</strong> to create one.
+              </div>
+            )}
           </div>
+        );
+      })}
 
-          {stepsByType[type]?.length > 0 && (
-            <DataTable
-              data={stepsByType[type]}
-              columns={[
-                { key: 'order', label: 'Order', sortable: true },
-                { key: 'title', label: 'Title' },
-                { key: 'description', label: 'Description', render: (v) => v ? v.substring(0, 60) + '...' : '' },
-                { key: 'images', label: 'Images', render: (v) => Array.isArray(v) ? v.length : 0 },
-                { key: 'bnplPartner', label: 'BNPL Partner', render: (v) => v || '—' },
-              ]}
-              onEdit={(id) => {
-                const step = stepsByType[type].find(s => s.id === id);
-                if (step) handleEdit(step);
-              }}
-              onDelete={(id) => handleDelete(id)}
-              searchable={true}
-              searchPlaceholder="Search steps…"
-            />
-          )}
-        </div>
-      ))}
-
+      {/* ── Add/Edit Form ── */}
       {showForm && (
         <div className={styles.card} style={{ border: '2px solid var(--ap-accent)', marginTop: '1.5rem' }}>
           <h4>{editingStep ? 'Edit Step' : `Add Step (${STEP_TYPES.find(t => t.value === formType)?.label})`}</h4>
@@ -195,7 +194,9 @@ export default function StoreGuideManager({ storeId }) {
               <button type="submit" className={styles.btnPrimary} disabled={saving}>
                 {saving ? 'Saving…' : editingStep ? 'Update Step' : 'Add Step'}
               </button>
-              <button type="button" className={styles.btnSecondary} onClick={() => { setShowForm(false); setEditingStep(null); }}>Cancel</button>
+              <button type="button" className={styles.btnSecondary} onClick={() => { setShowForm(false); setEditingStep(null); }}>
+                Cancel
+              </button>
             </div>
           </form>
         </div>
