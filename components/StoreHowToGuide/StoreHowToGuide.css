@@ -1,0 +1,195 @@
+/* components/StoreHowToGuide/StoreHowToGuide.css */
+
+.stg-section {
+  padding: 2rem 1rem;
+  background: #fafafa;
+  border-radius: 12px;
+  margin: 2rem 0;
+}
+
+.stg-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.stg-heading {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  color: #1a1a2e;
+}
+
+/* ── Tabs ── */
+.stg-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  border-bottom: 2px solid #e8e8ef;
+  padding-bottom: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.stg-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.6rem 1.2rem;
+  border: none;
+  background: transparent;
+  border-radius: 8px 8px 0 0;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #6b7280;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+  border-bottom: 3px solid transparent;
+}
+
+.stg-tab:hover {
+  background: rgba(71, 10, 226, 0.04);
+  color: #1a1a2e;
+}
+
+.stg-tab--active {
+  color: #470ae2;
+  border-bottom-color: #470ae2;
+  background: rgba(71, 10, 226, 0.06);
+}
+
+.stg-tab-icon {
+  font-size: 1.2rem;
+}
+
+/* ── Panel ── */
+.stg-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.stg-step {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  border: 1px solid #f0f0f0;
+  transition: box-shadow 0.2s;
+}
+
+.stg-step:hover {
+  box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+}
+
+.stg-step-number {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #470ae2;
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.stg-step-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.stg-step-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #1a1a2e;
+  margin: 0 0 0.3rem 0;
+}
+
+.stg-step-description {
+  font-size: 0.95rem;
+  color: #4b5563;
+  line-height: 1.6;
+  margin: 0 0 0.5rem 0;
+}
+
+.stg-bnpl-partner {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: #f3e8ff;
+  padding: 0.2rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  color: #470ae2;
+  margin-bottom: 0.5rem;
+}
+
+.stg-bnpl-partner .material-symbols-sharp {
+  font-size: 1rem;
+}
+
+.stg-images {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.stg-image-wrapper {
+  flex: 0 0 auto;
+  width: 200px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid #e8e8ef;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.stg-image-wrapper:hover {
+  transform: scale(1.02);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+}
+
+.stg-image {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4/3;
+  object-fit: cover;
+  display: block;
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .stg-tabs {
+    flex-direction: column;
+    border-bottom: none;
+    gap: 0.25rem;
+  }
+  .stg-tab {
+    border-radius: 8px;
+    border-bottom: none;
+    justify-content: flex-start;
+    background: #f5f5f5;
+  }
+  .stg-tab--active {
+    background: rgba(71, 10, 226, 0.1);
+    border-bottom: none;
+  }
+  .stg-step {
+    flex-direction: column;
+    padding: 0.75rem;
+  }
+  .stg-step-number {
+    align-self: flex-start;
+  }
+  .stg-image-wrapper {
+    width: 100%;
+  }
+}
+
+[dir="rtl"] .stg-step-number {
+  margin-left: 0;
+  margin-right: 0;
+}
