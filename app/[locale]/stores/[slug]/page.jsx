@@ -21,6 +21,7 @@ import { generateStorePageTitle } from '@/lib/seo/dynamicStoreTitle';
 import HelpBox from '@/components/help/HelpBox';
 import ExpiredVouchersList from '@/components/ExpiredVouchersList/ExpiredVouchersList';
 import ExpiredOtherPromosList from '@/components/ExpiredOtherPromosList/ExpiredOtherPromosList';
+import StoreHowToGuide from '@/components/StoreHowToGuide/StoreHowToGuide'; // ✅ NEW
 import './store-page.css';
 
 export const revalidate = 3600;
@@ -106,9 +107,7 @@ export async function generateMetadata({ params }) {
       where: { code: countryCode, isActive: true },
     });
     if (!country) {
-      // If country not found, we can't reliably check FAQ/promo counts – return minimal metadata
-      // but we still need to provide some metadata to avoid crashes.
-      // We'll fall back to voucher-only check.
+      // Fallback to voucher-only check
       const storeTranslation = store.translations[0] || {};
       const storeName = storeTranslation.name || slug;
       const hasDescription = !!(storeTranslation.description && storeTranslation.description.trim().length > 0);
@@ -291,6 +290,18 @@ export default async function StorePage({ params }) {
       color: sc.category.color,
     })),
   };
+
+  // ── Fetch guide steps ──────────────────────────────────────────────────────
+  const guideSteps = await prisma.storeGuideStep.findMany({
+    where: { storeId: store.id, locale: language },
+    orderBy: [{ type: 'asc' }, { order: 'asc' }],
+  });
+  const stepsByType = guideSteps.reduce((acc, step) => {
+    const type = step.type;
+    if (!acc[type]) acc[type] = [];
+    acc[type].push(step);
+    return acc;
+  }, {});
 
   const [
     allVouchers,
@@ -627,6 +638,11 @@ export default async function StorePage({ params }) {
               <StoreOfferStacks storeId={store.id} locale={locale} countryCode={countryCode || 'SA'} />
 
               <StoreIntelligenceCard storeId={store.id} locale={locale} countryCode={countryCode} />
+
+              {/* ── ✅ Store How‑to Guide ── */}
+              {Object.keys(stepsByType).length > 0 && (
+                <StoreHowToGuide stepsByType={stepsByType} locale={locale} />
+              )}
 
               <OtherPromosSection
                 storeSlug={transformedStore.slug}
