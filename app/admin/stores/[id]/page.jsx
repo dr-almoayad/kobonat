@@ -21,6 +21,8 @@ import StorePaymentMethods from './StorePaymentMethods';
 import ProductsSection from './products/ProductsSection';
 import OtherPromosTab from '@/components/admin/OtherPromosTab/OtherPromosTab';
 import OfferStacksTab from '@/components/admin/OfferStacksTab/OfferStacksTab';
+import StoreGuideManager from '@/components/admin/StoreGuideManager';
+
 
 export default function StoreEditPage({ params }) {
   const { id } = use(params);
@@ -209,6 +211,8 @@ export default function StoreEditPage({ params }) {
           { id: 'offer-stacks',    label: 'Offer Stacks' },
           { id: 'payment-methods', label: 'Payments' },
           { id: 'faqs',            label: 'FAQs' },
+          { id: 'how-to-use',      label: 'How to Use' }
+
         ].map(t => (
           <button
             key={t.id}
@@ -531,6 +535,12 @@ export default function StoreEditPage({ params }) {
           ) : null}
         </div>
       )}
+
+      {/* ── STORE HOW-TO-USE GUIDE ──────────────────────────────────────────────────────────────── */}
+      {tab === 'how-to-use' && (
+        <StoreGuideManager storeId={store.id} />
+      )}
+      
     </div>
   );
 }
