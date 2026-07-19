@@ -1340,3 +1340,107 @@ export async function setLeaderboardOverride(snapshotId, overrideValue) {
     return { error: error.message };
   }
 }
+
+
+// ============================================================================
+// ── STORE GUIDE STEPS ──────────────────────────────────────────────────────
+// ============================================================================
+
+export async function upsertGuideStep(storeId, stepData) {
+  try {
+    const { id, locale, type, title, description, images, order, bnplPartner } = stepData;
+    const storeIdNum = parseInt(storeId);
+
+    let step;
+    if (id) {
+      step = await prisma.storeGuideStep.update({
+        where: { id: parseInt(id), storeId: storeIdNum },
+        data: {
+          title,
+          description: description || null,
+          images: images || [],
+          order: order !== undefined ? order : undefined,
+          bnplPartner: bnplPartner || null,
+        },
+      });
+    } else {
+      // get max order for this type/locale
+      const maxOrder = await prisma.storeGuideStep.aggregate({
+        where: { storeId: storeIdNum, locale, type },
+        _max: { order: true },
+      });
+      const nextOrder = (maxOrder._max.order ?? -1) + 1;
+
+      step = await prisma.storeGuideStep.create({
+        data: {
+          storeId: storeIdNum,
+          locale,
+          type,
+          title,
+          description: description || null,
+          images: images || [],
+          order: order ?? nextOrder,
+          bnplPartner: bnplPartner || null,
+        },
+      });
+    }
+
+    revalidatePath(`/admin/stores/${storeId}`);
+    revalidatePath(`/admin/stores/${storeId}?tab=how-to-use`);
+    // Also revalidate public store page
+    const store = await prisma.store.findUnique({
+      where: { id: storeIdNum },
+      include: { translations: { select: { slug: true } } },
+    });
+    store?.translations?.forEach(t => revalidatePublicStore(t.slug));
+
+    return { success: true, id: step.id };
+  } catch (error) {
+    console.error('upsertGuideStep error:', error);
+    return { error: error.message };
+  }
+}
+
+export async function deleteGuideStep(stepId, storeId) {
+  try {
+    await prisma.storeGuideStep.delete({
+      where: { id: parseInt(stepId), storeId: parseInt(storeId) },
+    });
+    revalidatePath(`/admin/stores/${storeId}`);
+    revalidatePath(`/admin/stores/${storeId}?tab=how-to-use`);
+    const store = await prisma.store.findUnique({
+      where: { id: parseInt(storeId) },
+      include: { translations: { select: { slug: true } } },
+    });
+    store?.translations?.forEach(t => revalidatePublicStore(t.slug));
+    return { success: true };
+  } catch (error) {
+    console.error('deleteGuideStep error:', error);
+    return { error: error.message };
+  }
+}
+
+export async function reorderGuideSteps(storeId, orderedIds) {
+  try {
+    const storeIdNum = parseInt(storeId);
+    await Promise.all(
+      orderedIds.map((id, index) =>
+        prisma.storeGuideStep.update({
+          where: { id: parseInt(id), storeId: storeIdNum },
+          data: { order: index },
+        })
+      )
+    );
+    revalidatePath(`/admin/stores/${storeId}`);
+    revalidatePath(`/admin/stores/${storeId}?tab=how-to-use`);
+    const store = await prisma.store.findUnique({
+      where: { id: storeIdNum },
+      include: { translations: { select: { slug: true } } },
+    });
+    store?.translations?.forEach(t => revalidatePublicStore(t.slug));
+    return { success: true };
+  } catch (error) {
+    console.error('reorderGuideSteps error:', error);
+    return { error: error.message };
+  }
+}
