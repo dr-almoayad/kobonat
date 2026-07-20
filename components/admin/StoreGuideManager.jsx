@@ -4,8 +4,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import styles from '@/app/admin/admin.module.css';
-import { FormField, FormRow, FormSection } from '@/app/admin/_components/FormField';
-import { DataTable } from '@/app/admin/_components/DataTable';
+import { FormField, DataTable } from '@/app/admin/_components';
 import { upsertGuideStep, deleteGuideStep, reorderGuideSteps } from '@/app/admin/_lib/actions';
 
 const STEP_TYPES = [
@@ -28,6 +27,7 @@ const TYPE_ICONS = {
 
 export default function StoreGuideManager({ storeId }) {
   const router = useRouter();
+  const [activeLocale, setActiveLocale] = useState('en'); // ✅ NEW: locale state
   const [loading, setLoading] = useState(true);
   const [stepsByType, setStepsByType] = useState({});
   const [editingStep, setEditingStep] = useState(null);
@@ -38,7 +38,7 @@ export default function StoreGuideManager({ storeId }) {
   const fetchSteps = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/admin/stores/${storeId}/guide?locale=en`);
+      const res = await fetch(`/api/admin/stores/${storeId}/guide?locale=${activeLocale}`);
       if (!res.ok) throw new Error('Failed to fetch');
       const data = await res.json();
       setStepsByType(data);
@@ -48,7 +48,7 @@ export default function StoreGuideManager({ storeId }) {
     } finally {
       setLoading(false);
     }
-  }, [storeId]);
+  }, [storeId, activeLocale]);
 
   useEffect(() => {
     fetchSteps();
@@ -71,7 +71,7 @@ export default function StoreGuideManager({ storeId }) {
     try {
       const result = await upsertGuideStep(storeId, {
         id: editingStep?.id,
-        locale: 'en',
+        locale: activeLocale, // ✅ use activeLocale instead of hardcoded 'en'
         type: formType,
         title: formData.title,
         description: formData.description,
@@ -105,6 +105,7 @@ export default function StoreGuideManager({ storeId }) {
     }
   };
 
+  // handleReorder is defined but not yet used; you can add drag‑and‑drop later
   const handleReorder = async (orderedIds) => {
     const result = await reorderGuideSteps(storeId, orderedIds);
     if (result.error) {
@@ -121,12 +122,34 @@ export default function StoreGuideManager({ storeId }) {
 
   return (
     <div className={styles.section}>
-      <h3 style={{ marginBottom: '1rem' }}>Store How‑to Guide</h3>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+        <h3 style={{ margin: 0 }}>Store How‑to Guide</h3>
+        {/* ── Locale toggle ── */}
+        <div style={{ display: 'flex', gap: '0.25rem', background: '#f3f4f6', padding: '0.2rem', borderRadius: 6 }}>
+          <button
+            type="button"
+            className={activeLocale === 'en' ? styles.btnPrimary : styles.btnSecondary}
+            style={{ padding: '0.3rem 1rem', fontSize: '0.8rem' }}
+            onClick={() => setActiveLocale('en')}
+          >
+            EN
+          </button>
+          <button
+            type="button"
+            className={activeLocale === 'ar' ? styles.btnPrimary : styles.btnSecondary}
+            style={{ padding: '0.3rem 1rem', fontSize: '0.8rem' }}
+            onClick={() => setActiveLocale('ar')}
+          >
+            AR
+          </button>
+        </div>
+      </div>
+
       <p style={{ marginBottom: '1.5rem', color: 'var(--ap-text-muted)', fontSize: '0.9rem' }}>
         Each step type appears as a separate tab on the store page. Steps are ordered within each type.
+        {activeLocale === 'ar' && ' (العربية)'}
       </p>
 
-      {/* ── Always render ALL type sections, even if empty ── */}
       {STEP_TYPES.map(({ value: type, label }) => {
         const steps = stepsByType[type] || [];
         const hasSteps = steps.length > 0;
@@ -161,7 +184,7 @@ export default function StoreGuideManager({ storeId }) {
                   if (step) handleEdit(step);
                 }}
                 onDelete={(id) => handleDelete(id)}
-                searchable={true}
+                searchable
                 searchPlaceholder="Search steps…"
               />
             ) : (
@@ -173,7 +196,6 @@ export default function StoreGuideManager({ storeId }) {
         );
       })}
 
-      {/* ── Add/Edit Form ── */}
       {showForm && (
         <div className={styles.card} style={{ border: '2px solid var(--ap-accent)', marginTop: '1.5rem' }}>
           <h4>{editingStep ? 'Edit Step' : `Add Step (${STEP_TYPES.find(t => t.value === formType)?.label})`}</h4>
