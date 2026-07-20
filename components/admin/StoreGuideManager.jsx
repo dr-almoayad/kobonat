@@ -4,7 +4,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import styles from '@/app/admin/admin.module.css';
-import { FormField, DataTable } from '@/app/admin/_components';
+import { FormField } from '@/app/admin/_components/FormField'; // ✅ correct path
+import { DataTable } from '@/app/admin/_components/DataTable'; // ✅ correct path
 import { upsertGuideStep, deleteGuideStep, reorderGuideSteps } from '@/app/admin/_lib/actions';
 
 const STEP_TYPES = [
@@ -27,7 +28,7 @@ const TYPE_ICONS = {
 
 export default function StoreGuideManager({ storeId }) {
   const router = useRouter();
-  const [activeLocale, setActiveLocale] = useState('en'); // ✅ NEW: locale state
+  const [activeLocale, setActiveLocale] = useState('en');
   const [loading, setLoading] = useState(true);
   const [stepsByType, setStepsByType] = useState({});
   const [editingStep, setEditingStep] = useState(null);
@@ -71,7 +72,7 @@ export default function StoreGuideManager({ storeId }) {
     try {
       const result = await upsertGuideStep(storeId, {
         id: editingStep?.id,
-        locale: activeLocale, // ✅ use activeLocale instead of hardcoded 'en'
+        locale: activeLocale,
         type: formType,
         title: formData.title,
         description: formData.description,
