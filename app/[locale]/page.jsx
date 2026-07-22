@@ -2,8 +2,7 @@
 // FULLY CORRECTED VERSION
 // - Pre‑fetches all data for sections: HeroCurated, OfferStacks, Blog (8 posts)
 // - Passes data as props to child components
-// - Retains all existing metadata and structured data
-// - ✅ Affiliate network verification tags are now scoped strictly to the homepage
+// - ✅ INCLUDES FeaturedVouchersSection with pre‑fetched data
 
 import { prisma } from "@/lib/prisma";
 import { getTranslations } from 'next-intl/server';
@@ -115,7 +114,7 @@ function getFallbackPalette(index) {
   return palettes[index % palettes.length];
 }
 
-// ── Helper: fetch curated slides (mirrors HeroCuratedSection) ──
+// ── Helper: fetch curated slides ──
 async function getCuratedSlides(language, countryCode) {
   const now = new Date();
   const offers = await prisma.curatedOffer.findMany({
@@ -169,7 +168,50 @@ async function getCuratedSlides(language, countryCode) {
   });
 }
 
-// ── Helper: fetch blog posts (mirrors HomepageBlogSection) ──
+// ── Helper: fetch featured vouchers ──
+async function getFeaturedVouchers(language, countryCode) {
+  const now = new Date();
+  const vouchers = await prisma.voucher.findMany({
+    where: {
+      isExclusive: true,
+      expiryDate:  { gte: now },
+      store:       { isActive: true },
+      countries:   { some: { country: { code: countryCode } } },
+    },
+    include: {
+      translations: {
+        where:  { locale: language },
+        select: { title: true, description: true },
+      },
+      store: {
+        include: {
+          translations: {
+            where:  { locale: language },
+            select: { name: true, slug: true },
+          },
+        },
+      },
+    },
+    orderBy: [{ isVerified: 'desc' }, { popularityScore: 'desc' }],
+    take: 8,
+  });
+
+  return vouchers.map(v => {
+    const vt = v.translations?.[0]        || {};
+    const st = v.store?.translations?.[0] || {};
+    return {
+      ...v,
+      title:       vt.title       || 'Special Offer',
+      description: vt.description || null,
+      store: v.store
+        ? { ...v.store, name: st.name || '', slug: st.slug || '', translations: undefined }
+        : null,
+      translations: undefined,
+    };
+  });
+}
+
+// ── Helper: fetch blog posts ──
 async function getFeaturedBlogPosts(lang, count = 8) {
   try {
     const baseWhere = { status: 'PUBLISHED' };
@@ -180,7 +222,6 @@ async function getFeaturedBlogPosts(lang, count = 8) {
       tags: { include: { tag: { include: { translations: { where: { locale: lang } } } } } },
     };
 
-    // Step 1: featured posts first
     const featured = await prisma.blogPost.findMany({
       where: { ...baseWhere, isFeatured: true },
       include,
@@ -190,7 +231,6 @@ async function getFeaturedBlogPosts(lang, count = 8) {
 
     if (featured.length >= count) return featured;
 
-    // Step 2: fill remaining with latest non‑featured
     const featuredIds = featured.map(p => p.id);
     const latest = await prisma.blogPost.findMany({
       where: { ...baseWhere, id: { notIn: featuredIds.length ? featuredIds : [-1] } },
@@ -206,7 +246,7 @@ async function getFeaturedBlogPosts(lang, count = 8) {
   }
 }
 
-// ── Helper: transform blog post for BlogCard ──
+// ── Helper: transform blog post ──
 function transformBlogPost(post, lang) {
   const t = post.translations?.[0] || {};
   return {
@@ -259,7 +299,8 @@ export default async function Home({ params }) {
     rawTopStores,
     curatedSlides,
     offerStacks,
-    blogPostsRaw,          // ✅ Now fetches 8 posts
+    blogPostsRaw,
+    featuredVouchers, // ✅ NEW: pre‑fetched vouchers
   ] = await Promise.all([
     // 1. Hero stores (color slots 1–5)
     prisma.store.findMany({
@@ -378,6 +419,9 @@ export default async function Home({ params }) {
 
     // 7. HomepageBlogSection posts (8)
     getFeaturedBlogPosts(language, 8),
+
+    // 8. FeaturedVouchersSection vouchers (8)
+    getFeaturedVouchers(language, country),
   ]);
 
   // ── Transform data ──────────────────────────────────────────────────────
@@ -413,7 +457,7 @@ export default async function Home({ params }) {
 
   const carouselTitle = isArabic ? 'متاجر مميزة' : 'Featured Stores with Discounts';
 
-  // Transform blog posts (already transformed in the component, but we can pre-transform)
+  // Transform blog posts
   const blogPosts = blogPostsRaw.map(p => transformBlogPost(p, language));
 
   // ── Structured data ────────────────────────────────────────────────────
@@ -460,6 +504,13 @@ export default async function Home({ params }) {
 
         <HomeFeaturedProductsSection locale={locale} countryCode={country} />
         <HowItWorks locale={locale} />
+
+        {/* ✅ NEW: FeaturedVouchersSection with pre‑fetched data */}
+        <FeaturedVouchersSection
+          locale={locale}
+          countryCode={country}
+          vouchers={featuredVouchers}
+        />
 
         {/* ✅ Pass pre‑fetched blog posts to HomepageBlogSection */}
         <HomepageBlogSection posts={blogPosts} locale={locale} />
