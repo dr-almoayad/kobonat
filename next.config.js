@@ -53,10 +53,10 @@ const nextConfig = {
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
   },
-  
+
   compress: true,
   generateEtags: true,
-  
+
   async headers() {
     const csp = `
       default-src 'self';
@@ -97,52 +97,59 @@ const nextConfig = {
       },
     ];
   },
-  
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // ⚠️ IMPORTANT — read before adding more entries here
+  //
+  // middleware.js runs BEFORE these config-level redirects are evaluated for
+  // any path its matcher captures. Its matcher is:
+  //
+  //   /((?!_next/static|_next/image|favicon.ico|.*\..*|robots.txt|sitemap.xml).*)
+  //
+  // That pattern catches '/', '/ar', '/en', '/ar/:path*', '/en/:path*',
+  // '/stacks', '/coupons', '/blog', '/about', etc. — i.e. EVERY route below
+  // that doesn't contain a dot. Inside middleware.js, next-intl's
+  // createMiddleware() (localePrefix: 'always', defaultLocale: 'ar-SA')
+  // intercepts those requests first and issues its own redirect/rewrite
+  // before this file's redirects() ever runs.
+  //
+  // Net effect: the redirects previously listed here for '/', '/ar',
+  // '/ar/:path*', '/en', '/en/:path*', '/stacks', '/coupons', '/blog', and
+  // the six static pages (about/contact/privacy/terms/cookies/help) were
+  // DEAD CODE — middleware always won the race and either handled them
+  // itself (root '/') or mangled the path into an invalid locale-prefixed
+  // route before it reached this redirect table (e.g. '/ar' → next-intl
+  // tries to treat 'ar' as a page under the default locale rather than
+  // recognizing it as a legacy 2-letter locale code, since only 'ar-SA'
+  // and 'en-SA' are registered locales).
+  //
+  // They've been removed here to stop implying they do something they
+  // don't. To actually fix legacy '/ar', '/en', and short-path redirects,
+  // that logic needs to live IN middleware.js, before intlMiddleware(request)
+  // is called — e.g.:
+  //
+  //   const LEGACY_LOCALE_MAP = { ar: 'ar-SA', en: 'en-SA' };
+  //   const legacyMatch = pathname.match(/^\/(ar|en)(\/.*)?$/);
+  //   if (legacyMatch) {
+  //     const rest = legacyMatch[2] || '';
+  //     const url = request.nextUrl.clone();
+  //     url.pathname = `/${LEGACY_LOCALE_MAP[legacyMatch[1]]}${rest}`;
+  //     return NextResponse.redirect(url, 301);
+  //   }
+  //
+  // Only redirects for paths middleware's matcher does NOT capture (i.e.
+  // paths containing a dot, like old flat asset URLs) belong in this file.
+  // ─────────────────────────────────────────────────────────────────────────
   async redirects() {
     return [
-      // ── ✅ CRITICAL FIX: Intercept root domain for 301 PageRank transfer ──
-      {
-        source: '/',
-        destination: '/ar-SA',
-        permanent: true,
-      },
-
-      // ── Handle old 2-letter locale format ──
-      {
-        source: '/ar',
-        destination: '/ar-SA',
-        permanent: true,
-      },
-      {
-        source: '/ar/:path*',
-        destination: '/ar-SA/:path*',
-        permanent: true,
-      },
-      {
-        source: '/en',
-        destination: '/en-SA',
-        permanent: true,
-      },
-      {
-        source: '/en/:path*',
-        destination: '/en-SA/:path*',
-        permanent: true,
-      },
-
-      // ── Redirect root-level static pages to Arabic version ──
-      { source: '/about', destination: '/ar-SA/about', permanent: true },
-      { source: '/contact', destination: '/ar-SA/contact', permanent: true },
-      { source: '/privacy', destination: '/ar-SA/privacy', permanent: true },
-      { source: '/terms', destination: '/ar-SA/terms', permanent: true },
-      { source: '/cookies', destination: '/ar-SA/cookies', permanent: true },
-      { source: '/help', destination: '/ar-SA/help', permanent: true },
-
-      // ── KEEP only exact‑path redirects for key routes ──
-      { source: '/stacks', destination: '/ar-SA/stacks', permanent: true },
-      { source: '/coupons', destination: '/ar-SA/coupons', permanent: true },
-      { source: '/blog', destination: '/ar-SA/blog', permanent: true },
-
-      // ── Redirect dead locales ──
+      // ── Dead/decommissioned locale combinations ──
+      // Paths like '/ar-KW/...' contain a hyphen but no dot, so middleware
+      // DOES reach these before this table — but middleware.js already has
+      // its own DEAD_LOCALE_PATTERNS check that 404s them directly, so this
+      // redirect never fires either (middleware returns a 404 response first).
+      // Kept here only as a fallback in case middleware's dead-locale list
+      // and this list ever diverge — remove once middleware is the single
+      // source of truth for this behavior.
       {
         source: '/:locale(ar-KW|en-AE|ar-AE|en-KW|ar-EG|en-EG|ar-BH|en-BH|ar-OM|en-OM|ar-QA|en-QA|ar-JO|en-JO|ar-LB|en-LB)/:path*',
         destination: '/ar-SA/:path*',
@@ -155,16 +162,16 @@ const nextConfig = {
       },
     ];
   },
-  
+
   // ❌ REMOVED: rewrites() block containing the self-referential /api/:path* mapping
-  
+
   experimental: {
     optimizeCss: true,
     optimizePackageImports: ['@mui/icons-material', 'lucide-react'],
   },
-  
+
   productionBrowserSourceMaps: false,
-  
+
   trailingSlash: false,
 };
 
