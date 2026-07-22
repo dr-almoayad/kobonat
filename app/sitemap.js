@@ -1,14 +1,23 @@
 // app/sitemap.js
-// ✅ FULLY CORRECTED VERSION
-// - Forces dynamic rendering (prevents build-time prerendering)
-// - Returns empty sitemap on database error instead of throwing, so build passes
-// - Store inclusion checks vouchers, FAQs, promos, products, description.
+// ✅ FULLY CORRECTED VERSION (v2)
+// - REMOVED `force-dynamic`. It directly contradicted `revalidate` — force-dynamic
+//   disables Next.js's Full Route Cache, which is what `revalidate` relies on.
+//   With both set, every single Googlebot (or browser) fetch of /sitemap.xml was
+//   re-running ~10 parallel Prisma queries (stores + nested _count, categories,
+//   seasonal pages, blog posts, etc.) live, with zero caching. That's slow and,
+//   under load, can time out — leading to sitemap fetch errors in GSC and
+//   Googlebot deprioritizing the sitemap entirely.
+// - Plain ISR (`revalidate = 3600`) now actually caches the generated sitemap for
+//   1 hour and serves it near-instantly, while still regenerating hourly.
+// - Everything else (thin-content gating, alternates, pagination) is unchanged
+//   from the previous version — only the caching strategy was broken.
 
 import { prisma } from '@/lib/prisma';
 
-// ✅ Prevents static generation – sitemap is generated at request time
-export const dynamic = 'force-dynamic';
-export const revalidate = 3600; // ISR cache for 1 hour after first request
+// ✅ ISR: cache the generated sitemap and only rebuild it once per hour.
+// Do NOT combine this with `export const dynamic = 'force-dynamic'` —
+// that flag disables the cache this revalidate window depends on.
+export const revalidate = 3600;
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://cobonat.me';
 const LOCALES = ['ar-SA', 'en-SA'];
@@ -304,7 +313,16 @@ export default async function sitemap() {
       }
     }
 
-    // ── 9. Store pages (using the expanded content check) ─────────────────
+    // ── 9. Store pages (thin-content gate — see notes below) ──────────────
+    // A store URL is only included in the sitemap if it has at least one of:
+    // active vouchers, active FAQs, active bank/payment promos, featured
+    // products, or a non-empty description. This mirrors the noindex logic
+    // in app/[locale]/stores/[slug]/page.jsx generateMetadata() by design —
+    // submitting thin/empty store pages to the sitemap while marking them
+    // noindex would itself generate GSC "Submitted URL marked noindex"
+    // warnings. If large numbers of stores are missing from the sitemap,
+    // the fix is to populate vouchers/FAQs/promos/descriptions for those
+    // stores, not to loosen this gate.
     for (const store of stores) {
       const arTranslation = store.translations?.find(t => t.locale === 'ar');
       const enTranslation = store.translations?.find(t => t.locale === 'en');
