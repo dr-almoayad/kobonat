@@ -21,7 +21,7 @@ import { generateStorePageTitle } from '@/lib/seo/dynamicStoreTitle';
 import HelpBox from '@/components/help/HelpBox';
 import ExpiredVouchersList from '@/components/ExpiredVouchersList/ExpiredVouchersList';
 import ExpiredOtherPromosList from '@/components/ExpiredOtherPromosList/ExpiredOtherPromosList';
-import StoreHowToGuide from '@/components/StoreHowToGuide/StoreHowToGuide'; // ✅ NEW
+import StoreHowToGuide from '@/components/StoreHowToGuide/StoreHowToGuide';
 import './store-page.css';
 
 export const revalidate = 3600;
@@ -76,18 +76,59 @@ function getStoreLogoUrl(store) {
   return `${BASE_URL}/stores/${store.logo.toLowerCase().replace(/\s+/g, '-')}.webp`;
 }
 
+// ── Helper: get a valid cover image URL ─────────────────────────────────────
+// ✅ FIX: the previous inline expression built a URL even when store.coverImage
+// was null/undefined — `${store.coverImage?.startsWith('/') ? '' : '/'}` evaluates
+// to '/' when coverImage is nullish (undefined is falsy), so the result was
+// `${BASE_URL}/` (e.g. "https://cobonat.me/") instead of an empty string. That
+// truthy-but-wrong value then survived `storeCoverUrl || null` unchanged, so
+// every store WITHOUT a cover image rendered a banner pointing at the bare
+// domain root instead of falling back to the placeholder background.
+function getStoreCoverUrl(store) {
+  if (!store?.coverImage) return null;
+  if (store.coverImage.startsWith('http')) return store.coverImage;
+  return `${BASE_URL}${store.coverImage.startsWith('/') ? '' : '/'}${store.coverImage}`;
+}
+
+// ── Helper: consistent thin-content signal, safe with or without a resolved
+// country row. Used by generateMetadata so both the happy path and the
+// country-lookup-failed fallback apply the exact same rule (previously the
+// fallback branch only checked voucherCount + description and silently
+// ignored productCount, which could noindex a store with real product
+// content in that edge case). ──────────────────────────────────────────────
+async function getStoreContentSignal({ storeId, countryId, countryCode, now }) {
+  const [voucherCount, faqCount, promoCount, productCount] = await Promise.all([
+    prisma.voucher.count({
+      where: {
+        storeId,
+        countries: { some: { country: { code: countryCode } } },
+        OR: [{ expiryDate: null }, { expiryDate: { gte: now } }],
+      },
+    }),
+    countryId
+      ? prisma.storeFAQ.count({ where: { storeId, countryId, isActive: true } })
+      : Promise.resolve(0),
+    countryId
+      ? prisma.otherPromo.count({ where: { storeId, countryId, isActive: true } })
+      : Promise.resolve(0),
+    prisma.storeProduct.count({ where: { storeId } }),
+  ]);
+
+  return { voucherCount, faqCount, promoCount, productCount };
+}
+
 // ── Metadata ──────────────────────────────────────────────────────────────────
 export async function generateMetadata({ params }) {
   try {
     const { slug: rawSlug, locale } = await params;
-    let slug = decodeURIComponent(rawSlug);
+    const slug = decodeURIComponent(rawSlug);
     const [language, countryCode] = locale.split('-');
     const isArabic = language === 'ar';
     const now = new Date();
     const currentYear = now.getFullYear();
 
     // ── 1. Fetch store ──────────────────────────────────────────────────────
-    let store = await getStoreData(slug, language, countryCode);
+    const store = await getStoreData(slug, language, countryCode);
 
     // Redirect if slug exists in redirect table
     if (!store) {
@@ -102,64 +143,53 @@ export async function generateMetadata({ params }) {
       return {};
     }
 
+    const storeTranslation = store.translations[0] || {};
+    const storeName = storeTranslation.name || slug;
+    const hasDescription = !!(storeTranslation.description && storeTranslation.description.trim().length > 0);
+
     // ── 2. Fetch country (needed for faq/promo counts) ─────────────────────
     const country = await prisma.country.findUnique({
       where: { code: countryCode, isActive: true },
     });
-    if (!country) {
-      // Fallback to voucher-only check
-      const storeTranslation = store.translations[0] || {};
-      const storeName = storeTranslation.name || slug;
-      const hasDescription = !!(storeTranslation.description && storeTranslation.description.trim().length > 0);
-      const voucherCount = await prisma.voucher.count({
-        where: {
-          storeId: store.id,
-          countries: { some: { country: { code: countryCode } } },
-          OR: [{ expiryDate: null }, { expiryDate: { gte: now } }],
-        },
-      });
-      const isThinContent = voucherCount === 0 && !hasDescription;
-      const shouldIndex = !isThinContent;
-      const canonicalUrl = `${BASE_URL}/${locale}/stores/${slug}`;
-      const ogImage = store.coverImage || store.logo || `${BASE_URL}/logo-512x512.png`;
-      const finalOgImage = ogImage.startsWith('http') ? ogImage : `${BASE_URL}${ogImage.startsWith('/') ? '' : '/'}${ogImage}`;
 
+    // ✅ FIX: content-signal computation is now shared between the happy path
+    // and the country-lookup-failed fallback, so both apply identical rules
+    // (previously the fallback ignored productCount entirely).
+    const { voucherCount, faqCount, promoCount, productCount } = await getStoreContentSignal({
+      storeId: store.id,
+      countryId: country?.id ?? null,
+      countryCode,
+      now,
+    });
+
+    const hasSubstantialContent = voucherCount > 0 || faqCount > 0 || promoCount > 0 || productCount > 0 || hasDescription;
+    const isThinContent = !hasSubstantialContent;
+    const shouldIndex = !isThinContent;
+
+    const canonicalUrl = `${BASE_URL}/${locale}/stores/${slug}`;
+    const ogImage = store.coverImage || store.logo || `${BASE_URL}/logo-512x512.png`;
+    const finalOgImage = ogImage.startsWith('http') ? ogImage : `${BASE_URL}${ogImage.startsWith('/') ? '' : '/'}${ogImage}`;
+
+    if (!country) {
+      // No active country row for this locale — the page itself will 404,
+      // so metadata just needs to be safe and noindexed, not fully SEO'd.
       return {
         metadataBase: new URL(BASE_URL),
         title: isArabic ? `كود خصم ${storeName} السعودية ${currentYear}` : `Verified ${storeName} Promo Codes KSA - ${currentYear}`,
         description: isArabic ? `أكواد خصم ${storeName} مجربة وفعالة في السعودية` : `Verified ${storeName} promo codes and KSA offers.`,
         alternates: { canonical: canonicalUrl },
-        robots: { index: shouldIndex, follow: true },
-        openGraph: { images: [{ url: finalOgImage }] },
+        robots: { index: false, follow: true },
+        openGraph: {
+          siteName: isArabic ? 'كوبونات' : 'Cobonat',
+          type: 'website',
+          locale,
+          url: canonicalUrl,
+          images: [{ url: finalOgImage, width: 1200, height: 630, alt: storeName }],
+        },
       };
     }
 
-    const storeTranslation = store.translations[0] || {};
-    const storeName = storeTranslation.name || slug;
-
-    // ── 3. Check all content types for thin content ──────────────────────────
-    const [voucherCount, faqCount, promoCount, productCount] = await Promise.all([
-      prisma.voucher.count({
-        where: {
-          storeId: store.id,
-          countries: { some: { country: { code: countryCode } } },
-          OR: [{ expiryDate: null }, { expiryDate: { gte: now } }],
-        },
-      }),
-      prisma.storeFAQ.count({
-        where: { storeId: store.id, countryId: country.id, isActive: true },
-      }),
-      prisma.otherPromo.count({
-        where: { storeId: store.id, countryId: country.id, isActive: true },
-      }),
-      prisma.storeProduct.count({ where: { storeId: store.id } }),
-    ]);
-
-    const hasDescription = !!(storeTranslation.description && storeTranslation.description.trim().length > 0);
-    const hasSubstantialContent = voucherCount > 0 || faqCount > 0 || promoCount > 0 || productCount > 0 || hasDescription;
-    const isThinContent = !hasSubstantialContent;
-
-    // ── 4. SEO title/description ──────────────────────────────────────────────
+    // ── 3. SEO title/description ──────────────────────────────────────────────
     const generatedTitle = isArabic
       ? `كود خصم ${storeName} السعودية ${currentYear} - كوبونات وعروض مجربة`
       : `Verified ${storeName} Promo Codes KSA - ${currentYear} Offers & Deals`;
@@ -172,7 +202,7 @@ export async function generateMetadata({ params }) {
 
     const finalDescription = storeTranslation.seoDescription || storeTranslation.description || generatedDescription;
 
-    // ── 5. Hreflang ─────────────────────────────────────────────────────────────
+    // ── 4. Hreflang ─────────────────────────────────────────────────────────────
     const otherLocale = language === 'ar' ? 'en' : 'ar';
     const otherTranslation = await prisma.storeTranslation.findFirst({
       where: { storeId: store.id, locale: otherLocale },
@@ -186,15 +216,6 @@ export async function generateMetadata({ params }) {
     if (arSlug) hreflangLanguages['ar-SA'] = `${BASE_URL}/ar-SA/stores/${arSlug}`;
     if (enSlug) hreflangLanguages['en-SA'] = `${BASE_URL}/en-SA/stores/${enSlug}`;
     hreflangLanguages['x-default'] = `${BASE_URL}/ar-SA/stores/${arSlug || enSlug || slug}`;
-
-    // ── 6. Canonical: self-canonicalise for all languages ──────────────────
-    const canonicalUrl = `${BASE_URL}/${locale}/stores/${slug}`;
-
-    const ogImage = store.coverImage || store.logo || `${BASE_URL}/logo-512x512.png`;
-    const finalOgImage = ogImage.startsWith('http') ? ogImage : `${BASE_URL}${ogImage.startsWith('/') ? '' : '/'}${ogImage}`;
-
-    // ── 7. Indexing: only thin content pages are noindexed ──────────────────
-    const shouldIndex = !isThinContent;
 
     return {
       metadataBase: new URL(BASE_URL),
@@ -244,11 +265,11 @@ export async function generateMetadata({ params }) {
 // ── Page Component ─────────────────────────────────────────────────────────────
 export default async function StorePage({ params }) {
   const { slug: rawSlug, locale } = await params;
-  let slug = decodeURIComponent(rawSlug);
+  const slug = decodeURIComponent(rawSlug);
   const [language, countryCode] = locale.split('-');
   const now = new Date();
 
-  let store = await getStoreData(slug, language, countryCode);
+  const store = await getStoreData(slug, language, countryCode);
 
   // ── Strict 301 redirect for old slugs ──
   if (!store) {
@@ -269,9 +290,9 @@ export default async function StorePage({ params }) {
   const storeTranslation = store.translations[0];
 
   const storeLogoUrl = getStoreLogoUrl(store);
-  const storeCoverUrl = store.coverImage?.startsWith('http')
-    ? store.coverImage
-    : `${BASE_URL}${store.coverImage?.startsWith('/') ? '' : '/'}${store.coverImage || ''}`;
+  // ✅ FIX: use the null-safe helper instead of the inline expression that
+  // produced "${BASE_URL}/" for stores with no coverImage.
+  const storeCoverUrl = getStoreCoverUrl(store);
 
   const transformedStore = {
     ...store,
@@ -280,8 +301,8 @@ export default async function StorePage({ params }) {
     name: storeTranslation?.name || slug,
     slug: storeTranslation?.slug || slug,
     description: storeTranslation?.description || null,
-    coverImage: storeCoverUrl || null,
-    logo: storeLogoUrl || null,
+    coverImage: storeCoverUrl,
+    logo: storeLogoUrl,
     categories: store.categories.map(sc => ({
       id: sc.category.id,
       name: sc.category.translations[0]?.name || '',
@@ -639,7 +660,6 @@ export default async function StorePage({ params }) {
 
               <StoreIntelligenceCard storeId={store.id} locale={locale} countryCode={countryCode} />
 
-              {/* ── ✅ Store How‑to Guide ── */}
               {Object.keys(stepsByType).length > 0 && (
                 <StoreHowToGuide stepsByType={stepsByType} locale={locale} />
               )}
