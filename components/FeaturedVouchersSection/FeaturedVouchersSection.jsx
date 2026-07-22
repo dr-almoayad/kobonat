@@ -1,5 +1,6 @@
 // components/FeaturedVouchersSection/FeaturedVouchersSection.jsx
 // RSC — fetches isExclusive vouchers and renders them in an Embla carousel.
+// Now accepts pre‑fetched vouchers via the `vouchers` prop.
 
 import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
@@ -48,19 +49,25 @@ async function getFeaturedVouchers(language, countryCode) {
   });
 }
 
-export default async function FeaturedVouchersSection({ locale, countryCode = 'SA' }) {
+export default async function FeaturedVouchersSection({
+  locale,
+  countryCode = 'SA',
+  vouchers: preFetchedVouchers, // ✅ NEW
+}) {
   const [language] = locale.split('-');
   const isAr = language === 'ar';
 
-  let vouchers = [];
-  try {
-    vouchers = await getFeaturedVouchers(language, countryCode);
-  } catch (err) {
-    console.error('[FeaturedVouchersSection]', err?.message);
-    return null;
+  let vouchers = preFetchedVouchers;
+  if (!vouchers) {
+    try {
+      vouchers = await getFeaturedVouchers(language, countryCode);
+    } catch (err) {
+      console.error('[FeaturedVouchersSection]', err?.message);
+      return null;
+    }
   }
 
-  if (!vouchers.length) return null;
+  if (!vouchers?.length) return null;
 
   return (
     <section className="fvs-section home-section" dir={isAr ? 'rtl' : 'ltr'}>
