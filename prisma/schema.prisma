@@ -1,5 +1,5 @@
 // prisma/schema.prisma
-// FULL UPDATED SCHEMA – includes StoreIntelligenceSection, Slug Redirects, and Store Guide Steps
+// FULL UPDATED SCHEMA – includes StoreIntelligenceSection, Slug Redirects, Store Guide Steps, and Price Comparison
 
 generator client {
   provider = "prisma-client-js"
@@ -178,13 +178,13 @@ enum SectionBlockType {
   PROMO
 }
 
-// ── NEW: Redirect type ──────────────────────────────────────────────────────
+// ── Redirect type ──────────────────────────────────────────────────────
 enum RedirectType {
   PERMANENT  // 301
   TEMPORARY  // 302
 }
 
-// ── NEW: Guide step type ──────────────────────────────────────────────────
+// ── Guide step type ──────────────────────────────────────────────────
 enum GuideStepType {
   VOUCHER
   DEAL
@@ -192,6 +192,13 @@ enum GuideStepType {
   CREDIT
   GIFT_CARD
   BNPL
+}
+
+// ── NEW: Feed source type for price comparison ──────────────────────
+enum FeedSourceType {
+  API
+  XML_FEED
+  CSV_FEED
 }
 
 // ============================================================================
@@ -289,7 +296,7 @@ model Store {
   peakSeasons         StorePeakSeason[]
   offerStacks         OfferStack[]
 
-  // NEW: Intelligence sections for dynamic editorial content
+  // Intelligence sections for dynamic editorial content
   intelligenceSections StoreIntelligenceSection[]
 
   comparisonColumns   ComparisonTableColumn[]
@@ -298,11 +305,14 @@ model Store {
 
   seasonalPages       SeasonalPageStore[]
 
-  // ── NEW: Slug redirects ──
+  // Slug redirects
   slugRedirects StoreSlugRedirect[]
 
-  // ── NEW: Guide steps ──
+  // Guide steps
   guideSteps StoreGuideStep[]
+
+  // ── NEW: Price comparison feed source ──
+  comparisonFeedSource ComparisonFeedSource?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -355,6 +365,9 @@ model Category {
   offerStackCategories    OfferStackCategory[]
   storeProductCategories  StoreProductCategory[]
   otherPromoCategories    OtherPromoCategory[]
+
+  // ── NEW: Price comparison products ──
+  comparisonProducts ComparisonProduct[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -424,7 +437,7 @@ model Voucher {
   stackAsCode  OfferStack[] @relation("StackCode")
   stackAsDeal  OfferStack[] @relation("StackDeal")
 
-  // NEW: Intelligence sections that embed this voucher
+  // Intelligence sections that embed this voucher
   intelligenceSections StoreIntelligenceSection[] @relation("VoucherIntelligenceSections")
 
   comparisonColumns ComparisonTableColumn[]
@@ -502,13 +515,31 @@ model StoreProduct {
   linkedVoucher   Voucher?    @relation("ProductLinkedVoucher", fields: [linkedVoucherId], references: [id], onDelete: SetNull)
   linkedPromo     OtherPromo? @relation("ProductLinkedPromo",   fields: [linkedPromoId],   references: [id], onDelete: SetNull)
 
+  // ── NEW: Price comparison fields ──
+  isComparisonOffer Boolean @default(false)
+  comparisonProductId Int?
+  comparisonVariantId Int?
+  externalId          String?
+  gtin                String?
+  isInStock           Boolean @default(true)
+  lastSyncedAt        DateTime?
+
+  comparisonProduct ComparisonProduct?        @relation(fields: [comparisonProductId], references: [id], onDelete: SetNull)
+  comparisonVariant ComparisonProductVariant? @relation(fields: [comparisonVariantId], references: [id], onDelete: SetNull)
+  priceHistory      ComparisonPriceSnapshot[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@unique([storeId, externalId])
   @@index([storeId])
   @@index([isFeatured])
   @@index([order])
   @@index([discountType])
+  @@index([comparisonProductId])
+  @@index([comparisonVariantId])
+  @@index([externalId])
+  @@index([isComparisonOffer])
 }
 
 model StoreProductTranslation {
@@ -587,7 +618,6 @@ model OtherPromo {
   paymentMethod PaymentMethod? @relation(fields: [paymentMethodId], references: [id], onDelete: SetNull)
   offerStacks  OfferStack[]   @relation("StackPromo")
 
-  // NEW: Intelligence sections that embed this promo
   intelligenceSections StoreIntelligenceSection[] @relation("PromoIntelligenceSections")
 
   comparisonColumns ComparisonTableColumn[]
@@ -1037,7 +1067,7 @@ model BlogPost {
 
   seasonalPages SeasonalPageBlogPost[]
 
-  // ── NEW: Slug redirects ──
+  // Slug redirects
   slugRedirects BlogSlugRedirect[]
 
   createdAt DateTime @default(now())
@@ -1294,24 +1324,20 @@ model StorePeakSeason {
 model StoreIntelligenceSection {
   id        Int    @id @default(autoincrement())
   storeId   Int
-  locale    Locale  // 'ar' or 'en'
+  locale    Locale
 
   title     String
-  content   String  @db.Text   // Rich HTML content from the admin editor
+  content   String  @db.Text
+  image     String?
+  linkUrl   String?
+  linkText  String?
 
-  image     String? // Optional image URL for the section
-  linkUrl   String? // Optional link URL
-  linkText  String? // Optional link text (defaults to "Read more" if omitted)
-
-  // ── Embed a voucher or promo directly in the section ──
   voucherId Int?
   promoId   Int?
 
-  // ── Layout & ordering ──
-  order       Int @default(0)       // Order within the store/locale
-  columnSpan  Int @default(1)       // 1 = half width, 2 = full width
+  order       Int @default(0)
+  columnSpan  Int @default(1)
 
-  // ── Relations ──
   store   Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
   voucher Voucher? @relation("VoucherIntelligenceSections", fields: [voucherId], references: [id], onDelete: SetNull)
   promo   OtherPromo? @relation("PromoIntelligenceSections", fields: [promoId], references: [id], onDelete: SetNull)
@@ -1326,13 +1352,13 @@ model StoreIntelligenceSection {
 }
 
 // ============================================================================
-// STORE GUIDE STEPS – (NEW)
+// STORE GUIDE STEPS
 // ============================================================================
 
 model StoreGuideStep {
   id           Int           @id @default(autoincrement())
   storeId      Int
-  locale       Locale        // 'ar' or 'en'
+  locale       Locale
   type         GuideStepType
   order        Int           @default(0)
   title        String
@@ -1630,11 +1656,9 @@ model SectionBlock {
   type      SectionBlockType
   order     Int             @default(0)
 
-  // Populated when type = TEXT
   textEn String? @db.Text
   textAr String? @db.Text
 
-  // Entity references — at most one populated per block
   postId    Int?
   tableId   Int?
   productId Int?
@@ -1835,14 +1859,14 @@ model OtherPromoCategory {
 }
 
 // ============================================================================
-// ── NEW: SLUG REDIRECTS (SEO preservation) ──────────────────────────────────
+// SLUG REDIRECTS (SEO preservation)
 // ============================================================================
 
 model StoreSlugRedirect {
   id        Int    @id @default(autoincrement())
   oldSlug   String @unique
   newSlug   String
-  locale    String            // 'ar' or 'en' – keeps redirects language‑specific
+  locale    String
   storeId   Int
   store     Store  @relation(fields: [storeId], references: [id], onDelete: Cascade)
 
@@ -1860,7 +1884,7 @@ model BlogSlugRedirect {
   id        Int    @id @default(autoincrement())
   oldSlug   String @unique
   newSlug   String
-  locale    String            // 'ar' or 'en'
+  locale    String
   postId    Int
   post      BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
 
@@ -1872,4 +1896,126 @@ model BlogSlugRedirect {
   @@index([oldSlug])
   @@index([postId])
   @@index([locale])
+}
+
+// ============================================================================
+// PRICE COMPARISON — Canonical Grouping & Ingestion
+// ============================================================================
+
+model ComparisonBrand {
+  id       Int    @id @default(autoincrement())
+  slug     String @unique
+  logo     String?
+  website  String?
+
+  translations ComparisonBrandTranslation[]
+  products     ComparisonProduct[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([slug])
+}
+
+model ComparisonBrandTranslation {
+  id      Int    @id @default(autoincrement())
+  brandId Int
+  locale  Locale
+  name    String
+
+  brand ComparisonBrand @relation(fields: [brandId], references: [id], onDelete: Cascade)
+
+  @@unique([brandId, locale])
+}
+
+model ComparisonProduct {
+  id         Int    @id @default(autoincrement())
+  slug       String @unique
+  brandId    Int?
+  categoryId Int?   // references the existing Category model
+
+  images     Json   // string[] – shared gallery
+  specifications Json? // array of { key_en, key_ar, value_en, value_ar }
+  isActive   Boolean @default(true)
+
+  brand    ComparisonBrand? @relation(fields: [brandId], references: [id], onDelete: SetNull)
+  category Category?        @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  translations ComparisonProductTranslation[]
+  variants     ComparisonProductVariant[]
+  offers       StoreProduct[] // StoreProduct rows with isComparisonOffer = true
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([brandId])
+  @@index([categoryId])
+  @@index([isActive])
+  @@index([slug])
+}
+
+model ComparisonProductTranslation {
+  id          Int    @id @default(autoincrement())
+  productId   Int
+  locale      Locale
+  name        String
+  description String? @db.Text
+
+  product ComparisonProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, locale])
+}
+
+model ComparisonProductVariant {
+  id        Int    @id @default(autoincrement())
+  productId Int
+
+  attributes Json    // { "color": "Black", "storage": "256GB" }
+  gtin       String? // EAN/UPC – primary matching key
+  mpn        String? // manufacturer part number – fallback
+  image      String? // overrides product.images[0] when selected
+  isDefault  Boolean @default(false)
+  isActive   Boolean @default(true)
+
+  product ComparisonProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
+  offers  StoreProduct[]    // StoreProduct rows linked via comparisonVariantId
+
+  @@index([productId])
+  @@index([gtin])
+  @@index([mpn])
+}
+
+model ComparisonFeedSource {
+  id       Int    @id @default(autoincrement())
+  storeId  Int    @unique   // one feed source per store
+  type     FeedSourceType
+
+  feedUrl    String? // for XML/CSV feeds
+  fieldMap   Json?   // mapping from feed fields to normalized shape
+  authRef    String? // name of env var containing credentials
+  config     Json?   // store-specific config (keywords, categoryId, etc.)
+
+  syncFrequencyMinutes Int       @default(1440)
+  lastSyncedAt         DateTime?
+  lastSyncStatus       String?   // "OK", "PARTIAL", "ERROR"
+  lastSyncError        String?  @db.Text
+
+  store Store @relation(fields: [storeId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([storeId])
+  @@index([lastSyncedAt])
+}
+
+model ComparisonPriceSnapshot {
+  id             Int      @id @default(autoincrement())
+  storeProductId Int
+  price          Float
+  recordedAt     DateTime @default(now())
+
+  storeProduct StoreProduct @relation(fields: [storeProductId], references: [id], onDelete: Cascade)
+
+  @@index([storeProductId, recordedAt])
 }
