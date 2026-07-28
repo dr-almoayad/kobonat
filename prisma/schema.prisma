@@ -1,5 +1,5 @@
 // prisma/schema.prisma
-// FULL UPDATED SCHEMA – includes StoreIntelligenceSection, Slug Redirects, Store Guide Steps, and Price Comparison
+// FULL UPDATED SCHEMA – includes StoreIntelligenceSection, Slug Redirects, StoreGuideStep, and Price Comparison models
 
 generator client {
   provider = "prisma-client-js"
@@ -178,13 +178,12 @@ enum SectionBlockType {
   PROMO
 }
 
-// ── Redirect type ──────────────────────────────────────────────────────
 enum RedirectType {
-  PERMANENT  // 301
-  TEMPORARY  // 302
+  PERMANENT
+  TEMPORARY
 }
 
-// ── Guide step type ──────────────────────────────────────────────────
+// ── NEW: Guide step type ──────────────────────────────────────────────────
 enum GuideStepType {
   VOUCHER
   DEAL
@@ -194,7 +193,7 @@ enum GuideStepType {
   BNPL
 }
 
-// ── NEW: Feed source type for price comparison ──────────────────────
+// ── NEW: Feed source type ────────────────────────────────────────────────
 enum FeedSourceType {
   API
   XML_FEED
@@ -296,7 +295,6 @@ model Store {
   peakSeasons         StorePeakSeason[]
   offerStacks         OfferStack[]
 
-  // Intelligence sections for dynamic editorial content
   intelligenceSections StoreIntelligenceSection[]
 
   comparisonColumns   ComparisonTableColumn[]
@@ -305,14 +303,12 @@ model Store {
 
   seasonalPages       SeasonalPageStore[]
 
-  // Slug redirects
   slugRedirects StoreSlugRedirect[]
 
-  // Guide steps
   guideSteps StoreGuideStep[]
 
-  // ── NEW: Price comparison feed source ──
-  comparisonFeedSource ComparisonFeedSource?
+  // ── NEW: Feed sources for price comparison ──
+  comparisonFeedSources ComparisonFeedSource[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -366,7 +362,7 @@ model Category {
   storeProductCategories  StoreProductCategory[]
   otherPromoCategories    OtherPromoCategory[]
 
-  // ── NEW: Price comparison products ──
+  // ── NEW: Comparison products ──
   comparisonProducts ComparisonProduct[]
 
   createdAt DateTime @default(now())
@@ -437,7 +433,6 @@ model Voucher {
   stackAsCode  OfferStack[] @relation("StackCode")
   stackAsDeal  OfferStack[] @relation("StackDeal")
 
-  // Intelligence sections that embed this voucher
   intelligenceSections StoreIntelligenceSection[] @relation("VoucherIntelligenceSections")
 
   comparisonColumns ComparisonTableColumn[]
@@ -515,7 +510,7 @@ model StoreProduct {
   linkedVoucher   Voucher?    @relation("ProductLinkedVoucher", fields: [linkedVoucherId], references: [id], onDelete: SetNull)
   linkedPromo     OtherPromo? @relation("ProductLinkedPromo",   fields: [linkedPromoId],   references: [id], onDelete: SetNull)
 
-  // ── NEW: Price comparison fields ──
+  // ── NEW: Comparison fields ────────────────────────────────────────────────
   isComparisonOffer Boolean @default(false)
   comparisonProductId Int?
   comparisonVariantId Int?
@@ -531,15 +526,16 @@ model StoreProduct {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([storeId, externalId])
   @@index([storeId])
   @@index([isFeatured])
   @@index([order])
   @@index([discountType])
+  // ── NEW indexes ──
   @@index([comparisonProductId])
   @@index([comparisonVariantId])
   @@index([externalId])
   @@index([isComparisonOffer])
+  @@unique([storeId, externalId])
 }
 
 model StoreProductTranslation {
@@ -1067,7 +1063,6 @@ model BlogPost {
 
   seasonalPages SeasonalPageBlogPost[]
 
-  // Slug redirects
   slugRedirects BlogSlugRedirect[]
 
   createdAt DateTime @default(now())
@@ -1364,7 +1359,7 @@ model StoreGuideStep {
   title        String
   description  String?       @db.Text
   images       Json          // array of image URLs (String[])
-  bnplPartner  String?       // only used when type = BNPL
+  bnplPartner  String?
 
   store        Store         @relation(fields: [storeId], references: [id], onDelete: Cascade)
 
@@ -1859,7 +1854,7 @@ model OtherPromoCategory {
 }
 
 // ============================================================================
-// SLUG REDIRECTS (SEO preservation)
+// SLUG REDIRECTS
 // ============================================================================
 
 model StoreSlugRedirect {
@@ -1899,14 +1894,14 @@ model BlogSlugRedirect {
 }
 
 // ============================================================================
-// PRICE COMPARISON — Canonical Grouping & Ingestion
+// PRICE COMPARISON – CANONICAL GROUPING & FEED INGESTION
 // ============================================================================
 
 model ComparisonBrand {
-  id       Int    @id @default(autoincrement())
-  slug     String @unique
-  logo     String?
-  website  String?
+  id          Int    @id @default(autoincrement())
+  slug        String @unique
+  logo        String?
+  website     String?
 
   translations ComparisonBrandTranslation[]
   products     ComparisonProduct[]
@@ -1926,17 +1921,19 @@ model ComparisonBrandTranslation {
   brand ComparisonBrand @relation(fields: [brandId], references: [id], onDelete: Cascade)
 
   @@unique([brandId, locale])
+  @@index([locale])
 }
 
 model ComparisonProduct {
-  id         Int    @id @default(autoincrement())
-  slug       String @unique
+  id         Int     @id @default(autoincrement())
+  slug       String  @unique
   brandId    Int?
-  categoryId Int?   // references the existing Category model
+  categoryId Int?
 
-  images     Json   // string[] – shared gallery
-  specifications Json? // array of { key_en, key_ar, value_en, value_ar }
-  isActive   Boolean @default(true)
+  images         Json   // string[] – gallery URLs
+  specifications Json?  // [{ key_en, key_ar, value_en, value_ar }]
+
+  isActive Boolean @default(true)
 
   brand    ComparisonBrand? @relation(fields: [brandId], references: [id], onDelete: SetNull)
   category Category?        @relation(fields: [categoryId], references: [id], onDelete: SetNull)
@@ -1964,6 +1961,7 @@ model ComparisonProductTranslation {
   product ComparisonProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@unique([productId, locale])
+  @@index([locale])
 }
 
 model ComparisonProductVariant {
@@ -1971,14 +1969,14 @@ model ComparisonProductVariant {
   productId Int
 
   attributes Json    // { "color": "Black", "storage": "256GB" }
-  gtin       String? // EAN/UPC – primary matching key
+  gtin       String? // barcode/EAN/UPC – cross‑seller matching key
   mpn        String? // manufacturer part number – fallback
   image      String? // overrides product.images[0] when selected
   isDefault  Boolean @default(false)
   isActive   Boolean @default(true)
 
   product ComparisonProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
-  offers  StoreProduct[]    // StoreProduct rows linked via comparisonVariantId
+  offers  StoreProduct[]
 
   @@index([productId])
   @@index([gtin])
@@ -1987,18 +1985,17 @@ model ComparisonProductVariant {
 
 model ComparisonFeedSource {
   id       Int    @id @default(autoincrement())
-  storeId  Int    @unique   // one feed source per store
+  storeId  Int    @unique
   type     FeedSourceType
 
-  feedUrl    String? // for XML/CSV feeds
-  fieldMap   Json?   // mapping from feed fields to normalized shape
-  authRef    String? // name of env var containing credentials
-  config     Json?   // store-specific config (keywords, categoryId, etc.)
+  feedUrl    String? // pull URL for XML/CSV feeds
+  fieldMap   Json?   // maps this store's tag/column names -> normalized shape
+  authRef    String? // name of an env var holding credentials (never store secrets)
 
-  syncFrequencyMinutes Int       @default(1440)
+  syncFrequencyMinutes Int       @default(1440) // 24h default
   lastSyncedAt         DateTime?
   lastSyncStatus       String?   // "OK", "PARTIAL", "ERROR"
-  lastSyncError        String?  @db.Text
+  lastSyncError        String?   @db.Text
 
   store Store @relation(fields: [storeId], references: [id], onDelete: Cascade)
 
@@ -2006,14 +2003,15 @@ model ComparisonFeedSource {
   updatedAt DateTime @updatedAt
 
   @@index([storeId])
+  @@index([type])
   @@index([lastSyncedAt])
 }
 
 model ComparisonPriceSnapshot {
-  id             Int      @id @default(autoincrement())
+  id            Int      @id @default(autoincrement())
   storeProductId Int
-  price          Float
-  recordedAt     DateTime @default(now())
+  price         Float
+  recordedAt    DateTime @default(now())
 
   storeProduct StoreProduct @relation(fields: [storeProductId], references: [id], onDelete: Cascade)
 
