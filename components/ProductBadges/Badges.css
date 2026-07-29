@@ -1,0 +1,474 @@
+/* ============================================================================
+   INDIVIDUAL BADGE COMPONENTS STYLES
+   Compatible with your price comparison website design
+   ============================================================================ */
+
+/* Google Material Symbols Import */
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Sharp:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap');
+
+/* Alexandria Font for Arabic */
+@import url('https://fonts.googleapis.com/css2?family=Alexandria:wght@300;400;500;600;700&display=swap');
+
+/* ============================================================================
+   BADGE CONTAINER (For managing multiple badges)
+   ============================================================================ */
+
+.product_badges_wrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  z-index: 20;
+  pointer-events: none;
+}
+
+/* ============================================================================
+   BEST SELLER BADGE
+   ============================================================================ */
+
+.best_seller_badge_container {
+  position: relative;
+  top: -0.85rem;
+  left: -0.4rem;
+  display: flex;
+  width: fit-content;
+  height: fit-content;
+  background: linear-gradient(31deg,rgba(255, 208, 0, 1) 0%, rgba(255, 209, 43, 1) 49%, rgba(255, 209, 23, 1) 100%);
+  padding: 0.1rem;
+  padding-right: 0.75rem;
+  padding-left: 0.3rem;
+  border-top-left-radius: 6px;
+  z-index: 20;
+  animation: slideInLeft 0.3s ease-out;
+  --p: 10px; /* control the shape (can be percentage) */
+  clip-path: polygon(0 0,100% 0,calc(100% - var(--p)) 100%,0 100%);
+}
+
+.best_seller_badge {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 0;
+  gap: 0.2rem;
+  font-family: 'Open Sans', Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  letter-spacing: 0.3px;
+  color: #000;
+}
+
+.best_seller_badge_text {
+  font-size: 0.70rem;
+  font-weight: 600;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.best_seller_badge_container .material-symbols-sharp {
+  font-size: 0.9rem;
+  line-height: 1;
+}
+
+/* ============================================================================
+   TRENDING BADGE
+   ============================================================================ */
+
+.trending_badge_container {
+  position: relative;
+  top: -0.85rem;
+  left: -0.35rem;
+  display: flex;
+  width: fit-content;
+  height: 18px;
+  padding: 0.2rem 0.3rem;
+  background: linear-gradient(308deg, rgba(255, 59, 92, 1) 0%, rgba(255, 107, 28, 1) 100%);
+  border-top-left-radius: 12px;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 12px;
+  border-bottom-left-radius: 0;
+  transform: skewX(-10deg);
+  z-index: 20;
+  box-shadow: 0 2px 8px rgba(255, 59, 92, 0.3);
+  animation: slideInLeft 0.3s ease-out;
+}
+
+.trending_badge {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 0;
+  gap: 0.2rem;
+  font-family: 'Open Sans', Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  letter-spacing: 0.3px;
+  color: #fff;
+}
+
+.trending_badge_text {
+  font-size: 0.70rem;
+  font-weight: 600;
+  line-height: 1;
+  transform: skewX(10deg);
+  text-transform: uppercase;
+}
+
+.trending_badge_container .material-symbols-sharp {
+  font-size: 0.9rem;
+  line-height: 1;
+  transform: skewX(10deg);
+}
+
+/* ============================================================================
+   PRICE DROP BADGE
+   ============================================================================ */
+
+.price_drop_badge_container {
+  position: relative;
+  top: -8px;
+  left: 1.5px;
+  display: flex;
+  width: fit-content;
+  height: 18px;
+  padding: 0.2rem 0.3rem;
+  border-top-left-radius: 5px;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 5px;
+  border-bottom-left-radius: 0;
+  transform: skewX(-10deg);
+  z-index: 20;
+  animation: slideInLeft 0.3s ease-out;
+}
+
+/* Price Drop Color Variants */
+.price_drop_badge_container.high {
+  background: linear-gradient(308deg, rgba(227, 0, 49, 1) 0%, rgba(255, 59, 92, 1) 100%);
+}
+
+.price_drop_badge_container.medium {
+  background: linear-gradient(308deg, rgba(255, 106, 0, 1) 0%, rgba(255, 170, 0, 1) 100%);
+}
+
+.price_drop_badge_container.low {
+  background: linear-gradient(308deg, rgba(0, 201, 124, 1) 0%, rgba(16, 206, 152, 1) 100%);
+}
+
+.price_drop_badge {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 0;
+  gap: 0.2rem;
+  font-family: 'Open Sans', Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  letter-spacing: 0.3px;
+  color: #fff;
+}
+
+.price_drop_badge_text {
+  font-size: 0.70rem;
+  font-weight: 700;
+  line-height: 1;
+  transform: skewX(10deg);
+  text-transform: uppercase;
+}
+
+.price_drop_badge_container .material-symbols-sharp {
+  font-size: 0.9rem;
+  line-height: 1;
+  transform: skewX(10deg);
+}
+
+/* ============================================================================
+   LIMITED STOCK BADGE
+   ============================================================================ */
+
+.limited_stock_badge_container {
+  position: relative;
+  top: -8px;
+  left: 1.5px;
+  display: flex;
+  width: fit-content;
+  height: 18px;
+  padding: 0.2rem 0.3rem;
+  background: linear-gradient(308deg, rgba(227, 0, 49, 1) 0%, rgba(255, 59, 59, 1) 100%);
+  border-top-left-radius: 12px;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 12px;
+  border-bottom-left-radius: 0;
+  transform: skewX(-10deg);
+  z-index: 20;
+  box-shadow: 0 2px 8px rgba(227, 0, 49, 0.3);
+  animation: slideInLeft 0.3s ease-out;
+}
+
+.limited_stock_badge {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 0;
+  gap: 0.2rem;
+  font-family: 'Open Sans', Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  letter-spacing: 0.3px;
+  color: #fff;
+}
+
+.limited_stock_badge_text {
+  font-size: 0.70rem;
+  font-weight: 600;
+  line-height: 1;
+  transform: skewX(10deg);
+  text-transform: uppercase;
+}
+
+.limited_stock_badge_container .material-symbols-sharp {
+  font-size: 0.9rem;
+  line-height: 1;
+  transform: skewX(10deg);
+}
+
+/* ============================================================================
+   WATCHING NOW BADGE (Bottom badge)
+   ============================================================================ */
+
+.watching_badge_container {
+  position: absolute;
+  bottom: 0.5rem;
+  left: 0.5rem;
+  display: flex;
+  width: fit-content;
+  padding: 0.2rem 0.3rem;
+  background: rgba(74, 87, 80, 0.75);
+  border-radius: 20px;
+  backdrop-filter: blur(10px);
+  z-index: 20;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.watching_badge {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.3rem;
+  font-family: 'Open Sans', Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  letter-spacing: 0.2px;
+  color: #fff;
+}
+
+.watching_badge .material-symbols-sharp {
+  font-size: 0.85rem;
+  line-height: 1;
+}
+
+.watching_badge_text {
+  font-size: 0.7rem;
+  font-weight: 600;
+  line-height: 1;
+}
+
+/* ============================================================================
+   ANIMATIONS
+   ============================================================================ */
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: skewX(-10deg) translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: skewX(-10deg) translateX(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ============================================================================
+   RTL SUPPORT & ARABIC FONT STYLING
+   ============================================================================ */
+
+/* Base RTL support for all badges */
+[dir="rtl"] .best_seller_badge_container,
+[dir="rtl"] .trending_badge_container,
+[dir="rtl"] .price_drop_badge_container,
+[dir="rtl"] .limited_stock_badge_container,
+[dir="rtl"] .watching_badge_container {
+  direction: rtl;
+  text-align: right;
+}
+
+/* Badge content alignment for RTL */
+[dir="rtl"] .best_seller_badge,
+[dir="rtl"] .trending_badge,
+[dir="rtl"] .price_drop_badge,
+[dir="rtl"] .limited_stock_badge,
+[dir="rtl"] .watching_badge {
+  flex-direction: row-reverse;
+}
+
+/* Alexandria font for Arabic text */
+[dir="rtl"] .best_seller_badge_text,
+[dir="rtl"] .trending_badge_text,
+[dir="rtl"] .price_drop_badge_text,
+[dir="rtl"] .limited_stock_badge_text,
+[dir="rtl"] .watching_badge_text {
+  font-family: 'Alexandria', 'Open Sans', Arial, sans-serif;
+  font-weight: 600;
+  -webkit-font-smoothing: antialiased;
+  letter-spacing: 0;
+}
+
+/* Adjust positioning for RTL */
+[dir="rtl"] .best_seller_badge_container {
+  left: auto;
+  right: -0.4rem;
+  clip-path: polygon(var(--p) 0,100% 0,100% 100%,0 100%);
+}
+
+[dir="rtl"] .trending_badge_container,
+[dir="rtl"] .price_drop_badge_container,
+[dir="rtl"] .limited_stock_badge_container {
+  left: auto;
+  right: 1.5px;
+  transform: skewX(10deg);
+}
+
+[dir="rtl"] .trending_badge_text,
+[dir="rtl"] .price_drop_badge_text,
+[dir="rtl"] .limited_stock_badge_text {
+  transform: skewX(-10deg);
+}
+
+[dir="rtl"] .trending_badge_container .material-symbols-sharp,
+[dir="rtl"] .price_drop_badge_container .material-symbols-sharp,
+[dir="rtl"] .limited_stock_badge_container .material-symbols-sharp {
+  transform: skewX(-10deg);
+}
+
+[dir="rtl"] .watching_badge_container {
+  left: auto;
+  right: 0.5rem;
+}
+
+/* Product badges wrapper RTL */
+[dir="rtl"] .product_badges_wrapper {
+  direction: rtl;
+  text-align: right;
+  align-items: flex-end;
+}
+
+/* Animation adjustments for RTL */
+[dir="rtl"] .best_seller_badge_container,
+[dir="rtl"] .trending_badge_container,
+[dir="rtl"] .price_drop_badge_container,
+[dir="rtl"] .limited_stock_badge_container {
+  animation: slideInRight 0.3s ease-out;
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: skewX(10deg) translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: skewX(10deg) translateX(0);
+  }
+}
+
+/* ============================================================================
+   RESPONSIVE DESIGN
+   ============================================================================ */
+
+@media (max-width: 768px) {
+  .best_seller_badge_container,
+  .trending_badge_container,
+  .price_drop_badge_container,
+  .limited_stock_badge_container {
+    top: -6px;
+    left: 1px;
+    height: 16px;
+    padding: 0.15rem 0.25rem;
+  }
+
+  [dir="rtl"] .best_seller_badge_container,
+  [dir="rtl"] .trending_badge_container,
+  [dir="rtl"] .price_drop_badge_container,
+  [dir="rtl"] .limited_stock_badge_container {
+    left: auto;
+    right: 1px;
+  }
+
+  .best_seller_badge_text,
+  .trending_badge_text,
+  .price_drop_badge_text,
+  .limited_stock_badge_text {
+    font-size: 0.65rem;
+  }
+
+  .best_seller_badge_container .material-symbols-sharp,
+  .trending_badge_container .material-symbols-sharp,
+  .price_drop_badge_container .material-symbols-sharp,
+  .limited_stock_badge_container .material-symbols-sharp {
+    font-size: 0.8rem;
+  }
+
+  .watching_badge_container {
+    padding: 0.25rem 0.5rem;
+    bottom: 0.4rem;
+    left: 0.4rem;
+  }
+
+  [dir="rtl"] .watching_badge_container {
+    left: auto;
+    right: 0.4rem;
+  }
+
+  .watching_badge_text {
+    font-size: 0.65rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .best_seller_badge_container,
+  .trending_badge_container,
+  .price_drop_badge_container,
+  .limited_stock_badge_container {
+    top: -5px;
+    left: 0.5px;
+    height: 14px;
+    padding: 0.1rem 0.2rem;
+  }
+
+  [dir="rtl"] .best_seller_badge_container,
+  [dir="rtl"] .trending_badge_container,
+  [dir="rtl"] .price_drop_badge_container,
+  [dir="rtl"] .limited_stock_badge_container {
+    left: auto;
+    right: 0.5px;
+  }
+
+  .best_seller_badge_text,
+  .trending_badge_text,
+  .price_drop_badge_text,
+  .limited_stock_badge_text {
+    font-size: 0.6rem;
+  }
+
+  .best_seller_badge_container .material-symbols-sharp,
+  .trending_badge_container .material-symbols-sharp,
+  .price_drop_badge_container .material-symbols-sharp,
+  .limited_stock_badge_container .material-symbols-sharp {
+    font-size: 0.7rem;
+  }
+}
