@@ -1,0 +1,152 @@
+/* product_page.css - Refined Layout */
+
+.product_page_wrapper {
+    width: 100%;
+    background: #fff;
+}
+
+.product_page_wrapper .breadcrumbs {
+    padding: 1rem 2.5rem;
+    background: #fff;
+}
+
+.product_page {
+    width: 100%;
+    max-width: 1600px;
+    margin: 0 auto;
+}
+
+/* Tab Navigation - Full Width */
+.product_page > .tab-navigation {
+    width: 100%;
+    padding: 0 2.5rem;
+    background: #fff;
+    margin-bottom: 0;
+}
+
+.product_page_grid {
+    display: grid; 
+    grid-template-columns: 1.4fr 1.4fr 0.8fr; 
+    gap: 1.5rem; 
+    grid-template-areas: 
+        "pricelist pricelist sidebar"
+        "pricehistory pricehistory sidebar"
+        "specs specs sidebar"
+        "compare compare compare";
+    padding: 2.5rem;
+    background: #f8f6f9;
+}
+
+.product_page_grid #price-list {
+    grid-area: pricelist;
+}
+
+.product_page_grid #price-history {
+    grid-area: pricehistory;
+}
+
+.product_page_grid #product-specs {
+    grid-area: specs;
+}
+
+.product_page_grid #product-compare{
+    grid-area: compare;
+}
+
+.product_page_grid .compare-sidebar {
+    grid-area: sidebar;
+    align-self: start;
+    justify-self: flex-end;
+}
+
+/* Carousels outside grid with proper spacing */
+.product_page > .tab_section {
+    padding: 2.5rem;
+    background: #f8f6f9;
+}
+
+/* Remove default section spacing inside grid */
+.product_page_grid .tab_section {
+    padding: 0;
+}
+
+/* Tablet Layout */
+@media screen and (max-width: 1200px) {
+    .product_page > .tab-navigation {
+        padding: 0 1.5rem;
+    }
+
+    .product_page_grid {
+        grid-template-columns: 1fr 1fr;
+        grid-template-areas: 
+            "pricelist pricelist"
+            "pricehistory pricehistory"
+            "specs specs"
+            "sidebar sidebar";
+        gap: 1.5rem;
+        padding: 1.5rem;
+    }
+
+    .product_page_grid .compare-sidebar {
+        position: relative;
+        top: 0;
+        max-height: none;
+    }
+
+    .product_page > .tab_section {
+        padding: 1.5rem;
+    }
+}
+
+/* Mobile Layout */
+@media screen and (max-width: 768px) {
+    .product_page_wrapper .breadcrumbs {
+        padding: 1rem;
+    }
+
+    .product_page > .tab-navigation {
+        padding: 0 1rem;
+    }
+
+    .product_page_grid {
+        grid-template-columns: 1fr;
+        grid-template-areas: 
+            "pricelist"
+            "pricehistory"
+            "specs"
+            "sidebar";
+        gap: 1rem;
+        padding: 1rem;
+    }
+
+    .product_page > .tab_section {
+        padding: 1rem;
+    }
+}
+
+/* Ensure components respect their containers */
+.price_list,
+.price_history,
+.specs_section {
+    width: 100%;
+    padding: 0;
+}
+
+/* Override individual component padding to prevent double spacing */
+.product_page_grid .price_list {
+    padding: 0;
+    background: transparent;
+}
+
+.product_page_grid .price_history {
+    padding: 1.5rem;
+    margin: 0;
+}
+
+
+/* Ensure consistent card styling */
+.product_page_grid .price_list_container,
+.product_page_grid .price_history_container,
+.product_page_grid .specs_section > div {
+    background: transparent;
+}
