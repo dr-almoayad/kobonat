@@ -4,8 +4,8 @@ import ProductSpecs from '@/components/productSpecs/productSpecs';
 import PriceList from '@/components/pricelist/priceList';
 import PriceHistory from '@/components/price_history/priceHistory';
 import TabNavigation from '@/components/tabnav/Tabnav';
-import SimilarProductsCarousel from '@/components/carousel/SimilarProductsCarousel';
-import BoughtTogetherCarousel from '@/components/carousel/BoughtTogetherCarousel';
+// import SimilarProductsCarousel from '@/components/carousel/SimilarProductsCarousel';
+// import BoughtTogetherCarousel from '@/components/carousel/BoughtTogetherCarousel';
 import { setRequestLocale } from 'next-intl/server';
 import Breadcrumbs from '@/components/breadcrumbs/Breadcrumbs';
 import { ProductProvider } from '@/contexts/ProductContext';
@@ -88,19 +88,19 @@ export default async function ProductPage({ params }) {
             <aside className="compare-sidebar">{/* optional */}</aside>
           </div>
           <section className="tab_section">
-            <BoughtTogetherCarousel
+            {/* <BoughtTogetherCarousel
               productId={product.id}
               categoryId={product.category?.id}
               limit={8}
-            />
+            /> */}
           </section>
           <section className="tab_section">
-            <SimilarProductsCarousel
+            {/* <SimilarProductsCarousel
               productId={product.id}
               categoryId={product.category?.id}
               brandId={product.brand?.id}
               limit={12}
-            />
+            /> */}
           </section>
         </section>
       </ProductProvider>
