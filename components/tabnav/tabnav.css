@@ -1,0 +1,72 @@
+/* Tab wrapper (use fixed if sticky cause problems) */
+.tab-navigation {
+  position: sticky;
+  top: 74px; /* push it below the fixed header */
+  background: #fff;
+  padding-inline: var(--space-md);
+  z-index: 7; /* lower than header */
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+/* inner constrainer */
+.tab-navigation-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 16px;
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  align-items: center;
+}
+
+/* buttons */
+.tab-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    padding: 14px;
+    font-size: 1rem;
+    font-family: 'Open Sans', Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    color: #0f041c;
+    cursor: pointer;
+    position: relative;
+    overflow: visible;
+    transition: color .15s ease;
+}
+
+.tab-btn:hover {
+  color: #0f041c;
+}
+
+/* underline animation using scaleX(0->1) */
+.tab-btn::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 3px;
+  background: #0f041c;
+  transform-origin: left center;
+  transform: scaleX(0);
+  transition: transform 220ms, opacity 180ms;
+  transition-delay: 0.2s;
+  opacity: 0;
+  border-radius: 3px;
+}
+
+.tab-btn:hover::after {
+  transform: scaleX(0.25);
+  opacity: 1;
+}
+
+.tab-btn.active {
+  color: #0f041c;
+}
+.tab-btn.active::after {
+  transform: scaleX(1);
+  opacity: 1;
+}
