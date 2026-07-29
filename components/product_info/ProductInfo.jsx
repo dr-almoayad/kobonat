@@ -7,7 +7,7 @@ import { useSession } from 'next-auth/react';
 import { useLocale, useTranslations } from 'next-intl';
 import { addToRecentlyViewed } from "@/utils/recentlyViewed";
 import VariantSelector from '../VariantSelector/VariantSelector';
-import StoreCard from '../StoreCard/StoreCard';
+import OfferCard from '../pricelist/OfferCard';
 import { useComparison } from '@/contexts/ComparisonContext';
 import ProductBadges from '../ProductBadges/ProductBadges';
 import { useProduct } from '@/contexts/ProductContext';
@@ -246,11 +246,10 @@ export default function ProductInfo({ product }) {
         <div className="area-other">
           {bestOffer ? (
             <div className="store_card_sticky_wrapper">
-              <StoreCard
+              <OfferCard
                 sellerProduct={bestOffer}
                 sellerInfo={lowestSellerInfo}
                 highlight={true}
-                productId={product.id}
               />
             </div>
           ) : (
