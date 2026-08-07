@@ -215,6 +215,8 @@ export default async function LocaleLayout({ children, params }) {
           href={MATERIAL_SYMBOLS_URL}
           crossOrigin="anonymous"
         />
+
+        <meta name="mitgo-verification" content="16433a0c-1063-426b-9512-cabc4812b6b1" />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${alexandria.variable} ${openSans.variable} antialiased`}
